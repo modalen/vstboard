@@ -117,16 +117,30 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
 
                 foreach(QUrl url,data->urls()) {
                     QString fName = url.toLocalFile();
-                    QFileInfo info;
-                    info.setFile( fName );
+                    QFileInfo fileInfo;
+                    fileInfo.setFile( fName );
 
-                    if ( info.isFile() && info.isReadable() && info.suffix()=="dll" ) {
+                    if ( fileInfo.isReadable() && (
+                                (fileInfo.isFile() && fileInfo.suffix()=="dll")
+                                || (fileInfo.isBundle())
+                        ) ) {
 
                         ObjectInfo infoVst;
                         infoVst.nodeType = NodeType::object;
                         infoVst.objType = ObjType::VstPlugin;
-                        infoVst.filename = fName;
-                        infoVst.name = fName;
+                        if(fileInfo.isBundle()) {
+                            QString exeName( fileInfo.absolutePath() );
+                            exeName.remove(".vst", Qt::CaseInsensitive);
+                            exeName = exeName.mid( exeName.lastIndexOf("/") );
+                            exeName.prepend( fileInfo.absoluteFilePath() + "Contents/MacOS" );
+//                            debug2(<< exeName )
+                            infoVst.filename = exeName;
+                            infoVst.name = fileInfo.bundleName();
+                        } else {
+                            infoVst.filename = fileInfo.absoluteFilePath();
+                            infoVst.name = fileInfo.fileName();
+                        }
+
 
                         QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->NewObject(infoVst);
                         if(objPtr.isNull()) {

@@ -64,8 +64,10 @@ bool CEffect::Load(MainHost *myHost, const QString &name)
 {
     pluginLib = new QLibrary(name);
 
-//    if(!pluginLib->load())
+    if(!pluginLib->load()) {
+        debug2(<< pluginLib->errorString() )
 //        return false;
+    }
 
     vstPluginFuncPtr entryPoint = (vstPluginFuncPtr)pluginLib->resolve("VSTPluginMain");
     if(!entryPoint)

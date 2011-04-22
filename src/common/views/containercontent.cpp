@@ -82,7 +82,11 @@ void ContainerContent::dragEnterEvent( QGraphicsSceneDragDropEvent *event)
         foreach(QUrl url,event->mimeData()->urls()) {
             fName = url.toLocalFile();
             info.setFile( fName );
-            if ( info.isFile() && info.isReadable() && info.suffix()=="dll" ) {
+            QString s(info.suffix());
+            if ( info.isReadable() && (
+                        (info.isFile() && info.suffix()=="dll")
+                        || (info.isBundle())
+                ) ) {
                 event->setDropAction(Qt::CopyAction);
                 event->accept();
                 return;

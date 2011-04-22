@@ -1,5 +1,9 @@
 TEMPLATE    = subdirs
 
+mac {
+    CONFIG += x86 ppc x86_64 ppc64
+}
+
 win32 {
     SUBDIRS += portaudio
 }
@@ -7,11 +11,11 @@ win32 {
 SUBDIRS += \
     portmidi \
     common \
-    vstdll \
     vstboard
 
 win32 {
-    SUBDIRS += dllLoader
+    SUBDIRS += vstdll \
+                dllLoader
 }
 
 CONFIG += ordered

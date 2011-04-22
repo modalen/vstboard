@@ -282,6 +282,8 @@ bool AudioDevice::OpenStream(double sampleRate)
             case paSoundManager :
                 break;
             case paCoreAudio :
+                //no paNonInterleaved for coreaudio
+                inputParameters->sampleFormat = paFloat32;
                 break;
             case paOSS :
                 break;
@@ -342,6 +344,8 @@ bool AudioDevice::OpenStream(double sampleRate)
             case paSoundManager :
                 break;
             case paCoreAudio :
+                //no paNonInterleaved for coreaudio
+                outputParameters->sampleFormat = paFloat32;
                 break;
             case paOSS :
                 break;
@@ -676,6 +680,19 @@ int AudioDevice::paCallback( const void *inputBuffer, void *outputBuffer,
             bool readyToRender=true;
 
             //fill circular buffer with device audio
+#ifdef __APPLE__
+            int chanCount=0;
+            int nbChannels=device->listCircularBuffersIn.count();
+            foreach(CircularBuffer *buf, device->listCircularBuffersIn) {
+                float *bufPointer=(float*)inputBuffer;
+                bufPointer+=chanCount;
+                for(int i=0; i<framesPerBuffer; i++) {
+                    buf->Put( bufPointer, 1 );
+                    bufPointer+=nbChannels;
+                }
+                chanCount++;
+            }
+#else
             int cpt=0;
             foreach(CircularBuffer *buf, device->listCircularBuffersIn) {
 
@@ -686,15 +703,15 @@ int AudioDevice::paCallback( const void *inputBuffer, void *outputBuffer,
 
                 cpt++;
             }
-
+#endif
             //if we filled enough buffer
             //if(device->listCircularBuffersIn.at(0)->filledSize >= hostBuffSize ) {
             if(readyToRender) {
                 //put circular buffers into pins buffers
                 if(device->devIn->doublePrecision) {
-                    cpt=0;
+                    int cptBuff=0;
                     foreach(CircularBuffer *buf, device->listCircularBuffersIn) {
-                        AudioBufferD *pinBuf = device->devIn->listAudioPinOut->GetBufferD(cpt);
+                        AudioBufferD *pinBuf = device->devIn->listAudioPinOut->GetBufferD(cptBuff);
                         if(pinBuf) {
 
                             if(pinBuf->GetSize() < hostBuffSize) {
@@ -706,12 +723,12 @@ int AudioDevice::paCallback( const void *inputBuffer, void *outputBuffer,
                             if(buf->filledSize >= hostBuffSize)
                                 buf->Get( pinBuf->GetPointer(true), hostBuffSize );
                         }
-                        cpt++;
+                        cptBuff++;
                     }
                 } else {
-                    cpt=0;
+                    int cptBuff=0;
                     foreach(CircularBuffer *buf, device->listCircularBuffersIn) {
-                        AudioBuffer *pinBuf = device->devIn->listAudioPinOut->GetBuffer(cpt);
+                        AudioBuffer *pinBuf = device->devIn->listAudioPinOut->GetBuffer(cptBuff);
                         if(pinBuf) {
 
                             if(pinBuf->GetSize() < hostBuffSize) {
@@ -723,7 +740,7 @@ int AudioDevice::paCallback( const void *inputBuffer, void *outputBuffer,
                             if(buf->filledSize >= hostBuffSize)
                                 buf->Get( pinBuf->GetPointer(true), hostBuffSize );
                         }
-                        cpt++;
+                        cptBuff++;
                     }
                 }
 
@@ -794,18 +811,26 @@ int AudioDevice::paCallback( const void *inputBuffer, void *outputBuffer,
 
         if(device->devOut) {
             //send circular buffer to device if there's enough data
+#ifdef __APPLE__
+            int chanCount=0;
+            int nbChannels=device->listCircularBuffersOut.count();
+            foreach(CircularBuffer *buf, device->listCircularBuffersOut) {
+                float *bufPointer=(float*)outputBuffer;
+                bufPointer+=chanCount;
+                for(int i=0; i<framesPerBuffer; i++) {
+                    buf->Get( bufPointer, 1 );
+                    bufPointer+=nbChannels;
+                }
+                chanCount++;
+            }
+#else
             int cpt=0;
             foreach(CircularBuffer *buf, device->listCircularBuffersOut) {
-//                while(buf->filledSize >= hostBuffSize+framesPerBuffer ) {
-//                    debug2(<< "AudioDevice::paCallback skip buffer filled:" << buf->filledSize << " host:" << hostBuffSize << " frame:" << framesPerBuffer )
-//                    buf->Skip(framesPerBuffer);
-//                    debug2(<< buf->filledSize)
-//                }
-
                 if(buf->filledSize>=framesPerBuffer)
                     buf->Get( ((float **) outputBuffer)[cpt], framesPerBuffer );
                 cpt++;
             }
+#endif
         } else {
             if(device->devOutClosing) {
                 //the device was removed : clear the output buffer one time
@@ -815,7 +840,9 @@ int AudioDevice::paCallback( const void *inputBuffer, void *outputBuffer,
                     //empty the circular buffer, in case we reopen this device
                     buf->Clear();
                     //send a blank buffer to the device
+#ifndef __APPLE__
                     memcpy(((float **) outputBuffer)[cpt], AudioBuffer::blankBuffer, sizeof(float)*framesPerBuffer );
+#endif
                     cpt++;
                 }
             }
