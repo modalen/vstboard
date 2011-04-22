@@ -1,6 +1,8 @@
 #ifndef OPTIMIZESTEPTHREAD_H
 #define OPTIMIZESTEPTHREAD_H
 
+#include "precomp.h"
+
 class RendererNode;
 class OptimizeStepThread
 {

@@ -26,13 +26,21 @@
 
 #include "aeffeditor.h"
 #include "mainwindow.h"
-#include <qwinwidget.h>
-
+#if WIN32
+    #include <qwinwidget.h>
+#endif
+#ifdef __APPLE__
+    #include <QMacNativeWidget>
+#endif
 class Gui : public QObject, public AEffEditor
 {
     Q_OBJECT
+#if WIN32
     QWinWidget *widget;
-//    MainWindow *win;
+#endif
+#ifdef __APPLE__
+    QMacNativeWidget *widget;
+#endif
 
     AudioEffectX* effect;
 
@@ -54,6 +62,8 @@ protected:
     MainWindow *myWindow;
 };
 
-void clientResize(HWND h_parent, int width, int height);
+#if WIN32
+    void clientResize(HWND h_parent, int width, int height);
+#endif
 
 #endif // GUI_H

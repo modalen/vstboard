@@ -10,8 +10,8 @@ DEFINES += APP_NAME=\\\"VstBoardCommon\\\"
 
 vstsdk {
     DEFINES += VSTSDK
-    INCLUDEPATH += $$top_srcdir/$$VSTSDK_PATH \
-        $$top_srcdir/$$VSTSDK_PATH/public.sdk/source/vst2.x
+    INCLUDEPATH += ../../libs/vstsdk2.4 \
+        ../../libs/vstsdk2.4/public.sdk/source/vst2.x
 
     HEADERS += vst/cvsthost.h \
         connectables/vstplugin.h \
@@ -27,8 +27,8 @@ vstsdk {
         vst/vstbank.cpp \
         views/vstpluginwindow.cpp \
         views/vstshellselect.cpp \
-        $$top_srcdir/$$VSTSDK_PATH/public.sdk/source/vst2.x/audioeffectx.cpp \
-        $$top_srcdir/$$VSTSDK_PATH/public.sdk/source/vst2.x/audioeffect.cpp
+        ../../libs/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.cpp \
+        ../../libs/vstsdk2.4/public.sdk/source/vst2.x/audioeffect.cpp
 
     FORMS += views/vstpluginwindow.ui \
         views/vstshellselect.ui

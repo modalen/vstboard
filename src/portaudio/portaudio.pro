@@ -124,6 +124,7 @@ win32 {
 
 mac {
     INCLUDEPATH += $$top_srcdir/$$PORTAUDIO_PATH/src/os/mac_osx
+    INCLUDEPATH += $$top_srcdir/$$PORTAUDIO_PATH/src/common
     INCLUDEPATH += $$top_srcdir/$$PORTAUDIO_PATH/src/hostapi/asio/ASIOSDK/common
     INCLUDEPATH += $$top_srcdir/$$PORTAUDIO_PATH/src/hostapi/asio/ASIOSDK/host
     INCLUDEPATH += $$top_srcdir/$$PORTAUDIO_PATH/src/hostapi/asio/ASIOSDK/host/mac

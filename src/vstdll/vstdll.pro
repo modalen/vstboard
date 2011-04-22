@@ -9,11 +9,10 @@ TARGET = "VstBoardPlugin"
 TEMPLATE = lib
 #CONFIG += staticlib
 
-include($${_PRO_FILE_PWD_}/../../libs/qtwinmigrate/src/qtwinmigrate.pri)
-
 LIBS += -L$$top_destdir -lcommon
 
 win32 {
+    include($${_PRO_FILE_PWD_}/../../libs/qtwinmigrate/src/qtwinmigrate.pri)
     LIBS += -lwinmm
     LIBS += -ladvapi32
     LIBS += -lws2_32
@@ -48,8 +47,11 @@ win32-msvc* {
 
 vstsdk {
     DEFINES += VSTSDK
-    INCLUDEPATH += $$top_srcdir/$$VSTSDK_PATH \
-        $$top_srcdir/$$VSTSDK_PATH/public.sdk/source/vst2.x
+    INCLUDEPATH += ../../libs/vstsdk2.4 \
+        ../../libs/vstsdk2.4/public.sdk/source/vst2.x
+
+    SOURCES +=     ../../libs/vstsdk2.4/public.sdk/source/vst2.x/audioeffectx.cpp \
+        ../../libs/vstsdk2.4/public.sdk/source/vst2.x/audioeffect.cpp
 }
 
 

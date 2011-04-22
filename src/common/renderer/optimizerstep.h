@@ -1,6 +1,7 @@
 #ifndef OPTIMIZERSTEP_H
 #define OPTIMIZERSTEP_H
 
+#include "precomp.h"
 #include "optimizestepthread.h"
 
 class Optimizer;

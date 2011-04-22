@@ -100,7 +100,7 @@ bool CFxProgram::SetSize(int nParams)
 
 bool CFxProgram::SetChunkSize(int nChunkSize)
 {
-    int nTotLen = ((int)((SFxProgramChunk*)0)->chunk) + nChunkSize;
+    size_t nTotLen = ((size_t)((SFxProgramChunk*)0)->chunk) + nChunkSize;
     unsigned char *nProg = new unsigned char[nTotLen];
     if (!nProg)
         return false;

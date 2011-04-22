@@ -22,8 +22,8 @@ PORTAUDIO_PATH 	= ../libs/portaudio
 PORTMIDI_PATH 	= ../libs/portmidi
 
 win32|macx {
-    VSTSDK_PATH	= ../libs/vstsdk2.4
     CONFIG += vstsdk
+    DEFINES += VST_FORCE_DEPRECATED=0
 }
 
 CONFIG(debug, debug|release) {

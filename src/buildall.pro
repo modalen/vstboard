@@ -1,9 +1,17 @@
 TEMPLATE    = subdirs
-SUBDIRS     = \
+
+win32 {
+    SUBDIRS += portaudio
+}
+
+SUBDIRS += \
     portmidi \
-    portaudio \
     common \
     vstdll \
-    vstboard \
-    dllLoader
+    vstboard
+
+win32 {
+    SUBDIRS += dllLoader
+}
+
 CONFIG += ordered

@@ -256,14 +256,17 @@ bool AudioDevice::OpenStream(double sampleRate)
 
         switch(Pa_GetHostApiInfo( devInfo.hostApi )->type) {
             case paDirectSound :
+#if WIN32
                 directSoundStreamInfo.size = sizeof(PaWinDirectSoundStreamInfo);
                 directSoundStreamInfo.hostApiType = paDirectSound;
                 directSoundStreamInfo.version = 1;
                 //directSoundStreamInfo.flags = paWinDirectSoundUseChannelMask;
                 //directSoundStreamInfo.channelMask = PAWIN_SPEAKER_5POINT1; /* request 5.1 output format */
                 inputParameters->hostApiSpecificStreamInfo = &directSoundStreamInfo;
+#endif
                 break;
             case paMME :
+#if WIN32
                 wmmeStreamInfo.size = sizeof(PaWinMmeStreamInfo);
                 wmmeStreamInfo.hostApiType = paMME;
                 wmmeStreamInfo.version = 1;
@@ -272,6 +275,7 @@ bool AudioDevice::OpenStream(double sampleRate)
                 wmmeStreamInfo.bufferCount = 8;//devInfo->maxInputChannels;
                 inputParameters->hostApiSpecificStreamInfo = &wmmeStreamInfo;
                 inputParameters->suggestedLatency = 0;
+#endif
                 break;
             case paASIO :
                 break;
@@ -312,14 +316,17 @@ bool AudioDevice::OpenStream(double sampleRate)
 
         switch(Pa_GetHostApiInfo( devInfo.hostApi )->type) {
             case paDirectSound :
+#if WIN32
                 directSoundStreamInfo.size = sizeof(PaWinDirectSoundStreamInfo);
                 directSoundStreamInfo.hostApiType = paDirectSound;
                 directSoundStreamInfo.version = 1;
                 //directSoundStreamInfo.flags = paWinDirectSoundUseChannelMask;
                 //directSoundStreamInfo.channelMask = PAWIN_SPEAKER_5POINT1; /* request 5.1 output format */
                 outputParameters->hostApiSpecificStreamInfo = &directSoundStreamInfo;
+#endif
                 break;
             case paMME :
+#if WIN32
                 wmmeStreamInfo.size = sizeof(PaWinMmeStreamInfo);
                 wmmeStreamInfo.hostApiType = paMME;
                 wmmeStreamInfo.version = 1;
@@ -328,6 +335,7 @@ bool AudioDevice::OpenStream(double sampleRate)
                 wmmeStreamInfo.bufferCount = 8;//devInfo->maxOutputChannels;
                 outputParameters->hostApiSpecificStreamInfo = &wmmeStreamInfo;
                 outputParameters->suggestedLatency = 0;
+#endif
                 break;
             case paASIO :
                 break;

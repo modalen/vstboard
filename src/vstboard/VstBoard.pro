@@ -31,6 +31,10 @@ win32-msvc* {
     PRE_TARGETDEPS += $$top_destdir/libcommon.a
 }
 
+mac {
+    QMAKE_LFLAGS += "-framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio"
+}
+
 INCLUDEPATH += $$top_srcdir/$$PORTAUDIO_PATH/include
 INCLUDEPATH += $$top_srcdir/$$PORTMIDI_PATH/porttime
 INCLUDEPATH += $$top_srcdir/$$PORTMIDI_PATH/pm_common
@@ -70,10 +74,8 @@ INCLUDEPATH += ../common
 
 vstsdk {
     DEFINES += VSTSDK
-    INCLUDEPATH += $$top_srcdir/$$VSTSDK_PATH \
-        $$top_srcdir/$$VSTSDK_PATH/public.sdk/source/vst2.x
-
-    HEADERS +=
+    INCLUDEPATH += ../../libs/vstsdk2.4 \
+        ../../libs/vstsdk2.4/public.sdk/source/vst2.x
 }
 
 SOURCES += \

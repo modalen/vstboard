@@ -41,7 +41,12 @@ Gui::~Gui()
 bool Gui::open(void* ptr)
 {
     AEffEditor::open(ptr);
+#if WIN32
     widget = new QWinWidget(static_cast<HWND>(ptr));
+#endif
+#ifdef __APPLE__
+    widget = new QMacNativeWidget(ptr);
+#endif
     widget->setAttribute(Qt::WA_LayoutUsesWidgetRect);
     QHBoxLayout layout(widget);
     layout.setContentsMargins(0,0,0,0);
@@ -56,7 +61,9 @@ bool Gui::open(void* ptr)
 
     widget->show();
     myWindow->readSettings();
+#if WIN32
     clientResize(static_cast<HWND>(ptr), widget->width(), widget->height());
+#endif
     return true;
 }
 
@@ -78,6 +85,7 @@ bool Gui::getRect (ERect** rect)
     return true;
 }
 
+#if WIN32
 void clientResize(HWND h_parent, int width, int height)
 {
     RECT rcClient, rcWindow;
@@ -88,3 +96,4 @@ void clientResize(HWND h_parent, int width, int height)
     ptDiff.y = (rcWindow.bottom - rcWindow.top) - rcClient.bottom;
     MoveWindow(h_parent, rcWindow.left, rcWindow.top, width + ptDiff.x, height + ptDiff.y, TRUE);
 }
+#endif

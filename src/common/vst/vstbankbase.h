@@ -2,6 +2,7 @@
 #define VSTBANKBASE_H
 
 //#include "../precomp.h"
+#include <iostream>
 #include "aeffeditor.h"
 
 namespace vst

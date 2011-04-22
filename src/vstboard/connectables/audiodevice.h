@@ -27,8 +27,10 @@
 #include "connectables/object.h"
 #include "connectables/objectinfo.h"
 #include "portaudio.h"
+#if WIN32
 #include "pa_win_wmme.h"
 #include "pa_win_ds.h"
+#endif
 #include "../circularbuffer.h"
 
 #ifndef bzero
@@ -106,12 +108,13 @@ namespace Connectables {
         /// mutex for this device
         QMutex devicesMutex;
 
+#if WIN32
         /// windows mme stream options
         PaWinMmeStreamInfo wmmeStreamInfo;
 
         /// windows directsound stream options
         PaWinDirectSoundStreamInfo directSoundStreamInfo;
-
+#endif
         /// list of input ring buffers
         QList<CircularBuffer*>listCircularBuffersIn;
 
