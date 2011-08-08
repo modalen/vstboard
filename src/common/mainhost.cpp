@@ -459,8 +459,6 @@ void MainHost::SetupProgramContainer()
             programContainer.data(), SLOT(SetProgram(QModelIndex)));
     connect(programsModel, SIGNAL(ProgDelete(QModelIndex)),
             programContainer.data(), SLOT(RemoveProgram(QModelIndex)));
-    connect(this,SIGNAL(Rendered()),
-            programContainer.data(), SLOT(PostRender()));
 
     emit programParkingModelChanged(&programContainer->parkModel);
 
@@ -565,8 +563,6 @@ void MainHost::SetupGroupContainer()
             groupContainer.data(), SLOT(SetProgram(QModelIndex)));
     connect(programsModel, SIGNAL(GroupDelete(QModelIndex)),
             groupContainer.data(), SLOT(RemoveProgram(QModelIndex)));
-    connect(this,SIGNAL(Rendered()),
-            groupContainer.data(), SLOT(PostRender()));
 
     emit groupParkingModelChanged(&groupContainer->parkModel);
 
@@ -712,9 +708,6 @@ void MainHost::Render(unsigned long samples)
 
     if(solverNeedAnUpdate && solverUpdateEnabled)
         emit SolverToUpdate();
-
-
-    emit Rendered();
 }
 
 void MainHost::OnCableAdded(Connectables::Cable *cab)

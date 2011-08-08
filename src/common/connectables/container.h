@@ -178,7 +178,6 @@ namespace Connectables {
 
         void SetProgram(const QModelIndex &idx);
         void RemoveProgram(const QModelIndex &idx = QModelIndex());
-        void PostRender();
 
         void SetBufferSize(unsigned long size);
         void SetSampleRate(float rate=44100.0);

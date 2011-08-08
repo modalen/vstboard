@@ -126,6 +126,7 @@ void Renderer::LoadNodes(const QList<RendererNode*> & listNodes)
 
 QList<RendererNode*> Renderer::SaveNodes()
 {
+    QMutexLocker l(&mutexNodes);
     return optimizer.GetListOfNodes();
 }
 

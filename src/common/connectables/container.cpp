@@ -192,12 +192,8 @@ void Container::SetProgram(const QModelIndex &idx)
         return;
     }
 
-    if(!myHost->mutexRender.tryLock())
-        return;
     LoadProgram(progToSet);
     progToSet=-1;
-    myHost->mutexRender.unlock();
-
 }
 
 void Container::NewRenderLoop()
@@ -209,15 +205,6 @@ void Container::NewRenderLoop()
     }
 }
 
-void Container::PostRender()
-{
-    if(progToSet!=-1) {
-        myHost->mutexRender.lock();
-        LoadProgram(progToSet);
-        progToSet=-1;
-        myHost->mutexRender.unlock();
-    }
-}
 
 void Container::SetBufferSize(unsigned long size)
 {
@@ -235,7 +222,7 @@ void Container::SetSampleRate(float rate)
 
 void Container::LoadProgram(int prog)
 {
-    QMutexLocker ml(&progLoadMutex);
+//    QMutexLocker ml(&progLoadMutex);
 
     //if prog is already loaded, update model
     if(prog==currentProgId && currentContainerProgram) {
@@ -264,7 +251,6 @@ void Container::LoadProgram(int prog)
         foreach(QSharedPointer<Object>objPtr, oldProg->listObjects) {
             if(!newProg->listObjects.contains(objPtr)) {
                 ParkChildObject(objPtr);
-//                QTimer::singleShot(0, objPtr.data(), SLOT(OnHideEditor()));
                 objPtr->OnHideEditor();
             }
         }

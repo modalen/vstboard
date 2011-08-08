@@ -165,7 +165,6 @@ signals:
     void BufferSizeChanged(unsigned long size);
     void ObjectRemoved(int contrainerId, int obj);
     void SolverToUpdate();
-    void Rendered();
     void programParkingModelChanged(QStandardItemModel *model);
     void groupParkingModelChanged(QStandardItemModel *model);
     void TempoChanged(int tempo=120, int sign1=4, int sign2=4);
