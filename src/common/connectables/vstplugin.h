@@ -54,8 +54,6 @@ namespace Connectables {
         static QMap<AEffect*,VstPlugin*>mapPlugins;
         static VstPlugin *pluginLoading;
 
-        void CreateEditorWindow();
-
         static View::VstShellSelect *shellSelectView;
 
         void SetContainerAttribs(const ObjectContainerAttribs &attr);
@@ -93,6 +91,7 @@ namespace Connectables {
 
     signals:
         void WindowSizeChange(int newWidth, int newHeight);
+        void IwantAwindow(Connectables::Object *obj);
 
     public slots:
         void SetBufferSize(unsigned long size);
@@ -111,6 +110,8 @@ namespace Connectables {
 //        void TakeScreenshot();
         void UserRemovePin(const ConnectionInfo &info);
         void UserAddPin(const ConnectionInfo &info);
+
+        void SetEditorWnd(View::VstPluginWindow *wnd);
 
         friend class View::VstPluginWindow;
         friend class View::VstShellSelect;

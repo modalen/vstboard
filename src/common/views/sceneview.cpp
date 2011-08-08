@@ -63,6 +63,9 @@ SceneView::SceneView(MainHost *myHost,Connectables::ObjectFactory *objFactory, M
     objFactory(objFactory),
     myHost(myHost)
 {
+    connect(this, SIGNAL(UndoStackPush(QUndoCommand*)),
+            myHost, SLOT(UndoStackPush(QUndoCommand*)));
+
     setHidden(true);
     timerFalloff = new QTimer(this);
     timerFalloff->start(50);
@@ -111,11 +114,14 @@ void SceneView::dataChanged ( const QModelIndex & topLeft, const QModelIndex & b
 
     QModelIndex tmpIndex = topLeft;
     do {
-        ObjectInfo info = tmpIndex.data(UserRoles::objInfo).value<ObjectInfo>();
+        if(!tmpIndex.isValid() || !tmpIndex.data(UserRoles::objInfo).isValid()) {
+            LOG("invalid index");
+        } else {
+            ObjectInfo info = tmpIndex.data(UserRoles::objInfo).value<ObjectInfo>();
 
-        switch( info.nodeType ) {
-        case NodeType::object :
-        case NodeType::container :
+            switch( info.nodeType ) {
+            case NodeType::object :
+            case NodeType::container :
             {
                 ObjectView *view = static_cast<ObjectView*>(hashItems.value(tmpIndex,0));
                 if(!view) {
@@ -125,7 +131,7 @@ void SceneView::dataChanged ( const QModelIndex & topLeft, const QModelIndex & b
                 view->UpdateModelIndex();
                 break;
             }
-        case NodeType::pin :
+            case NodeType::pin :
             {
                 PinView *view = static_cast<PinView*>(hashItems.value(tmpIndex,0));
                 if(!view) {
@@ -135,27 +141,27 @@ void SceneView::dataChanged ( const QModelIndex & topLeft, const QModelIndex & b
                 view->UpdateModelIndex(tmpIndex);
                 break;
             }
-//        case NodeType::editor :
-//            {
-//                ObjectView *view = static_cast<ObjectView*>(hashItems.value(tmpIndex.parent(),0));
-//                if(!view) {
-//                    debug("SceneView::dataChanged editor not found")
-//                            return;
-//                }
-//                view->SetEditorIndex(tmpIndex);
-//                break;
-//            }
-//        case NodeType::learning :
-//            {
-//                ObjectView *view = static_cast<ObjectView*>(hashItems.value(tmpIndex.parent(),0));
-//                if(!view) {
-//                    debug("SceneView::dataChanged editor not found")
-//                            return;
-//                }
-//                view->SetLearningIndex(tmpIndex);
-//                break;
-//            }
-        case NodeType::cursor :
+                //        case NodeType::editor :
+                //            {
+                //                ObjectView *view = static_cast<ObjectView*>(hashItems.value(tmpIndex.parent(),0));
+                //                if(!view) {
+                //                    debug("SceneView::dataChanged editor not found")
+                //                            return;
+                //                }
+                //                view->SetEditorIndex(tmpIndex);
+                //                break;
+                //            }
+                //        case NodeType::learning :
+                //            {
+                //                ObjectView *view = static_cast<ObjectView*>(hashItems.value(tmpIndex.parent(),0));
+                //                if(!view) {
+                //                    debug("SceneView::dataChanged editor not found")
+                //                            return;
+                //                }
+                //                view->SetLearningIndex(tmpIndex);
+                //                break;
+                //            }
+            case NodeType::cursor :
             {
                 PinView *view = static_cast<PinView*>(hashItems.value(tmpIndex.parent(),0));
                 if(!view) {
@@ -165,8 +171,9 @@ void SceneView::dataChanged ( const QModelIndex & topLeft, const QModelIndex & b
                 static_cast<MinMaxPinView*>(view)->UpdateLimitModelIndex(tmpIndex.parent());
                 break;
             }
-        default:
-            break;
+            default:
+                break;
+            }
         }
 
         if ( tmpIndex == bottomRight )
@@ -271,6 +278,15 @@ void SceneView::rowsAboutToBeRemoved ( const QModelIndex & parent, int start, in
                 break;
             }
         default:
+            LOG("nodetype not found"<<index.data().toString());
+            {
+                QModelIndex p = parent;
+                while(p.isValid()) {
+                    ObjectInfo pinfo = p.data(UserRoles::objInfo).value<ObjectInfo>();
+                    LOG(p.data().toString()<<pinfo.name<<pinfo.nodeType<<pinfo.objType);
+                    p = p.parent();
+                }
+            }
             break;
         }
         hashItems.remove(index);
@@ -573,6 +589,12 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
             default:
                 if(index.data().toString()!="cables") {
                     LOG("nodetype not found");
+                    QModelIndex p = parent;
+                    while(p.isValid()) {
+                        ObjectInfo pinfo = p.data(UserRoles::objInfo).value<ObjectInfo>();
+                        LOG(p.data().toString()<<pinfo.name<<pinfo.nodeType<<pinfo.objType);
+                        p = p.parent();
+                    }
                 }
                 break;
 
@@ -607,7 +629,7 @@ void SceneView::ConnectPins(const ConnectionInfo &pinOut, const ConnectionInfo &
 //        static_cast<Connectables::Container*>(cntPtr.data())->UserAddCable(pinIn,pinOut);
 //    }
 
-    myHost->undoStack.push( new ComAddCable(myHost,pinOut,pinIn) );
+    emit UndoStackPush( new ComAddCable(myHost,pinOut,pinIn) );
 }
 
 void SceneView::RemoveCablesFromPin(const ConnectionInfo &pin)
@@ -617,7 +639,7 @@ void SceneView::RemoveCablesFromPin(const ConnectionInfo &pin)
 //    if(pin.bridge) parent = parent.parent();
 //    QSharedPointer<Connectables::Object> cntPtr = objFactory->GetObjectFromId(parent.data(UserRoles::value).toInt());
 //    static_cast<Connectables::Container*>(cntPtr.data())->UserRemoveCableFromPin(pin);
-    myHost->undoStack.push( new ComDisconnectPin(myHost,pin) );
+    emit UndoStackPush( new ComDisconnectPin(myHost,pin) );
 }
 
 void SceneView::RemovePin(const ConnectionInfo &pin)
@@ -625,7 +647,7 @@ void SceneView::RemovePin(const ConnectionInfo &pin)
 //    QPersistentModelIndex ix = mapConnectionInfo.value(pin);
 //    QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(pin.objId);
 //    objPtr->UserRemovePin(pin);
-    myHost->undoStack.push( new ComRemovePin(myHost,pin) );
+    emit UndoStackPush( new ComRemovePin(myHost,pin) );
 }
 
 void SceneView::ToggleHostView(bool show)

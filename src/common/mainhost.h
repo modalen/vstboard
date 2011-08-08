@@ -37,6 +37,19 @@
 
 class MainWindow;
 class ProgramsModel;
+class MainHost;
+
+class EngineThread : public QThread
+{
+public:
+    EngineThread(MainHost *myHost);
+    ~EngineThread();
+    void run();
+
+private:
+    MainHost *myHost;
+};
+
 class MainHost : public QObject
 {
 Q_OBJECT
@@ -95,6 +108,7 @@ public:
     QTimer *updateViewTimer;
 
     HostModel * GetModel() {return model;}
+    void SetModel(HostModel *m) {model=m;}
     ProgramsModel *programsModel;
     Connectables::ObjectFactory *objFactory;
     MainWindow *mainWindow;
@@ -118,12 +132,15 @@ public:
     QString currentProjectFile;
     QString currentSetupFile;
 
-    QUndoStack undoStack;
-QMutex mutexRender;
+    QMutex mutexRender;
+
+    QUndoStack * GetUndoStack() {return &undoStack;}
+
 protected:
     QTime timeFromStart;
     float sampleRate;
     unsigned long bufferSize;
+    QUndoStack undoStack;
 
 private:
     void SetupMainContainer();
@@ -182,6 +199,7 @@ public slots:
     void ClearProject();
     void SaveSetupFile(bool saveAs=false);
     void SaveProjectFile(bool saveAs=false);
+    void UndoStackPush(QUndoCommand *cmd) {undoStack.push(cmd);}
 
 private slots:
     void UpdateSolver(bool forceUpdate=false);

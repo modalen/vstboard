@@ -158,7 +158,7 @@ void AudioDeviceIn::SetBufferFromRingBuffer(QList<CircularBuffer*>listCircularBu
             continue;
 
         if(pinBuf->GetSize() < hostBuffSize) {
-            LOG("resize buffer for" << objectName() );
+//            LOG("resize buffer for" << objectName() );
             pinBuf->SetSize(hostBuffSize);
         }
 

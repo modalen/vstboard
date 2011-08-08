@@ -31,6 +31,25 @@
 #include "projectfile/projectfile.h"
 #include "views/configdialog.h"
 
+EngineThread::EngineThread(MainHost *myHost) :
+    QThread(myHost),
+    myHost(myHost)
+{
+    setObjectName("EngineThread");
+    start(QThread::HighPriority);
+}
+
+EngineThread::~EngineThread()
+{
+    quit();
+    wait(1000);
+}
+
+void EngineThread::run()
+{
+    exec();
+}
+
 quint32 MainHost::currentFileVersion=PROJECT_AND_SETUP_FILE_VERSION;
 
 MainHost::MainHost(QObject *parent, QString settingsGroup) :
@@ -42,7 +61,8 @@ MainHost::MainHost(QObject *parent, QString settingsGroup) :
     solverUpdateEnabled(true),
     mutexListCables(new QMutex(QMutex::Recursive)),
     settingsGroup(settingsGroup),
-    undoProgramChangesEnabled(false)
+    undoProgramChangesEnabled(false),
+    model(0)
 {
     doublePrecision=GetSetting("doublePrecision",false).toBool();
 
@@ -63,10 +83,6 @@ MainHost::MainHost(QObject *parent, QString settingsGroup) :
     vstUsersCounter++;
 #endif
 
-    model = new HostModel(this);
-    model->setObjectName("MainModel");
-    model->setColumnCount(1);
-
     sampleRate = 44100.0;
     bufferSize = 100;
 
@@ -76,7 +92,7 @@ MainHost::MainHost(QObject *parent, QString settingsGroup) :
 
     renderer = new Renderer(this);
 
-    programsModel = new ProgramsModel(this);
+
 
     //timer
     timeFromStart.start();
@@ -87,8 +103,6 @@ MainHost::MainHost(QObject *parent, QString settingsGroup) :
     connect(this,SIGNAL(SolverToUpdate()),
             this,SLOT(UpdateSolver()),
             Qt::QueuedConnection);
-
-
 }
 
 MainHost::~MainHost()
@@ -199,8 +213,9 @@ void MainHost::SetupHostContainer()
     in.forcedObjId = FixedObjId::hostContainerIn;
 
     bridge = objFactory->NewObject(in);
-    hostContainer->AddObject( bridge );
     bridge->SetBridgePinsInVisible(false);
+    hostContainer->AddObject( bridge );
+
     hostContainer->bridgeIn = bridge;
 
     //bridge out
@@ -211,8 +226,9 @@ void MainHost::SetupHostContainer()
     out.forcedObjId = FixedObjId::hostContainerOut;
 
     bridge = objFactory->NewObject(out);
-    hostContainer->AddObject( bridge );
     bridge->SetBridgePinsOutVisible(false);
+    hostContainer->AddObject( bridge );
+
     hostContainer->bridgeOut = bridge;
 
     //connect with groupContainer
@@ -229,8 +245,9 @@ void MainHost::SetupHostContainer()
     send.forcedObjId = FixedObjId::hostContainerSend;
 
     bridge = objFactory->NewObject(send);
-    hostContainer->AddObject( bridge );
     bridge->SetBridgePinsOutVisible(false);
+    hostContainer->AddObject( bridge );
+
     hostContainer->bridgeSend = bridge;
 
     //return bridge
@@ -241,8 +258,9 @@ void MainHost::SetupHostContainer()
     retrn.forcedObjId = FixedObjId::hostContainerReturn;
 
     bridge = objFactory->NewObject(retrn);
-    hostContainer->AddObject( bridge );
     bridge->SetBridgePinsInVisible(false);
+    hostContainer->AddObject( bridge );
+
     hostContainer->bridgeReturn = bridge;
 
     //connect with projectContainer
@@ -297,8 +315,9 @@ void MainHost::SetupProjectContainer()
     in.forcedObjId = FixedObjId::projectContainerIn;
 
     bridge = objFactory->NewObject(in);
-    projectContainer->AddObject( bridge );
     bridge->SetBridgePinsInVisible(false);
+    projectContainer->AddObject( bridge );
+
     projectContainer->bridgeIn = bridge;
 
     //bridge out
@@ -309,8 +328,9 @@ void MainHost::SetupProjectContainer()
     out.forcedObjId = FixedObjId::projectContainerOut;
 
     bridge = objFactory->NewObject(out);
-    projectContainer->AddObject( bridge );
     bridge->SetBridgePinsOutVisible(false);
+    projectContainer->AddObject( bridge );
+
     projectContainer->bridgeOut = bridge;
 
     //connect with hostContainer
@@ -328,8 +348,9 @@ void MainHost::SetupProjectContainer()
     send.forcedObjId = FixedObjId::projectContainerSend;
 
     bridge = objFactory->NewObject(send);
-    projectContainer->AddObject( bridge );
     bridge->SetBridgePinsOutVisible(false);
+    projectContainer->AddObject( bridge );
+
     projectContainer->bridgeSend = bridge;
 
     //bridge return
@@ -340,8 +361,9 @@ void MainHost::SetupProjectContainer()
     retrn.forcedObjId = FixedObjId::projectContainerReturn;
 
     bridge = objFactory->NewObject(retrn);
-    projectContainer->AddObject( bridge );
     bridge->SetBridgePinsInVisible(false);
+    projectContainer->AddObject( bridge );
+
     projectContainer->bridgeReturn = bridge;
 
     //connect with programContainer
@@ -402,8 +424,9 @@ void MainHost::SetupProgramContainer()
     in.forcedObjId = FixedObjId::programContainerIn;
 
     bridge = objFactory->NewObject(in);
-    programContainer->AddObject( bridge );
     bridge->SetBridgePinsInVisible(false);
+    programContainer->AddObject( bridge );
+
     programContainer->bridgeIn = bridge;
 
     //bridge out
@@ -414,8 +437,9 @@ void MainHost::SetupProgramContainer()
     out.forcedObjId = FixedObjId::programContainerOut;
 
     bridge = objFactory->NewObject(out);
-    programContainer->AddObject( bridge );
     bridge->SetBridgePinsOutVisible(false);
+    programContainer->AddObject( bridge );
+
     programContainer->bridgeOut = bridge;
 
     //connect with projectContainer
@@ -433,8 +457,9 @@ void MainHost::SetupProgramContainer()
     send.forcedObjId = FixedObjId::programContainerSend;
 
     bridge = objFactory->NewObject(send);
-    programContainer->AddObject( bridge );
     bridge->SetBridgePinsOutVisible(false);
+    programContainer->AddObject( bridge );
+
     programContainer->bridgeSend = bridge;
 
     //bridge return
@@ -445,8 +470,9 @@ void MainHost::SetupProgramContainer()
     retrn.forcedObjId = FixedObjId::programContainerReturn;
 
     bridge = objFactory->NewObject(retrn);
-    programContainer->AddObject( bridge );
     bridge->SetBridgePinsInVisible(false);
+    programContainer->AddObject( bridge );
+
     programContainer->bridgeReturn = bridge;
 
     //connect with groupContainer
@@ -507,8 +533,9 @@ void MainHost::SetupGroupContainer()
     in.forcedObjId = FixedObjId::groupContainerIn;
 
     bridge = objFactory->NewObject(in);
-    groupContainer->AddObject( bridge );
     bridge->SetBridgePinsInVisible(false);
+    groupContainer->AddObject( bridge );
+
     groupContainer->bridgeIn = bridge;
 
     //bridge out
@@ -519,8 +546,9 @@ void MainHost::SetupGroupContainer()
     out.forcedObjId = FixedObjId::groupContainerOut;
 
     bridge = objFactory->NewObject(out);
-    groupContainer->AddObject( bridge );
     bridge->SetBridgePinsOutVisible(false);
+    groupContainer->AddObject( bridge );
+
     groupContainer->bridgeOut = bridge;
 
     //connect with programContainer
@@ -537,8 +565,9 @@ void MainHost::SetupGroupContainer()
     send.forcedObjId = FixedObjId::groupContainerSend;
 
     bridge = objFactory->NewObject(send);
-    groupContainer->AddObject( bridge );
     bridge->SetBridgePinsOutVisible(false);
+    groupContainer->AddObject( bridge );
+
     groupContainer->bridgeSend = bridge;
 
     //bridge return
@@ -549,8 +578,9 @@ void MainHost::SetupGroupContainer()
     retrn.forcedObjId = FixedObjId::groupContainerReturn;
 
     bridge = objFactory->NewObject(retrn);
-    groupContainer->AddObject( bridge );
     bridge->SetBridgePinsInVisible(false);
+    groupContainer->AddObject( bridge );
+
     groupContainer->bridgeReturn = bridge;
 
     //connect with hostContainer

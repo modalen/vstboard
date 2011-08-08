@@ -32,9 +32,9 @@
 
 #include "mainwindow.h"
 
-ProgramsModel::ProgramsModel(MainHost *parent) :
+ProgramsModel::ProgramsModel(MainHost *myHost, QObject *parent) :
     QStandardItemModel(parent),
-    myHost(parent),
+    myHost(myHost),
     currentGrp(QModelIndex()),
     currentPrg(QModelIndex()),
     nextGroupId(1),
@@ -49,6 +49,12 @@ ProgramsModel::ProgramsModel(MainHost *parent) :
     openedPrompt(false),
     currentCommandHasBeenProcessed(false)
 {
+    connect(this, SIGNAL(UndoStackPush(QUndoCommand*)),
+            myHost, SLOT(UndoStackPush(QUndoCommand*)));
+
+    connect(this, SIGNAL(DisplayMessage(QMessageBox::Icon,QString,QString,QMessageBox::StandardButtons,QMessageBox::StandardButton)),
+            myHost->mainWindow, SLOT(DisplayMessage(QMessageBox::Icon,QString,QString,QMessageBox::StandardButtons,QMessageBox::StandardButton)),
+            Qt::BlockingQueuedConnection);
 }
 
 void ProgramsModel::UserAddGroup(int row)
@@ -63,7 +69,7 @@ void ProgramsModel::UserAddGroup(int row)
     QUndoCommand *com = new QUndoCommand( tr("New group") );
     new ComAddGroup(this,row,&tmpBa,com);
     new ComAddProgram(this,row,0,&tmpBa,com);
-    myHost->undoStack.push( com );
+    emit UndoStackPush( com );
 }
 
 void ProgramsModel::UserAddProgram(const QModelIndex &grpIndex, int row)
@@ -79,7 +85,7 @@ void ProgramsModel::UserAddProgram(const QModelIndex &grpIndex, int row)
     QDataStream stream(&tmpBa,QIODevice::WriteOnly);
     stream << QString(tr("New"));
 
-    myHost->undoStack.push( new ComAddProgram(this,grpIndex.row(),row,&tmpBa) );
+    emit UndoStackPush( new ComAddProgram(this,grpIndex.row(),row,&tmpBa) );
 }
 
 bool ProgramsModel::AddGroup(QModelIndex &index, int row)
@@ -312,7 +318,7 @@ bool ProgramsModel::dropMimeData(const QMimeData *data, Qt::DropAction action, i
 
     switch(action) {
     case Qt::CopyAction :
-        myHost->undoStack.push( currentCommandGroup );
+        emit UndoStackPush( currentCommandGroup );
         currentCommandGroup = 0;
         nbOfCommandsToGroup = 0;
         break;
@@ -420,7 +426,7 @@ void ProgramsModel::CloseCurrentCommandGroup()
 {
     //don't issue the command if nothing has been deleted
     if(currentCommandHasBeenProcessed) {
-        myHost->undoStack.push( currentCommandGroup );
+        emit UndoStackPush( currentCommandGroup );
     } else {
         delete currentCommandGroup;
     }
@@ -456,7 +462,7 @@ bool ProgramsModel::setData(const QModelIndex &index, const QVariant &value, int
         if(index.data(role)==value)
             return true;
 
-        myHost->undoStack.push( new ComChangeProgramItem( this, index.row(), groupNum, index.data(role), value, role ) );
+        emit UndoStackPush( new ComChangeProgramItem( this, index.row(), groupNum, index.data(role), value, role ) );
         return true;
     }
 
@@ -514,10 +520,10 @@ void ProgramsModel::UserChangeProg(const QModelIndex &newPrg)
             new ComDiscardChanges(this,currentGrp.row(),-1,discardCom);
         new ComDiscardChanges(this,currentPrg.row(),currentGrp.row(),discardCom);
         new ComChangeProgram(this,currentGrp.row(),currentPrg.row(),newPrg.parent().row(), newPrg.row(), discardCom);
-        myHost->undoStack.push( discardCom );
+        emit UndoStackPush( discardCom );
     } else {
         if(myHost->undoProgramChanges())
-            myHost->undoStack.push( new ComChangeProgram(this, currentGrp.row(), currentPrg.row(), newPrg.parent().row(), newPrg.row()) );
+            emit UndoStackPush( new ComChangeProgram(this, currentGrp.row(), currentPrg.row(), newPrg.parent().row(), newPrg.row()) );
     }
 
     ValidateProgChange(newPrg);
@@ -626,7 +632,7 @@ void ProgramsModel::UserChangeProgAutosave(const Qt::CheckState state)
         SetDirty();
         emit ProgAutosaveChanged(progAutosaveState);
     } else {
-        myHost->undoStack.push( new ComChangeAutosave(this,1,state) );
+        emit UndoStackPush( new ComChangeAutosave(this,1,state) );
     }
 }
 
@@ -637,7 +643,7 @@ void ProgramsModel::UserChangeGroupAutosave(const Qt::CheckState state)
         SetDirty();
         emit GroupAutosaveChanged(groupAutosaveState);
     } else {
-        myHost->undoStack.push( new ComChangeAutosave(this,0,state) );
+        emit UndoStackPush( new ComChangeAutosave(this,0,state) );
     }
 }
 
@@ -748,6 +754,13 @@ bool ProgramsModel::userWantsToUnloadProject()
     }
 
     //prompt
+//    emit DisplayMessage(QMessageBox::Question,
+//                        tr("The project has been modified."),
+//                        tr("Do you want to save your changes?"),
+//                        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
+//                        QMessageBox::Save);
+//    int res = myHost->mainWindow->GetLastMessageResult();
+
     QMessageBox msgBox;
     openedPrompt=true;
     msgBox.setIcon(QMessageBox::Question);
@@ -755,7 +768,6 @@ bool ProgramsModel::userWantsToUnloadProject()
     msgBox.setInformativeText(tr("Do you want to save your changes?"));
     msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Save);
-
     int res=msgBox.exec();
     openedPrompt=false;
 

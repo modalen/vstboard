@@ -113,6 +113,9 @@ namespace View {
 
         bool highlighted;
 
+    signals:
+        void UndoStackPush(QUndoCommand *cmd);
+
     public slots:
         void ShrinkNow();
         virtual void UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color);

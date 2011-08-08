@@ -50,7 +50,7 @@ class AudioDevices : public QObject
 public:
     explicit AudioDevices(MainHostHost *myHost);
     ~AudioDevices();
-    ListAudioInterfacesModel * GetModel();
+    ListAudioInterfacesModel * GetModel() {return model;}
     Connectables::AudioDevice * AddDevice(ObjectInfo &objInfo, QString *errMsg=0);
     void RemoveDevice(PaDeviceIndex devId);
 
@@ -64,6 +64,7 @@ public:
 
     bool FindPortAudioDevice(ObjectInfo &objInfo, PaDeviceInfo *dInfo);
 private:
+    bool Init();
     void BuildModel();
 
     bool closing;

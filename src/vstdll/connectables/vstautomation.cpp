@@ -89,7 +89,7 @@ void VstAutomation::ValueFromHost(int pinNum, float value)
                     new ComRemovePin(myHost, listParameterPinIn->listPins.value(pinNum)->GetConnectionInfo(),com);
                 }
                 if(com->childCount())
-                    myHost->undoStack.push(com);
+                    emit UndoStackPush(com);
                 else
                     delete com;
             }
@@ -110,7 +110,7 @@ void VstAutomation::ValueFromHost(int pinNum, float value)
                     new ComAddPin(myHost,info,com);
                 }
                 if(com->childCount())
-                    myHost->undoStack.push(com);
+                    emit UndoStackPush(com);
                 else
                     delete com;
             }
@@ -157,7 +157,7 @@ void VstAutomation::OnParameterChanged(ConnectionInfo pinInfo, float value)
         }
 
         if(com->childCount())
-            myHost->undoStack.push(com);
+            emit UndoStackPush(com);
         else
             delete com;
         return;

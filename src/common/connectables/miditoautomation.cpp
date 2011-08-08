@@ -115,7 +115,7 @@ void MidiToAutomation::ChangeValue(int ctrl, int value) {
         switch(GetLearningMode()) {
             case LearningMode::unlearn :
                 if(listParameterPinOut->listPins.contains(ctrl)) {
-                    myHost->undoStack.push( new ComRemovePin(myHost, listParameterPinOut->listPins.value(ctrl)->GetConnectionInfo()) );
+                    emit UndoStackPush( new ComRemovePin(myHost, listParameterPinOut->listPins.value(ctrl)->GetConnectionInfo()) );
                 }
                 break;
             case LearningMode::learn :
@@ -123,7 +123,7 @@ void MidiToAutomation::ChangeValue(int ctrl, int value) {
                     ConnectionInfo info = listParameterPinOut->connInfo;
                     info.pinNumber = ctrl;
                     info.isRemoveable = true;
-                    myHost->undoStack.push( new ComAddPin(myHost,info) );
+                    emit UndoStackPush( new ComAddPin(myHost,info) );
                 }
             case LearningMode::off :
                 listChanged.insert(ctrl,value);

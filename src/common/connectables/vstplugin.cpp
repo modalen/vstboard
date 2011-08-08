@@ -413,7 +413,13 @@ bool VstPlugin::initPlugin()
     }
 
     Object::Open();
-    CreateEditorWindow();
+
+    if((pEffect->flags & effFlagsHasEditor)) {
+        connect(this, SIGNAL(IwantAwindow(Connectables::Object*)),
+                myHost->mainWindow, SLOT(CreateNewPluginWindow(Connectables::Object*)));
+        emit IwantAwindow(this);
+    }
+
     return true;
 }
 
@@ -432,18 +438,13 @@ void VstPlugin::RaiseEditor()
 //    modelNode->setData( QString::number( pEffect->uniqueID ), UserRoles::editorImage );
 //}
 
-void VstPlugin::CreateEditorWindow()
+void VstPlugin::SetEditorWnd(View::VstPluginWindow *wnd)
 {
     //already done
     if(editorWnd)
         return;
 
-    //no gui
-    if((pEffect->flags & effFlagsHasEditor) == 0)
-        return;
-
-    editorWnd = new View::VstPluginWindow(myHost->mainWindow);
-    editorWnd->setAttribute(Qt::WA_ShowWithoutActivating);
+    editorWnd = wnd;// new View::VstPluginWindow(myHost->mainWindow);
 
     if(!editorWnd->SetPlugin(this)) {
         editorWnd=0;
@@ -451,9 +452,10 @@ void VstPlugin::CreateEditorWindow()
         return;
     }
 
+    connect(this,SIGNAL(ShowEditorWindow()),
+            editorWnd,SLOT(show()));
     connect(this,SIGNAL(HideEditorWindow()),
-            editorWnd,SLOT(hide()),
-            Qt::QueuedConnection);
+            editorWnd,SLOT(hide()));
     connect(editorWnd, SIGNAL(Hide()),
             this, SLOT(OnEditorClosed()));
     connect(editorWnd,SIGNAL(destroyed()),
@@ -480,8 +482,8 @@ void VstPlugin::OnShowEditor()
     if(!editorWnd || editorWnd->isVisible())
         return;
 
-    editorWnd->show();
-//    editorWnd->raise();
+    emit ShowEditorWindow();
+
     connect(myHost->updateViewTimer,SIGNAL(timeout()),
             this,SLOT(EditIdle()));
 }
@@ -630,12 +632,12 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
                 switch(GetLearningMode()) {
                 case LearningMode::unlearn :
                     if(pin->GetVisible())
-                        myHost->undoStack.push( new ComRemovePin(myHost, pin->GetConnectionInfo()) );
+                        emit UndoStackPush( new ComRemovePin(myHost, pin->GetConnectionInfo()) );
                     break;
 
                 case LearningMode::learn :
                     if(!pin->GetVisible())
-                        myHost->undoStack.push( new ComAddPin(myHost, pin->GetConnectionInfo()) );
+                        emit UndoStackPush( new ComAddPin(myHost, pin->GetConnectionInfo()) );
 
                 case LearningMode::off :
                     pin->ChangeValue(opt);

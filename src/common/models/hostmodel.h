@@ -29,7 +29,7 @@ class HostModel : public QStandardItemModel
 {
 Q_OBJECT
 public:
-    HostModel(MainHost *parent=0);
+    HostModel(MainHost *myHost=0, QObject *parent=0);
     QMimeData * mimeData ( const QModelIndexList & indexes ) const;
     bool dropMimeData ( const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent );
     bool setData ( const QModelIndex & index, const QVariant & value, int role = Qt::EditRole );
@@ -38,6 +38,8 @@ protected:
     MainHost *myHost;
     QTimer *delayedAction;
     QSignalMapper *LoadFileMapper;
+signals:
+    void UndoStackPush(QUndoCommand *cmd);
 };
 
 #endif // HOSTMODEL_H

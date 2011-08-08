@@ -48,7 +48,9 @@ public:
     View::SceneView *mySceneView;
     View::ViewConfig *viewConfig;
 
+    HostModel *model;
 
+    inline int GetLastMessageResult() {return lastMessageResult;}
 
 protected:
     void changeEvent(QEvent *e);
@@ -71,12 +73,16 @@ protected:
 
     View::ViewConfigDialog *viewConfigDlg;
 
+    int lastMessageResult;
+
 public slots:
     void programParkingModelChanges(QStandardItemModel *model);
     void groupParkingModelChanges(QStandardItemModel *model);
     void currentFileChanged();
     void OnViewConfigClosed();
     void LoadDefaultFiles();
+    void CreateNewPluginWindow(Connectables::Object* obj);
+    void DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton);
 
 private slots:
     void on_actionLoad_Setup_triggered();

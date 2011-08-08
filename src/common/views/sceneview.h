@@ -92,10 +92,7 @@ namespace View {
         MainHost *myHost;
 
     signals:
-//        void hostShown(bool shown);
-//        void projectShown(bool shown);
-//        void programShown(bool shown);
-//        void insertShown(bool shown);
+        void UndoStackPush(QUndoCommand *cmd);
 
     public slots:
         void ConnectPins(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn);

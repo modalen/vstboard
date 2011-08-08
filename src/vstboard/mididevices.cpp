@@ -29,7 +29,7 @@ MidiDevices::MidiDevices(MainHost *myHost) :
         model(0),
         myHost(myHost)
 {
-    //GetModel();
+    Init();
 }
 
 MidiDevices::~MidiDevices()
@@ -43,7 +43,7 @@ MidiDevices::~MidiDevices()
 //    }
 }
 
-ListMidiInterfacesModel* MidiDevices::GetModel()
+bool MidiDevices::Init()
 {
 //    mutexListMidi.lock();
 
@@ -66,7 +66,7 @@ ListMidiInterfacesModel* MidiDevices::GetModel()
         msgBox.setText(tr("Unable to initialize midi engine : %1").arg( Pm_GetErrorText(pmRet) ));
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.exec();
-        return 0;
+        return false;
     }
 
     PtError ptRet = Pt_Start(1, MidiDevices::MidiReceive_poll,this);
@@ -75,7 +75,7 @@ ListMidiInterfacesModel* MidiDevices::GetModel()
         msgBox.setText(tr("Unable to start midi engine"));
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.exec();
-        return 0;
+        return false;
     }
 
     BuildModel();
@@ -98,7 +98,7 @@ ListMidiInterfacesModel* MidiDevices::GetModel()
 
 //    mutexListMidi.unlock();
 
-    return model;
+    return true;
 }
 
 void MidiDevices::OpenDevice(Connectables::MidiDevice* objPtr)

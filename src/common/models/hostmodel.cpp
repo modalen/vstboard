@@ -27,18 +27,20 @@
 #include "connectables/vstplugin.h"
 #include "commands/comaddobject.h"
 
-HostModel::HostModel(MainHost *parent) :
+HostModel::HostModel(MainHost *myHost, QObject *parent) :
         QStandardItemModel(parent),
-    myHost(parent),
+    myHost(myHost),
     delayedAction(0),
     LoadFileMapper(0)
 {
     LoadFileMapper = new QSignalMapper(this);
     delayedAction = new QTimer(this);
     delayedAction->setSingleShot(true);
-    if(parent) {
+    if(myHost) {
         connect(LoadFileMapper, SIGNAL(mapped(QString)), myHost, SLOT(LoadFile(QString)));
         connect(delayedAction, SIGNAL(timeout()), LoadFileMapper, SLOT(map()));
+        connect(this, SIGNAL(UndoStackPush(QUndoCommand*)),
+                myHost, SLOT(UndoStackPush(QUndoCommand*)));
     }
 }
 
@@ -306,7 +308,8 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
         ComAddObject *com = new ComAddObject(myHost, info, targetContainer, senderObj, insertType);
 //        Connectables::VstPlugin::shellSelectView->SetTargetContainer( targetContainer->GetIndex() );
         Connectables::VstPlugin::shellSelectView->command=com;
-        myHost->undoStack.push( com );
+//        myHost->undoStack.push( com );
+        emit UndoStackPush(com);
     }
 
 //    if(listObjToAdd.isEmpty())

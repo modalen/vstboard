@@ -42,7 +42,7 @@ public:
         ProgramId
     };
 
-    explicit ProgramsModel(MainHost *parent = 0);
+    explicit ProgramsModel(MainHost *myHost, QObject *parent = 0);
     bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
     bool removeRows ( int row, int count, const QModelIndex & parent = QModelIndex() );
     bool setData(const QModelIndex &index, const QVariant &value, int role);
@@ -145,6 +145,8 @@ private:
     friend QDataStream & operator>> (QDataStream&, ProgramsModel&);
 
 signals:
+    void UndoStackPush(QUndoCommand *cmd);
+
     void ProgChanged(const QModelIndex &prgIndex);
     void GroupChanged(const QModelIndex &grpIndex);
     void ProgDelete(const QModelIndex &prgIndex);
@@ -154,6 +156,8 @@ signals:
     void GroupAutosaveChanged(const Qt::CheckState state);
 
     void NewProgramAdded(const QModelIndex &prgIndex);
+
+    void DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton);
 
 public slots:
     void UserChangeProg(const QModelIndex &newPrg);

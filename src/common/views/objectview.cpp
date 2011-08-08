@@ -60,6 +60,9 @@ ObjectView::ObjectView(MainHost *myHost, QAbstractItemModel *model, QGraphicsIte
 {
     setObjectName("objView");
 
+    connect(this, SIGNAL(UndoStackPush(QUndoCommand*)),
+            myHost, SLOT(UndoStackPush(QUndoCommand*)));
+
     setAutoFillBackground(true);
 
     QPalette pal(palette());
@@ -221,14 +224,14 @@ void ObjectView::SetErrorMessage(const QString & msg)
 void ObjectView::closeEvent ( QCloseEvent * event )
 {
     setActive(false);
-    myHost->undoStack.push( new ComRemoveObject(myHost, objIndex , RemoveType::RemoveWithCables) );
+    emit UndoStackPush( new ComRemoveObject(myHost, objIndex , RemoveType::RemoveWithCables) );
     event->ignore();
 }
 
 void ObjectView::RemoveWithBridge()
 {
     setActive(false);
-    myHost->undoStack.push( new ComRemoveObject(myHost, objIndex, RemoveType::BridgeCables) );
+    emit UndoStackPush( new ComRemoveObject(myHost, objIndex, RemoveType::BridgeCables) );
 }
 
 /*!

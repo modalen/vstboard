@@ -35,12 +35,13 @@ public:
     explicit MidiDevices(MainHost *myHost);
     ~MidiDevices();
 
-    ListMidiInterfacesModel* GetModel();
+    ListMidiInterfacesModel* GetModel() {return model;}
 
     void OpenDevice(Connectables::MidiDevice* objPtr);
     void CloseDevice(Connectables::MidiDevice* objPtr);
 
 private:
+    bool Init();
     void BuildModel();
     static void MidiReceive_poll(PtTimestamp timestamp, void *userData);
     QList< Connectables::MidiDevice* >listOpenedMidiDevices;

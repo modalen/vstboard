@@ -85,6 +85,16 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QVariant>("QVariant");
     qRegisterMetaType<AudioBuffer*>("AudioBuffer*");
 
+    qRegisterMetaType<Qt::CheckState>("Qt::CheckState");
+    qRegisterMetaType<ColorGroups::Enum>("ColorGroups::Enum");
+    qRegisterMetaType<Colors::Enum>("Colors::Enum");
+    qRegisterMetaType<PaHostApiIndex>("PaHostApiIndex");
+    qRegisterMetaType<PaDeviceIndex>("PaDeviceIndex");
+    qRegisterMetaType<PaTime>("PaTime");
+    qRegisterMetaType<QMessageBox::Icon>("QMessageBox::Icon");
+    qRegisterMetaType<QMessageBox::StandardButtons>("QMessageBox::StandardButtons");
+    qRegisterMetaType<QMessageBox::StandardButton>("QMessageBox::StandardButton");
+
     qRegisterMetaTypeStreamOperators<ObjectInfo>("ObjectInfo");
 
 #ifndef QT_NO_DEBUG
@@ -112,6 +122,8 @@ int main(int argc, char *argv[])
 #endif
 
     MainHostHost host;
+    EngineThread engine(&host);
+    host.moveToThread(&engine);
     MainWindowHost w(&host);
     host.Open();
     w.readSettings();

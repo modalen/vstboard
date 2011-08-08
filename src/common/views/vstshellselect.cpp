@@ -64,7 +64,7 @@ void View::VstShellSelect::on_buttonOk_clicked()
 
 void View::VstShellSelect::on_buttonCancel_clicked()
 {
-    myHost->undoStack.undo();
+    QTimer::singleShot(0, myHost->GetUndoStack(), SLOT(undo()) );
     close();
 }
 

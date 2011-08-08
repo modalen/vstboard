@@ -27,6 +27,8 @@
 #include "connectables/objectinfo.h"
 #include "views/viewconfigdialog.h"
 #include "models/programsmodel.h"
+#include "connectables/vstplugin.h"
+#include "views/vstpluginwindow.h"
 
 MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     QMainWindow(parent),
@@ -37,9 +39,16 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     ui(new Ui::MainWindow),
     myHost(myHost),
     viewConfig( new View::ViewConfig(myHost,this)),
-    viewConfigDlg(0)
+    viewConfigDlg(0),
+    lastMessageResult(0)
 {
     myHost->mainWindow=this;
+
+    model = new HostModel(myHost,this);
+    model->setObjectName("MainHostModel");
+    model->setColumnCount(1);
+    myHost->SetModel(model);
+
     connect(myHost,SIGNAL(programParkingModelChanged(QStandardItemModel*)),
             this,SLOT(programParkingModelChanges(QStandardItemModel*)));
     connect(myHost,SIGNAL(groupParkingModelChanged(QStandardItemModel*)),
@@ -54,6 +63,7 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
             ui->actionTool_bar, SLOT(setChecked(bool)));
 
     //programs
+    myHost->programsModel = new ProgramsModel(myHost);
     ui->Programs->SetModel( myHost->programsModel );
 
     SetupBrowsersModels( ConfigDialog::defaultVstPath(myHost), ConfigDialog::defaultBankPath(myHost));
@@ -76,19 +86,37 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
              this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)));
 
-    QAction *undo = myHost->undoStack.createUndoAction(ui->mainToolBar);
+    QAction *undo = myHost->GetUndoStack()->createUndoAction(ui->mainToolBar);
     undo->setIcon(QIcon(":/img16x16/undo.png"));
     undo->setShortcut( QKeySequence::Undo );
     undo->setShortcutContext(Qt::ApplicationShortcut);
     ui->mainToolBar->addAction( undo );
 
-    QAction *redo = myHost->undoStack.createRedoAction(ui->mainToolBar);
+    QAction *redo = myHost->GetUndoStack()->createRedoAction(ui->mainToolBar);
     redo->setIcon(QIcon(":/img16x16/redo.png"));
     redo->setShortcut( QKeySequence::Redo );
     redo->setShortcutContext(Qt::ApplicationShortcut);
     ui->mainToolBar->addAction( redo );
 
-    ui->listUndo->setStack(&myHost->undoStack);
+    ui->listUndo->setStack( myHost->GetUndoStack() );
+}
+
+void MainWindow::DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton)
+{
+    QMessageBox msgBox;
+    msgBox.setIcon(icon);
+    msgBox.setText(text);
+    msgBox.setInformativeText(info);
+    msgBox.setStandardButtons(buttons);
+    msgBox.setDefaultButton(defaultButton);
+    lastMessageResult=msgBox.exec();
+}
+
+void MainWindow::CreateNewPluginWindow(Connectables::Object* obj)
+{
+    View::VstPluginWindow *editorWnd = new View::VstPluginWindow(this);
+    editorWnd->setAttribute(Qt::WA_ShowWithoutActivating);
+    static_cast<Connectables::VstPlugin*>(obj)->SetEditorWnd(editorWnd);
 }
 
 void MainWindow::SetupBrowsersModels(const QString &vstPath, const QString &browserPath)

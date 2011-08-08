@@ -68,6 +68,7 @@ AudioDevices::AudioDevices(MainHostHost *myHost) :
     fakeRenderTimer(0)
 {
     fakeRenderTimer = new FakeTimer(myHost);
+    Init();
 }
 
 /*!
@@ -107,7 +108,7 @@ AudioDevices::~AudioDevices()
   Get the view model of the list
   \return pointer to the model
   */
-ListAudioInterfacesModel * AudioDevices::GetModel()
+bool AudioDevices::Init()
 {
     mutexClosing.lock();
     closing=true;
@@ -138,7 +139,7 @@ ListAudioInterfacesModel * AudioDevices::GetModel()
         msgBox.setText(tr("Unable to initialize audio engine : %1").arg( Pa_GetErrorText(paRet) ));
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.exec();
-        return 0;
+        return false;
     }
     BuildModel();
 
@@ -179,7 +180,7 @@ ListAudioInterfacesModel * AudioDevices::GetModel()
         }
     }
 
-    return model;
+    return true;
 }
 
 /*!
@@ -329,7 +330,7 @@ void AudioDevices::OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId
         devItem->setToolTip("");
     }
 
-    qDebug()<<"countActiveDevices"<<countActiveDevices<<fakeRenderTimer;
+//    qDebug()<<"countActiveDevices"<<countActiveDevices<<fakeRenderTimer;
 
     //the renderer is normally launched when all the audio devices are ready,
     //if there is no audio device we have to run a timer

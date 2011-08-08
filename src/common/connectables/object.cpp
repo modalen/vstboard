@@ -63,6 +63,9 @@ Object::Object(MainHost *host, int index, const ObjectInfo &info) :
 {
     objInfo.forcedObjId = index;
 
+    connect(this, SIGNAL(UndoStackPush(QUndoCommand*)),
+            myHost, SLOT(UndoStackPush(QUndoCommand*)));
+
     setObjectName(QString("%1.%2").arg(objInfo.name).arg(index));
     doublePrecision=myHost->doublePrecision;
 

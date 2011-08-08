@@ -251,8 +251,11 @@ namespace Connectables {
         quint16 containerId;
 
     signals:
+        void ShowEditorWindow();
         /// Sent to the editor window when we want to close it
         void HideEditorWindow();
+
+        void UndoStackPush(QUndoCommand *cmd);
 
     public slots:
         void SuspendIfParked() {if(!parked) return; SetSleep(true);}
