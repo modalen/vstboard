@@ -37,16 +37,17 @@ ObjectInfo::ObjectInfo() :
 
 }
 
-ObjectInfo::ObjectInfo(NodeType::Enum nodeType, ObjType::Enum objType, QString name) :
+ObjectInfo::ObjectInfo(NodeType::Enum nodeType, ObjType::Enum objType, int id, QString name) :
         nodeType(nodeType),
         objType(objType),
+        forcedObjId(id),
         name(name),
         filename(""),
         inputs(0),
         outputs(0),
         duplicateNamesCounter(0),
         api(0),
-        forcedObjId(0)
+        id(0)
 {
 
 }

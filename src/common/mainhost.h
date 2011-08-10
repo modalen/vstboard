@@ -108,7 +108,9 @@ public:
     QTimer *updateViewTimer;
 
     HostModel * GetModel() {return model;}
-    void SetModel(HostModel *m) {model=m;}
+    void SetModel(HostModel *m) {
+        model=m;
+    }
     ProgramsModel *programsModel;
     Connectables::ObjectFactory *objFactory;
     MainWindow *mainWindow;
@@ -136,11 +138,21 @@ public:
 
     QUndoStack * GetUndoStack() {return &undoStack;}
 
+    void AddEventsListener( QObject *obj) {eventsListeners << obj;}
+    void RemoveEventsListener( QObject *obj) {eventsListeners.removeAll(obj);}
+    void PostEvent( QEvent * event, int priority=5) {
+        foreach(QObject *obj, eventsListeners) {
+            qApp->postEvent(obj,event,priority);
+        }
+    }
+
 protected:
     QTime timeFromStart;
     float sampleRate;
     unsigned long bufferSize;
     QUndoStack undoStack;
+
+    QList<QObject*>eventsListeners;
 
 private:
     void SetupMainContainer();
@@ -187,18 +199,20 @@ signals:
     void TempoChanged(int tempo=120, int sign1=4, int sign2=4);
     void currentFileChanged();
 
+    void askUserWantToUnload();
+
 public slots:
     void SetTempo(int tempo=120, int sign1=4, int sign2=4);
     virtual void Render(unsigned long samples=0);
     void LoadFile(const QString &filename);
-    void LoadSetupFile(const QString &filename = QString());
-    void LoadProjectFile(const QString &filename = QString());
+    void LoadSetupFile(const QString &filename);
+    void LoadProjectFile(const QString &filename);
     void ReloadProject();
     void ReloadSetup();
     void ClearSetup();
     void ClearProject();
-    void SaveSetupFile(bool saveAs=false);
-    void SaveProjectFile(bool saveAs=false);
+    void SaveSetupFile(bool saveAs);
+    void SaveProjectFile(bool saveAs);
     void UndoStackPush(QUndoCommand *cmd) {undoStack.push(cmd);}
 
 private slots:

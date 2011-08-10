@@ -21,13 +21,13 @@
 #ifndef OBJECTINFO_H
 #define OBJECTINFO_H
 
-#include "../globals.h"
+#include "globals.h"
 
 class ObjectInfo
 {
 public:
     ObjectInfo();
-    ObjectInfo(NodeType::Enum nodeType, ObjType::Enum objType=ObjType::ND, QString name="");
+    ObjectInfo(NodeType::Enum nodeType, ObjType::Enum objType=ObjType::ND, int id=0, QString name="");
     ObjectInfo(const ObjectInfo &c);
 
     QDataStream & toStream(QDataStream& stream) const;

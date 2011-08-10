@@ -24,6 +24,7 @@
 #include "../mainhost.h"
 #include "../renderer/pathsolver.h"
 #include "container.h"
+#include "events.h"
 
 using namespace Connectables;
 
@@ -81,34 +82,34 @@ Object::Object(MainHost *host, int index, const ObjectInfo &info) :
 
     i.type=PinType::Audio;
     i.direction=PinDirection::Input;
-    listAudioPinIn->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listAudioIn));
+    listAudioPinIn->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listAudioIn,myHost->objFactory->GetNewId()));
     listAudioPinIn->setObjectName("listAudioPinIn");
     i.direction=PinDirection::Output;
-    listAudioPinOut->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listAudioOut));
+    listAudioPinOut->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listAudioOut,myHost->objFactory->GetNewId()));
     listAudioPinOut->setObjectName("listAudioPinOut");
 
     i.type=PinType::Midi;
     i.direction=PinDirection::Input;
-    listMidiPinIn->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listMidiIn));
+    listMidiPinIn->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listMidiIn,myHost->objFactory->GetNewId()));
     listMidiPinIn->setObjectName("listMidiPinIn");
     i.direction=PinDirection::Output;
-    listMidiPinOut->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listMidiOut));
+    listMidiPinOut->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listMidiOut,myHost->objFactory->GetNewId()));
     listMidiPinOut->setObjectName("listMidiPinOut");
 
     i.type=PinType::Bridge;
     i.direction=PinDirection::Input;
-    listBridgePinIn->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listBridgeIn));
+    listBridgePinIn->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listBridgeIn,myHost->objFactory->GetNewId()));
     listBridgePinIn->setObjectName("listBridgePinIn");
     i.direction=PinDirection::Output;
-    listBridgePinOut->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listBridgeOut));
+    listBridgePinOut->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listBridgeOut,myHost->objFactory->GetNewId()));
     listBridgePinOut->setObjectName("listBridgePinOut");
 
     i.type=PinType::Parameter;
     i.direction=PinDirection::Input;
-    listParameterPinIn->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listParamIn));
+    listParameterPinIn->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listParamIn,myHost->objFactory->GetNewId()));
     listParameterPinIn->setObjectName("listParameterPinIn");
     i.direction=PinDirection::Output;
-    listParameterPinOut->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listParamOut));
+    listParameterPinOut->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listParamOut,myHost->objFactory->GetNewId()));
     listParameterPinOut->setObjectName("listParameterPinOut");
 
     pinLists.insert("audioin", listAudioPinIn);
@@ -432,6 +433,8 @@ QStandardItem * Object::UpdateModelNode()
     modelNode->setData(errorMessage, UserRoles::errorMessage);
 
     foreach(PinsList *lst, pinLists) {
+        Events::newObj *event = new Events::newObj(lst->objInfo,index);
+        myHost->PostEvent(event);
         lst->UpdateModelNode(modelNode);
     }
 

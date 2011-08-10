@@ -22,6 +22,7 @@
 #include "mainhost.h"
 #include "projectfile/projectfile.h"
 #include "models/programsmodel.h"
+#include "events.h"
 
 using namespace Connectables;
 
@@ -547,18 +548,23 @@ void Container::GetListOfConnectedPinsTo(const ConnectionInfo &pin, QList<Connec
   */
 void Container::AddChildObject(QSharedPointer<Object> objPtr)
 {
-    if(!modelIndex.isValid()) {
-        LOG("index not valid");
-        return;
-    }
+//    if(!modelIndex.isValid()) {
+//        LOG("index not valid");
+//        return;
+//    }
 
     if(objPtr->modelIndex.isValid() && objPtr->modelIndex.model()==&parkModel)
         parkModel.removeRow(objPtr->modelIndex.row());
 
-    QStandardItem *item = objPtr->GetFullItem();
+//    QStandardItem *item =
+            objPtr->GetFullItem();
 
-    myHost->GetModel()->itemFromIndex( modelIndex )->appendRow(item);
-    objPtr->modelIndex=item->index();
+    Events::newObj *event = new Events::newObj(objPtr->info(), index);
+//    event->errorMessage = objPtr->errorMessage;
+    myHost->PostEvent(event);
+
+//    myHost->GetModel()->itemFromIndex( modelIndex )->appendRow(item);
+//    objPtr->modelIndex=item->index();
     objPtr->parked=false;
 
 //    myHost->SetSolverUpdateNeeded();

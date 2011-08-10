@@ -25,7 +25,7 @@
 using namespace Connectables;
 
 MidiSender::MidiSender(MainHost *myHost,int index) :
-        Object(myHost,index, ObjectInfo(NodeType::object, ObjType::MidiSender, tr("MidiSender")) ),
+        Object(myHost,index, ObjectInfo(NodeType::object, ObjType::MidiSender, index, tr("MidiSender")) ),
     midiMsg(0),
     msgChanged(false)
 {

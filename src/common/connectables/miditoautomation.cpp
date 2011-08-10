@@ -28,7 +28,7 @@
 using namespace Connectables;
 
 MidiToAutomation::MidiToAutomation(MainHost *myHost,int index) :
-        Object(myHost,index, ObjectInfo(NodeType::object, ObjType::MidiToAutomation, tr("Midi to Parameter")) )
+        Object(myHost,index, ObjectInfo(NodeType::object, ObjType::MidiToAutomation, index, tr("Midi to Parameter")) )
 {
     for(int i=0;i<128;i++) {
         listValues << i;

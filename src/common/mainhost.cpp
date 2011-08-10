@@ -30,6 +30,7 @@
 #include "projectfile/fileversion.h"
 #include "projectfile/projectfile.h"
 #include "views/configdialog.h"
+#include "events.h"
 
 EngineThread::EngineThread(MainHost *myHost) :
     QThread(myHost),
@@ -166,9 +167,13 @@ void MainHost::SetupMainContainer()
     mainContainer->SetLoadingMode(true);
 
     mainContainer->LoadProgram(0);
-    QStandardItem *item = mainContainer->GetFullItem();
-    model->invisibleRootItem()->appendRow(item);
-    mainContainer->modelIndex=item->index();
+//    QStandardItem *item = mainContainer->GetFullItem();
+//    model->invisibleRootItem()->appendRow(item);
+//    mainContainer->modelIndex=item->index();
+    mainContainer->GetFullItem();
+    Events::newObj *event = new Events::newObj(mainContainer->info(), -1);
+    PostEvent(event);
+
     mainContainer->parked=false;
     mainContainer->listenProgramChanges=false;
 
@@ -829,8 +834,12 @@ void MainHost::LoadFile(const QString &filename)
 
 void MainHost::LoadSetupFile(const QString &filename)
 {
-    if(!programsModel->userWantsToUnloadSetup())
-        return;
+    connect(this, SIGNAL(askUserWantToUnload()),
+            programsModel, SLOT(asyncUserWantsToUnloadSetup()),
+            Qt::BlockingQueuedConnection);
+    emit askUserWantToUnload();
+    disconnect(this, SIGNAL(askUserWantToUnload()),
+            programsModel, SLOT(asyncUserWantsToUnloadSetup()));
 
     QString name = filename;
 
@@ -856,7 +865,14 @@ void MainHost::LoadSetupFile(const QString &filename)
 
 void MainHost::LoadProjectFile(const QString &filename)
 {
-    if(!programsModel->userWantsToUnloadProject())
+    connect(this, SIGNAL(askUserWantToUnload()),
+            programsModel, SLOT(asyncUserWantsToUnloadProject()),
+            Qt::BlockingQueuedConnection);
+    emit askUserWantToUnload();
+    disconnect(this, SIGNAL(askUserWantToUnload()),
+            programsModel, SLOT(asyncUserWantsToUnloadProject()));
+
+    if(!programsModel->GetLastDialogAnser())
         return;
 
     QString name = filename;

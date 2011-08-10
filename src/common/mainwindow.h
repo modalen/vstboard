@@ -52,6 +52,16 @@ public:
 
     inline int GetLastMessageResult() {return lastMessageResult;}
 
+    virtual bool event(QEvent *event);
+
+    void AddEventsListener( QObject *obj) {eventsListeners << obj;}
+    void RemoveEventsListener( QObject *obj) {eventsListeners.removeAll(obj);}
+    void PostEvent( QEvent * event, int priority=5) {
+        foreach(QObject *obj, eventsListeners) {
+            qApp->postEvent(obj,event,priority);
+        }
+    }
+
 protected:
     void changeEvent(QEvent *e);
     void SetupBrowsersModels(const QString &vstPath, const QString &browserPath);
@@ -74,6 +84,20 @@ protected:
     View::ViewConfigDialog *viewConfigDlg;
 
     int lastMessageResult;
+
+    QMap<int,QStandardItem*>mapItems;
+    QMap<ConnectionInfo,QStandardItem*>mapPins;
+
+    QList<QObject*>eventsListeners;
+
+signals:
+    void askLoadSetup(const QString &file);
+    void askSaveSetup(bool saveAs);
+    void askClearSetup();
+
+    void askLoadProject(const QString &file);
+    void askSaveProject(bool saveAs);
+    void askClearProject();
 
 public slots:
     void programParkingModelChanges(QStandardItemModel *model);

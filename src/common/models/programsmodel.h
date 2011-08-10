@@ -69,6 +69,8 @@ public:
 
     void BuildDefaultModel();
 
+    bool GetLastDialogAnser() {return lastDialogAnswer;}
+
 private:
     bool AddGroup(QModelIndex &index=QModelIndex(), int row=-1);
     bool AddProgram(int groupNum, QModelIndex &index=QModelIndex(), int row=-1);
@@ -126,6 +128,8 @@ private:
     bool openedPrompt;
     bool currentCommandHasBeenProcessed;
 
+    bool lastDialogAnswer;
+
     friend class ComAddProgram;
     friend class ComAddGroup;
     friend class ComRemoveProgram;
@@ -157,8 +161,6 @@ signals:
 
     void NewProgramAdded(const QModelIndex &prgIndex);
 
-    void DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton);
-
 public slots:
     void UserChangeProg(const QModelIndex &newPrg);
     void UserChangeGroup(const QModelIndex &newGrp);
@@ -171,6 +173,10 @@ public slots:
     void UserAddProgram(const QModelIndex &grpIndex, int row=-1);
 
     void UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color);
+
+
+    void asyncUserWantsToUnloadProject() {lastDialogAnswer = userWantsToUnloadProject();}
+    void asyncUserWantsToUnloadSetup() {lastDialogAnswer = userWantsToUnloadSetup();}
 };
 
 QDataStream & operator<< (QDataStream& out, ProgramsModel& value);

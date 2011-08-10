@@ -26,7 +26,7 @@
 using namespace Connectables;
 
 HostController::HostController(MainHost *myHost,int index):
-    Object(myHost,index, ObjectInfo(NodeType::object, ObjType::HostController, tr("HostController") ) ),
+    Object(myHost,index, ObjectInfo(NodeType::object, ObjType::HostController, index, tr("HostController") ) ),
     tempoChanged(false),
     progChanged(false),
     grpChanged(false)

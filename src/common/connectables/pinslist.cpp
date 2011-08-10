@@ -114,7 +114,7 @@ AudioBuffer *PinsList::GetBuffer(int pinNumber)
 
 void PinsList::ConnectAllTo(Container* container, PinsList *other, bool hidden)
 {
-    QSharedPointer<Object>cntPtr = myHost->objFactory->GetObj(modelList.parent().parent());
+    QSharedPointer<Object>cntPtr = myHost->objFactory->GetObjectFromId(connInfo.container);//myHost->objFactory->GetObj(modelList.parent().parent());
 
     QMap<quint16,Pin*>::Iterator i = listPins.begin();
     while(i!=listPins.end()) {
@@ -127,18 +127,18 @@ void PinsList::ConnectAllTo(Container* container, PinsList *other, bool hidden)
 
 void PinsList::UpdateModelNode(QStandardItem *parentNode)
 {
-    if(!modelList.isValid() && parentNode) {
-        QStandardItem *item = new QStandardItem("lstPins");
-        item->setData( QVariant::fromValue(objInfo) , UserRoles::objInfo);
-        parentNode->appendRow(item);
-        modelList=item->index();
-    }
+//    if(!modelList.isValid() && parentNode) {
+//        QStandardItem *item = new QStandardItem("lstPins");
+//        item->setData( QVariant::fromValue(objInfo) , UserRoles::objInfo);
+//        parentNode->appendRow(item);
+//        modelList=item->index();
+//    }
 
-    if(!modelList.isValid())
-        return;
+//    if(!modelList.isValid())
+//        return;
 
     foreach(Pin* pin, listPins) {
-        pin->SetParentModelIndex(modelList);
+        pin->SetParentModelIndex(modelList,objInfo.id);
     }
 }
 
@@ -201,7 +201,7 @@ Pin * PinsList::AddPin(int nb)
     listPins.insert(nb, newPin);
 
     if(modelList.isValid())
-        newPin->SetParentModelIndex(modelList);
+        newPin->SetParentModelIndex(modelList,objInfo.id);
 
     parent->OnProgramDirty();
     return newPin;

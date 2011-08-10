@@ -64,6 +64,8 @@ namespace Connectables {
 
         const hashObjects &GetListObjects() {return listObjects;}
 
+        int GetNewId() {return cptListObjects++;}
+
     protected:
         virtual Object *CreateOtherObjects(const ObjectInfo &info)=0;
 

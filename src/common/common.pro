@@ -212,7 +212,8 @@ HEADERS += \
     commands/comdiscardchanges.h \
     commands/comchangeautosave.h \
     commands/comremovepin.h \
-    commands/comaddpin.h
+    commands/comaddpin.h \
+    events.h
 
 FORMS += \
     views/configdialog.ui \
@@ -230,6 +231,9 @@ TRANSLATIONS = ../resources/translations/common_fr.ts
 
 RESOURCES += \
     ../resources/resources.qrc
+
+
+
 
 
 

@@ -18,9 +18,9 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-
 #include "pin.h"
 #include "../mainhost.h"
+#include "events.h"
 
 using namespace Connectables;
 
@@ -37,8 +37,9 @@ using namespace Connectables;
   \param number pin number in the list
   \param bridge true if this pin is a bridge
   */
-Pin::Pin(Object *parent,PinType::Enum type, PinDirection::Enum direction, int number, bool bridge) :
+Pin::Pin(Object *parent, PinType::Enum type, PinDirection::Enum direction, int number, bool bridge) :
     QObject(parent),
+    listId(0),
     connectInfo(parent->getHost(),parent->GetIndex(),type,direction,number,bridge),
     value(.0f),
     stepSize(.1f),
@@ -87,14 +88,15 @@ void Pin::SendMsg(const PinMessage::Enum msgType,void *data)
   Update the view with the new parent
   \param newParent
   */
-void Pin::SetParentModelIndex(const QModelIndex &newParent)
+void Pin::SetParentModelIndex(const QModelIndex &newParent, int lstId)
 {
+    listId = lstId;
     closed=false;
 
     //moving from another parent (when does it happen ?)
-    if(parentIndex.isValid() && parentIndex != newParent) {
-        SetVisible(false);
-    }
+//    if(parentIndex.isValid() && parentIndex != newParent) {
+//        SetVisible(false);
+//    }
 
     parentIndex=newParent;
     SetVisible(visible);
@@ -146,24 +148,28 @@ void Pin::SetVisible(bool vis)
     if(closed)
         return;
 
-    if(!parentIndex.isValid())
-        return;
+//    if(!parentIndex.isValid())
+//        return;
 
-    if(visible && !modelIndex.isValid()) {
-        QStandardItem *item = new QStandardItem("pin");
-        item->setData(objectName(),Qt::DisplayRole);
-        item->setData(GetValue(),UserRoles::value);
-        item->setData( QVariant::fromValue(ObjectInfo(NodeType::pin)),UserRoles::objInfo);
-        item->setData(QVariant::fromValue(connectInfo),UserRoles::connectionInfo);
-        item->setData(stepSize,UserRoles::stepSize);
+    if(visible) {// && !modelIndex.isValid()) {
 
-        QStandardItem *parentItem = parent->getHost()->GetModel()->itemFromIndex(parentIndex);
-        parentItem->appendRow(item);
-        modelIndex = item->index();
+        Events::newPin *event = new Events::newPin(objectName(),GetValue(),connectInfo,stepSize,listId);
+        parent->getHost()->PostEvent(event);
 
-        connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
-                this,SLOT(updateView()),
-                Qt::UniqueConnection);
+//        QStandardItem *item = new QStandardItem("pin");
+//        item->setData(objectName(),Qt::DisplayRole);
+//        item->setData(GetValue(),UserRoles::value);
+//        item->setData( QVariant::fromValue(ObjectInfo(NodeType::pin)),UserRoles::objInfo);
+//        item->setData(QVariant::fromValue(connectInfo),UserRoles::connectionInfo);
+//        item->setData(stepSize,UserRoles::stepSize);
+
+//        QStandardItem *parentItem = parent->getHost()->GetModel()->itemFromIndex(parentIndex);
+//        parentItem->appendRow(item);
+//        modelIndex = item->index();
+
+//        connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
+//                this,SLOT(updateView()),
+//                Qt::UniqueConnection);
     }
 
     if(!visible && modelIndex.isValid()) {

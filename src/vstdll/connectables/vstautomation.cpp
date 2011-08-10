@@ -27,7 +27,7 @@
 using namespace Connectables;
 
 VstAutomation::VstAutomation(MainHost *myHost,int index) :
-        Object(myHost,index, ObjectInfo(NodeType::object, ObjType::VstAutomation, tr("VstAutomation")) )
+        Object(myHost,index, ObjectInfo(NodeType::object, ObjType::VstAutomation, index,tr("VstAutomation")) )
 {
     for(int i=0;i<128;i++) {
         listValues << i;

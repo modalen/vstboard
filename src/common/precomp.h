@@ -49,6 +49,7 @@
     #include <QDir>
     #include <QDragEnterEvent>
     #include <QDropEvent>
+    #include <QEvent>
     #include <QFileDialog>
     #include <QFileSystemModel>
     #include <QFocusEvent>

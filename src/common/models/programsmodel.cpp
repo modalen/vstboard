@@ -47,14 +47,12 @@ ProgramsModel::ProgramsModel(MainHost *myHost, QObject *parent) :
     currentCommandGroup(0),
     nbOfCommandsToGroup(0),
     openedPrompt(false),
-    currentCommandHasBeenProcessed(false)
+    currentCommandHasBeenProcessed(false),
+    lastDialogAnswer(false)
 {
     connect(this, SIGNAL(UndoStackPush(QUndoCommand*)),
             myHost, SLOT(UndoStackPush(QUndoCommand*)));
 
-    connect(this, SIGNAL(DisplayMessage(QMessageBox::Icon,QString,QString,QMessageBox::StandardButtons,QMessageBox::StandardButton)),
-            myHost->mainWindow, SLOT(DisplayMessage(QMessageBox::Icon,QString,QString,QMessageBox::StandardButtons,QMessageBox::StandardButton)),
-            Qt::BlockingQueuedConnection);
 }
 
 void ProgramsModel::UserAddGroup(int row)
@@ -749,7 +747,7 @@ bool ProgramsModel::userWantsToUnloadProject()
         return true;
 
     if(onUnsaved == Qt::Checked) {
-        myHost->SaveProjectFile();
+        myHost->SaveProjectFile("");
         return true;
     }
 
@@ -775,7 +773,7 @@ bool ProgramsModel::userWantsToUnloadProject()
         case QMessageBox::Cancel :
             return false;
         case QMessageBox::Save :
-            myHost->SaveProjectFile();
+            myHost->SaveProjectFile("");
             return true;
     }
 
@@ -796,7 +794,7 @@ bool ProgramsModel::userWantsToUnloadSetup()
         return true;
 
     if(onUnsaved == Qt::Checked) {
-        myHost->SaveSetupFile();
+        myHost->SaveSetupFile("");
         return true;
     }
 
@@ -816,7 +814,7 @@ bool ProgramsModel::userWantsToUnloadSetup()
         case QMessageBox::Cancel :
             return false;
         case QMessageBox::Save :
-            myHost->SaveSetupFile();
+            myHost->SaveSetupFile("");
             break;
         default :
             break;

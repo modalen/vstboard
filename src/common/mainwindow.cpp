@@ -29,6 +29,7 @@
 #include "models/programsmodel.h"
 #include "connectables/vstplugin.h"
 #include "views/vstpluginwindow.h"
+#include "events.h"
 
 MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     QMainWindow(parent),
@@ -43,11 +44,27 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     lastMessageResult(0)
 {
     myHost->mainWindow=this;
+    myHost->AddEventsListener(this);
+    AddEventsListener(myHost);
 
     model = new HostModel(myHost,this);
     model->setObjectName("MainHostModel");
     model->setColumnCount(1);
     myHost->SetModel(model);
+
+    connect(this, SIGNAL(askLoadProject(QString)),
+            myHost, SLOT(LoadProjectFile(QString)));
+    connect(this, SIGNAL(askSaveProject(bool)),
+            myHost, SLOT(SaveProjectFile(bool)));
+    connect(this, SIGNAL(askClearProject()),
+            myHost, SLOT(ClearProject()));
+
+    connect(this, SIGNAL(askLoadSetup(QString)),
+            myHost, SLOT(LoadSetupFile(QString)));
+    connect(this, SIGNAL(askSaveSetup(bool)),
+            myHost, SLOT(SaveSetupFile(bool)));
+    connect(this, SIGNAL(askClearSetup()),
+            myHost, SLOT(ClearSetup()));
 
     connect(myHost,SIGNAL(programParkingModelChanged(QStandardItemModel*)),
             this,SLOT(programParkingModelChanges(QStandardItemModel*)));
@@ -99,6 +116,43 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     ui->mainToolBar->addAction( redo );
 
     ui->listUndo->setStack( myHost->GetUndoStack() );
+}
+
+bool MainWindow::event(QEvent *event)
+{
+    if(event->type() == Events::typeNewObj) {
+        Events::newObj *e = static_cast<Events::newObj*>(event);
+        QStandardItem *parentItem = mapItems.value( e->parentIndex, 0 );
+        if(!parentItem) {
+            if(e->objInfo.forcedObjId==FixedObjId::mainContainer)
+                parentItem = model->invisibleRootItem();
+            else {
+                LOG("parent not found"<<e->objInfo.name);
+                return true;
+            }
+        }
+
+        QStandardItem *objItem = e->CreateItem();
+        mapItems.insert(e->objInfo.forcedObjId, objItem );
+        parentItem->appendRow(objItem);
+        return true;
+    }
+
+    if(event->type() == Events::typeNewPin) {
+        Events::newPin *e = static_cast<Events::newPin*>(event);
+        QStandardItem *parentItem = mapItems.value( e->connectionInfo.objId, 0 );
+        if(!parentItem) {
+            LOG("parent not found");
+            return true;
+        }
+
+        QStandardItem *objItem = e->CreateItem();
+        mapPins.insert(e->connectionInfo, objItem );
+        parentItem->appendRow(objItem);
+        return true;
+    }
+
+    return QMainWindow::event(event);
 }
 
 void MainWindow::DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton)
@@ -228,32 +282,32 @@ void MainWindow::BuildListTools()
 
 void MainWindow::on_actionLoad_triggered()
 {
-    myHost->LoadProjectFile();
+    emit askLoadProject("");
 }
 
 void MainWindow::on_actionNew_triggered()
 {
-    myHost->ClearProject();
+    emit askClearProject();
 }
 
 void MainWindow::on_actionSave_triggered()
 {
-    myHost->SaveProjectFile();
+    emit askSaveProject(false);
 }
 
 void MainWindow::on_actionSave_Project_As_triggered()
 {
-    myHost->SaveProjectFile(true);
+    emit askSaveProject(true);
 }
 
 void MainWindow::on_actionLoad_Setup_triggered()
 {
-    myHost->LoadSetupFile();
+    emit askLoadSetup("");
 }
 
 void MainWindow::on_actionNew_Setup_triggered()
 {
-    myHost->ClearSetup();
+    emit askClearSetup();
 }
 
 void MainWindow::on_actionSave_Setup_triggered()
@@ -262,12 +316,12 @@ void MainWindow::on_actionSave_Setup_triggered()
         on_actionSave_Setup_As_triggered();
         return;
     }
-    myHost->SaveSetupFile();
+    emit askSaveSetup(false);
 }
 
 void MainWindow::on_actionSave_Setup_As_triggered()
 {
-    myHost->SaveSetupFile(true);
+    emit askSaveSetup(true);
 }
 
 void MainWindow::on_actionConfig_triggered()
@@ -379,11 +433,11 @@ void MainWindow::LoadDefaultFiles()
     //load default files
     QString file = ConfigDialog::defaultSetupFile(myHost);
     if(!file.isEmpty())
-        myHost->LoadSetupFile( file );
+        emit askLoadSetup( file );
 
     file = ConfigDialog::defaultProjectFile(myHost);
     if(!file.isEmpty())
-        myHost->LoadProjectFile( file );
+        emit askLoadProject( file );
 
     updateRecentFileActions();
 }
@@ -502,7 +556,7 @@ void MainWindow::openRecentSetup()
     if(!action)
         return;
 
-    myHost->LoadSetupFile( action->data().toString() );
+    emit askLoadSetup( action->data().toString() );
 }
 
 void MainWindow::openRecentProject()
@@ -511,7 +565,7 @@ void MainWindow::openRecentProject()
     if(!action)
         return;
 
-    myHost->LoadProjectFile( action->data().toString() );
+    emit askLoadProject( action->data().toString() );
 }
 
 void MainWindow::programParkingModelChanges(QStandardItemModel *model)
