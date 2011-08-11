@@ -41,8 +41,8 @@ using namespace Connectables;
   \param doublePrecision true if the buffer should be a double precision buffer
   \param externalAllocation true if the audio buffer is not owned by the pin and shouldn't be deleted
   */
-AudioPin::AudioPin(Object *parent, PinDirection::Enum direction, int number, unsigned long bufferSize, bool doublePrecision, bool externalAllocation) :
-    Pin(parent,PinType::Audio,direction,number),
+AudioPin::AudioPin(Object *parent, Directions::Enum direction, int number, unsigned long bufferSize, bool doublePrecision, bool externalAllocation) :
+    Pin(parent,MediaTypes::Audio,direction,number),
     doublePrecision(doublePrecision),
     buffer(0)
 {
@@ -50,7 +50,7 @@ AudioPin::AudioPin(Object *parent, PinDirection::Enum direction, int number, uns
     SetBufferSize(bufferSize);
     visible=true;
 
-    if(connectInfo.direction==PinDirection::Input)
+    if(connectInfo.direction==Directions::Input)
         setObjectName(QString("AudioIn%1").arg(number));
     else
         setObjectName(QString("AudioOut%1").arg(number));

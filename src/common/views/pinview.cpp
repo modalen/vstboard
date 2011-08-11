@@ -258,7 +258,7 @@ void PinView::dropEvent ( QGraphicsSceneDragDropEvent  * event )
 const QPointF PinView::pinPos() const
 {
     qreal x = 0;
-    if(connectInfo.direction==PinDirection::Output)
+    if(connectInfo.direction==Directions::Output)
         x = geometry().width();
     return QPointF(x,geometry().height()/2);
 }

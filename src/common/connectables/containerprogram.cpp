@@ -89,7 +89,7 @@ void ContainerProgram::Remove(int prgId)
 
 bool ContainerProgram::PinExistAndVisible(const ConnectionInfo &info)
 {
-    if(info.type==PinType::Bridge)
+    if(info.type==MediaTypes::Bridge)
         return true;
 
     Pin* pin=myHost->objFactory->GetPin(info);
@@ -221,7 +221,7 @@ void ContainerProgram::Save(bool saveChildPrograms)
     foreach(QSharedPointer<Object> obj, container->listStaticObjects) {
         if(!obj.isNull() ) {
             //don't save bridges position
-            if(obj->info().nodeType==NodeType::bridge) {
+            if(obj->metaType==MetaTypes::bridge) {
                 continue;
             }
 
@@ -348,12 +348,12 @@ void ContainerProgram::CreateBridgeOverObj(int objId)
            cab->GetInfoOut().container==objId || cab->GetInfoIn().container==objId) {
 
             //for all output cables
-            if(cab->GetInfoOut().objId==objId && cab->GetInfoOut().type!=PinType::Parameter ) {
+            if(cab->GetInfoOut().objId==objId && cab->GetInfoOut().type!=MediaTypes::Parameter ) {
                 int j=listCables.size()-1;
                 while(j>=0) {
                     Cable *otherCab = listCables.at(j);
                     ConnectionInfo otherPin( cab->GetInfoOut() );
-                    otherPin.direction=PinDirection::Input;
+                    otherPin.direction=Directions::Input;
 
                     //find corresponding input cables
                     if(otherCab->GetInfoIn()==otherPin) {
@@ -365,12 +365,12 @@ void ContainerProgram::CreateBridgeOverObj(int objId)
             }
 
             //for all input cables
-            if(cab->GetInfoIn().objId==objId && cab->GetInfoIn().type!=PinType::Parameter ) {
+            if(cab->GetInfoIn().objId==objId && cab->GetInfoIn().type!=MediaTypes::Parameter ) {
                 int j=listCables.size()-1;
                 while(j>=0) {
                     Cable *otherCab = listCables.at(j);
                     ConnectionInfo otherPin( cab->GetInfoOut() );
-                    otherPin.direction=PinDirection::Output;
+                    otherPin.direction=Directions::Output;
 
                     //find corresponding output cables
                     if(otherCab->GetInfoOut()==otherPin) {
@@ -409,7 +409,7 @@ void ContainerProgram::MoveOutputCablesFromObj(int newObjId, int oldObjId)
     int i=listCables.size()-1;
     while(i>=0) {
         Cable *cab = listCables.at(i);
-        if(cab->GetInfoOut().objId==oldObjId && cab->GetInfoOut().type!=PinType::Parameter) {
+        if(cab->GetInfoOut().objId==oldObjId && cab->GetInfoOut().type!=MediaTypes::Parameter) {
             ConnectionInfo newConnect = cab->GetInfoOut();
             newConnect.objId = newObjId;
             if( AddCable(newConnect, cab->GetInfoIn()) ) {
@@ -425,7 +425,7 @@ void ContainerProgram::MoveInputCablesFromObj(int newObjId, int oldObjId)
     int i=listCables.size()-1;
     while(i>=0) {
         Cable *cab = listCables.at(i);
-        if(cab->GetInfoIn().objId==oldObjId && cab->GetInfoIn().type!=PinType::Parameter) {
+        if(cab->GetInfoIn().objId==oldObjId && cab->GetInfoIn().type!=MediaTypes::Parameter) {
             ConnectionInfo newConnect = cab->GetInfoIn();
             newConnect.objId = newObjId;
             if( AddCable(cab->GetInfoOut(), newConnect) ) {

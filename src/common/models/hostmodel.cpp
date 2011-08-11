@@ -23,7 +23,7 @@
 #include "connectables/objectfactory.h"
 #include "mainhost.h"
 #include "models/programsmodel.h"
-#include "connectables/objectinfo.h"
+#include "objectinfo.h"
 #include "connectables/vstplugin.h"
 #include "commands/comaddobject.h"
 
@@ -50,8 +50,8 @@ QMimeData * HostModel::mimeData ( const QModelIndexList & indexes ) const
 
     foreach(QModelIndex index, indexes) {
         ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-        switch(info.nodeType) {
-            case NodeType::pin :
+        switch(info.metaType) {
+            case MetaTypes::pin :
 
                 if(index.data(UserRoles::connectionInfo).isValid()) {
                     ConnectionInfo connectInfo = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
@@ -93,11 +93,11 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
     ObjectInfo senderInfo = senderIndex.data(UserRoles::objInfo).value<ObjectInfo>();
 
     QSharedPointer<Connectables::Container> targetContainer;
-    switch(senderInfo.nodeType) {
-        case NodeType::container :
+    switch(senderInfo.metaType) {
+        case MetaTypes::container :
             targetContainer = myHost->objFactory->GetObj(senderIndex).staticCast<Connectables::Container>();
             break;
-        case NodeType::object :
+        case MetaTypes::object :
             targetContainer = myHost->objFactory->GetObj(senderIndex.parent()).staticCast<Connectables::Container>();
             break;
     }
@@ -143,21 +143,9 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
                 if ( info.suffix()=="dll" ) {
 
                     ObjectInfo infoVst;
-                    infoVst.nodeType = NodeType::object;
-                    infoVst.objType = ObjType::VstPlugin;
-                    infoVst.filename = fName;
-                    infoVst.name = fName;
-
-//                    QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->NewObject(infoVst);
-//                    if(objPtr.isNull()) {
-//                        if(Connectables::VstPlugin::shellSelectView) {
-//                            Connectables::VstPlugin::shellSelectView->cntPtr=targetContainer;
-//                        } else {
-//                            debug("HostModel::dropMimeData vstplugin object not found")
-//                        }
-//                        return false;
-//                    }
-//                    listObjToAdd << objPtr;
+                    infoVst.metaType = MetaTypes::object;
+                    infoVst.listInfos[MetaInfos::ObjType] = ObjTypes::VstPlugin;
+                    infoVst.listInfos[MetaInfos::Filename] = fName;
                     listObjInfoToAdd << infoVst;
                 }
 #endif
@@ -219,24 +207,12 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
             stream >> info;
 
             if(info.inputs!=0) {
-                info.objType=ObjType::AudioInterfaceIn;
-//                QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->NewObject(info);
-//                if(objPtr.isNull()) {
-//                    debug("HostModel::dropMimeData audioin object not found or already used")
-//                } else {
-//                    listObjToAdd << objPtr;
-//                }
+                info.listInfos[MetaInfos::Direction]=Directions::Input;
                 listObjInfoToAdd << info;
             }
 
             if(info.outputs!=0) {
-                info.objType=ObjType::AudioInterfaceOut;
-//                QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->NewObject(info);
-//                if(objPtr.isNull()) {
-//                    debug("HostModel::dropMimeData audioout object not found or already used")
-//                } else {
-//                    listObjToAdd << objPtr;
-//                }
+                info.listInfos[MetaInfos::Direction]=Directions::Output;
                 listObjInfoToAdd << info;
             }
         }
@@ -250,12 +226,6 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
         while(!stream.atEnd()) {
             ObjectInfo info;
             stream >> info;
-//            QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->NewObject(info);
-//            if(objPtr.isNull()) {
-//                debug("HostModel::dropMimeData midi object not found or already used")
-//                continue;
-//            }
-//            listObjToAdd << objPtr;
             listObjInfoToAdd << info;
         }
     }
@@ -268,12 +238,6 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
         while(!stream.atEnd()) {
             ObjectInfo info;
             stream >> info;
-//            QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->NewObject(info);
-//            if(objPtr.isNull()) {
-//                debug("HostModel::dropMimeData tool object not found")
-//                continue;
-//            }
-//            listObjToAdd << objPtr;
             listObjInfoToAdd << info;
         }
     }
@@ -306,44 +270,9 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
         }
 
         ComAddObject *com = new ComAddObject(myHost, info, targetContainer, senderObj, insertType);
-//        Connectables::VstPlugin::shellSelectView->SetTargetContainer( targetContainer->GetIndex() );
         Connectables::VstPlugin::shellSelectView->command=com;
-//        myHost->undoStack.push( com );
         emit UndoStackPush(com);
     }
-
-//    if(listObjToAdd.isEmpty())
-//        return false;
-
-//    foreach(QSharedPointer<Connectables::Object> objPtr, listObjToAdd) {
-//        targetContainer->UserAddObject(objPtr);
-
-//        //auto connect
-//        if(column!=0) {
-//            QSharedPointer<Connectables::Object> senderObj = myHost->objFactory->GetObj(senderIndex);
-
-//            //connect left
-//            if(column==1) {
-//                if(action==Qt::MoveAction) {
-//                    targetContainer->MoveInputCablesFromObj(objPtr, senderObj);
-//                }
-//                targetContainer->ConnectObjects(objPtr, senderObj, false);
-//            }
-//            //replace object
-//            if(column==2) {
-//                targetContainer->CopyCablesFromObj(objPtr, senderObj);
-//                senderObj->CopyStatusTo(objPtr);
-//                targetContainer->ParkObject(senderObj);
-//            }
-//            //connect right
-//            if(column==3) {
-//                if(action==Qt::MoveAction) {
-//                    targetContainer->MoveOutputCablesFromObj(objPtr, senderObj);
-//                }
-//                targetContainer->ConnectObjects(senderObj, objPtr, false);
-//            }
-//        }
-//    }
 
     return true;
 }
@@ -351,23 +280,20 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
 bool HostModel::setData ( const QModelIndex & index, const QVariant & value, int role )
 {
     ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-    switch(info.nodeType) {
-        case NodeType::object :
-        //case NodeType::container :
+    switch(info.metaType) {
+        case MetaTypes::object :
+        //case MetaTypes::container :
         {
             int objId = index.data(UserRoles::value).toInt();
             if(!objId) {
-                LOG("NodeType::object has no object Id");
+                LOG("MetaTypes::object has no object Id");
                 return false;
             }
             QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->GetObjectFromId(objId);
             if(objPtr.isNull()) {
-                LOG("NodeType::object the object deleted"<<objId);
+                LOG("MetaTypes::object the object deleted"<<objId);
                 return false;
             }
-
-//            if(role == UserRoles::editorVisible)
-//                objPtr->OnEditorVisibilityChanged( value.toBool() );
 
             //save vst bank file
             if(role == UserRoles::bankFile) {
@@ -389,10 +315,10 @@ bool HostModel::setData ( const QModelIndex & index, const QVariant & value, int
             break;
         }
 
-        case NodeType::pin :
+        case MetaTypes::pin :
         {
             ConnectionInfo pinInfo = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
-            if(pinInfo.type==PinType::Parameter) {
+            if(pinInfo.type==MediaTypes::Parameter) {
                 if(role==UserRoles::value) {
                     bool ok=true;
                     float newVal = value.toFloat(&ok);// item->data(Qt::DisplayRole).toFloat(&ok);
@@ -417,14 +343,16 @@ bool HostModel::setData ( const QModelIndex & index, const QVariant & value, int
             }
             break;
         }
-        case NodeType::cursor :
+        case MetaTypes::cursor :
         {
             ConnectionInfo pinInfo = index.parent().data(UserRoles::connectionInfo).value<ConnectionInfo>();
-            if(pinInfo.type==PinType::Parameter) {
+            if(pinInfo.type==MediaTypes::Parameter) {
                 if(role==UserRoles::value) {
                     Connectables::ParameterPin* pin = static_cast<Connectables::ParameterPin*>(myHost->objFactory->GetPin(pinInfo));
                     ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-                    pin->SetLimit(info.objType,value.toFloat());
+                    Directions::Enum direction = (Directions::Enum)info.listInfos.value(MetaInfos::Direction).toInt();
+                    LimitTypes::Enum limit = (LimitTypes::Enum)info.listInfos.value(MetaInfos::LimitType).toInt();
+                    pin->SetLimit(direction,limit,value.toFloat());
 
                     QStandardItem *item = itemFromIndex(index);
                     if(item)

@@ -26,7 +26,7 @@
 //#include "precomp.h"
 #include "portaudio.h"
 #include "models/listaudiointerfacesmodel.h"
-#include "connectables/objectinfo.h"
+#include "objectinfo.h"
 #include "connectables/audiodevice.h"
 
 class MainHostHost;

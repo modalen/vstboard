@@ -20,7 +20,7 @@
 
 #include "audiodevices.h"
 #include "globals.h"
-#include "connectables/objectinfo.h"
+#include "objectinfo.h"
 #include "mainhosthost.h"
 #include "pa_asio.h"
 #include "views/mmeconfigdialog.h"
@@ -164,13 +164,18 @@ bool AudioDevices::Init()
             continue;
 
         ObjectInfo info( obj->info() );
-        if(info.objType == ObjType::AudioInterfaceIn || info.objType == ObjType::AudioInterfaceOut) {
+        if(info.listInfos.value(MetaInfos::ObjType).toInt() == ObjTypes::AudioInterface) {
             QString errMsg;
             Connectables::AudioDevice *newDevice = AddDevice( info, &errMsg );
-            if(info.objType == ObjType::AudioInterfaceIn)
-                static_cast<Connectables::AudioDeviceIn*>(obj.data())->SetParentDevice(newDevice);
-            if(info.objType == ObjType::AudioInterfaceOut)
-                static_cast<Connectables::AudioDeviceOut*>(obj.data())->SetParentDevice(newDevice);
+            switch(info.listInfos.value(MetaInfos::Direction).toInt()) {
+                case Directions::Input :
+                    static_cast<Connectables::AudioDeviceIn*>(obj.data())->SetParentDevice(newDevice);
+                    break;
+                case Directions::Output :
+                    static_cast<Connectables::AudioDeviceOut*>(obj.data())->SetParentDevice(newDevice);
+                    break;
+            }
+
             if(obj->Open()) {
                 obj->UpdateModelNode();
             } else {
@@ -234,14 +239,14 @@ void AudioDevices::BuildModel()
             }
 
             ObjectInfo obj;
-            obj.nodeType = NodeType::object;
-            obj.objType = ObjType::AudioInterface;
-            obj.id = devIndex;
-            obj.name = devName;
-            obj.api = apiInfo->type;
-            obj.duplicateNamesCounter = cptDuplicateNames;
-            obj.inputs = devInfo->maxInputChannels;
-            obj.outputs = devInfo->maxOutputChannels;
+            obj.metaType = MetaTypes::object;
+            obj.listInfos[MetaInfos::ObjType] = ObjTypes::AudioInterface;
+            obj.listInfos[MetaInfos::id] = devIndex;
+            obj.listInfos[MetaInfos::name] = devName;
+            obj.listInfos[MetaInfos::apiId] = apiInfo->type;
+            obj.listInfos[MetaInfos::duplicateNamesCounter] = cptDuplicateNames;
+            obj.listInfos[MetaInfos::nbInputs] = devInfo->maxInputChannels;
+            obj.listInfos[MetaInfos::nbOutputs] = devInfo->maxOutputChannels;
 
             QList<QStandardItem *> listItems;
 

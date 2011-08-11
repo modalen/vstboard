@@ -27,7 +27,7 @@
 using namespace Connectables;
 
 VstAutomation::VstAutomation(MainHost *myHost,int index) :
-        Object(myHost,index, ObjectInfo(NodeType::object, ObjType::VstAutomation, index,tr("VstAutomation")) )
+        Object(myHost,index, ObjectInfo(MetaTypes::object, ObjTypes::VstAutomation, index,tr("VstAutomation")) )
 {
     for(int i=0;i<128;i++) {
         listValues << i;
@@ -163,7 +163,7 @@ void VstAutomation::OnParameterChanged(ConnectionInfo pinInfo, float value)
         return;
     }
 
-    if(pinInfo.direction==PinDirection::Input && pinInfo.pinNumber<200)
+    if(pinInfo.direction==Directions::Input && pinInfo.pinNumber<200)
         listChanged.insert(pinInfo.pinNumber,value);
 }
 
@@ -185,13 +185,13 @@ Pin* VstAutomation::CreatePin(const ConnectionInfo &info)
     if(newPin)
         return newPin;
 
-    if(info.type!=PinType::Parameter) {
+    if(info.type!=MediaTypes::Parameter) {
         LOG("wrong PinType"<<info.type);
         return 0;
     }
 
     switch(info.direction) {
-        case PinDirection::Output :
+        case Directions::Output :
             if(info.pinNumber == FixedPinNumber::vstProgNumber) {
                 int prog=(int)static_cast<MainHostVst*>(myHost)->myVstPlugin->getProgram();
                 ParameterPin *newPin = new ParameterPinOut(this,FixedPinNumber::vstProgNumber,prog,&listValues,tr("Prog"));
@@ -201,7 +201,7 @@ Pin* VstAutomation::CreatePin(const ConnectionInfo &info)
 
             return new ParameterPinOut(this,info.pinNumber,0,QString("autom%1").arg(info.pinNumber),false,true);
 
-        case PinDirection::Input :
+        case Directions::Input :
             if(info.pinNumber == FixedPinNumber::numberOfPins) {
                 ParameterPinIn *newPin = new ParameterPinIn(this,FixedPinNumber::numberOfPins,VST_AUTOMATION_DEFAULT_NB_PINS,&listValues,tr("NbPins"));
                 newPin->SetLimitsEnabled(false);

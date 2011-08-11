@@ -28,7 +28,7 @@ void ComDisconnectPin::undo ()
         return;
 
     foreach(ConnectionInfo info, listConnectedPins) {
-        if(pinInfo.direction==PinDirection::Output) {
+        if(pinInfo.direction==Directions::Output) {
             cntPtr->UserAddCable(pinInfo, info);
         } else {
             cntPtr->UserAddCable(info, pinInfo);

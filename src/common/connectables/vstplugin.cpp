@@ -592,10 +592,10 @@ void VstPlugin::processEvents(VstEvents* events)
 
 void VstPlugin::UserRemovePin(const ConnectionInfo &info)
 {
-    if(info.type!=PinType::Parameter)
+    if(info.type!=MediaTypes::Parameter)
         return;
 
-    if(info.direction!=PinDirection::Input)
+    if(info.direction!=Directions::Input)
         return;
 
     if(!info.isRemoveable)
@@ -608,10 +608,10 @@ void VstPlugin::UserRemovePin(const ConnectionInfo &info)
 
 void VstPlugin::UserAddPin(const ConnectionInfo &info)
 {
-    if(info.type!=PinType::Parameter)
+    if(info.type!=MediaTypes::Parameter)
         return;
 
-    if(info.direction!=PinDirection::Input)
+    if(info.direction!=Directions::Input)
         return;
 
     if(listParameterPinIn->listPins.contains(info.pinNumber))
@@ -730,7 +730,7 @@ void VstPlugin::OnParameterChanged(ConnectionInfo pinInfo, float value)
     if(closed)
         return;
 
-    if(pinInfo.direction == PinDirection::Input) {
+    if(pinInfo.direction == Directions::Input) {
         if(pinInfo.pinNumber==FixedPinNumber::vstProgNumber) {
             //program pin
             EffSetProgram( static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(FixedPinNumber::vstProgNumber))->GetIndex() );
@@ -821,7 +821,7 @@ Pin* VstPlugin::CreatePin(const ConnectionInfo &info)
     if(newPin)
         return newPin;
 
-    if(info.type == PinType::Parameter && info.direction == PinDirection::Input) {
+    if(info.type == MediaTypes::Parameter && info.direction == Directions::Input) {
         //if the plugin has a gui, the pins can be learned and the name can change
         bool hasEditor = (!pEffect || (pEffect->flags & effFlagsHasEditor) == 0)?false:true;
 

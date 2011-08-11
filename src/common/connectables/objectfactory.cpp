@@ -119,8 +119,8 @@ QSharedPointer<Object> ObjectFactory::GetObj(const QModelIndex & index)
 QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info)
 {
     int objId = cptListObjects;
-    if(info.forcedObjId!=0) {
-        objId = info.forcedObjId;
+    if(info.objId!=0) {
+        objId = info.objId;
         if(listObjects.contains(objId)) {
             LOG("forcedId already exists"<<objId);
         }
@@ -131,56 +131,56 @@ QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info)
     obj=CreateOtherObjects(info);
 
     if(!obj) {
-        switch(info.nodeType) {
+        switch(info.metaType) {
 
-            case NodeType::container :
+            case MetaTypes::container :
                 obj = new Container(myHost,objId, info);
                 break;
 
-            case NodeType::bridge :
+            case MetaTypes::bridge :
                 obj = new Bridge(myHost,objId, info);
                 break;
 
-            case NodeType::object :
+            case MetaTypes::object :
 
-                switch(info.objType) {
+                switch(info.listInfos.value(MetaInfos::ObjType).toInt()) {
 #ifdef SCRIPTENGINE
-                    case ObjType::Script:
+                    case ObjTypes::Script:
                         obj = new Script(myHost,objId,info);
                         break;
 #endif
-                    case ObjType::MidiSender:
+                    case ObjTypes::MidiSender:
                         obj = new MidiSender(myHost,objId);
                         break;
 
-                    case ObjType::MidiToAutomation:
+                    case ObjTypes::MidiToAutomation:
                         obj = new MidiToAutomation(myHost,objId);
                         break;
 
-                    case ObjType::HostController:
+                    case ObjTypes::HostController:
                         obj = new HostController(myHost,objId);
                         break;
 
             #ifdef VSTSDK
-                    case ObjType::VstPlugin:
+                    case ObjTypes::VstPlugin:
                         obj = new VstPlugin(myHost,objId, info);
                         break;
             #endif
 
-                    case ObjType::dummy :
+                    case ObjTypes::Dummy :
                         obj = new Object(myHost, objId, info);
                         obj->SetErrorMessage("Dummy object");
                         break;
 
                     default:
-                        LOG("unknown object type"<<info.objType);
+                        LOG("unknown object type");
                         return QSharedPointer<Object>();
                 }
                 break;
 
 
             default :
-                LOG("unknown nodeType"<<info.nodeType);
+                LOG("unknown nodeType"<<info.metaType);
                 return QSharedPointer<Object>();
         }
     }
@@ -196,8 +196,8 @@ QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info)
     }
     obj->SetSleep(false);
 
-    if(info.forcedObjId) {
-        obj->ResetSavedIndex(info.forcedObjId);
+    if(info.objId) {
+        obj->ResetSavedIndex(info.objId);
     } else {
         cptListObjects++;
     }

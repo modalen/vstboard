@@ -27,7 +27,7 @@
 using namespace Connectables;
 
 MidiPinIn::MidiPinIn(Object *parent, int number, bool bridge)
-    :Pin(parent,PinType::Midi,PinDirection::Input,number,bridge)
+    :Pin(parent,MediaTypes::Midi,Directions::Input,number,bridge)
 {
     setObjectName(QString("MidiIn%1").arg(number));
     visible=true;

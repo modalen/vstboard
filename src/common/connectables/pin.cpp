@@ -37,7 +37,7 @@ using namespace Connectables;
   \param number pin number in the list
   \param bridge true if this pin is a bridge
   */
-Pin::Pin(Object *parent, PinType::Enum type, PinDirection::Enum direction, int number, bool bridge) :
+Pin::Pin(Object *parent, MediaTypes::Enum type, Directions::Enum direction, int number, bool bridge) :
     QObject(parent),
     listId(0),
     connectInfo(parent->getHost(),parent->GetIndex(),type,direction,number,bridge),
@@ -48,6 +48,8 @@ Pin::Pin(Object *parent, PinType::Enum type, PinDirection::Enum direction, int n
     closed(false),
     valueChanged(false)
 {
+    ObjectInfo::metaType = MetaTypes::pin;
+
     connectInfo.container = parent->GetContainerId();
 //    setObjectName(QString("pin:%1:%2:%3:%4").arg(connectInfo.objId).arg(connectInfo.type).arg(connectInfo.direction).arg(connectInfo.pinNumber));
 }
@@ -159,7 +161,7 @@ void Pin::SetVisible(bool vis)
 //        QStandardItem *item = new QStandardItem("pin");
 //        item->setData(objectName(),Qt::DisplayRole);
 //        item->setData(GetValue(),UserRoles::value);
-//        item->setData( QVariant::fromValue(ObjectInfo(NodeType::pin)),UserRoles::objInfo);
+//        item->setData( QVariant::fromValue(ObjectInfo(MetaTypes::pin)),UserRoles::objInfo);
 //        item->setData(QVariant::fromValue(connectInfo),UserRoles::connectionInfo);
 //        item->setData(stepSize,UserRoles::stepSize);
 
@@ -180,7 +182,7 @@ void Pin::SetVisible(bool vis)
         }
 
         //remove pin
-        if(connectInfo.type!=PinType::Bridge) {
+        if(connectInfo.type!=MediaTypes::Bridge) {
             disconnect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
                     this,SLOT(updateView()));
         }
@@ -204,11 +206,11 @@ void Pin::UpdateModelNode()
     }
     item->setData(objectName(),Qt::DisplayRole);
     item->setData(GetValue(),UserRoles::value);
-    item->setData(QVariant::fromValue(ObjectInfo(NodeType::pin)),UserRoles::objInfo);
+    item->setData(QVariant::fromValue(ObjectInfo(MetaTypes::pin)),UserRoles::objInfo);
     item->setData(QVariant::fromValue(connectInfo),UserRoles::connectionInfo);
     item->setData(stepSize,UserRoles::stepSize);
     modelIndex = item->index();
-    if(connectInfo.type!=PinType::Bridge) {
+    if(connectInfo.type!=MediaTypes::Bridge) {
         connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
                 this,SLOT(updateView()),
                 Qt::UniqueConnection);

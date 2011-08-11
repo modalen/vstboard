@@ -123,13 +123,13 @@ Pin* AudioDeviceIn::CreatePin(const ConnectionInfo &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin) {
-        if(info.type==PinType::Audio)
+        if(info.type==MediaTypes::Audio)
             newPin->setObjectName(QString("Input %1").arg(info.pinNumber));
         return newPin;
     }
 
     switch(info.direction) {
-        case PinDirection::Output :
+        case Directions::Output :
             if(info.pinNumber==0) {
                 ParameterPinOut *pin = new ParameterPinOut(this,0,0,"cpu%");
                 pin->SetLimitsEnabled(false);

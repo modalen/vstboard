@@ -46,7 +46,7 @@ VstShellSelect::VstShellSelect(MainHost *myHost, Connectables::VstPlugin *plugin
     }
 
     info = plugin->info();
-    info.forcedObjId = 0;
+    info.objId = 0;
 }
 
 VstShellSelect::~VstShellSelect()

@@ -40,7 +40,7 @@ namespace View {
     protected:
         QAbstractGraphicsShapeItem *vuValue;
         float value;
-        PinType::Enum valueType;
+        MediaTypes::Enum valueType;
 
     public slots:
         void updateVu();

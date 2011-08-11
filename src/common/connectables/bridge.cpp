@@ -41,6 +41,7 @@ using namespace Connectables;
 Bridge::Bridge(MainHost *myHost,int index, const ObjectInfo & info) :
         Object(myHost,index, info)
 {
+    ObjectInfo::metaType = MetaTypes::bridge;
 }
 
 /*!
@@ -53,12 +54,15 @@ bool Bridge::Open()
     listBridgePinIn->ChangeNumberOfPins(8);
     listBridgePinOut->ChangeNumberOfPins(8);
 
-    if(objInfo.objType == ObjType::BridgeIn || objInfo.objType == ObjType::BridgeReturn) {
-        listBridgePinIn->SetBridge(true);
-    }
-
-    if(objInfo.objType == ObjType::BridgeOut || objInfo.objType == ObjType::BridgeSend) {
-        listBridgePinOut->SetBridge(true);
+    int direction = ObjectInfo::listInfos.value(MetaInfos::Direction).toInt();
+    switch(direction) {
+        case Directions::Input :
+        case Directions::Return :
+            listBridgePinIn->SetBridge(true);
+            break;
+        case Directions::Output :
+        case Directions::Send :
+            listBridgePinOut->SetBridge(true);
     }
 
     Object::Open();

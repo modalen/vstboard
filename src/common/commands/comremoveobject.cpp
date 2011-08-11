@@ -36,7 +36,7 @@ void ComRemoveObject::undo ()
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
     //get the object
-    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.forcedObjId );
+    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.objId );
     if(!obj) {
         //object was deleted, create a new one
         obj = myHost->objFactory->NewObject( objectInfo );
@@ -79,7 +79,7 @@ void ComRemoveObject::redo()
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
     //get the object
-    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.forcedObjId );
+    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.objId );
     if(!obj)
         return;
 

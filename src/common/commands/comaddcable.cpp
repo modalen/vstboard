@@ -20,7 +20,7 @@ ComAddCable::ComAddCable(MainHost *myHost,
     currentGroup = myHost->programsModel->GetCurrentMidiGroup();
     currentProg =  myHost->programsModel->GetCurrentMidiProg();
 
-    if(outInfo.direction==PinDirection::Input) {
+    if(outInfo.direction==Directions::Input) {
         ConnectionInfo tmp(outInfo);
         this->outInfo=ConnectionInfo(inInfo);
         this->inInfo=ConnectionInfo(tmp);

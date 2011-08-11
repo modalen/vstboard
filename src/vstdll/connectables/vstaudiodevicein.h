@@ -23,7 +23,7 @@
 
 //#include "precomp.h"
 #include "connectables/object.h"
-#include "connectables/objectinfo.h"
+#include "objectinfo.h"
 
 class AudioBuffer;
 

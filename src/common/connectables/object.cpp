@@ -60,9 +60,11 @@ Object::Object(MainHost *host, int index, const ObjectInfo &info) :
     currentProgId(TEMP_PROGRAM),
     closed(true),
     objInfo(info),
-    containerId(FixedObjId::noContainer)
+    containerId(FixedObjIds::noContainer)
 {
-    objInfo.forcedObjId = index;
+    ObjectInfo::metaType = MetaTypes::object;
+    ObjectInfo::objId = index;
+    ObjectInfo::parentId = 0;
 
     connect(this, SIGNAL(UndoStackPush(QUndoCommand*)),
             myHost, SLOT(UndoStackPush(QUndoCommand*)));
@@ -80,36 +82,66 @@ Object::Object(MainHost *host, int index, const ObjectInfo &info) :
     i.objId=index;
     i.myHost=myHost;
 
-    i.type=PinType::Audio;
-    i.direction=PinDirection::Input;
-    listAudioPinIn->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listAudioIn,myHost->objFactory->GetNewId()));
+    ObjectInfo o;
+    o.parentId = index;
+    o.metaType = MetaTypes::listPin;
+
+    o.objId = myHost->objFactory->GetNewId();
+    o.listInfos[MetaInfos::Media]=MediaTypes::Audio;
+    o.listInfos[MetaInfos::Direction]=Directions::Input;
+    i.type=MediaTypes::Audio;
+    i.direction=Directions::Input;
+    listAudioPinIn->SetInfo(this,i,o);
     listAudioPinIn->setObjectName("listAudioPinIn");
-    i.direction=PinDirection::Output;
-    listAudioPinOut->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listAudioOut,myHost->objFactory->GetNewId()));
+
+    o.objId = myHost->objFactory->GetNewId();
+    o.listInfos[MetaInfos::Direction]=Directions::Output;
+    i.direction=Directions::Output;
+    listAudioPinOut->SetInfo(this,i,o);
     listAudioPinOut->setObjectName("listAudioPinOut");
 
-    i.type=PinType::Midi;
-    i.direction=PinDirection::Input;
-    listMidiPinIn->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listMidiIn,myHost->objFactory->GetNewId()));
+
+    o.objId = myHost->objFactory->GetNewId();
+    o.listInfos[MetaInfos::Media]=MediaTypes::Midi;
+    o.listInfos[MetaInfos::Direction]=Directions::Input;
+    i.type=MediaTypes::Midi;
+    i.direction=Directions::Input;
+    listMidiPinIn->SetInfo(this,i,o);
     listMidiPinIn->setObjectName("listMidiPinIn");
-    i.direction=PinDirection::Output;
-    listMidiPinOut->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listMidiOut,myHost->objFactory->GetNewId()));
+
+    o.objId = myHost->objFactory->GetNewId();
+    o.listInfos[MetaInfos::Direction]=Directions::Output;
+    i.direction=Directions::Output;
+    listMidiPinOut->SetInfo(this,i,o);
     listMidiPinOut->setObjectName("listMidiPinOut");
 
-    i.type=PinType::Bridge;
-    i.direction=PinDirection::Input;
-    listBridgePinIn->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listBridgeIn,myHost->objFactory->GetNewId()));
+
+    o.objId = myHost->objFactory->GetNewId();
+    o.listInfos[MetaInfos::Media]=MediaTypes::Bridge;
+    o.listInfos[MetaInfos::Direction]=Directions::Input;
+    i.type=MediaTypes::Bridge;
+    i.direction=Directions::Input;
+    listBridgePinIn->SetInfo(this,i,o);
     listBridgePinIn->setObjectName("listBridgePinIn");
-    i.direction=PinDirection::Output;
-    listBridgePinOut->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listBridgeOut,myHost->objFactory->GetNewId()));
+
+    o.objId = myHost->objFactory->GetNewId();
+    o.listInfos[MetaInfos::Direction]=Directions::Output;
+    i.direction=Directions::Output;
+    listBridgePinOut->SetInfo(this,i,o);
     listBridgePinOut->setObjectName("listBridgePinOut");
 
-    i.type=PinType::Parameter;
-    i.direction=PinDirection::Input;
-    listParameterPinIn->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listParamIn,myHost->objFactory->GetNewId()));
+    o.objId = myHost->objFactory->GetNewId();
+    o.listInfos[MetaInfos::Media]=MediaTypes::Parameter;
+    o.listInfos[MetaInfos::Direction]=Directions::Input;
+    i.type=MediaTypes::Parameter;
+    i.direction=Directions::Input;
+    listParameterPinIn->SetInfo(this,i,o);
     listParameterPinIn->setObjectName("listParameterPinIn");
-    i.direction=PinDirection::Output;
-    listParameterPinOut->SetInfo(this,i,ObjectInfo(NodeType::listPin, ObjType::listParamOut,myHost->objFactory->GetNewId()));
+
+    o.objId = myHost->objFactory->GetNewId();
+    o.listInfos[MetaInfos::Direction]=Directions::Output;
+    i.direction=Directions::Output;
+    listParameterPinOut->SetInfo(this,i,o);
     listParameterPinOut->setObjectName("listParameterPinOut");
 
     pinLists.insert("audioin", listAudioPinIn);
@@ -131,7 +163,7 @@ Object::~Object()
 {
     pinLists.clear();
 
-    if(containerId!=FixedObjId::noContainer) {
+    if(containerId!=FixedObjIds::noContainer) {
         QSharedPointer<Object>cntPtr = myHost->objFactory->GetObjectFromId( containerId );
         if(cntPtr) {
             static_cast<Container*>(cntPtr.data())->OnChildDeleted(this);
@@ -354,7 +386,7 @@ Pin * Object::GetPin(const ConnectionInfo &pinInfo)
     Pin* pin=0;
     bool autoCreate=false;
 
-    if(objInfo.objType == ObjType::dummy || !errorMessage.isEmpty())
+    if(objInfo.listInfos.value(MetaInfos::ObjType).toInt() == ObjTypes::Dummy || !errorMessage.isEmpty())
         autoCreate=true;
 
     foreach(PinsList *lst, pinLists) {
@@ -553,18 +585,18 @@ void Object::SetBufferSize(unsigned long size)
 
 void Object::UserRemovePin(const ConnectionInfo &info)
 {
-    if(info.type!=PinType::Parameter)
+    if(info.type!=MediaTypes::Parameter)
         return;
 
     if(!info.isRemoveable)
         return;
 
     switch(info.direction) {
-        case PinDirection::Input :
+        case Directions::Input :
             listParameterPinIn->AsyncRemovePin(info.pinNumber);
             OnProgramDirty();
             break;
-        case PinDirection::Output :
+        case Directions::Output :
             listParameterPinOut->AsyncRemovePin(info.pinNumber);
             OnProgramDirty();
             break;
@@ -573,15 +605,15 @@ void Object::UserRemovePin(const ConnectionInfo &info)
 
 void Object::UserAddPin(const ConnectionInfo &info)
 {
-    if(info.type!=PinType::Parameter)
+    if(info.type!=MediaTypes::Parameter)
         return;
 
     switch(info.direction) {
-        case PinDirection::Input :
+        case Directions::Input :
             listParameterPinIn->AsyncAddPin(info.pinNumber);
             OnProgramDirty();
             break;
-        case PinDirection::Output :
+        case Directions::Output :
             listParameterPinOut->AsyncAddPin(info.pinNumber);
             OnProgramDirty();
             break;
@@ -596,17 +628,17 @@ void Object::UserAddPin(const ConnectionInfo &info)
 Pin* Object::CreatePin(const ConnectionInfo &info)
 {
     switch(info.direction) {
-        case PinDirection::Input :
+        case Directions::Input :
             switch(info.type) {
-                case PinType::Audio : {
+                case MediaTypes::Audio : {
                     return new AudioPin(this,info.direction,info.pinNumber,myHost->GetBufferSize(),doublePrecision);
                 }
 
-                case PinType::Midi : {
+                case MediaTypes::Midi : {
                     return new MidiPinIn(this,info.pinNumber);
                 }
 
-                case PinType::Bridge : {
+                case MediaTypes::Bridge : {
                     return new BridgePinIn(this,info.pinNumber,info.bridge);
                 }
 
@@ -615,17 +647,17 @@ Pin* Object::CreatePin(const ConnectionInfo &info)
             }
             break;
 
-        case PinDirection::Output :
+        case Directions::Output :
             switch(info.type) {
-                case PinType::Audio : {
+                case MediaTypes::Audio : {
                     return new AudioPin(this,info.direction,info.pinNumber,myHost->GetBufferSize(),doublePrecision);
                 }
 
-                case PinType::Midi : {
+                case MediaTypes::Midi : {
                     return new MidiPinOut(this,info.pinNumber);
                 }
 
-                case PinType::Bridge : {
+                case MediaTypes::Bridge : {
                     return new BridgePinOut(this,info.pinNumber,info.bridge);
                 }
 

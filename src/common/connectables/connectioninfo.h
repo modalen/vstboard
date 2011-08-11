@@ -21,13 +21,14 @@
 #ifndef CONNECTIONINFO_H
 #define CONNECTIONINFO_H
 
-#include "../globals.h"
+#include "objectinfo.h"
+
 class MainHost;
 class ConnectionInfo
 {
 public:
     ConnectionInfo();
-    ConnectionInfo(MainHost *myHost,quint16 objId, PinType::Enum type, PinDirection::Enum direction, quint16 pinNumber, bool bridge, bool removeable=false);
+    ConnectionInfo(MainHost *myHost,quint16 objId, MediaTypes::Enum type,  Directions::Enum direction, quint16 pinNumber, bool bridge, bool removeable=false);
     ConnectionInfo(const ConnectionInfo &c);
 
     bool CanConnectTo(const ConnectionInfo &c) const;
@@ -42,10 +43,10 @@ public:
     quint16 objId;
 
     /// pin type
-    PinType::Enum type;
+     MediaTypes::Enum type;
 
     /// pin direction
-    PinDirection::Enum direction;
+     Directions::Enum direction;
 
     /// pin number in a list
     quint16 pinNumber;

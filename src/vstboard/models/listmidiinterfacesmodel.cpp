@@ -18,7 +18,7 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 #include "listmidiinterfacesmodel.h"
-#include "connectables/objectinfo.h"
+#include "objectinfo.h"
 
 ListMidiInterfacesModel::ListMidiInterfacesModel(QObject *parent):
         QStandardItemModel(parent)

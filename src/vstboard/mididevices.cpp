@@ -18,7 +18,7 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 #include "mididevices.h"
-#include "connectables/objectinfo.h"
+#include "objectinfo.h"
 #include "mainhost.h"
 
 //QList< QSharedPointer<Connectables::MidiDevice> >MidiDevices::listOpenedMidiDevices;
@@ -84,7 +84,7 @@ bool MidiDevices::Init()
         if(obj.isNull())
             continue;
 
-        if(obj->info().objType == ObjType::MidiInterface) {
+        if(obj->info().listInfos.value(MetaInfos::ObjType).toInt() == ObjTypes::MidiInterface) {
 //            if(!obj->errorMessage.isEmpty())
                 obj->Open();
             obj->UpdateModelNode();
@@ -144,14 +144,14 @@ void MidiDevices::BuildModel()
         lastName = devName;
 
         ObjectInfo obj;
-        obj.nodeType = NodeType::object;
-        obj.objType = ObjType::MidiInterface;
-        obj.id = i;
-        obj.name = devName;
-        obj.apiName = QString::fromLocal8Bit(devInfo->interf );
-        obj.duplicateNamesCounter = cptDuplicateNames;
-        obj.inputs = devInfo->input;
-        obj.outputs = devInfo->output;
+        obj.metaType = MetaTypes::object;
+        obj.listInfos[MetaInfos::ObjType] = ObjTypes::MidiInterface;
+        obj.listInfos[MetaInfos::id] = i;
+        obj.listInfos[MetaInfos::name] = devName;
+        obj.listInfos[MetaInfos::apiName] = QString::fromLocal8Bit(devInfo->interf );
+        obj.listInfos[MetaInfos::duplicateNamesCounter] = cptDuplicateNames;
+        obj.listInfos[MetaInfos::nbInputs] = devInfo->input;
+        obj.listInfos[MetaInfos::nbOutputs] = devInfo->output;
 
         items << new QStandardItem(devName);
         items << new QStandardItem(QString::number(devInfo->input));

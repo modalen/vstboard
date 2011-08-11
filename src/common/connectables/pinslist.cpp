@@ -36,6 +36,8 @@ PinsList::PinsList(MainHost *myHost, Object *parent) :
         parent(parent),
         myHost(myHost)
 {
+    ObjectInfo::metaType = MetaTypes::listPin;
+
     connect(this,SIGNAL(PinAdded(int)),
             this,SLOT(AddPin(int)));
     connect(this,SIGNAL(PinRemoved(int)),
@@ -101,7 +103,7 @@ Pin * PinsList::GetPin(int pinNumber, bool autoCreate)
 
 AudioBuffer *PinsList::GetBuffer(int pinNumber)
 {
-    if(connInfo.type != PinType::Audio)
+    if(connInfo.type != MediaTypes::Audio)
         return 0;
 
     if(!listPins.contains(pinNumber)) {

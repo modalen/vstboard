@@ -34,7 +34,7 @@ namespace Connectables {
         void NewRenderLoop();
     protected:
         /// type of the last message transmited
-        PinType::Enum valueType;
+        MediaTypes::Enum valueType;
 
         int loopCounter;
 

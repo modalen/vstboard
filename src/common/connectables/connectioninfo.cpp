@@ -32,8 +32,14 @@
 /*!
   default constructor
   */
-ConnectionInfo::ConnectionInfo()
-    : container(0), objId(0), type(PinType::Audio), direction(PinDirection::Output), pinNumber(0), bridge(false), isRemoveable(false), myHost(0)
+ConnectionInfo::ConnectionInfo() :
+    container(0),
+    objId(0),
+    type( MediaTypes::Audio),
+    direction( Directions::Output),
+    pinNumber(0), bridge(false),
+    isRemoveable(false),
+    myHost(0)
 {
 }
 
@@ -45,7 +51,7 @@ ConnectionInfo::ConnectionInfo()
   \param pinNumber the pin number in a list of pins
   \param bridge true if it's a bridge pin (can connect with the pins of the parent container)
   */
-ConnectionInfo::ConnectionInfo(MainHost *myHost,quint16 objId, PinType::Enum type, PinDirection::Enum direction, quint16 pinNumber, bool bridge, bool removeable) :
+ConnectionInfo::ConnectionInfo(MainHost *myHost,quint16 objId,  MediaTypes::Enum type,  Directions::Enum direction, quint16 pinNumber, bool bridge, bool removeable) :
     container(-1),
     objId(objId),
     type(type),
@@ -77,7 +83,7 @@ bool ConnectionInfo::CanConnectTo(const ConnectionInfo &c) const {
 //        return false;
 
     //must be the same type (audio/midi/automation) or a bridge pin
-    if(type!=PinType::Bridge && c.type!=PinType::Bridge && type != c.type)
+    if(type!=MediaTypes::Bridge && c.type!=MediaTypes::Bridge && type != c.type)
         return false;
 
 

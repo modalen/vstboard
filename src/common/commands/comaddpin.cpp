@@ -73,7 +73,7 @@ void ComAddPin::redo ()
     objPtr->UserAddPin(pinInfo);
 
     foreach( ConnectionInfo info, listConnectedPins) {
-        if(pinInfo.direction==PinDirection::Output)
+        if(pinInfo.direction==Directions::Output)
             cntPtr->UserAddCable(pinInfo,info);
         else
             cntPtr->UserAddCable(info,pinInfo);

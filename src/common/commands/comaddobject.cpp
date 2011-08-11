@@ -33,7 +33,7 @@ void ComAddObject::undo ()
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
     //get the object
-    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.forcedObjId );
+    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.objId );
     if(!obj)
         return;
 
@@ -52,7 +52,7 @@ void ComAddObject::undo ()
 
     //add the replaced object
     if(insertType==InsertionType::Replace) {
-        QSharedPointer<Connectables::Object> target = myHost->objFactory->GetObjectFromId( targetInfo.forcedObjId );
+        QSharedPointer<Connectables::Object> target = myHost->objFactory->GetObjectFromId( targetInfo.objId );
         if(!target) {
             //the target has been deleted, create it back
             target = myHost->objFactory->NewObject( targetInfo );
@@ -90,7 +90,7 @@ void ComAddObject::redo ()
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
     //get the object
-    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.forcedObjId );
+    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.objId );
     if(!obj) {
         //object was deleted, create a new one
         obj = myHost->objFactory->NewObject( objectInfo );
@@ -107,7 +107,7 @@ void ComAddObject::redo ()
         return;
 
     //get the target
-    QSharedPointer<Connectables::Object> target = myHost->objFactory->GetObjectFromId( targetInfo.forcedObjId );
+    QSharedPointer<Connectables::Object> target = myHost->objFactory->GetObjectFromId( targetInfo.objId );
     if(target) {
         targetInfo = target->info();
         QDataStream stream(&targetState, QIODevice::ReadWrite);

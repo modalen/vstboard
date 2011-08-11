@@ -155,10 +155,9 @@ void MainHost::Open()
 void MainHost::SetupMainContainer()
 {
     ObjectInfo info;
-    info.nodeType = NodeType::container;
-    info.objType = ObjType::Container;
+    info.metaType = MetaTypes::container;
     info.name = "mainContainer";
-    info.forcedObjId = FixedObjId::mainContainer;
+    info.objId = FixedObjIds::mainContainer;
 
     mainContainer = objFactory->NewObject(info).staticCast< Connectables::Container >();
     if(mainContainer.isNull())
@@ -193,10 +192,9 @@ void MainHost::SetupHostContainer()
     }
 
     ObjectInfo info;
-    info.nodeType = NodeType::container;
-    info.objType = ObjType::Container;
+    info.metaType = MetaTypes::container;
     info.name = "hostContainer";
-    info.forcedObjId = FixedObjId::hostContainer;
+    info.objId = FixedObjIds::hostContainer;
 
     hostContainer = objFactory->NewObject(info).staticCast<Connectables::Container>();
     if(hostContainer.isNull())
@@ -213,9 +211,9 @@ void MainHost::SetupHostContainer()
     //bridge in
     ObjectInfo in;
     in.name="in";
-    in.nodeType = NodeType::bridge;
-    in.objType = ObjType::BridgeIn;
-    in.forcedObjId = FixedObjId::hostContainerIn;
+    in.metaType = MetaTypes::bridge;
+    in.listInfos.insert(MetaInfos::Direction, Directions::Input);
+    in.objId = FixedObjIds::hostContainerIn;
 
     bridge = objFactory->NewObject(in);
     bridge->SetBridgePinsInVisible(false);
@@ -226,9 +224,9 @@ void MainHost::SetupHostContainer()
     //bridge out
     ObjectInfo out;
     out.name="out";
-    out.nodeType = NodeType::bridge;
-    out.objType = ObjType::BridgeOut;
-    out.forcedObjId = FixedObjId::hostContainerOut;
+    out.metaType = MetaTypes::bridge;
+    out.listInfos.insert(MetaInfos::Direction, Directions::Output);
+    out.objId = FixedObjIds::hostContainerOut;
 
     bridge = objFactory->NewObject(out);
     bridge->SetBridgePinsOutVisible(false);
@@ -245,9 +243,9 @@ void MainHost::SetupHostContainer()
     //send bridge
     ObjectInfo send;
     send.name = "send";
-    send.nodeType = NodeType::bridge;
-    send.objType = ObjType::BridgeSend;
-    send.forcedObjId = FixedObjId::hostContainerSend;
+    send.metaType = MetaTypes::bridge;
+    send.listInfos.insert(MetaInfos::Direction, Directions::Send);
+    send.objId = FixedObjIds::hostContainerSend;
 
     bridge = objFactory->NewObject(send);
     bridge->SetBridgePinsOutVisible(false);
@@ -258,9 +256,9 @@ void MainHost::SetupHostContainer()
     //return bridge
     ObjectInfo retrn;
     retrn.name = "return";
-    retrn.nodeType = NodeType::bridge;
-    retrn.objType = ObjType::BridgeReturn;
-    retrn.forcedObjId = FixedObjId::hostContainerReturn;
+    retrn.metaType = MetaTypes::bridge;
+    retrn.listInfos.insert(MetaInfos::Direction, Directions::Return);
+    retrn.objId = FixedObjIds::hostContainerReturn;
 
     bridge = objFactory->NewObject(retrn);
     bridge->SetBridgePinsInVisible(false);
@@ -296,10 +294,9 @@ void MainHost::SetupProjectContainer()
     timeFromStart.restart();
 
     ObjectInfo info;
-    info.nodeType = NodeType::container;
-    info.objType = ObjType::Container;
+    info.metaType = MetaTypes::container;
     info.name = "projectContainer";
-    info.forcedObjId = FixedObjId::projectContainer;
+    info.objId = FixedObjIds::projectContainer;
 
     projectContainer = objFactory->NewObject(info).staticCast<Connectables::Container>();
     if(projectContainer.isNull())
@@ -315,9 +312,9 @@ void MainHost::SetupProjectContainer()
     //bridge in
     ObjectInfo in;
     in.name="in";
-    in.nodeType = NodeType::bridge;
-    in.objType = ObjType::BridgeIn;
-    in.forcedObjId = FixedObjId::projectContainerIn;
+    in.metaType = MetaTypes::bridge;
+    in.listInfos.insert(MetaInfos::Direction, Directions::Input);
+    in.objId = FixedObjIds::projectContainerIn;
 
     bridge = objFactory->NewObject(in);
     bridge->SetBridgePinsInVisible(false);
@@ -328,9 +325,9 @@ void MainHost::SetupProjectContainer()
     //bridge out
     ObjectInfo out;
     out.name="out";
-    out.nodeType = NodeType::bridge;
-    out.objType = ObjType::BridgeOut;
-    out.forcedObjId = FixedObjId::projectContainerOut;
+    out.metaType = MetaTypes::bridge;
+    out.listInfos.insert(MetaInfos::Direction, Directions::Output);
+    out.objId = FixedObjIds::projectContainerOut;
 
     bridge = objFactory->NewObject(out);
     bridge->SetBridgePinsOutVisible(false);
@@ -348,9 +345,9 @@ void MainHost::SetupProjectContainer()
     //bridge send
     ObjectInfo send;
     send.name="send";
-    send.nodeType = NodeType::bridge;
-    send.objType = ObjType::BridgeSend;
-    send.forcedObjId = FixedObjId::projectContainerSend;
+    send.metaType = MetaTypes::bridge;
+    send.listInfos.insert(MetaInfos::Direction, Directions::Send);
+    send.objId = FixedObjIds::projectContainerSend;
 
     bridge = objFactory->NewObject(send);
     bridge->SetBridgePinsOutVisible(false);
@@ -361,9 +358,9 @@ void MainHost::SetupProjectContainer()
     //bridge return
     ObjectInfo retrn;
     retrn.name="return";
-    retrn.nodeType = NodeType::bridge;
-    retrn.objType = ObjType::BridgeReturn;
-    retrn.forcedObjId = FixedObjId::projectContainerReturn;
+    retrn.metaType = MetaTypes::bridge;
+    retrn.listInfos.insert(MetaInfos::Direction, Directions::Return);
+    retrn.objId = FixedObjIds::projectContainerReturn;
 
     bridge = objFactory->NewObject(retrn);
     bridge->SetBridgePinsInVisible(false);
@@ -404,10 +401,9 @@ void MainHost::SetupProgramContainer()
     }
 
     ObjectInfo info;
-    info.nodeType = NodeType::container;
-    info.objType = ObjType::Container;
+    info.metaType = MetaTypes::container;
     info.name = "programContainer";
-    info.forcedObjId = FixedObjId::programContainer;
+    info.objId = FixedObjIds::programContainer;
 
     programContainer = objFactory->NewObject(info).staticCast<Connectables::Container>();
     if(programContainer.isNull())
@@ -424,9 +420,9 @@ void MainHost::SetupProgramContainer()
     //bridge in
     ObjectInfo in;
     in.name="in";
-    in.nodeType = NodeType::bridge;
-    in.objType = ObjType::BridgeIn;
-    in.forcedObjId = FixedObjId::programContainerIn;
+    in.metaType = MetaTypes::bridge;
+    in.listInfos.insert(MetaInfos::Direction, Directions::Input);
+    in.objId = FixedObjIds::programContainerIn;
 
     bridge = objFactory->NewObject(in);
     bridge->SetBridgePinsInVisible(false);
@@ -437,9 +433,9 @@ void MainHost::SetupProgramContainer()
     //bridge out
     ObjectInfo out;
     out.name="out";
-    out.nodeType = NodeType::bridge;
-    out.objType = ObjType::BridgeOut;
-    out.forcedObjId = FixedObjId::programContainerOut;
+    out.metaType = MetaTypes::bridge;
+    out.listInfos.insert(MetaInfos::Direction, Directions::Output);
+    out.objId = FixedObjIds::programContainerOut;
 
     bridge = objFactory->NewObject(out);
     bridge->SetBridgePinsOutVisible(false);
@@ -457,9 +453,9 @@ void MainHost::SetupProgramContainer()
     //bridge send
     ObjectInfo send;
     send.name="send";
-    send.nodeType = NodeType::bridge;
-    send.objType = ObjType::BridgeSend;
-    send.forcedObjId = FixedObjId::programContainerSend;
+    send.metaType = MetaTypes::bridge;
+    send.listInfos.insert(MetaInfos::Direction, Directions::Send);
+    send.objId = FixedObjIds::programContainerSend;
 
     bridge = objFactory->NewObject(send);
     bridge->SetBridgePinsOutVisible(false);
@@ -470,9 +466,9 @@ void MainHost::SetupProgramContainer()
     //bridge return
     ObjectInfo retrn;
     retrn.name="return";
-    retrn.nodeType = NodeType::bridge;
-    retrn.objType = ObjType::BridgeReturn;
-    retrn.forcedObjId = FixedObjId::programContainerReturn;
+    retrn.metaType = MetaTypes::bridge;
+    retrn.listInfos.insert(MetaInfos::Direction, Directions::Return);
+    retrn.objId = FixedObjIds::programContainerReturn;
 
     bridge = objFactory->NewObject(retrn);
     bridge->SetBridgePinsInVisible(false);
@@ -514,10 +510,9 @@ void MainHost::SetupGroupContainer()
     }
 
     ObjectInfo info;
-    info.nodeType = NodeType::container;
-    info.objType = ObjType::Container;
+    info.metaType = MetaTypes::container;
     info.name = "groupContainer";
-    info.forcedObjId = FixedObjId::groupContainer;
+    info.objId = FixedObjIds::groupContainer;
 
     groupContainer = objFactory->NewObject(info).staticCast<Connectables::Container>();
     if(groupContainer.isNull())
@@ -533,9 +528,9 @@ void MainHost::SetupGroupContainer()
     //bridge in
     ObjectInfo in;
     in.name="in";
-    in.nodeType = NodeType::bridge;
-    in.objType = ObjType::BridgeIn;
-    in.forcedObjId = FixedObjId::groupContainerIn;
+    in.metaType = MetaTypes::bridge;
+    in.listInfos.insert(MetaInfos::Direction, Directions::Input);
+    in.objId = FixedObjIds::groupContainerIn;
 
     bridge = objFactory->NewObject(in);
     bridge->SetBridgePinsInVisible(false);
@@ -546,9 +541,9 @@ void MainHost::SetupGroupContainer()
     //bridge out
     ObjectInfo out;
     out.name="out";
-    out.nodeType = NodeType::bridge;
-    out.objType = ObjType::BridgeOut;
-    out.forcedObjId = FixedObjId::groupContainerOut;
+    out.metaType = MetaTypes::bridge;
+    out.listInfos.insert(MetaInfos::Direction, Directions::Output);
+    out.objId = FixedObjIds::groupContainerOut;
 
     bridge = objFactory->NewObject(out);
     bridge->SetBridgePinsOutVisible(false);
@@ -565,9 +560,9 @@ void MainHost::SetupGroupContainer()
     //bridge send
     ObjectInfo send;
     send.name="send";
-    send.nodeType = NodeType::bridge;
-    send.objType = ObjType::BridgeSend;
-    send.forcedObjId = FixedObjId::groupContainerSend;
+    send.metaType = MetaTypes::bridge;
+    send.listInfos.insert(MetaInfos::Direction, Directions::Send);
+    send.objId = FixedObjIds::groupContainerSend;
 
     bridge = objFactory->NewObject(send);
     bridge->SetBridgePinsOutVisible(false);
@@ -578,9 +573,9 @@ void MainHost::SetupGroupContainer()
     //bridge return
     ObjectInfo retrn;
     retrn.name="return";
-    retrn.nodeType = NodeType::bridge;
-    retrn.objType = ObjType::BridgeReturn;
-    retrn.forcedObjId = FixedObjId::groupContainerReturn;
+    retrn.metaType = MetaTypes::bridge;
+    retrn.listInfos.insert(MetaInfos::Direction, Directions::Return);
+    retrn.objId = FixedObjIds::groupContainerReturn;
 
     bridge = objFactory->NewObject(retrn);
     bridge->SetBridgePinsInVisible(false);

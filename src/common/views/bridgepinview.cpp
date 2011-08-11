@@ -37,7 +37,7 @@ using namespace View;
 BridgePinView::BridgePinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
         PinView(angle, model,parent, pinInfo,config),
         value(.0f),
-        valueType(PinType::ND)
+        valueType(MediaTypes::ND)
 {
     setGeometry(0,0,PINSIZE,PINSIZE);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -47,8 +47,8 @@ BridgePinView::BridgePinView(float angle, QAbstractItemModel *model,QGraphicsIte
 
     QPolygonF pol;
 
-    if( (connectInfo.direction==PinDirection::Input && pinAngle<0)
-        || (connectInfo.direction==PinDirection::Output && pinAngle>0) ) {
+    if( (connectInfo.direction==Directions::Input && pinAngle<0)
+        || (connectInfo.direction==Directions::Output && pinAngle>0) ) {
         pol << QPointF(PINSIZE/2,PINSIZE) << QPointF(0,0) << QPointF(PINSIZE,0);
     } else {
         pol << QPointF(PINSIZE/2,0) << QPointF(0,PINSIZE) << QPointF(PINSIZE,PINSIZE);
@@ -102,7 +102,7 @@ void BridgePinView::UpdateModelIndex(const QModelIndex &index)
 {
     float newVal=index.data(UserRoles::value).toFloat();
     value = std::max(value,newVal);
-    valueType = (PinType::Enum)index.data(UserRoles::type).toInt();
+    valueType = (MediaTypes::Enum)index.data(UserRoles::type).toInt();
 }
 
 void BridgePinView::updateVu()
@@ -119,13 +119,13 @@ void BridgePinView::updateVu()
 
     QColor c;
     switch(valueType) {
-        case PinType::Audio:
+        case MediaTypes::Audio:
             c = config->GetColor(ColorGroups::AudioPin, Colors::Background);
             break;
-        case PinType::Midi :
+        case MediaTypes::Midi :
             c = config->GetColor(ColorGroups::MidiPin, Colors::Background);
             break;
-        case PinType::Parameter :
+        case MediaTypes::Parameter :
             c = config->GetColor(ColorGroups::ParameterPin, Colors::Background);
             break;
         default :

@@ -22,11 +22,12 @@
 #define CABLE_H
 
 #include "connectioninfo.h"
+#include "objectinfo.h"
 
 class MainHost;
 namespace Connectables {
 
-    class Cable
+    class Cable : public ObjectInfo
     {
     public:
         Cable(MainHost *myHost,const ConnectionInfo &pinOut, const ConnectionInfo &pinIn);

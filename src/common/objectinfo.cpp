@@ -23,8 +23,7 @@
 #include "mainhost.h"
 
 ObjectInfo::ObjectInfo() :
-        nodeType(NodeType::ND),
-        objType(ObjType::ND),
+        metaType(MetaTypes::ND),
         id(0),
         name(""),
         filename(""),
@@ -32,15 +31,14 @@ ObjectInfo::ObjectInfo() :
         outputs(0),
         duplicateNamesCounter(0),
         api(0),
-        forcedObjId(0)
+        objId(0)
 {
 
 }
 
-ObjectInfo::ObjectInfo(NodeType::Enum nodeType, ObjType::Enum objType, int id, QString name) :
-        nodeType(nodeType),
-        objType(objType),
-        forcedObjId(id),
+ObjectInfo::ObjectInfo( MetaTypes::Enum nodeType, ObjTypes::Enum objType, int id, QString name) :
+        metaType(nodeType),
+        objId(objId),
         name(name),
         filename(""),
         inputs(0),
@@ -59,8 +57,8 @@ ObjectInfo::ObjectInfo(const ObjectInfo &c)
 
 QDataStream & ObjectInfo::toStream(QDataStream& stream) const
 {
-    stream << (quint8)nodeType;
-    stream << (quint8)objType;
+    stream << (quint8)metaType;
+//    stream << (quint8)objType;
     stream << id;
     stream << name;
     stream << filename;
@@ -69,14 +67,14 @@ QDataStream & ObjectInfo::toStream(QDataStream& stream) const
     stream << duplicateNamesCounter;
     stream << apiName;
     stream << api;
-    stream << forcedObjId;
+    stream << objId;
     return stream;
 }
 
 QDataStream & ObjectInfo::fromStream(QDataStream& stream)
 {
-    stream >> (quint8&)nodeType;
-    stream >> (quint8&)objType;
+    stream >> (quint8&)metaType;
+//    stream >> (quint8&)objType;
     stream >> id;
     stream >> name;
     stream >> filename;
@@ -85,7 +83,7 @@ QDataStream & ObjectInfo::fromStream(QDataStream& stream)
     stream >> duplicateNamesCounter;
     stream >> apiName;
     stream >> api;
-    stream >> forcedObjId;
+    stream >> objId;
     return stream;
 }
 

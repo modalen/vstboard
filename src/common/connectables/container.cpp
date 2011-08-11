@@ -48,6 +48,8 @@ Container::Container(MainHost *myHost,int index, const ObjectInfo &info) :
     progToSet(-1),
     loadingMode(false)
 {
+    ObjectInfo::metaType = MetaTypes::container;
+
     parkModel.setObjectName("parkModel"%objectName());
     LoadProgram(TEMP_PROGRAM);
     connect(myHost,SIGNAL(BufferSizeChanged(ulong)),
@@ -375,18 +377,19 @@ void Container::AddObject(QSharedPointer<Object> objPtr)
     objPtr->UnloadProgram();
 
     //bridges are not stored in program
-    if(objPtr->info().nodeType == NodeType::bridge) {
-        if(objPtr->info().objType==ObjType::BridgeIn) {
+    int direction = objPtr->listInfos.value(MetaInfos::Direction).toInt();
+    if(objPtr->metaType == MetaTypes::bridge) {
+        switch(direction) {
+        case Directions::Input :
             bridgeIn=objPtr;
-        }
-        if(objPtr->info().objType==ObjType::BridgeOut) {
+            break;
+        case Directions::Output :
             bridgeOut=objPtr;
-        }
-
-        if(objPtr->info().objType==ObjType::BridgeSend) {
+            break;
+        case Directions::Send :
             bridgeSend=objPtr;
-        }
-        if(objPtr->info().objType==ObjType::BridgeReturn) {
+            break;
+        case Directions::Return :
             bridgeReturn=objPtr;
         }
 
@@ -809,7 +812,7 @@ bool Container::loadObjectFromStream (QDataStream &in)
 {
     ObjectInfo info;
     in >> info;
-    info.forcedObjId=0;
+    info.objId=0;
 
     QSharedPointer<Object> objPtr = myHost->objFactory->NewObject(info);
 
@@ -904,14 +907,14 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
         in >> tmpBa;
         ObjectInfo info;
         tmpStream >> info;
-        QSharedPointer<Object>obj = myHost->objFactory->GetObjectFromId( info.forcedObjId );
+        QSharedPointer<Object>obj = myHost->objFactory->GetObjectFromId( info.objId );
         if(!obj) {
             obj = myHost->objFactory->NewObject(info);
             AddParkedObject(obj);
             tmpListObj << obj;
         } else {
             obj->SetContainerId(index);
-            obj->ResetSavedIndex(info.forcedObjId);
+            obj->ResetSavedIndex(info.objId);
         }
         if(!obj) {
             LOG("can't create obj"<<info.id<<info.name);

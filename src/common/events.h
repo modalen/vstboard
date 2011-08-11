@@ -22,7 +22,7 @@
 #define MYEVENTS_H
 
 #include "precomp.h"
-#include "connectables/objectinfo.h"
+#include "objectinfo.h"
 #include "connectables/connectioninfo.h"
 
 namespace Events {
@@ -44,7 +44,7 @@ namespace Events {
         QStandardItem *CreateItem() {
             QStandardItem *item = new QStandardItem(objInfo.name);
             item->setData(QVariant::fromValue(objInfo), UserRoles::objInfo);
-            item->setData(objInfo.forcedObjId, UserRoles::value);
+            item->setData(objInfo.objId, UserRoles::value);
             item->setData(errorMessage, UserRoles::errorMessage);
             return item;
         }
@@ -70,7 +70,7 @@ namespace Events {
             QStandardItem *item = new QStandardItem("pin");
             item->setData(name,Qt::DisplayRole);
             item->setData(value,UserRoles::value);
-            item->setData( QVariant::fromValue(ObjectInfo(NodeType::pin)),UserRoles::objInfo);
+            item->setData( QVariant::fromValue(ObjectInfo(MetaTypes::pin)),UserRoles::objInfo);
             item->setData(QVariant::fromValue(connectionInfo),UserRoles::connectionInfo);
             item->setData(stepSize,UserRoles::stepSize);
             return item;

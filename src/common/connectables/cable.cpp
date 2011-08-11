@@ -40,7 +40,7 @@ Cable::Cable(MainHost *myHost, const ConnectionInfo &pinOut, const ConnectionInf
         modelIndex(QModelIndex()),
         myHost(myHost)
 {
-
+    ObjectInfo::metaType = MetaTypes::cable;
 }
 
 /*!
@@ -53,7 +53,7 @@ Cable::Cable(const Cable & c) :
         modelIndex(c.modelIndex),
         myHost(c.myHost)
 {
-
+    ObjectInfo::metaType = MetaTypes::cable;
 }
 
 /*!
@@ -64,7 +64,7 @@ Cable::Cable(const Cable & c) :
 void Cable::AddToParentNode(const QModelIndex &parentIndex)
 {
     QStandardItem *item = new QStandardItem(QString("cable %1:%2").arg(pinOut.objId).arg(pinIn.objId));
-    item->setData(QVariant::fromValue(ObjectInfo(NodeType::cable)),UserRoles::objInfo);
+    item->setData(QVariant::fromValue(ObjectInfo(MetaTypes::cable)),UserRoles::objInfo);
     item->setData(QVariant::fromValue(pinOut),UserRoles::value);
     item->setData(QVariant::fromValue(pinIn),UserRoles::connectionInfo);
 

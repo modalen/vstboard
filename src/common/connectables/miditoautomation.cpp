@@ -28,7 +28,7 @@
 using namespace Connectables;
 
 MidiToAutomation::MidiToAutomation(MainHost *myHost,int index) :
-        Object(myHost,index, ObjectInfo(NodeType::object, ObjType::MidiToAutomation, index, tr("Midi to Parameter")) )
+        Object(myHost,index, ObjectInfo(MetaTypes::object, ObjTypes::MidiToAutomation, index, tr("Midi to Parameter")) )
 {
     for(int i=0;i<128;i++) {
         listValues << i;
@@ -140,13 +140,13 @@ Pin* MidiToAutomation::CreatePin(const ConnectionInfo &info)
     if(newPin)
         return newPin;
 
-    if(info.type!=PinType::Parameter) {
+    if(info.type!=MediaTypes::Parameter) {
         LOG("wrong PinType"<<info.type);
         return 0;
     }
 
     switch(info.direction) {
-        case PinDirection::Input : {
+        case Directions::Input : {
             if(info.pinNumber == FixedPinNumber::learningMode) {
                 ParameterPin *newPin = new ParameterPinIn(this,FixedPinNumber::learningMode,"off",&listIsLearning,tr("Learn"));
                 newPin->SetLimitsEnabled(false);
@@ -154,7 +154,7 @@ Pin* MidiToAutomation::CreatePin(const ConnectionInfo &info)
             }
             break;
         }
-        case PinDirection::Output : {
+        case Directions::Output : {
             ParameterPin *pin = 0;
 
             if(info.pinNumber<128)

@@ -34,25 +34,28 @@ ObjectFactoryHost::ObjectFactoryHost(MainHost *myHost) :
 Object *ObjectFactoryHost::CreateOtherObjects(const ObjectInfo &info)
 {
     int objId = cptListObjects;
-    if(info.forcedObjId) {
-        objId = info.forcedObjId;
+    if(info.objId) {
+        objId = info.objId;
     }
 
     Object *obj=0;
 
-    switch(info.nodeType) {
-        case NodeType::object :
+    switch(info.metaType) {
+        case MetaTypes::object :
 
-            switch(info.objType) {
-                case ObjType::AudioInterfaceIn:
-                    obj = new AudioDeviceIn(myHost,objId, info);
+            switch(info.listInfos.value(MetaInfos::ObjType).toInt()) {
+                case ObjTypes::AudioInterface:
+                    switch(info.listInfos.value(MetaInfos::Direction).toInt()) {
+                        case Directions::Input :
+                            obj = new AudioDeviceIn(myHost,objId, info);
+                            break;
+                        case Directions::Output :
+                            obj = new AudioDeviceOut(myHost,objId, info);
+                            break;
+                    }
                     break;
 
-                case ObjType::AudioInterfaceOut:
-                    obj = new AudioDeviceOut(myHost,objId, info);
-                    break;
-
-                case ObjType::MidiInterface:
+                case ObjTypes::MidiInterface:
                     obj = new MidiDevice(myHost,objId, info);
                     break;
                 default:

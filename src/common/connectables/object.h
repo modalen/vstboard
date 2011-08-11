@@ -46,7 +46,7 @@ namespace Connectables {
 
     typedef QHash<int,ObjectProgram*> hashPrograms;
 
-    class Object : public QObject
+    class Object : public QObject, public ObjectInfo
     {
     Q_OBJECT
     public:
@@ -72,10 +72,7 @@ namespace Connectables {
         /// Reset the savedIndex to the current index, when the file is loaded or before saving
         inline void ResetSavedIndex(int id=-2) {savedIndex=id;}
 
-        /// \return the current ObjectInfo
-        const ObjectInfo & info() const {return objInfo;}
-
-        /*!
+          /*!
           A SolverNode is a temporarry object used by the solver to create a rendering order
           used by PathSolver
           \return the current SolverNode

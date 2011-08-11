@@ -24,7 +24,7 @@
 #include "projectfile/projectfile.h"
 #include "views/configdialog.h"
 #include "views/aboutdialog.h"
-#include "connectables/objectinfo.h"
+#include "objectinfo.h"
 #include "views/viewconfigdialog.h"
 #include "models/programsmodel.h"
 #include "connectables/vstplugin.h"
@@ -124,7 +124,7 @@ bool MainWindow::event(QEvent *event)
         Events::newObj *e = static_cast<Events::newObj*>(event);
         QStandardItem *parentItem = mapItems.value( e->parentIndex, 0 );
         if(!parentItem) {
-            if(e->objInfo.forcedObjId==FixedObjId::mainContainer)
+            if(e->objInfo.objId==FixedObjIds::mainContainer)
                 parentItem = model->invisibleRootItem();
             else {
                 LOG("parent not found"<<e->objInfo.name);
@@ -133,7 +133,7 @@ bool MainWindow::event(QEvent *event)
         }
 
         QStandardItem *objItem = e->CreateItem();
-        mapItems.insert(e->objInfo.forcedObjId, objItem );
+        mapItems.insert(e->objInfo.objId, objItem );
         parentItem->appendRow(objItem);
         return true;
     }
@@ -249,30 +249,30 @@ void MainWindow::BuildListTools()
 #ifdef SCRIPTENGINE
     //script
     item = new QStandardItem(tr("Script"));
-    info.nodeType = NodeType::object;
-    info.objType = ObjType::Script;
+    info.metaType = MetaTypes::object;
+    info.listInfos[MetaInfos::ObjType] = ObjTypes::Script;
     item->setData(QVariant::fromValue(info), UserRoles::objInfo);
     parentItem->appendRow(item);
 #endif
 
     //midi parameters
     item = new QStandardItem(tr("Midi to parameter"));
-    info.nodeType = NodeType::object;
-    info.objType = ObjType::MidiToAutomation;
+    info.metaType = MetaTypes::object;
+    info.listInfos[MetaInfos::ObjType] = ObjTypes::MidiToAutomation;
     item->setData(QVariant::fromValue(info), UserRoles::objInfo);
     parentItem->appendRow(item);
 
     //midi sender
     item = new QStandardItem(tr("Midi sender"));
-    info.nodeType = NodeType::object;
-    info.objType = ObjType::MidiSender;
+    info.metaType = MetaTypes::object;
+    info.listInfos[MetaInfos::ObjType] = ObjTypes::MidiSender;
     item->setData(QVariant::fromValue(info),UserRoles::objInfo);
     parentItem->appendRow(item);
 
     //host controller
     item = new QStandardItem(tr("Host Controller"));
-    info.nodeType = NodeType::object;
-    info.objType = ObjType::HostController;
+    info.metaType = MetaTypes::object;
+    info.listInfos[MetaInfos::ObjType] = ObjTypes::HostController;
     item->setData(QVariant::fromValue(info),UserRoles::objInfo);
     parentItem->appendRow(item);
 

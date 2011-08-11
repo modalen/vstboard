@@ -77,7 +77,7 @@ SOURCES += \
     renderer/renderer.cpp \
     models/hostmodel.cpp \
     connectables/connectioninfo.cpp \
-    connectables/objectinfo.cpp \
+    objectinfo.cpp \
     connectables/pin.cpp \
     connectables/parameterpin.cpp \
     connectables/parameterpinin.cpp \
@@ -166,7 +166,7 @@ HEADERS += \
     renderer/renderer.h \
     models/hostmodel.h \
     connectables/connectioninfo.h \
-    connectables/objectinfo.h \
+    objectinfo.h \
     connectables/pin.h \
     connectables/parameterpin.h \
     connectables/parameterpinin.h \
@@ -231,6 +231,14 @@ TRANSLATIONS = ../resources/translations/common_fr.ts
 
 RESOURCES += \
     ../resources/resources.qrc
+
+
+
+
+
+
+
+
 
 
 

@@ -26,6 +26,7 @@
 #include "connectioninfo.h"
 #include "objectinfo.h"
 #include "audiobuffer.h"
+#include "objectinfo.h"
 
 namespace Connectables {
 
@@ -33,7 +34,7 @@ namespace Connectables {
     class Object;
     class Container;
 
-    class PinsList : public QObject
+    class PinsList : public QObject, public ObjectInfo
     {
         Q_OBJECT
         Q_PROPERTY(int nbPins READ nbPins WRITE SetNbPins)

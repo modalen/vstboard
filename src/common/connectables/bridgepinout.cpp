@@ -25,8 +25,8 @@
 using namespace Connectables;
 
 BridgePinOut::BridgePinOut(Object *parent, int number, bool bridge)
-    :Pin(parent,PinType::Bridge,PinDirection::Output,number,bridge),
-    valueType(PinType::ND)
+    :Pin(parent,MediaTypes::Bridge,Directions::Output,number,bridge),
+    valueType(MediaTypes::ND)
 {
     setObjectName(QString("BOut%1").arg(number));
     visible=true;
@@ -40,16 +40,16 @@ void BridgePinOut::SendMsg(const PinMessage::Enum msgType,void *data)
         case PinMessage::AudioBuffer :
             if(static_cast<AudioBuffer*>(data)->GetCurrentVu() < 0.01)
                 return;
-            valueType=PinType::Audio;
+            valueType=MediaTypes::Audio;
             break;
         case PinMessage::ParameterValue :
-            valueType=PinType::Parameter;
+            valueType=MediaTypes::Parameter;
             break;
         case PinMessage::MidiMsg:
-            valueType=PinType::Midi;
+            valueType=MediaTypes::Midi;
             break;
         default :
-            valueType=PinType::ND;
+            valueType=MediaTypes::ND;
     }
 
     valueChanged=true;

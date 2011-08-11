@@ -17,8 +17,9 @@
 #    You should have received a copy of the under the terms of the GNU Lesser General Public License
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
-
+#include "precomp.h"
 #include "minmaxpinview.h"
+#include "objectinfo.h"
 
 using namespace View;
 
@@ -53,27 +54,26 @@ void MinMaxPinView::CreateCursors()
     outMax->SetValue(1.0f);
 }
 
-void MinMaxPinView::SetLimitModelIndex(ObjType::Enum type, QPersistentModelIndex index)
+void MinMaxPinView::SetLimitModelIndex(QPersistentModelIndex index)
 {
     if(!cursorCreated)
         CreateCursors();
 
-    switch(type) {
-        case ObjType::limitInMin:
+    ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
+    int direction = info.listInfos.value(MetaInfos::Direction).toInt();
+    int limit = info.listInfos.value(MetaInfos::LimitType).toInt();
+    if(direction == Directions::Input) {
+        if(limit == LimitTypes::Min) {
             inMin->SetModelIndex(index);
-            break;
-        case ObjType::limitInMax:
+        } else if(limit == LimitTypes::Max) {
             inMax->SetModelIndex(index);
-            break;
-        case ObjType::limitOutMin:
+        }
+    } else if(direction == Directions::Output) {
+        if(limit == LimitTypes::Min) {
             outMin->SetModelIndex(index);
-            break;
-        case ObjType::limitOutMax:
+        } else if(limit == LimitTypes::Max) {
             outMax->SetModelIndex(index);
-            break;
-        default:
-            LOG("unknown type"<<type);
-            break;
+        }
     }
 }
 

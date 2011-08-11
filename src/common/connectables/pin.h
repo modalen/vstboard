@@ -24,6 +24,7 @@
 #include "../precomp.h"
 #include "../globals.h"
 #include "connectioninfo.h"
+#include "objectinfo.h"
 
 #ifdef _MSC_VER
 #pragma warning( push )
@@ -33,11 +34,11 @@
 namespace Connectables {
 
     class Object;
-    class Pin : public QObject
+    class Pin : public QObject, public ObjectInfo
     {
     Q_OBJECT
     public:
-        Pin(Object *parent, PinType::Enum type, PinDirection::Enum direction, int number, bool bridge=false );
+        Pin(Object *parent, MediaTypes::Enum type, Directions::Enum directions, int number, bool bridge=false );
         virtual ~Pin();
 
         virtual void SendMsg(const PinMessage::Enum msgType,void *data=0);

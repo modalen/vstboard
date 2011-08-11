@@ -66,6 +66,8 @@ namespace UserRoles {
         isDoublePrecision
     };
 }
+
+/*
 namespace NodeType {
     enum Enum {
         ND,
@@ -159,7 +161,7 @@ namespace PinDirection {
         Output
     };
 }
-
+*/
 namespace PinMessage {
     enum Enum {
         ND,

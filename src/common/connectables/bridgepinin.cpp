@@ -27,8 +27,8 @@
 using namespace Connectables;
 
 BridgePinIn::BridgePinIn(Object *parent, int number, bool bridge) :
-    Pin(parent,PinType::Bridge,PinDirection::Input,number,bridge),
-    valueType(PinType::ND),
+    Pin(parent,MediaTypes::Bridge,Directions::Input,number,bridge),
+    valueType(MediaTypes::ND),
     loopCounter(0)
 {
     setObjectName(QString("BIn%1").arg(number));
@@ -43,23 +43,23 @@ void BridgePinIn::ReceiveMsg(const PinMessage::Enum msgType,void *data)
     ++loopCounter;
 
     ConnectionInfo info = connectInfo;
-    info.direction=PinDirection::Output;
+    info.direction=Directions::Output;
     parent->GetPin(info)->SendMsg(msgType,data);
 
     switch(msgType) {
         case PinMessage::AudioBuffer :
             if(static_cast<AudioBuffer*>(data)->GetCurrentVu() < 0.01)
                 return;
-            valueType=PinType::Audio;
+            valueType=MediaTypes::Audio;
             break;
         case PinMessage::ParameterValue :
-            valueType=PinType::Parameter;
+            valueType=MediaTypes::Parameter;
             break;
         case PinMessage::MidiMsg:
-            valueType=PinType::Midi;
+            valueType=MediaTypes::Midi;
             break;
         default :
-            valueType=PinType::ND;
+            valueType=MediaTypes::ND;
     }
     valueChanged=true;
 }

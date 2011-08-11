@@ -45,14 +45,14 @@ ConnectablePinView::ConnectablePinView(float angle, QAbstractItemModel *model, Q
     textItem->setZValue(1);
 
     switch(connectInfo.type) {
-    case PinType::Audio :
+    case MediaTypes::Audio :
         colorGroupId=ColorGroups::AudioPin;
         break;
-    case PinType::Midi :
+    case MediaTypes::Midi :
         colorGroupId=ColorGroups::MidiPin;
         rectVu->setRect(rect());
         break;
-    case PinType::Parameter :
+    case MediaTypes::Parameter :
         colorGroupId=ColorGroups::ParameterPin;
         break;
     default :
@@ -75,7 +75,7 @@ void ConnectablePinView::UpdateColor(ColorGroups::Enum groupId, Colors::Enum col
     }
     if(groupId==colorGroupId && colorId==Colors::VuMeter) {
         vuColor=color;
-        if(connectInfo.type != PinType::Midi) {
+        if(connectInfo.type != MediaTypes::Midi) {
             rectVu->setBrush(color);
         }
         return;
@@ -103,7 +103,7 @@ void ConnectablePinView::UpdateModelIndex(const QModelIndex &index)
     if(newName!=textItem->text())
         textItem->setText(newName);
 
-    if(connectInfo.type == PinType::Parameter) {
+    if(connectInfo.type == MediaTypes::Parameter) {
         value = index.data(UserRoles::value).toFloat();
         float newVu = geometry().width() * value;
         rectVu->setRect(0,0, newVu, geometry().height());
@@ -113,7 +113,7 @@ void ConnectablePinView::UpdateModelIndex(const QModelIndex &index)
     }
 
     ConnectionInfo pinInfo = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
-    if(pinInfo.type == PinType::Parameter)
+    if(pinInfo.type == MediaTypes::Parameter)
         isParameter=true;
 
 }
@@ -129,7 +129,7 @@ void ConnectablePinView::updateVu()
     if(value<.0f)
         return;
 
-    if(connectInfo.type==PinType::Audio) {
+    if(connectInfo.type==MediaTypes::Audio) {
         value-=.05f;
 
         if(value>1.0f) {
@@ -161,7 +161,7 @@ void ConnectablePinView::updateVu()
         rectVu->setRect(0,0, newVu, geometry().height());
     }
 
-    if(connectInfo.type== PinType::Midi) {
+    if(connectInfo.type== MediaTypes::Midi) {
         value-=.1f;
         if(value<.0f) {
             value=-1.0f;
@@ -206,7 +206,7 @@ void ConnectablePinView::keyPressEvent ( QKeyEvent * event )
 {
     int k = event->key();
 
-    if(connectInfo.type == PinType::Parameter) {
+    if(connectInfo.type == MediaTypes::Parameter) {
         if(event->modifiers() & Qt::ControlModifier) {
             if(k==Qt::Key_Left) { ValueChanged(value-0.01); return; }
             if(k==Qt::Key_Right) { ValueChanged(value+0.01); return; }

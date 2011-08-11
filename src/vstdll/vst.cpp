@@ -19,7 +19,7 @@
 **************************************************************************/
 #include "vst.h"
 #include "connectables/connectioninfo.h"
-#include "connectables/objectinfo.h"
+#include "objectinfo.h"
 #include "mainhostvst.h"
 #include "projectfile/projectfile.h"
 #include "views/configdialog.h"
@@ -63,7 +63,7 @@ Vst::Vst (audioMasterCallback audioMaster, bool asInstrument) :
 
     qRegisterMetaType<ConnectionInfo>("ConnectionInfo");
     qRegisterMetaType<ObjectInfo>("ObjectInfo");
-    qRegisterMetaType<int>("ObjType::Enum");
+    qRegisterMetaType<int>("MediaTypes::Enum");
     qRegisterMetaType<QVariant>("QVariant");
     qRegisterMetaType<AudioBuffer*>("AudioBuffer*");
 

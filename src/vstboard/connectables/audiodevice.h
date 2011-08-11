@@ -25,7 +25,7 @@
 
 //#include "precomp.h"
 #include "connectables/object.h"
-#include "connectables/objectinfo.h"
+#include "objectinfo.h"
 #include "portaudio.h"
 #include "pa_win_wmme.h"
 #include "pa_win_ds.h"

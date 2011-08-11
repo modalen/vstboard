@@ -35,29 +35,31 @@ ObjectFactoryVst::ObjectFactoryVst(MainHost *myHost) :
 Object *ObjectFactoryVst::CreateOtherObjects(const ObjectInfo &info)
 {
     int objId = cptListObjects;
-    if(info.forcedObjId) {
-        objId = info.forcedObjId;
+    if(info.objId) {
+        objId = info.objId;
     }
 
     Object *obj=0;
 
-    switch(info.nodeType) {
-        case NodeType::object :
+    switch(info.metaType) {
+        case MetaTypes::object :
 
-            switch(info.objType) {
-                case ObjType::AudioInterfaceIn:
-                    obj = new VstAudioDeviceIn(myHost,objId, info);
+            switch(info.listInfos.value(MetaInfos::ObjType).toInt()) {
+                case ObjTypes::AudioInterface:
+                    switch(info.listInfos.value(MetaInfos::Direction).toInt()) {
+                        case Directions::Input :
+                            obj = new VstAudioDeviceIn(myHost,objId, info);
+                            break;
+                        case Directions::Output :
+                            obj = new VstAudioDeviceOut(myHost,objId, info);
+                    }
                     break;
 
-                case ObjType::AudioInterfaceOut:
-                    obj = new VstAudioDeviceOut(myHost,objId, info);
-                    break;
-
-                case ObjType::VstAutomation:
+                case ObjTypes::VstAutomation:
                     obj = new VstAutomation(myHost,objId);
                     break;
 
-                case ObjType::MidiInterface:
+                case ObjTypes::MidiInterface:
                     obj = new VstMidiDevice(myHost,objId, info);
                     break;
 

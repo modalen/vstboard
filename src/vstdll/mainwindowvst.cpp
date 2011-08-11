@@ -53,8 +53,9 @@ void MainWindowVst::BuildListTools()
     //vst audio in
     item = new QStandardItem(tr("Vst audio input"));
     ObjectInfo infoai;
-    infoai.nodeType = NodeType::object;
-    infoai.objType = ObjType::AudioInterfaceIn;
+    infoai.metaType = MetaTypes::object;
+    infoai.listInfos[MetaInfos::ObjType] = ObjTypes::AudioInterface;
+    infoai.listInfos[MetaInfos::Direction] = Directions::Input;
     infoai.name = "Vst audio In";
     item->setData(QVariant::fromValue(infoai), UserRoles::objInfo);
     parentItem->appendRow(item);
@@ -62,8 +63,9 @@ void MainWindowVst::BuildListTools()
     //vst audio out
     item = new QStandardItem(tr("Vst audio output"));
     ObjectInfo infoao;
-    infoao.nodeType = NodeType::object;
-    infoao.objType = ObjType::AudioInterfaceOut;
+    infoao.metaType = MetaTypes::object;
+    infoao.listInfos[MetaInfos::ObjType] = ObjTypes::AudioInterface;
+    infoai.listInfos[MetaInfos::Direction] = Directions::Output;
     infoao.name = "Vst audio Out";
     item->setData(QVariant::fromValue(infoao), UserRoles::objInfo);
     parentItem->appendRow(item);
@@ -74,8 +76,8 @@ void MainWindowVst::BuildListTools()
     //vst midi in
     item = new QStandardItem(tr("Vst midi input"));
     ObjectInfo infomi;
-    infomi.nodeType = NodeType::object;
-    infomi.objType = ObjType::MidiInterface;
+    infomi.metaType = MetaTypes::object;
+    infomi.listInfos[MetaInfos::ObjType] = ObjTypes::MidiInterface;
     infomi.inputs = 1;
     infomi.name = "Vst midi In";
     item->setData(QVariant::fromValue(infomi), UserRoles::objInfo);
@@ -84,8 +86,8 @@ void MainWindowVst::BuildListTools()
     //vst midi out
     item = new QStandardItem(tr("Vst midi output"));
     ObjectInfo infomo;
-    infomo.nodeType = NodeType::object;
-    infomo.objType = ObjType::MidiInterface;
+    infomo.metaType = MetaTypes::object;
+    infomo.listInfos[MetaInfos::ObjType] = ObjTypes::MidiInterface;
     infomo.outputs = 1;
     infomo.name = "Vst midi Out";
     item->setData(QVariant::fromValue(infomo), UserRoles::objInfo);
@@ -93,8 +95,8 @@ void MainWindowVst::BuildListTools()
 
     //vst automation
     item = new QStandardItem(tr("Vst Automation"));
-    info.nodeType = NodeType::object;
-    info.objType = ObjType::VstAutomation;
+    info.metaType = MetaTypes::object;
+    info.listInfos[MetaInfos::ObjType] = ObjTypes::VstAutomation;
     item->setData(QVariant::fromValue(info), UserRoles::objInfo);
     parentItem->appendRow(item);
 }

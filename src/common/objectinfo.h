@@ -23,18 +23,128 @@
 
 #include "globals.h"
 
+namespace MetaTypes {
+    enum Enum {
+        ND,
+        object,
+        container,
+        bridge,
+        listPin,
+        pin,
+        cable,
+        cursor
+    };
+}
+
+namespace MetaInfos {
+    enum Enum {
+        ObjType,
+        Direction,
+        Media,
+        Filename,
+        LimitType,
+        id,
+        name,
+        apiId,
+        apiName,
+        duplicateNamesCounter,
+        nbInputs,
+        nbOutputs
+    };
+}
+
+namespace ObjTypes {
+    enum Enum {
+        ND,
+        Dummy,
+        VstPlugin,
+        HostController,
+        MidiToAutomation,
+        MidiSender,
+        Script,
+        AudioInterface,
+        VstAutomation,
+        MidiInterface
+    };
+}
+
+namespace MediaTypes {
+    enum Enum {
+        ND,
+        Audio,
+        Midi,
+        Parameter,
+        Bridge
+    };
+}
+
+namespace Directions {
+    enum Enum {
+        ND,
+        Input,
+        Output,
+        Send,
+        Return
+    };
+}
+
+namespace FixedObjIds {
+    enum Enum {
+        ND,
+        mainContainer,
+        hostContainer,
+        hostContainerIn,
+        hostContainerOut,
+        hostContainerSend,
+        hostContainerReturn,
+        projectContainer,
+        projectContainerIn,
+        projectContainerOut,
+        projectContainerSend,
+        projectContainerReturn,
+        programContainer,
+        programContainerIn,
+        programContainerOut,
+        programContainerSend,
+        programContainerReturn,
+        groupContainer,
+        groupContainerIn,
+        groupContainerOut,
+        groupContainerSend,
+        groupContainerReturn,
+        parkingContainer,
+        noContainer=65535
+    };
+}
+
+namespace LimitTypes {
+    enum Enum {
+        Min,
+        Max
+    };
+}
+
 class ObjectInfo
 {
 public:
+
+
+
     ObjectInfo();
-    ObjectInfo(NodeType::Enum nodeType, ObjType::Enum objType=ObjType::ND, int id=0, QString name="");
+    ObjectInfo( MetaTypes::Enum metaType, ObjTypes::Enum objType=ObjTypes::ND, int id=0, QString name="");
     ObjectInfo(const ObjectInfo &c);
+
+    MetaTypes::Enum metaType;
+    quint32 objId;
+    quint32 parentId;
+    QMap<MetaInfos::Enum,QVariant>listInfos;
+
+    inline ObjectInfo & info() {return *this;}
+
 
     QDataStream & toStream(QDataStream& stream) const;
     QDataStream & fromStream(QDataStream& stream);
 
-    NodeType::Enum nodeType;
-    ObjType::Enum objType;
     quint32 id;
     QString name;
     QString filename;
@@ -43,7 +153,6 @@ public:
     quint16 duplicateNamesCounter;
     quint8 api;
     QString apiName;
-    quint16 forcedObjId;
 };
 
 Q_DECLARE_METATYPE(ObjectInfo);

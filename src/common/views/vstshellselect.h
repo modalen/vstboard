@@ -22,7 +22,7 @@
 #define VSTSHELLSELECT_H
 
 #include "precomp.h"
-#include "connectables/objectinfo.h"
+#include "objectinfo.h"
 
 namespace Ui {
     class VstShellSelect;

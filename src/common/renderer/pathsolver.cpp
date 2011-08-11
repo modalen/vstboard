@@ -80,8 +80,8 @@ void PathSolver::CreateNodes()
 
         //don't add parked objects
         if(!objPtr.isNull() && !objPtr->parked) {
-//            if(objPtr->info().nodeType!=NodeType::bridge && objPtr->info().nodeType!=NodeType::container) {
-            if( objPtr->info().nodeType!=NodeType::container) {
+//            if(objPtr->info().nodeType!=MetaTypes::bridge && objPtr->info().nodeType!=MetaTypes::container) {
+            if( objPtr->info().metaType!=MetaTypes::container) {
                 SolverNode *node = new SolverNode();
                 listNodes << node;
                 node->listOfObj << objPtr;
@@ -99,11 +99,11 @@ void PathSolver::PutParentsInNodes()
 {
     foreach(SolverNode *node,listNodes) {
         foreach(QSharedPointer<Connectables::Object> parent,GetListParents(node->listOfObj.first())) {
-            if(!parent.isNull())// && parent->info().nodeType!=NodeType::bridge)
+            if(!parent.isNull())// && parent->info().nodeType!=MetaTypes::bridge)
                 node->AddParent( parent->GetSolverNode() );
         }
 //        foreach(QSharedPointer<Connectables::Object> child,GetListChildren(node->listOfObj.last())) {
-//            if(!child.isNull())// && child->info().nodeType!=NodeType::bridge)
+//            if(!child.isNull())// && child->info().nodeType!=MetaTypes::bridge)
 //                node->listChilds << child->GetSolverNode();
 //        }
     }
@@ -144,7 +144,7 @@ void PathSolver::RemoveUnusedNodes()
     foreach(SolverNode *node, listNodes) {
         bool onlyBridges=true;
         foreach(QSharedPointer<Connectables::Object>objPtr,node->listOfObj) {
-            if(objPtr->info().nodeType!=NodeType::bridge) {
+            if(objPtr->info().metaType!=MetaTypes::bridge) {
                 onlyBridges=false;
                 break;
             }
@@ -351,7 +351,7 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListParents( QShared
             if(i.value().objId == objPtr->GetIndex()) {
                 if(!listParents.contains(parentPtr)) {
                     listParents << parentPtr;
-//                    if(parentPtr->info().nodeType == NodeType::bridge)
+//                    if(parentPtr->info().nodeType == MetaTypes::bridge)
 //                        GetListParentsOfBridgePin(i.key(),listParents);
                 }
             }
@@ -371,7 +371,7 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListParents( QShared
 //            if(i.value().objId == info.objId && i.value().pinNumber == info.pinNumber && i.value().type == info.type) {
 //                if(!listParents.contains(parentPtr)) {
 //                    listParents << parentPtr;
-//                    if(parentPtr->info().nodeType == NodeType::bridge)
+//                    if(parentPtr->info().nodeType == MetaTypes::bridge)
 //                        GetListParentsOfBridgePin(i.key(),listParents);
 //                }
 //            }
@@ -392,7 +392,7 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListChildren( QShare
             if(i.key().objId == objPtr->GetIndex()) {
                 if(!listChildren.contains(childPtr)) {
                     listChildren << childPtr;
-//                    if(childPtr->info().nodeType == NodeType::bridge)
+//                    if(childPtr->info().nodeType == MetaTypes::bridge)
 //                        GetListChildrenOfBridgePin(i.value(),listChildren);
                 }
             }
@@ -412,7 +412,7 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListChildren( QShare
 //            if(i.key().objId == info.objId && i.key().pinNumber == info.pinNumber && i.key().type == info.type) {
 //                if(!listChildren.contains(childPtr)) {
 //                    listChildren << childPtr;
-//                    if(childPtr->info().nodeType == NodeType::bridge) {
+//                    if(childPtr->info().nodeType == MetaTypes::bridge) {
 //                        GetListChildrenOfBridgePin(i.value(),listChildren);
 //                    }
 //                }

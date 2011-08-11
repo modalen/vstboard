@@ -27,8 +27,8 @@
 using namespace Connectables;
 
 //parameter is a float
-ParameterPin::ParameterPin(Object *parent, PinDirection::Enum direction, int number, float defaultValue, const QString &name, bool nameCanChange, bool isRemoveable, bool bridge) :
-        Pin(parent,PinType::Parameter,direction,number,bridge),
+ParameterPin::ParameterPin(Object *parent, Directions::Enum direction, int number, float defaultValue, const QString &name, bool nameCanChange, bool isRemoveable, bool bridge) :
+        Pin(parent,MediaTypes::Parameter,direction,number,bridge),
         listValues(0),
         stepIndex(0),
         defaultVisible(true),
@@ -55,8 +55,8 @@ ParameterPin::ParameterPin(Object *parent, PinDirection::Enum direction, int num
 }
 
 //parameter is a int with a list of possible values
-ParameterPin::ParameterPin(Object *parent, PinDirection::Enum direction, int number, const QVariant &defaultVariantValue, QList<QVariant> *listValues, const QString &name, bool nameCanChange, bool isRemoveable, bool bridge) :
-        Pin(parent,PinType::Parameter,direction,number,bridge),
+ParameterPin::ParameterPin(Object *parent, Directions::Enum direction, int number, const QVariant &defaultVariantValue, QList<QVariant> *listValues, const QString &name, bool nameCanChange, bool isRemoveable, bool bridge) :
+        Pin(parent,MediaTypes::Parameter,direction,number,bridge),
         listValues(listValues),
         defaultVisible(true),
         defaultValue( .0f ),
@@ -217,7 +217,7 @@ void ParameterPin::OnValueChanged(float val)
     val+=limitOutMin;
     outValue=val;
 
-    if(!loading && !dirty && connectInfo.direction==PinDirection::Input) {
+    if(!loading && !dirty && connectInfo.direction==Directions::Input) {
         dirty=true;
         parent->OnProgramDirty();
     }
@@ -238,34 +238,30 @@ void ParameterPin::SetFixedName(QString fixedName)
     nameCanChange=false;
 }
 
-void ParameterPin::SetLimit(ObjType::Enum type, float newVal)
+void ParameterPin::SetLimit(Directions::Enum direction, LimitTypes::Enum limit, float newVal)
 {
-    switch(type) {
-        case ObjType::limitInMin:
+    if(direction==Directions::Input) {
+        if(limit==LimitTypes::Min) {
             limitInMin = newVal;
             if(limitInMax<=limitInMin) {
                 limitInMax=limitInMin+0.005;
                 if(indexLimitInMax.isValid())
                     parent->getHost()->GetModel()->setData( indexLimitInMax, limitInMax, UserRoles::value);
             }
-            break;
-        case ObjType::limitInMax:
+        } else if(limit==LimitTypes::Max) {
             limitInMax = newVal;
             if(limitInMax<=limitInMin) {
                 limitInMin=limitInMax-0.005;
                 if(indexLimitInMin.isValid())
                     parent->getHost()->GetModel()->setData( indexLimitInMin, limitInMin, UserRoles::value);
             }
-            break;
-        case ObjType::limitOutMin:
+        }
+    } else if(direction==Directions::Output) {
+        if(limit==LimitTypes::Min) {
             limitOutMin = newVal;
-            break;
-        case ObjType::limitOutMax:
+        } else if(limit==LimitTypes::Max) {
             limitOutMax = newVal;
-            break;
-        default:
-            LOG("unknown cursor type"<<type)
-            return;
+        }
     }
 
     OnValueChanged(value);
@@ -288,32 +284,35 @@ void ParameterPin::SetVisible(bool vis)
             return;
 
         ObjectInfo info;
-        info.nodeType=NodeType::cursor;
+        info.metaType=MetaTypes::cursor;
 
+        info.listInfos[MetaInfos::Direction]=Directions::Input;
 
         QStandardItem *item = new QStandardItem("limitInMin");
-        info.objType=ObjType::limitInMin;
+        info.listInfos[MetaInfos::LimitType]=LimitTypes::Min;
         item->setData(QVariant::fromValue(info),UserRoles::objInfo);
         item->setData(limitInMin,UserRoles::value);
         pinItem->appendRow(item);
         indexLimitInMin=item->index();
 
         item = new QStandardItem("limitInMax");
-        info.objType=ObjType::limitInMax;
+        info.listInfos[MetaInfos::LimitType]=LimitTypes::Max;
         item->setData(QVariant::fromValue(info),UserRoles::objInfo);
         item->setData(limitInMax,UserRoles::value);
         pinItem->appendRow(item);
         indexLimitInMax=item->index();
 
+        info.listInfos[MetaInfos::Direction]=Directions::Output;
+
         item = new QStandardItem("limitOutMin");
-        info.objType=ObjType::limitOutMin;
+        info.listInfos[MetaInfos::LimitType]=LimitTypes::Min;
         item->setData(QVariant::fromValue(info),UserRoles::objInfo);
         item->setData(limitOutMin,UserRoles::value);
         pinItem->appendRow(item);
         indexLimitOutMin=item->index();
 
         item = new QStandardItem("limitOutMax");
-        info.objType=ObjType::limitOutMax;
+        info.listInfos[MetaInfos::LimitType]=LimitTypes::Max;
         item->setData(QVariant::fromValue(info),UserRoles::objInfo);
         item->setData(limitOutMax,UserRoles::value);
         pinItem->appendRow(item);

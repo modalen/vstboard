@@ -26,7 +26,7 @@
 using namespace Connectables;
 
 HostController::HostController(MainHost *myHost,int index):
-    Object(myHost,index, ObjectInfo(NodeType::object, ObjType::HostController, index, tr("HostController") ) ),
+    Object(myHost,index, ObjectInfo(MetaTypes::object, ObjTypes::HostController, index, tr("HostController") ) ),
     tempoChanged(false),
     progChanged(false),
     grpChanged(false)
@@ -133,7 +133,7 @@ void HostController::OnParameterChanged(ConnectionInfo pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
 
-    if(pinInfo.direction!=PinDirection::Input)
+    if(pinInfo.direction!=Directions::Input)
         return;
 
     switch(pinInfo.pinNumber) {
@@ -173,14 +173,14 @@ void HostController::OnHostTempoChange(int tempo, int sign1, int sign2)
 void HostController::SetContainerId(quint16 id)
 {
     switch(id) {
-        case FixedObjId::programContainer :
+        case FixedObjIds::programContainer :
             listParameterPinIn->RemovePin(Param_Prog);
             disconnect(this, SIGNAL(progChange(int)),
                     myHost->programsModel,SLOT(UserChangeProg(int)));
             disconnect(myHost->programsModel,SIGNAL(ProgChanged(QModelIndex)),
                    this,SLOT(OnHostProgChanged(QModelIndex)));
 
-        case FixedObjId::groupContainer :
+        case FixedObjIds::groupContainer :
             listParameterPinIn->RemovePin(Param_Group);
             disconnect(this, SIGNAL(grpChange(int)),
                     myHost->programsModel,SLOT(UserChangeGroup(int)));

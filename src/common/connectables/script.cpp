@@ -225,9 +225,9 @@ Pin* Script::CreatePin(const ConnectionInfo &info)
     if(newPin)
         return newPin;
 
-    if(info.type == PinType::Parameter) {
+    if(info.type == MediaTypes::Parameter) {
         switch(info.direction) {
-            case PinDirection::Input :
+            case Directions::Input :
                 if(info.pinNumber == FixedPinNumber::editorVisible) {
                     ParameterPin *newPin = new ParameterPinIn(this,FixedPinNumber::editorVisible,"hide",&listEditorVisible,tr("Editor"));
                     newPin->SetLimitsEnabled(false);
@@ -235,7 +235,7 @@ Pin* Script::CreatePin(const ConnectionInfo &info)
                 }
                 return new ParameterPinIn(this,info.pinNumber,0,QString("ParamIn%1").arg(info.pinNumber));
 
-            case PinDirection::Output :
+            case Directions::Output :
                 return new ParameterPinOut(this,info.pinNumber,0,QString("ParamOut%1").arg(info.pinNumber));
 
         }

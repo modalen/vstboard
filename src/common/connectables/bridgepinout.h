@@ -34,7 +34,7 @@ namespace Connectables {
 
     protected:
         /// type of the last message transmited
-        PinType::Enum valueType;
+        MediaTypes::Enum valueType;
     };
 }
 #endif // BRIDGEPINOUT_H
