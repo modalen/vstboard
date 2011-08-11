@@ -22,14 +22,13 @@
 #include "midipinin.h"
 #include "pin.h"
 #include "object.h"
-#include "../globals.h"
 
 using namespace Connectables;
 
-MidiPinIn::MidiPinIn(Object *parent, int number, bool bridge)
-    :Pin(parent,MediaTypes::Midi,Directions::Input,number,bridge)
+MidiPinIn::MidiPinIn(Object *parent, ObjectInfo &info) :
+    Pin(parent,info)
 {
-    setObjectName(QString("MidiIn%1").arg(number));
+    SetName(QString("MidiIn%1").arg(Meta(MetaInfos::PinNumber).toInt()));
     visible=true;
 }
 

@@ -39,7 +39,7 @@ namespace Connectables {
         ObjectFactory(MainHost *myHost);
         ~ObjectFactory();
 
-        QSharedPointer<Object> NewObject(const ObjectInfo &info);
+        QSharedPointer<Object> NewObject( ObjectInfo &info);
         QSharedPointer<Object> GetObj(const QModelIndex & index);
         inline void RemoveObject(int id) {
             listObjects.remove(id);
@@ -57,17 +57,17 @@ namespace Connectables {
 
         int IdFromSavedId(int savedId);
         void ResetSavedId();
-        Pin *GetPin(const ConnectionInfo &pinInfo);
-        inline Pin *GetPin(const QModelIndex & index) {
-            return GetPin( index.data(UserRoles::connectionInfo).value<ConnectionInfo>() );
-        }
+        Pin *GetPin(const ObjectInfo &pinInfo);
+//        inline Pin *GetPin(const QModelIndex & index) {
+//            return GetPin( index.data(UserRoles::objInfo).value<ConnectionInfo>() );
+//        }
 
         const hashObjects &GetListObjects() {return listObjects;}
 
         int GetNewId() {return cptListObjects++;}
 
     protected:
-        virtual Object *CreateOtherObjects(const ObjectInfo &info)=0;
+        virtual Object *CreateOtherObjects(ObjectInfo &info)=0;
 
         hashObjects listObjects;
         int cptListObjects;

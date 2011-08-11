@@ -32,12 +32,11 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        Container(MainHost *myHost,int index, const ObjectInfo &info);
+        Container(MainHost *myHost, ObjectInfo &info);
         virtual ~Container();
 
         void Hide();
         void ConnectObjects(QSharedPointer<Object> fromObjOutputs, QSharedPointer<Object> toObjInputs, bool hiddenCables);
-        void SetContainerId(quint16 id);
         const QModelIndex &GetCablesIndex();
 
         QDataStream & toStream (QDataStream &) const;
@@ -61,7 +60,7 @@ namespace Connectables {
         void CopyCablesFromObj(QSharedPointer<Object> newObjPtr, QSharedPointer<Object> ObjPtr);
         void MoveOutputCablesFromObj(QSharedPointer<Object> newObjPtr, QSharedPointer<Object> ObjPtr);
         void MoveInputCablesFromObj(QSharedPointer<Object> newObjPtr, QSharedPointer<Object> ObjPtr);
-        void GetListOfConnectedPinsTo(const ConnectionInfo &pin, QList<ConnectionInfo> &list);
+        void GetListOfConnectedPinsTo(const ObjectInfo &pin, QList<ObjectInfo> &list);
         bool IsDirty() {
             return currentContainerProgram->IsDirty();
         }
@@ -155,22 +154,22 @@ namespace Connectables {
     public slots:
         void UserAddObject(const QSharedPointer<Object> &objPtr,
                            InsertionType::Enum insertType = InsertionType::NoInsertion,
-                           QList< QPair<ConnectionInfo,ConnectionInfo> > *listOfAddedCables=0,
-                           QList< QPair<ConnectionInfo,ConnectionInfo> > *listOfRemovedCables=0,
+                           QList< QPair<ObjectInfo,ObjectInfo> > *listOfAddedCables=0,
+                           QList< QPair<ObjectInfo,ObjectInfo> > *listOfRemovedCables=0,
                            const QSharedPointer<Object> &targetPtr=QSharedPointer<Object>());
         void UserParkObject(QSharedPointer<Object> objPtr,
                             RemoveType::Enum removeType = RemoveType::RemoveWithCables,
-                            QList< QPair<ConnectionInfo,ConnectionInfo> > *listOfAddedCables=0,
-                            QList< QPair<ConnectionInfo,ConnectionInfo> > *listOfRemovedCables=0);
-        void UserAddCable(const ConnectionInfo &outputPin, const ConnectionInfo &inputPin);
-        void UserAddCable(const QPair<ConnectionInfo,ConnectionInfo>&pair);
-        void UserRemoveCableFromPin(const ConnectionInfo &pin);
-        void UserRemoveCable(const ConnectionInfo &outputPin, const ConnectionInfo &inputPin);
-        void UserRemoveCable(const QPair<ConnectionInfo,ConnectionInfo>&pair);
+                            QList< QPair<ObjectInfo,ObjectInfo> > *listOfAddedCables=0,
+                            QList< QPair<ObjectInfo,ObjectInfo> > *listOfRemovedCables=0);
+        void UserAddCable(const ObjectInfo &outputPin, const ObjectInfo &inputPin);
+        void UserAddCable(const QPair<ObjectInfo,ObjectInfo>&pair);
+        void UserRemoveCableFromPin(const ObjectInfo &pin);
+        void UserRemoveCable(const ObjectInfo &outputPin, const ObjectInfo &inputPin);
+        void UserRemoveCable(const QPair<ObjectInfo,ObjectInfo>&pair);
 
-        void AddCable(const ConnectionInfo &outputPin, const ConnectionInfo &inputPin, bool hidden=false);
-        void RemoveCableFromPin(const ConnectionInfo &pin);
-        void RemoveCable(const ConnectionInfo &outputPin, const ConnectionInfo &inputPin);
+        void AddCable(const ObjectInfo &outputPin, const ObjectInfo &inputPin, bool hidden=false);
+        void RemoveCableFromPin(const ObjectInfo &pin);
+        void RemoveCable(const ObjectInfo &outputPin, const ObjectInfo &inputPin);
 
         void SaveProgram();
         void UnloadProgram();

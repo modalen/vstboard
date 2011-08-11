@@ -128,11 +128,11 @@ void ObjectView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 void ObjectView::SetModelIndex(QPersistentModelIndex index)
 {
     ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-    if(info.listInfos.value(MetaInfos::ObjType) == ObjTypes::Dummy) {
+    if(info.Meta(MetaInfos::ObjType).toInt() == ObjTypes::Dummy) {
         SetErrorMessage("object not loaded");
     }
 
-    if(info.metaType != MetaTypes::bridge) {
+    if(info.Meta() != MetaTypes::bridge) {
         actRemoveBridge = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove"),this);
         actRemoveBridge->setShortcut( Qt::Key_Delete );
         actRemoveBridge->setShortcutContext(Qt::WidgetShortcut);

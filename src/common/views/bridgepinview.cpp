@@ -34,7 +34,7 @@ using namespace View;
   \param parent pointer to the parent object view
   \param pinInfo description of the pin
   */
-BridgePinView::BridgePinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
+BridgePinView::BridgePinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ObjectInfo &pinInfo, ViewConfig *config) :
         PinView(angle, model,parent, pinInfo,config),
         value(.0f),
         valueType(MediaTypes::ND)
@@ -47,8 +47,8 @@ BridgePinView::BridgePinView(float angle, QAbstractItemModel *model,QGraphicsIte
 
     QPolygonF pol;
 
-    if( (connectInfo.direction==Directions::Input && pinAngle<0)
-        || (connectInfo.direction==Directions::Output && pinAngle>0) ) {
+    if( (objInfo.Meta(MetaInfos::Direction).toInt()==Directions::Input && pinAngle<0)
+        || (objInfo.Meta(MetaInfos::Direction).toInt()==Directions::Output && pinAngle>0) ) {
         pol << QPointF(PINSIZE/2,PINSIZE) << QPointF(0,0) << QPointF(PINSIZE,0);
     } else {
         pol << QPointF(PINSIZE/2,0) << QPointF(0,PINSIZE) << QPointF(PINSIZE,PINSIZE);

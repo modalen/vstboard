@@ -23,7 +23,7 @@
 #include "models/programsmodel.h"
 
 ComRemovePin::ComRemovePin(MainHost *myHost,
-                           const ConnectionInfo &pinInfo,
+                           const ObjectInfo &pinInfo,
                            QUndoCommand  *parent) :
     QUndoCommand(parent),
     myHost(myHost),
@@ -41,18 +41,18 @@ void ComRemovePin::undo ()
 {
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
-    QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.container ).staticCast<Connectables::Container>();
+    QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.ContainerId() ).staticCast<Connectables::Container>();
     if(!cntPtr)
         return;
 
-    QSharedPointer<Connectables::Object>objPtr = myHost->objFactory->GetObjectFromId( pinInfo.objId );
+    QSharedPointer<Connectables::Object>objPtr = myHost->objFactory->GetObjectFromId( pinInfo.ObjId() );
     if(!objPtr)
         return;
 
     objPtr->UserAddPin(pinInfo);
 
-    foreach( ConnectionInfo info, listConnectedPins) {
-        if(pinInfo.direction==Directions::Output)
+    foreach( ObjectInfo info, listConnectedPins) {
+        if(pinInfo.Meta(MetaInfos::Direction).toInt()==Directions::Output)
             cntPtr->UserAddCable(pinInfo,info);
         else
             cntPtr->UserAddCable(info,pinInfo);
@@ -70,11 +70,11 @@ void ComRemovePin::redo ()
 {
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
-    QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.container ).staticCast<Connectables::Container>();
+    QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.ContainerId() ).staticCast<Connectables::Container>();
     if(!cntPtr)
         return;
 
-    QSharedPointer<Connectables::Object>objPtr = myHost->objFactory->GetObjectFromId( pinInfo.objId );
+    QSharedPointer<Connectables::Object>objPtr = myHost->objFactory->GetObjectFromId( pinInfo.ObjId() );
     if(!objPtr)
         return;
 

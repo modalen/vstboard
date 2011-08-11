@@ -25,19 +25,23 @@
 
 using namespace Connectables;
 
-VstMidiDevice::VstMidiDevice(MainHost *myHost, int index, const ObjectInfo &info) :
-        Object(myHost,index, info)
+VstMidiDevice::VstMidiDevice(MainHost *myHost, ObjectInfo &info) :
+    Object(myHost, info),
+    nbIn(0),
+    nbOut(0)
 {
 }
 
 VstMidiDevice::~VstMidiDevice()
 {
+    nbIn=0;
+    nbOut=0;
     Close();
 }
 
 void VstMidiDevice::Render()
 {
-    if(objInfo.inputs) {
+    if(nbIn>0) {
         Lock();
 
         foreach(long msg, midiQueue) {
@@ -53,7 +57,7 @@ void VstMidiDevice::Render()
 }
 
 void VstMidiDevice::MidiMsgFromInput(long msg) {
-    if(objInfo.outputs) {
+    if(nbOut>0) {
         Lock();
         midiQueue << msg;
         Unlock();
@@ -62,10 +66,10 @@ void VstMidiDevice::MidiMsgFromInput(long msg) {
 
 bool VstMidiDevice::Close()
 {
-    if(objInfo.inputs>0)
+    if(nbIn>0)
         static_cast<MainHostVst*>(myHost)->myVstPlugin->removeMidiIn(this);
 
-    if(objInfo.outputs>0)
+    if(nbOut>0)
         static_cast<MainHostVst*>(myHost)->myVstPlugin->removeMidiOut(this);
 
     return Object::Close();
@@ -73,14 +77,17 @@ bool VstMidiDevice::Close()
 
 bool VstMidiDevice::Open()
 {
-    if(objInfo.inputs>0)
+    nbIn = Meta(MetaInfos::nbInputs).toInt();
+    nbOut = Meta(MetaInfos::nbOutputs).toInt();
+
+    if(nbIn>0)
         static_cast<MainHostVst*>(myHost)->myVstPlugin->addMidiIn(this);
 
-    if(objInfo.outputs>0)
+    if(nbOut>0)
         static_cast<MainHostVst*>(myHost)->myVstPlugin->addMidiOut(this);
 
-    listMidiPinOut->ChangeNumberOfPins(objInfo.inputs);
-    listMidiPinIn->ChangeNumberOfPins(objInfo.outputs);
+    listMidiPinOut->ChangeNumberOfPins(nbIn);
+    listMidiPinIn->ChangeNumberOfPins(nbOut);
 
     Object::Open();
     return true;

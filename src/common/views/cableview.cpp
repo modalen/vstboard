@@ -22,7 +22,7 @@
 
 using namespace View;
 
-CableView::CableView(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn, QGraphicsItem *parent, ViewConfig *config)
+CableView::CableView(const ObjectInfo &pinOut, const ObjectInfo &pinIn, QGraphicsItem *parent, ViewConfig *config)
 #ifndef SIMPLE_CABLES
     : QGraphicsPathItem(parent),
 #else
@@ -38,7 +38,7 @@ CableView::CableView(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn, 
             this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
 }
 
-CableView::CableView(const ConnectionInfo &pinOut, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config)
+CableView::CableView(const ObjectInfo &pinOut, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config)
 #ifndef SIMPLE_CABLES
     : QGraphicsPathItem(parent),
 #else
@@ -52,7 +52,7 @@ CableView::CableView(const ConnectionInfo &pinOut, const QPointF &PtIn, QGraphic
 
 }
 
-void CableView::UpdatePosition(const ConnectionInfo &pinInfo, const float angle, const QPointF &pt)
+void CableView::UpdatePosition(const ObjectInfo &pinInfo, const float angle, const QPointF &pt)
 {
     //move one end of the cable
     if(pinInfo == pinOut) {

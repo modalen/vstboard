@@ -26,8 +26,8 @@ private:
     RemoveType::Enum removeType;
     ObjectContainerAttribs attr;
 
-    QList< QPair<ConnectionInfo,ConnectionInfo> >listAddedCables;
-    QList< QPair<ConnectionInfo,ConnectionInfo> >listRemovedCables;
+    QList< QPair<ObjectInfo,ObjectInfo> >listAddedCables;
+    QList< QPair<ObjectInfo,ObjectInfo> >listRemovedCables;
 
     QByteArray objState;
 

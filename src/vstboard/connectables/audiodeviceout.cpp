@@ -37,8 +37,8 @@ using namespace Connectables;
   \param index object number
   \param info object description
   */
-AudioDeviceOut::AudioDeviceOut(MainHost *myHost,int index, const ObjectInfo &info) :
-    Object(myHost,index, info),
+AudioDeviceOut::AudioDeviceOut(MainHost *myHost, ObjectInfo &info) :
+    Object(myHost, info),
     parentDevice(0)
 {
 }
@@ -116,9 +116,9 @@ void AudioDeviceOut::SetRingBufferFromPins(QList<CircularBuffer*>listCircularBuf
     }
 }
 
-QStandardItem *AudioDeviceOut::GetFullItem()
-{
-    QStandardItem *modelNode = Object::GetFullItem();
-    modelNode->setData(doublePrecision, UserRoles::isDoublePrecision);
-    return modelNode;
-}
+//QStandardItem *AudioDeviceOut::GetFullItem()
+//{
+//    QStandardItem *modelNode = Object::GetFullItem();
+//    modelNode->setData(doublePrecision, UserRoles::isDoublePrecision);
+//    return modelNode;
+//}

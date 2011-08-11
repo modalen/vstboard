@@ -24,8 +24,8 @@
 
 using namespace Connectables;
 
-MidiDevice::MidiDevice(MainHost *myHost,int index, const ObjectInfo &info) :
-        Object(myHost,index, info),
+MidiDevice::MidiDevice(MainHost *myHost, ObjectInfo &info) :
+        Object(myHost, info),
         stream(0),
         queue(0),
         devInfo(0),
@@ -82,8 +82,8 @@ bool MidiDevice::OpenStream()
         return false;
     }
 
-    if(objInfo.inputs>0) {
-        PmError err = Pm_OpenInput(&stream, (PmDeviceID)objInfo.id, 0, 512, 0, 0);
+    if(objInfo.Meta(MetaInfos::nbInputs).toInt()>0) {
+        PmError err = Pm_OpenInput(&stream, (PmDeviceID)objInfo.Meta(MetaInfos::devId).toInt(), 0, 512, 0, 0);
         if (err!=pmNoError) {
             QString msgTxt;
             if(err==pmHostError) {
@@ -95,7 +95,7 @@ bool MidiDevice::OpenStream()
                 LOG("openInput error"<<Pm_GetErrorText(err));
                 msgTxt=Pm_GetErrorText(err);
             }
-            errorMessage=tr("Error while opening midi device %1 %2").arg(objInfo.name).arg(msgTxt);
+            errorMessage=tr("Error while opening midi device %1 %2").arg(objInfo.Name()).arg(msgTxt);
             return false;
         }
 
@@ -112,13 +112,13 @@ bool MidiDevice::OpenStream()
                 msgTxt=Pm_GetErrorText(err);
                 LOG("setFilter error"<<Pm_GetErrorText(err));
             }
-            errorMessage=tr("Error while opening midi device %1 %2").arg(objInfo.name).arg(msgTxt);
+            errorMessage=tr("Error while opening midi device %1 %2").arg(objInfo.Name()).arg(msgTxt);
             return false;
         }
     }
 
-    if(objInfo.outputs>0) {
-        PmError err = Pm_OpenOutput(&stream, (PmDeviceID)objInfo.id, 0, 512, 0, 0, 0);
+    if(objInfo.Meta(MetaInfos::nbOutputs).toInt()>0) {
+        PmError err = Pm_OpenOutput(&stream, (PmDeviceID)objInfo.Meta(MetaInfos::devId).toInt(), 0, 512, 0, 0, 0);
         if (err!=pmNoError) {
             QString msgTxt;
             if(err==pmHostError) {
@@ -131,7 +131,7 @@ bool MidiDevice::OpenStream()
                 LOG("openInput error"<<Pm_GetErrorText(err));
                 msgTxt=Pm_GetErrorText(err);
             }
-            errorMessage=tr("Error while opening midi device %1 %2").arg(objInfo.name).arg(msgTxt);
+            errorMessage=tr("Error while opening midi device %1 %2").arg(objInfo.Name()).arg(msgTxt);
             return false;
         }
     }
@@ -192,16 +192,17 @@ bool MidiDevice::FindDeviceByName()
 
     for(int i=0;i<Pm_CountDevices();i++) {
         const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
-        if(objInfo.apiName == info->interf
-            && objInfo.name == info->name
-            && info->input == objInfo.inputs
-            && info->output == objInfo.outputs) {
+        if( !strcmp(info->interf, objInfo.Meta(MetaInfos::apiName).toByteArray())
+            && !strcmp(info->name, objInfo.Meta(MetaInfos::devName).toByteArray())
+            && info->input == objInfo.Meta(MetaInfos::nbInputs).toInt()
+            && info->output == objInfo.Meta(MetaInfos::nbOutputs).toInt()
+        ) {
             //can be this one, but the interface number can change form a comp to another
             if(cptDuplicateNames==0)
                 canBe=i;
 
             //we found the same number and the same name
-            if(objInfo.duplicateNamesCounter == cptDuplicateNames) {
+            if(objInfo.Meta(MetaInfos::duplicateNamesCounter).toInt() == cptDuplicateNames) {
                 devInfo = info;
                 deviceNumber = i;
                 break;
@@ -218,12 +219,12 @@ bool MidiDevice::FindDeviceByName()
             devInfo = Pm_GetDeviceInfo(deviceNumber);
         } else {
             errorMessage=tr("Error : device was deleted");
-            LOG("device not found"<<objInfo.apiName<<objInfo.name);
+            LOG("device not found");
             return false;
         }
     }
 
-    objInfo.id = deviceNumber;
+    objInfo.SetMeta(MetaInfos::devId, deviceNumber);
     return true;
 }
 

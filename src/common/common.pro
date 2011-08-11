@@ -80,8 +80,6 @@ SOURCES += \
     objectinfo.cpp \
     connectables/pin.cpp \
     connectables/parameterpin.cpp \
-    connectables/parameterpinin.cpp \
-    connectables/parameterpinout.cpp \
     models/programsmodel.cpp \
     connectables/bridge.cpp \
     views/aboutdialog.cpp \
@@ -169,8 +167,6 @@ HEADERS += \
     objectinfo.h \
     connectables/pin.h \
     connectables/parameterpin.h \
-    connectables/parameterpinin.h \
-    connectables/parameterpinout.h \
     models/programsmodel.h \
     connectables/bridge.h \
     views/aboutdialog.h \
@@ -231,6 +227,10 @@ TRANSLATIONS = ../resources/translations/common_fr.ts
 
 RESOURCES += \
     ../resources/resources.qrc
+
+
+
+
 
 
 

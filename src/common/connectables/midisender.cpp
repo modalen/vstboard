@@ -24,33 +24,30 @@
 
 using namespace Connectables;
 
-MidiSender::MidiSender(MainHost *myHost,int index) :
-        Object(myHost,index, ObjectInfo(MetaTypes::object, ObjTypes::MidiSender, index, tr("MidiSender")) ),
+MidiSender::MidiSender(MainHost *myHost, ObjectInfo &info) :
+    Object(myHost, info ),
     midiMsg(0),
     msgChanged(false)
 {
 
-        listMsgType << "Note off";
-        listMsgType << "Note on";
-        listMsgType << "Ctrl";
-        listMsgType << "ProgChang";
+    listMsgType << "Note off";
+    listMsgType << "Note on";
+    listMsgType << "Ctrl";
+    listMsgType << "ProgChang";
 
-        for(int i=0;i<128;i++) {
-            listValues << i;
-        }
+    for(int i=0;i<128;i++) {
+        listValues << i;
+    }
 
-        for(int i=0;i<16;i++) {
-            listChannels << (i+1);
-        }
+    for(int i=0;i<16;i++) {
+        listChannels << (i+1);
+    }
 
     listMidiPinOut->ChangeNumberOfPins(1);
-
-    listParameterPinIn->listPins.insert(Param_MsgType, new ParameterPinIn(this,Param_MsgType,"Ctrl",&listMsgType,"MsgType"));
-    listParameterPinIn->listPins.insert(Param_Value1, new ParameterPinIn(this,Param_Value1,0,&listValues,"Value1"));
-    listParameterPinIn->listPins.insert(Param_Value2, new ParameterPinIn(this,Param_Value2,0,&listValues,"Value2"));
-    listParameterPinIn->listPins.insert(Param_Channel, new ParameterPinIn(this,Param_Channel,1,&listChannels,"Channel"));
-
-
+    listParameterPinIn->AddPin(Param_MsgType);
+    listParameterPinIn->AddPin(Param_Value1);
+    listParameterPinIn->AddPin(Param_Value2);
+    listParameterPinIn->AddPin(Param_Channel);
 }
 
 
@@ -63,10 +60,10 @@ void MidiSender::Render()
 
     unsigned char status=0;
 
-    unsigned char msgType = static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(Param_MsgType))->GetIndex();
-    unsigned char value1 = static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(Param_Value1))->GetVariantValue().toInt();
-    unsigned char value2 = static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(Param_Value2))->GetVariantValue().toInt();
-    unsigned char channel = static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(Param_Channel))->GetVariantValue().toInt();
+    unsigned char msgType = static_cast<ParameterPin*>(listParameterPinIn->listPins.value(Param_MsgType))->GetIndex();
+    unsigned char value1 = static_cast<ParameterPin*>(listParameterPinIn->listPins.value(Param_Value1))->GetVariantValue().toInt();
+    unsigned char value2 = static_cast<ParameterPin*>(listParameterPinIn->listPins.value(Param_Value2))->GetVariantValue().toInt();
+    unsigned char channel = static_cast<ParameterPin*>(listParameterPinIn->listPins.value(Param_Channel))->GetVariantValue().toInt();
 
     switch(msgType) {
         case 0:
@@ -90,9 +87,33 @@ void MidiSender::Render()
     listMidiPinOut->GetPin(0)->SendMsg(PinMessage::MidiMsg, (void*)&midiMsg);
 }
 
-void MidiSender::OnParameterChanged(ConnectionInfo pinInfo, float value)
+void MidiSender::OnParameterChanged(const ObjectInfo &pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
 
     msgChanged=true;
+}
+
+Pin* MidiSender::CreatePin(ObjectInfo &info)
+{
+    Pin *newPin = Object::CreatePin(info);
+    if(newPin)
+        return newPin;
+
+    switch(info.Meta(MetaInfos::PinNumber).toInt()) {
+        case Param_MsgType:
+            info.SetName(tr("MsgType"));
+            return new ParameterPin(this,info,"Ctrl",&listMsgType);
+        case Param_Value1:
+            info.SetName(tr("Value1"));
+            return new ParameterPin(this,info,0,&listValues);
+        case Param_Value2:
+            info.SetName(tr("Value2"));
+            return new ParameterPin(this,info,0,&listValues);
+        case Param_Channel:
+            info.SetName(tr("Channel"));
+            return new ParameterPin(this,info,1,&listChannels);
+    }
+
+    return 0;
 }

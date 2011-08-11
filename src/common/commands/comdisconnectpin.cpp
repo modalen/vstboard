@@ -5,7 +5,7 @@
 #include "models/programsmodel.h"
 
 ComDisconnectPin::ComDisconnectPin(MainHost *myHost,
-                                   const ConnectionInfo &pinInfo,
+                                   const ObjectInfo &pinInfo,
                                    QUndoCommand  *parent) :
     QUndoCommand(parent),
     myHost(myHost),
@@ -23,12 +23,12 @@ void ComDisconnectPin::undo ()
 {
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
-    QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.container ).staticCast<Connectables::Container>();
+    QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.ContainerId() ).staticCast<Connectables::Container>();
     if(!cntPtr)
         return;
 
-    foreach(ConnectionInfo info, listConnectedPins) {
-        if(pinInfo.direction==Directions::Output) {
+    foreach(ObjectInfo info, listConnectedPins) {
+        if(pinInfo.Meta(MetaInfos::Direction).toInt()==Directions::Output) {
             cntPtr->UserAddCable(pinInfo, info);
         } else {
             cntPtr->UserAddCable(info, pinInfo);
@@ -40,7 +40,7 @@ void ComDisconnectPin::redo ()
 {
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
-    QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.container ).staticCast<Connectables::Container>();
+    QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.ContainerId() ).staticCast<Connectables::Container>();
     if(!cntPtr)
         return;
 

@@ -21,8 +21,8 @@
 #ifndef CABLEVIEW_H
 #define CABLEVIEW_H
 
-#include "../precomp.h"
-#include "../globals.h"
+#include "precomp.h"
+#include "globals.h"
 #include "pinview.h"
 #include "viewconfig.h"
 
@@ -36,14 +36,14 @@ namespace View {
     {
     Q_OBJECT
     public:
-        CableView(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn, QGraphicsItem *parent, ViewConfig *config);
-        CableView(const ConnectionInfo &pinOut, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config);
+        CableView(const ObjectInfo &pinOut, const ObjectInfo &pinIn, QGraphicsItem *parent, ViewConfig *config);
+        CableView(const ObjectInfo &pinOut, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config);
 
-        void UpdatePosition(const ConnectionInfo &pinInfo, const float angle, const QPointF &pt);
+        void UpdatePosition(const ObjectInfo &pinInfo, const float angle, const QPointF &pt);
         void UpdatePosition(const QPointF &pt);
 
-        const ConnectionInfo pinOut;
-        const ConnectionInfo pinIn;
+        const ObjectInfo pinOut;
+        const ObjectInfo pinIn;
 
     protected:
         QPointF PtOut;

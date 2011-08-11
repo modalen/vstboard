@@ -24,11 +24,11 @@
 #include "mainhost.h"
 using namespace Connectables;
 
-BridgePinOut::BridgePinOut(Object *parent, int number, bool bridge)
-    :Pin(parent,MediaTypes::Bridge,Directions::Output,number,bridge),
+BridgePinOut::BridgePinOut(Object *parent, ObjectInfo &info)
+    :Pin(parent,info),
     valueType(MediaTypes::ND)
 {
-    setObjectName(QString("BOut%1").arg(number));
+    SetName(QString("BOut%1").arg(Meta(MetaInfos::PinNumber).toInt()));
     visible=true;
 }
 

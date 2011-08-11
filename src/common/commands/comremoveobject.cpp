@@ -36,7 +36,7 @@ void ComRemoveObject::undo ()
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
     //get the object
-    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.objId );
+    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.ObjId() );
     if(!obj) {
         //object was deleted, create a new one
         obj = myHost->objFactory->NewObject( objectInfo );
@@ -61,7 +61,7 @@ void ComRemoveObject::undo ()
     obj->SetContainerAttribs(attr);
 
     //remove cables added at creation
-    QPair<ConnectionInfo,ConnectionInfo>pair;
+    QPair<ObjectInfo,ObjectInfo>pair;
     foreach( pair, listAddedCables) {
         container->UserRemoveCable(pair);
     }
@@ -79,7 +79,7 @@ void ComRemoveObject::redo()
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
     //get the object
-    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.objId );
+    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.ObjId() );
     if(!obj)
         return;
 

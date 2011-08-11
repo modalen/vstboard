@@ -46,7 +46,7 @@ VstShellSelect::VstShellSelect(MainHost *myHost, Connectables::VstPlugin *plugin
     }
 
     info = plugin->info();
-    info.objId = 0;
+    info.SetObjId(0);
 }
 
 VstShellSelect::~VstShellSelect()
@@ -57,7 +57,7 @@ VstShellSelect::~VstShellSelect()
 
 void View::VstShellSelect::on_buttonOk_clicked()
 {
-    info.id = ui->listPlugins->currentIndex().data(Qt::UserRole).toInt();
+    info.SetMeta(MetaInfos::devId, ui->listPlugins->currentIndex().data(Qt::UserRole));
     command->ReloadObject(info);
     close();
 }

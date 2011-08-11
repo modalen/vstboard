@@ -21,7 +21,7 @@
 #ifndef MIDITOAUTOMATION_H
 #define MIDITOAUTOMATION_H
 
-#include "../precomp.h"
+#include "precomp.h"
 #include "object.h"
 
 namespace Connectables {
@@ -30,10 +30,10 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        explicit MidiToAutomation(MainHost *myHost,int index);
+        explicit MidiToAutomation(MainHost *myHost, ObjectInfo &info);
         void Render();
         void MidiMsgFromInput(long msg);
-        Pin* CreatePin(const ConnectionInfo &info);
+        Pin* CreatePin(ObjectInfo &info);
     protected:
         void ChangeValue(int ctrl, int value);
         QList<QVariant> listValues;

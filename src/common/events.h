@@ -28,60 +28,56 @@
 namespace Events {
 
     enum type {
-        typeNewObj = QEvent::User,
-        typeNewPin
+        typeNewObj = QEvent::User
     };
 
     class newObj : public QEvent
     {
     public:
-        newObj(const ObjectInfo &objInfo, int parentIndex) :
+        newObj(const ObjectInfo &objInfo) :
             QEvent((QEvent::Type)typeNewObj),
-            objInfo(objInfo),
-            parentIndex(parentIndex)
+            objInfo(objInfo)
         {}
 
         QStandardItem *CreateItem() {
-            QStandardItem *item = new QStandardItem(objInfo.name);
+            QStandardItem *item = new QStandardItem(objInfo.Name());
             item->setData(QVariant::fromValue(objInfo), UserRoles::objInfo);
-            item->setData(objInfo.objId, UserRoles::value);
-            item->setData(errorMessage, UserRoles::errorMessage);
+            item->setData(objInfo.ObjId(), UserRoles::value);
+//            item->setData(errorMessage, UserRoles::errorMessage);
             return item;
         }
 
         ObjectInfo objInfo;
-        int parentIndex;
-        QString errorMessage;
     };
 
-    class newPin : public QEvent
-    {
-    public:
-        newPin(const QString &name, const QVariant &value,const ConnectionInfo &connectionInfo, float stepSize, int parentIndex) :
-            QEvent((QEvent::Type)typeNewPin),
-            name(name),
-            value(value),
-            connectionInfo(connectionInfo),
-            stepSize(stepSize),
-            parentIndex(parentIndex)
-        {}
+//    class newPin : public QEvent
+//    {
+//    public:
+//        newPin(const QString &name, const QVariant &value,const ConnectionInfo &connectionInfo, float stepSize, int parentIndex) :
+//            QEvent((QEvent::Type)typeNewPin),
+//            name(name),
+//            value(value),
+//            connectionInfo(connectionInfo),
+//            stepSize(stepSize),
+//            parentIndex(parentIndex)
+//        {}
 
-        QStandardItem *CreateItem() {
-            QStandardItem *item = new QStandardItem("pin");
-            item->setData(name,Qt::DisplayRole);
-            item->setData(value,UserRoles::value);
-            item->setData( QVariant::fromValue(ObjectInfo(MetaTypes::pin)),UserRoles::objInfo);
-            item->setData(QVariant::fromValue(connectionInfo),UserRoles::connectionInfo);
-            item->setData(stepSize,UserRoles::stepSize);
-            return item;
-        }
+//        QStandardItem *CreateItem() {
+//            QStandardItem *item = new QStandardItem("pin");
+//            item->setData(name,Qt::DisplayRole);
+//            item->setData(value,UserRoles::value);
+//            item->setData( QVariant::fromValue(ObjectInfo(MetaTypes::pin)),UserRoles::objInfo);
+//            item->setData(QVariant::fromValue(connectionInfo),UserRoles::connectionInfo);
+//            item->setData(stepSize,UserRoles::stepSize);
+//            return item;
+//        }
 
-        ConnectionInfo connectionInfo;
-        int parentIndex;
-        QString name;
-        QVariant value;
-        float stepSize;
-    };
+//        ConnectionInfo connectionInfo;
+//        int parentIndex;
+//        QString name;
+//        QVariant value;
+//        float stepSize;
+//    };
 }
 
 #endif // MYEVENTS_H

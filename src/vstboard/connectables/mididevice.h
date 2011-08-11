@@ -35,7 +35,7 @@ namespace Connectables {
     Q_OBJECT
 
     public:
-        MidiDevice(MainHost *myHost,int index, const ObjectInfo &info);
+        MidiDevice(MainHost *myHost, ObjectInfo &info);
         ~MidiDevice();
         bool Open();
         bool Close();

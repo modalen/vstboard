@@ -23,7 +23,7 @@
 
 //#include "precomp.h"
 #include "globals.h"
-#include "connectables/connectioninfo.h"
+#include "objectinfo.h"
 #include "viewconfig.h"
 
 #ifdef _MSC_VER
@@ -43,8 +43,8 @@ namespace View {
 
     public:
 
-        explicit PinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config);
-        const ConnectionInfo GetConnectionInfo() const {return connectInfo;}
+        explicit PinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ObjectInfo &pinInfo, ViewConfig *config);
+        const ObjectInfo & GetObjectInfo() const {return objInfo;}
         void AddCable(CableView *cable);
         void RemoveCable(CableView *cable);
         void UpdateCablesPosition();
@@ -79,9 +79,6 @@ namespace View {
         void dragMoveEvent ( QGraphicsSceneDragDropEvent * event );
         void dropEvent ( QGraphicsSceneDragDropEvent  * event );
 
-        void CreateMimeData(QByteArray &bytes);
-        void ReadMimeData(QByteArray &bytes, ConnectionInfo &data);
-
         /// outline
         QAbstractGraphicsShapeItem *outline;
 
@@ -92,7 +89,7 @@ namespace View {
         QList<CableView *> connectedCables;
 
         /// description of the pin
-        ConnectionInfo connectInfo;
+        ObjectInfo objInfo;
 
         /// pointer to the model
         QAbstractItemModel *model;
@@ -114,14 +111,14 @@ namespace View {
           \param outputPin
           \param inputPin
           */
-        void ConnectPins(ConnectionInfo outputPin, ConnectionInfo inputPin);
+        void ConnectPins(const ObjectInfo &outputPin, const ObjectInfo &inputPin);
 
         /*!
           emitted on double click to remove all the connected cables
           */
-        void RemoveCablesFromPin(ConnectionInfo pin);
+        void RemoveCablesFromPin(const ObjectInfo & pin);
 
-        void RemovePin(ConnectionInfo pin);
+        void RemovePin(const ObjectInfo &pin);
 
     public slots:
         /// update the vu-meter, called by a timer

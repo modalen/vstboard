@@ -37,6 +37,7 @@ PinsList::PinsList(MainHost *myHost, Object *parent) :
         myHost(myHost)
 {
     ObjectInfo::metaType = MetaTypes::listPin;
+    ObjectInfo::SetParent(parent);
 
     connect(this,SIGNAL(PinAdded(int)),
             this,SLOT(AddPin(int)));
@@ -44,14 +45,6 @@ PinsList::PinsList(MainHost *myHost, Object *parent) :
             this,SLOT(RemovePin(int)));
 //    connect(this, SIGNAL(NbPinChanged(int)),
 //            this,SLOT(SetNbPins(int)));
-}
-
-void PinsList::SetContainerId(quint16 id)
-{
-    connInfo.container=id;
-    foreach(Pin* pin, listPins) {
-        pin->SetContainerId(id);
-    }
 }
 
 void PinsList::Hide()
@@ -66,12 +59,12 @@ void PinsList::ChangeNumberOfPins(int newNb)
     emit SetNbPins(newNb);
 }
 
-void PinsList::SetInfo(Object *parent,const ConnectionInfo &connInfo, const ObjectInfo &objInfo)
-{
-    this->parent=parent;
-    this->connInfo=connInfo;
-    this->objInfo=objInfo;
-}
+//void PinsList::SetInfo(Object *parent,const ConnectionInfo &connInfo, const ObjectInfo &objInfo)
+//{
+//    this->parent=parent;
+//    this->connInfo=connInfo;
+//    this->objInfo=objInfo;
+//}
 
 void PinsList::SetVisible(bool visible) {
     foreach(Pin* pin, listPins) {
@@ -88,7 +81,7 @@ void PinsList::SetBridge(bool bridge)
 
 Pin * PinsList::GetPin(int pinNumber, bool autoCreate)
 {
-    //resize the list if needed
+     //resize the list if needed
     if(!listPins.contains(pinNumber)) {
         if(autoCreate) {
             AddPin(pinNumber);
@@ -103,8 +96,8 @@ Pin * PinsList::GetPin(int pinNumber, bool autoCreate)
 
 AudioBuffer *PinsList::GetBuffer(int pinNumber)
 {
-    if(connInfo.type != MediaTypes::Audio)
-        return 0;
+//    if(connInfo.type != MediaTypes::Audio)
+//        return 0;
 
     if(!listPins.contains(pinNumber)) {
         LOG("pin not found"<<pinNumber);
@@ -116,19 +109,19 @@ AudioBuffer *PinsList::GetBuffer(int pinNumber)
 
 void PinsList::ConnectAllTo(Container* container, PinsList *other, bool hidden)
 {
-    QSharedPointer<Object>cntPtr = myHost->objFactory->GetObjectFromId(connInfo.container);//myHost->objFactory->GetObj(modelList.parent().parent());
+//    QSharedPointer<Object>cntPtr = myHost->objFactory->GetObjectFromId(ContainerId());//myHost->objFactory->GetObj(modelList.parent().parent());
 
     QMap<quint16,Pin*>::Iterator i = listPins.begin();
     while(i!=listPins.end()) {
         Pin *otherPin = other->listPins.value(i.key(),0);
         if(otherPin)
-            container->AddCable(i.value()->GetConnectionInfo(),otherPin->GetConnectionInfo(),hidden);
+            container->AddCable(i.value()->info(),otherPin->info(),hidden);
         ++i;
     }
 }
 
-void PinsList::UpdateModelNode(QStandardItem *parentNode)
-{
+//void PinsList::UpdateModelNode(QStandardItem *parentNode)
+//{
 //    if(!modelList.isValid() && parentNode) {
 //        QStandardItem *item = new QStandardItem("lstPins");
 //        item->setData( QVariant::fromValue(objInfo) , UserRoles::objInfo);
@@ -139,10 +132,7 @@ void PinsList::UpdateModelNode(QStandardItem *parentNode)
 //    if(!modelList.isValid())
 //        return;
 
-    foreach(Pin* pin, listPins) {
-        pin->SetParentModelIndex(modelList,objInfo.id);
-    }
-}
+//}
 
 void PinsList::AsyncAddPin(int nb)
 {
@@ -186,6 +176,8 @@ void PinsList::SetNbPins(int nb, QList<quint16> *listAdded,QList<quint16> *listR
         }
         cpt++;
     }
+
+    UpdateView(myHost);
 }
 
 Pin * PinsList::AddPin(int nb)
@@ -193,8 +185,9 @@ Pin * PinsList::AddPin(int nb)
     if(listPins.contains(nb))
         return listPins.value(nb);
 
-    connInfo.pinNumber=nb;
-    Pin *newPin = parent->CreatePin(connInfo);
+    ObjectInfo pinInfo(info());
+    pinInfo.SetMeta(MetaInfos::PinNumber,nb);
+    Pin *newPin = static_cast<Object*>(parent)->CreatePin(pinInfo);
 
     if(!newPin) {
         LOG("pin not created"<<nb);
@@ -203,9 +196,10 @@ Pin * PinsList::AddPin(int nb)
     listPins.insert(nb, newPin);
 
     if(modelList.isValid())
-        newPin->SetParentModelIndex(modelList,objInfo.id);
+        newPin->SetParent(this);
+//        newPin->SetParentModelIndex(modelList,objInfo.id);
 
-    parent->OnProgramDirty();
+    static_cast<Object*>(parent)->OnProgramDirty();
     return newPin;
 }
 
@@ -214,13 +208,13 @@ void PinsList::RemovePin(int nb)
     if(!listPins.contains(nb))
         return;
 
-    parent->OnProgramDirty();
+    static_cast<Object*>(parent)->OnProgramDirty();
     delete listPins.take(nb);
 }
 
 QDataStream & PinsList::toStream(QDataStream & out) const
 {
-    out << connInfo;
+//    out << connInfo;
     out << objInfo;
 
     out << (quint16)listPins.count();
@@ -238,7 +232,7 @@ QDataStream & PinsList::toStream(QDataStream & out) const
 
 QDataStream & PinsList::fromStream(QDataStream & in)
 {
-    in >> connInfo;
+//    in >> connInfo;
     in >> objInfo;
 
     quint16 nbPins;
@@ -249,14 +243,13 @@ QDataStream & PinsList::fromStream(QDataStream & in)
         in >> id;
         QVariant value;
         in >> value;
-        connInfo.pinNumber=id;
-        Pin *newPin = parent->CreatePin(connInfo);
-        if(!newPin) {
-            LOG("pin not created"<<id);
-            return in;
-        }
-        listPins.insert(id,newPin);
 
+        ObjectInfo pinInfo(objInfo);
+        pinInfo.SetMeta(MetaInfos::PinNumber,id);
+        Pin *newPin = parent->CreatePin(pinInfo);
+        if(!newPin)
+            return in;
+        listPins.insert(id,newPin);
     }
 
     return in;

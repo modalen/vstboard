@@ -33,7 +33,7 @@ void ComAddObject::undo ()
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
     //get the object
-    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.objId );
+    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.ObjId() );
     if(!obj)
         return;
 
@@ -52,7 +52,7 @@ void ComAddObject::undo ()
 
     //add the replaced object
     if(insertType==InsertionType::Replace) {
-        QSharedPointer<Connectables::Object> target = myHost->objFactory->GetObjectFromId( targetInfo.objId );
+        QSharedPointer<Connectables::Object> target = myHost->objFactory->GetObjectFromId( targetInfo.ObjId() );
         if(!target) {
             //the target has been deleted, create it back
             target = myHost->objFactory->NewObject( targetInfo );
@@ -72,7 +72,7 @@ void ComAddObject::undo ()
     }
 
     //remove cables added at creation
-    QPair<ConnectionInfo,ConnectionInfo>pair;
+    QPair<ObjectInfo,ObjectInfo>pair;
     foreach( pair, listAddedCables) {
         container->UserRemoveCable(pair);
     }
@@ -90,7 +90,7 @@ void ComAddObject::redo ()
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
     //get the object
-    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.objId );
+    QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.ObjId() );
     if(!obj) {
         //object was deleted, create a new one
         obj = myHost->objFactory->NewObject( objectInfo );
@@ -107,7 +107,7 @@ void ComAddObject::redo ()
         return;
 
     //get the target
-    QSharedPointer<Connectables::Object> target = myHost->objFactory->GetObjectFromId( targetInfo.objId );
+    QSharedPointer<Connectables::Object> target = myHost->objFactory->GetObjectFromId( targetInfo.ObjId() );
     if(target) {
         targetInfo = target->info();
         QDataStream stream(&targetState, QIODevice::ReadWrite);

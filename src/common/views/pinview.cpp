@@ -39,11 +39,11 @@ CableView *PinView::currentLine = 0;
   \param pinInfo description of the pin
   \todo the model parameter can be removed
   */
-PinView::PinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
+PinView::PinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ObjectInfo &pinInfo, ViewConfig *config) :
     QGraphicsWidget(parent),
     outline(0),
     highlight(0),
-    connectInfo(pinInfo),
+    objInfo(pinInfo),
     model(model),
     pinAngle(angle),
     config(config)
@@ -59,7 +59,7 @@ PinView::PinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, 
     connect(actDel,SIGNAL(triggered()),
             this,SLOT(RemovePin()));
 
-    if(connectInfo.isRemoveable)
+    if(objInfo.Meta(MetaInfos::Removable).toBool())
         addAction(actDel);
 
     actUnplug = new QAction(QIcon(":/img16x16/editcut.png"),tr("Unplug"),this);
@@ -93,7 +93,7 @@ void PinView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 void PinView::UpdateCablesPosition()
 {
     foreach (CableView *cable, connectedCables) {
-        cable->UpdatePosition(connectInfo, pinAngle, mapToScene(pinPos()) );
+        cable->UpdatePosition(objInfo, pinAngle, mapToScene(pinPos()) );
     }
 }
 
@@ -142,12 +142,13 @@ void PinView::mouseMoveEvent ( QGraphicsSceneMouseEvent  * event )
     QMimeData *mime = new QMimeData;
 
     QByteArray bytes;
-    CreateMimeData(bytes);
+    QDataStream stream(&bytes, QIODevice::WriteOnly);
+    objInfo.toStream(stream);
     mime->setData("application/x-pin",bytes);
     drag->setMimeData(mime);
 
     if(!currentLine) {
-        currentLine = new CableView(connectInfo,event->pos(),this,config);
+        currentLine = new CableView(objInfo,event->pos(),this,config);
         AddCable(currentLine);
     }
 
@@ -181,13 +182,13 @@ void PinView::mouseDoubleClickEvent ( QGraphicsSceneMouseEvent * /*event*/ )
 
 void PinView::Unplug()
 {
-    emit RemoveCablesFromPin(connectInfo);
+    emit RemoveCablesFromPin(objInfo);
 }
 
 void PinView::RemovePin()
 {
-    if(connectInfo.isRemoveable)
-        emit RemovePin(connectInfo);
+    if(objInfo.Meta(MetaInfos::Removable).toBool())
+        emit RemovePin(objInfo);
 }
 
 /*!
@@ -198,10 +199,11 @@ void PinView::dragEnterEvent ( QGraphicsSceneDragDropEvent * event )
 {
     if(event->mimeData()->hasFormat("application/x-pin")) {
         QByteArray bytes = event->mimeData()->data("application/x-pin");
-        ConnectionInfo otherConnInfo;
-        ReadMimeData(bytes,otherConnInfo);
+        QDataStream stream(&bytes, QIODevice::ReadOnly);
+        ObjectInfo otherInfo;
+        otherInfo.fromStream(stream);
 
-        if(!connectInfo.CanConnectTo(otherConnInfo)) {
+        if(!objInfo.CanConnectTo(otherInfo)) {
             event->ignore();
             return;
         }
@@ -209,7 +211,7 @@ void PinView::dragEnterEvent ( QGraphicsSceneDragDropEvent * event )
         event->acceptProposedAction();
 
         if(currentLine) {
-            currentLine->UpdatePosition(connectInfo,pinAngle,mapToScene(pinPos()));
+            currentLine->UpdatePosition(objInfo,pinAngle,mapToScene(pinPos()));
             currentLine->setVisible(true);
         }
         if(highlight)
@@ -246,9 +248,10 @@ void PinView::dropEvent ( QGraphicsSceneDragDropEvent  * event )
     if(highlight)
         highlight->setVisible(false);
     QByteArray bytes = event->mimeData()->data("application/x-pin");
-    ConnectionInfo connInfo;
-    ReadMimeData(bytes,connInfo);
-    emit ConnectPins(connectInfo, connInfo);
+    QDataStream stream(&bytes, QIODevice::ReadOnly);
+    ObjectInfo otherInfo;
+    otherInfo.fromStream(stream);
+    emit ConnectPins(objInfo, otherInfo);
 }
 
 /*!
@@ -258,40 +261,9 @@ void PinView::dropEvent ( QGraphicsSceneDragDropEvent  * event )
 const QPointF PinView::pinPos() const
 {
     qreal x = 0;
-    if(connectInfo.direction==Directions::Output)
+    if(objInfo.Meta(MetaInfos::Direction).toInt()==Directions::Output)
         x = geometry().width();
     return QPointF(x,geometry().height()/2);
-}
-
-/*!
-  Put the connectInfo in a QByteArray
-  \param[out] bytes the byte array to fill
-  */
-void PinView::CreateMimeData(QByteArray &bytes)
-{
-    QDataStream stream(&bytes,QIODevice::WriteOnly);
-    stream << connectInfo.container;
-    stream << connectInfo.objId;
-    stream << (quint8)connectInfo.type;
-    stream << (quint8)connectInfo.direction;
-    stream << connectInfo.pinNumber;
-    stream << connectInfo.bridge;
-}
-
-/*!
-  Read a ConnectionInfo from a QByteArray
-  \param[in] bytes contains the mime data
-  \param[out] data ConnectionInfo to fill
-  */
-void PinView::ReadMimeData(QByteArray &bytes, ConnectionInfo &data)
-{
-    QDataStream stream(&bytes,QIODevice::ReadOnly);
-    stream >> data.container;
-    stream >> data.objId;
-    stream >> (quint8&)data.type;
-    stream >> (quint8&)data.direction;
-    stream >> data.pinNumber;
-    stream >> data.bridge;
 }
 
 /*!
@@ -300,7 +272,7 @@ void PinView::ReadMimeData(QByteArray &bytes, ConnectionInfo &data)
   */
 void PinView::AddCable(CableView *cable)
 {
-    cable->UpdatePosition(connectInfo, pinAngle, mapToScene(pinPos()) );
+    cable->UpdatePosition(objInfo, pinAngle, mapToScene(pinPos()) );
     connectedCables.append(cable);
     actUnplug->setEnabled(true);
     setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);

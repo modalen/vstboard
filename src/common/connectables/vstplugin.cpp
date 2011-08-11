@@ -33,8 +33,8 @@ VstPlugin *VstPlugin::pluginLoading = 0;
 QMap<AEffect*,VstPlugin*>VstPlugin::mapPlugins;
 View::VstShellSelect *VstPlugin::shellSelectView=0;
 
-VstPlugin::VstPlugin(MainHost *myHost,int index, const ObjectInfo & info) :
-    Object(myHost,index, info),
+VstPlugin::VstPlugin(MainHost *myHost, ObjectInfo & info) :
+    Object(myHost, info),
     CEffect(),
     editorWnd(0),
     sampleRate(44100.0),
@@ -269,7 +269,7 @@ bool VstPlugin::Open()
         QMutexLocker lock(&objMutex);
         VstPlugin::pluginLoading = this;
 
-        if(!Load(objInfo.filename )) {
+        if(!Load( Meta(MetaInfos::Filename).toString() )) {
             VstPlugin::pluginLoading = 0;
             errorMessage=tr("Error while loading plugin");
             //return true to create a dummy object
@@ -280,7 +280,7 @@ bool VstPlugin::Open()
         mapPlugins.insert(pEffect, this);
         VstPlugin::pluginLoading = 0;
 
-        if(EffGetPlugCategory() == kPlugCategShell && objInfo.id==0) {
+        if(EffGetPlugCategory() == kPlugCategShell && !Meta(MetaInfos::devId).isValid()) {
 
             if(VstPlugin::shellSelectView) {
                 VstPlugin::shellSelectView->raise();
@@ -379,13 +379,12 @@ bool VstPlugin::initPlugin()
 
         char szBuf[256] = "";
         if ((EffGetProductString(szBuf)) && (*szBuf)) {
-            setObjectName( QString("%1%2").arg(szBuf).arg(index) );
+            SetName( QString("%1%2").arg(szBuf).arg(ObjId()) );
         } else {
             sName = sName.section("/",-1);
             sName = sName.section(".",0,-2);
-            setObjectName( sName % QString::number(index) );
+            SetName( sName % QString::number(ObjId()) );
         }
-        objInfo.name=objectName();
 
         if(bWantMidi) {
             listMidiPinIn->AddPin(0);
@@ -538,15 +537,16 @@ void VstPlugin::EditIdle()
         EffEditIdle();
 }
 
-QString VstPlugin::GetParameterName(ConnectionInfo pinInfo)
+QString VstPlugin::GetParameterName(const ObjectInfo &pinInfo)
 {
     if(closed)
         return "";
 
-    if(pEffect && pinInfo.pinNumber < pEffect->numParams)
-        return EffGetParamName( pinInfo.pinNumber );
+    int pinnumber = pinInfo.Meta(MetaInfos::PinNumber).toInt();
+    if(pEffect && pinnumber < pEffect->numParams)
+        return EffGetParamName( pinnumber );
     else
-        LOG("parameter id out of range"<<pinInfo.pinNumber);
+        LOG("parameter id out of range"<<pinnumber);
 
     return "";
 }
@@ -590,32 +590,32 @@ void VstPlugin::processEvents(VstEvents* events)
     }
 }
 
-void VstPlugin::UserRemovePin(const ConnectionInfo &info)
+void VstPlugin::UserRemovePin(const ObjectInfo &info)
 {
-    if(info.type!=MediaTypes::Parameter)
+    if(info.Meta(MetaInfos::Media).toInt()!=MediaTypes::Parameter)
         return;
 
-    if(info.direction!=Directions::Input)
+    if(info.Meta(MetaInfos::Direction).toInt()!=Directions::Input)
         return;
 
-    if(!info.isRemoveable)
+    if(!info.Meta(MetaInfos::Removable).toBool())
         return;
 
-    if(listParameterPinIn->listPins.contains(info.pinNumber))
-        static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(info.pinNumber))->SetVisible(false);
+    if(listParameterPinIn->listPins.contains(info.Meta(MetaInfos::PinNumber).toInt()))
+        static_cast<ParameterPin*>(listParameterPinIn->listPins.value(info.Meta(MetaInfos::PinNumber).toInt()))->SetVisible(false);
     OnProgramDirty();
 }
 
-void VstPlugin::UserAddPin(const ConnectionInfo &info)
+void VstPlugin::UserAddPin(const ObjectInfo &info)
 {
-    if(info.type!=MediaTypes::Parameter)
+    if(info.Meta(MetaInfos::Media).toInt()!=MediaTypes::Parameter)
         return;
 
-    if(info.direction!=Directions::Input)
+    if(info.Meta(MetaInfos::Direction).toInt()!=Directions::Input)
         return;
 
-    if(listParameterPinIn->listPins.contains(info.pinNumber))
-        static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(info.pinNumber))->SetVisible(true);
+    if(listParameterPinIn->listPins.contains(info.Meta(MetaInfos::PinNumber).toInt()))
+        static_cast<ParameterPin*>(listParameterPinIn->listPins.value(info.Meta(MetaInfos::PinNumber).toInt()))->SetVisible(true);
     OnProgramDirty();
 }
 
@@ -632,12 +632,12 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
                 switch(GetLearningMode()) {
                 case LearningMode::unlearn :
                     if(pin->GetVisible())
-                        emit UndoStackPush( new ComRemovePin(myHost, pin->GetConnectionInfo()) );
+                        emit UndoStackPush( new ComRemovePin(myHost, pin->info()) );
                     break;
 
                 case LearningMode::learn :
                     if(!pin->GetVisible())
-                        emit UndoStackPush( new ComAddPin(myHost, pin->GetConnectionInfo()) );
+                        emit UndoStackPush( new ComAddPin(myHost, pin->info()) );
 
                 case LearningMode::off :
                     pin->ChangeValue(opt);
@@ -647,7 +647,7 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
             break;
 
         case audioMasterCurrentId : //2
-            return objInfo.id;
+            return Meta(MetaInfos::devId).toInt();
 
         case audioMasterIdle : //3
             QApplication::processEvents();
@@ -685,7 +685,7 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
                 return 0L;
             listAudioPinIn->ChangeNumberOfPins(pEffect->numInputs);
             listAudioPinOut->ChangeNumberOfPins(pEffect->numOutputs);
-            UpdateModelNode();
+//            UpdateModelNode();
             return  1L;
 
         case audioMasterNeedIdle : //14
@@ -708,7 +708,7 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
                 if(i.key()<pEffect->numParams) {
                     ParameterPin *pin = static_cast<ParameterPin*>(i.value());
                     pin->ChangeValue( EffGetParameter(i.key()), true );
-                    pin->setObjectName( EffGetParamName(i.key()) );
+                    pin->SetName( EffGetParamName(i.key()) );
                 }
                 ++i;
             }
@@ -723,27 +723,28 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
     return 0L;
 }
 
-void VstPlugin::OnParameterChanged(ConnectionInfo pinInfo, float value)
+void VstPlugin::OnParameterChanged(const ObjectInfo &pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
 
     if(closed)
         return;
 
-    if(pinInfo.direction == Directions::Input) {
-        if(pinInfo.pinNumber==FixedPinNumber::vstProgNumber) {
+    if(pinInfo.Meta(MetaInfos::Direction).toInt() == Directions::Input) {
+        int pinnumber = pinInfo.Meta(MetaInfos::PinNumber).toInt();
+        if(pinnumber==FixedPinNumber::vstProgNumber) {
             //program pin
-            EffSetProgram( static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(FixedPinNumber::vstProgNumber))->GetIndex() );
+            EffSetProgram( static_cast<ParameterPin*>(listParameterPinIn->listPins.value(FixedPinNumber::vstProgNumber))->GetIndex() );
             onVstProgramChanged();
             return;
         }
 
-        if(pinInfo.pinNumber<pEffect->numParams) {
-            if(EffCanBeAutomated(pinInfo.pinNumber)!=1) {
-                LOG("vst parameter can't be automated"<<pinInfo.pinNumber);
+        if(pinnumber<pEffect->numParams) {
+            if(EffCanBeAutomated(pinnumber)!=1) {
+                LOG("vst parameter can't be automated"<<pinnumber);
                 return;
             }
-            EffSetParameter(pinInfo.pinNumber,value);
+            EffSetParameter(pinnumber,value);
         }
     }
 }
@@ -808,50 +809,54 @@ void VstPlugin::SaveProgram(const QString &filename)
 void VstPlugin::onVstProgramChanged()
 {
     for(int i=0; i<pEffect->numParams; i++) {
-        ParameterPinIn *pin = static_cast<ParameterPinIn*>(listParameterPinIn->GetPin(i,false));
+        ParameterPin *pin = static_cast<ParameterPin*>(listParameterPinIn->GetPin(i,false));
         if(pin) {
             pin->ChangeValue(EffGetParameter(i));
         }
     }
 }
 
-Pin* VstPlugin::CreatePin(const ConnectionInfo &info)
+Pin* VstPlugin::CreatePin(ObjectInfo &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)
         return newPin;
 
-    if(info.type == MediaTypes::Parameter && info.direction == Directions::Input) {
+    if(info.Meta(MetaInfos::Media).toInt() == MediaTypes::Parameter && info.Meta(MetaInfos::Direction).toInt() == Directions::Input) {
         //if the plugin has a gui, the pins can be learned and the name can change
         bool hasEditor = (!pEffect || (pEffect->flags & effFlagsHasEditor) == 0)?false:true;
 
-        switch(info.pinNumber) {
+        switch(info.Meta(MetaInfos::PinNumber).toInt()) {
             case FixedPinNumber::vstProgNumber : {
-                ParameterPinIn *newPin = new ParameterPinIn(this,info.pinNumber,0,&listValues,"prog");
+                info.SetName(tr("prog"));
+                ParameterPin *newPin = new ParameterPin(this,info,0,&listValues);
                 newPin->SetLimitsEnabled(false);
                 return newPin;
             }
             case FixedPinNumber::editorVisible : {
                 if(!hasEditor)
                     return 0;
-                ParameterPin *newPin = new ParameterPinIn(this,FixedPinNumber::editorVisible,"hide",&listEditorVisible,tr("Editor"));
+                info.SetName(tr("Editor"));
+                ParameterPin *newPin = new ParameterPin(this,info,"hide",&listEditorVisible);
                 newPin->SetLimitsEnabled(false);
                 return newPin;
             }
             case FixedPinNumber::learningMode : {
                 if(!hasEditor)
                     return 0;
-                ParameterPin *newPin = new ParameterPinIn(this,FixedPinNumber::learningMode,"off",&listIsLearning,tr("Learn"));
+                info.SetName(tr("Learn"));
+                ParameterPin *newPin = new ParameterPin(this,info,"off",&listIsLearning);
                 newPin->SetLimitsEnabled(false);
                 return newPin;
             }
             default : {
                 ParameterPin *pin=0;
-                if(closed) {
-                    pin = new ParameterPinIn(this,info.pinNumber,0,"",true,hasEditor);
-                } else {
-                    pin = new ParameterPinIn(this,info.pinNumber,EffGetParameter(info.pinNumber),EffGetParamName(info.pinNumber),hasEditor,hasEditor);
+                if(!closed) {
+                    info.SetName(EffGetParamName(info.Meta(MetaInfos::PinNumber).toInt()));
+                    info.SetMeta(MetaInfos::Visible, hasEditor);
+                    info.SetMeta(MetaInfos::Removable, hasEditor);
                 }
+                pin = new ParameterPin(this,info,EffGetParameter(info.Meta(MetaInfos::PinNumber).toInt()));
                 pin->SetDefaultVisible(!hasEditor);
                 return pin;
             }
@@ -902,9 +907,9 @@ bool VstPlugin::fromStream(QDataStream & in)
     return true;
 }
 
-QStandardItem *VstPlugin::GetFullItem()
-{
-    QStandardItem *modelNode = Object::GetFullItem();
-    modelNode->setData(doublePrecision, UserRoles::isDoublePrecision);
-    return modelNode;
-}
+//QStandardItem *VstPlugin::GetFullItem()
+//{
+//    QStandardItem *modelNode = Object::GetFullItem();
+//    modelNode->setData(doublePrecision, UserRoles::isDoublePrecision);
+//    return modelNode;
+//}

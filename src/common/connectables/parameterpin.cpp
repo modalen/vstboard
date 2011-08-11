@@ -27,15 +27,15 @@
 using namespace Connectables;
 
 //parameter is a float
-ParameterPin::ParameterPin(Object *parent, Directions::Enum direction, int number, float defaultValue, const QString &name, bool nameCanChange, bool isRemoveable, bool bridge) :
-        Pin(parent,MediaTypes::Parameter,direction,number,bridge),
+ParameterPin::ParameterPin(Object *parent, ObjectInfo &info, float defaultValue) :
+        Pin(parent,info),
         listValues(0),
         stepIndex(0),
         defaultVisible(true),
         defaultValue(defaultValue),
         defaultIndex(0),
         loading(false),
-        nameCanChange(nameCanChange),
+        nameCanChange(true),
         dirty(false),
         limitInMin(.0f),
         limitInMax(1.0f),
@@ -46,17 +46,15 @@ ParameterPin::ParameterPin(Object *parent, Directions::Enum direction, int numbe
         limitsEnabled(true)
 {
     SetVisible(true);
-    connectInfo.isRemoveable=isRemoveable;
     value = defaultValue;
-    setObjectName(name);
     loading=true;
     OnValueChanged( defaultValue );
     loading=false;
 }
 
 //parameter is a int with a list of possible values
-ParameterPin::ParameterPin(Object *parent, Directions::Enum direction, int number, const QVariant &defaultVariantValue, QList<QVariant> *listValues, const QString &name, bool nameCanChange, bool isRemoveable, bool bridge) :
-        Pin(parent,MediaTypes::Parameter,direction,number,bridge),
+ParameterPin::ParameterPin(Object *parent, ObjectInfo &info, const QVariant &defaultVariantValue, QList<QVariant> *listValues) :
+        Pin(parent,info),
         listValues(listValues),
         defaultVisible(true),
         defaultValue( .0f ),
@@ -72,8 +70,6 @@ ParameterPin::ParameterPin(Object *parent, Directions::Enum direction, int numbe
         limitsEnabled(true)
 {
     SetVisible(true);
-    connectInfo.isRemoveable=isRemoveable;
-    setObjectName(name);
     stepSize=1.0f/(listValues->size()-1);
     stepIndex=listValues->indexOf(defaultVariantValue);
     defaultIndex=stepIndex;
@@ -81,9 +77,16 @@ ParameterPin::ParameterPin(Object *parent, Directions::Enum direction, int numbe
     loading=false;
 }
 
+void ParameterPin::ReceiveMsg(const PinMessage::Enum msgType,void *data)
+{
+    if(msgType == PinMessage::ParameterValue) {
+        ChangeValue(*(float*)data);
+    }
+}
+
 void ParameterPin::SetRemoveable()
 {
-    connectInfo.isRemoveable=true;
+    SetMeta(MetaInfos::Removable,true);
 }
 
 void ParameterPin::GetDefault(ObjectParameter &param)
@@ -122,7 +125,7 @@ void ParameterPin::ChangeValue(float val, bool fromObj)
     OnValueChanged(val);
 
     if(!fromObj)
-        parent->OnParameterChanged(connectInfo,outValue);
+        parent->OnParameterChanged(info(),outValue);
 }
 
 //from int
@@ -140,7 +143,7 @@ void ParameterPin::ChangeValue(int index, bool fromObj)
     outStepIndex=(int)( 0.5f + outValue/stepSize );
 
     if(!fromObj)
-        parent->OnParameterChanged(connectInfo,outValue);
+        parent->OnParameterChanged(info(),outValue);
 }
 
 //from variant
@@ -217,24 +220,27 @@ void ParameterPin::OnValueChanged(float val)
     val+=limitOutMin;
     outValue=val;
 
-    if(!loading && !dirty && connectInfo.direction==Directions::Input) {
+    if(!loading && !dirty && Meta(MetaInfos::Direction).toInt()==Directions::Input) {
         dirty=true;
         parent->OnProgramDirty();
     }
 
     if(visible) {
         if(nameCanChange)
-            setObjectName(parent->GetParameterName(connectInfo));
+            SetName(parent->GetParameterName(info()));
 
         if(listValues) {
             displayedText = QString("%1:%2").arg(objectName()).arg(listValues->at(stepIndex).toString());
         }
     }
+
+    if(Meta(MetaInfos::Direction).toInt()==Directions::Output)
+        SendMsg(PinMessage::ParameterValue,(void*)&outValue);
 }
 
 void ParameterPin::SetFixedName(QString fixedName)
 {
-    setObjectName(fixedName);
+    SetName(fixedName);
     nameCanChange=false;
 }
 
@@ -283,39 +289,56 @@ void ParameterPin::SetVisible(bool vis)
         if(!pinItem)
             return;
 
-        ObjectInfo info;
-        info.metaType=MetaTypes::cursor;
+        {
+            ObjectInfo info(MetaTypes::cursor);
+            info.SetMeta(MetaInfos::Direction,Directions::Input);
+            info.SetMeta(MetaInfos::LimitType,LimitTypes::Min);
+            info.SetName(tr("limitInMin"));
 
-        info.listInfos[MetaInfos::Direction]=Directions::Input;
+            QStandardItem *item = new QStandardItem("limitInMin");
+            item->setData(QVariant::fromValue(info),UserRoles::objInfo);
+            item->setData(limitInMin,UserRoles::value);
+            pinItem->appendRow(item);
+            indexLimitInMin=item->index();
+        }
 
-        QStandardItem *item = new QStandardItem("limitInMin");
-        info.listInfos[MetaInfos::LimitType]=LimitTypes::Min;
-        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-        item->setData(limitInMin,UserRoles::value);
-        pinItem->appendRow(item);
-        indexLimitInMin=item->index();
+        {
+            ObjectInfo info(MetaTypes::cursor);
+            info.SetMeta(MetaInfos::Direction,Directions::Input);
+            info.SetMeta(MetaInfos::LimitType,LimitTypes::Max);
+            info.SetName(tr("limitInMax"));
 
-        item = new QStandardItem("limitInMax");
-        info.listInfos[MetaInfos::LimitType]=LimitTypes::Max;
-        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-        item->setData(limitInMax,UserRoles::value);
-        pinItem->appendRow(item);
-        indexLimitInMax=item->index();
+            QStandardItem *item = new QStandardItem("limitInMax");
+            item->setData(QVariant::fromValue(info),UserRoles::objInfo);
+            item->setData(limitInMax,UserRoles::value);
+            pinItem->appendRow(item);
+            indexLimitInMax=item->index();
+        }
 
-        info.listInfos[MetaInfos::Direction]=Directions::Output;
+        {
+            ObjectInfo info(MetaTypes::cursor);
+            info.SetMeta(MetaInfos::Direction,Directions::Output);
+            info.SetMeta(MetaInfos::LimitType,LimitTypes::Min);
+            info.SetName(tr("limitOutMin"));
 
-        item = new QStandardItem("limitOutMin");
-        info.listInfos[MetaInfos::LimitType]=LimitTypes::Min;
-        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-        item->setData(limitOutMin,UserRoles::value);
-        pinItem->appendRow(item);
-        indexLimitOutMin=item->index();
+            QStandardItem *item = new QStandardItem("limitOutMin");
+            item->setData(QVariant::fromValue(info),UserRoles::objInfo);
+            item->setData(limitOutMin,UserRoles::value);
+            pinItem->appendRow(item);
+            indexLimitOutMin=item->index();
+        }
 
-        item = new QStandardItem("limitOutMax");
-        info.listInfos[MetaInfos::LimitType]=LimitTypes::Max;
-        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-        item->setData(limitOutMax,UserRoles::value);
-        pinItem->appendRow(item);
-        indexLimitOutMax=item->index();
+        {
+            ObjectInfo info(MetaTypes::cursor);
+            info.SetMeta(MetaInfos::Direction,Directions::Output);
+            info.SetMeta(MetaInfos::LimitType,LimitTypes::Max);
+            info.SetName(tr("limitOutMax"));
+
+            QStandardItem *item = new QStandardItem("limitOutMax");
+            item->setData(QVariant::fromValue(info),UserRoles::objInfo);
+            item->setData(limitOutMax,UserRoles::value);
+            pinItem->appendRow(item);
+            indexLimitOutMax=item->index();
+        }
     }
 }

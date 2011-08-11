@@ -18,17 +18,16 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-
 #include "midipinout.h"
 #include "pin.h"
 #include "object.h"
 
 using namespace Connectables;
 
-MidiPinOut::MidiPinOut(Object *parent, int number, bool bridge)
-    :Pin(parent,MediaTypes::Midi,Directions::Output,number,bridge)
+MidiPinOut::MidiPinOut(Object *parent, ObjectInfo &info)
+    :Pin(parent,info)
 {
-    setObjectName(QString("MidiOut%1").arg(number));
+    SetName(QString("MidiOut%1").arg(Meta(MetaInfos::PinNumber).toInt()));
     visible=true;
 }
 

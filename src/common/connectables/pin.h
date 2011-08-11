@@ -38,7 +38,7 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        Pin(Object *parent, MediaTypes::Enum type, Directions::Enum directions, int number, bool bridge=false );
+        Pin(Object *parent, ObjectInfo &info);
         virtual ~Pin();
 
         virtual void SendMsg(const PinMessage::Enum msgType,void *data=0);
@@ -56,22 +56,13 @@ namespace Connectables {
           */
         virtual float GetValue() {return value;}
 
-        void setObjectName(const QString &name);
-
-        /*!
-          get the pin infos
-          \return ConnectionInfo
-          */
-        const ConnectionInfo &GetConnectionInfo() const {return connectInfo;}
-
-        virtual void SetParentModelIndex(const QModelIndex &newParent, int lstId);
-        void SetContainerId(quint16 id);
+        virtual void SetParentModelIndex(const QModelIndex &newParent);
 
         /// \return true if visible
         inline bool GetVisible() {return visible;}
         virtual void SetVisible(bool vis);
         void SetBridge(bool bridge);
-        void UpdateModelNode();
+//        void UpdateModelNode();
         void Close();
 
         /*!
@@ -81,8 +72,6 @@ namespace Connectables {
         virtual void NewRenderLoop() {}
 
     protected:
-        /// ConnectionInfo og the pin
-        ConnectionInfo connectInfo;
 
         /// current value
         float value;
@@ -113,8 +102,6 @@ namespace Connectables {
 
         /// true if the value changes since the laste view update
         bool valueChanged;
-
-        int listId;
 
     public slots:
         virtual void updateView();

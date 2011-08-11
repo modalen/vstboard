@@ -26,12 +26,12 @@
 
 using namespace Connectables;
 
-BridgePinIn::BridgePinIn(Object *parent, int number, bool bridge) :
-    Pin(parent,MediaTypes::Bridge,Directions::Input,number,bridge),
+BridgePinIn::BridgePinIn(Object *parent, ObjectInfo &info) :
+    Pin(parent,info),
     valueType(MediaTypes::ND),
     loopCounter(0)
 {
-    setObjectName(QString("BIn%1").arg(number));
+    SetName(QString("BIn%1").arg(Meta(MetaInfos::PinNumber).toInt()));
     visible=true;
 }
 
@@ -42,9 +42,9 @@ void BridgePinIn::ReceiveMsg(const PinMessage::Enum msgType,void *data)
         return;
     ++loopCounter;
 
-    ConnectionInfo info = connectInfo;
-    info.direction=Directions::Output;
-    parent->GetPin(info)->SendMsg(msgType,data);
+    ObjectInfo i = info();
+    i.SetMeta(MetaInfos::Direction,Directions::Output);
+    parent->GetPin(i)->SendMsg(msgType,data);
 
     switch(msgType) {
         case PinMessage::AudioBuffer :

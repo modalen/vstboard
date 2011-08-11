@@ -31,32 +31,27 @@ ObjectFactoryHost::ObjectFactoryHost(MainHost *myHost) :
 {
 }
 
-Object *ObjectFactoryHost::CreateOtherObjects(const ObjectInfo &info)
+Object *ObjectFactoryHost::CreateOtherObjects(ObjectInfo &info)
 {
-    int objId = cptListObjects;
-    if(info.objId) {
-        objId = info.objId;
-    }
-
     Object *obj=0;
 
-    switch(info.metaType) {
+    switch(info.Meta()) {
         case MetaTypes::object :
 
-            switch(info.listInfos.value(MetaInfos::ObjType).toInt()) {
+            switch(info.Meta(MetaInfos::ObjType).toInt()) {
                 case ObjTypes::AudioInterface:
-                    switch(info.listInfos.value(MetaInfos::Direction).toInt()) {
+                    switch(info.Meta(MetaInfos::Direction).toInt()) {
                         case Directions::Input :
-                            obj = new AudioDeviceIn(myHost,objId, info);
+                            obj = new AudioDeviceIn(myHost, info);
                             break;
                         case Directions::Output :
-                            obj = new AudioDeviceOut(myHost,objId, info);
+                            obj = new AudioDeviceOut(myHost, info);
                             break;
                     }
                     break;
 
                 case ObjTypes::MidiInterface:
-                    obj = new MidiDevice(myHost,objId, info);
+                    obj = new MidiDevice(myHost, info);
                     break;
                 default:
                     break;

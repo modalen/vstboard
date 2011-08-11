@@ -50,7 +50,7 @@ QMimeData * HostModel::mimeData ( const QModelIndexList & indexes ) const
 
     foreach(QModelIndex index, indexes) {
         ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-        switch(info.metaType) {
+        switch(info.Meta()) {
             case MetaTypes::pin :
 
                 if(index.data(UserRoles::connectionInfo).isValid()) {
@@ -93,7 +93,7 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
     ObjectInfo senderInfo = senderIndex.data(UserRoles::objInfo).value<ObjectInfo>();
 
     QSharedPointer<Connectables::Container> targetContainer;
-    switch(senderInfo.metaType) {
+    switch(senderInfo.Meta()) {
         case MetaTypes::container :
             targetContainer = myHost->objFactory->GetObj(senderIndex).staticCast<Connectables::Container>();
             break;
@@ -142,10 +142,9 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
                 //vst plugin
                 if ( info.suffix()=="dll" ) {
 
-                    ObjectInfo infoVst;
-                    infoVst.metaType = MetaTypes::object;
-                    infoVst.listInfos[MetaInfos::ObjType] = ObjTypes::VstPlugin;
-                    infoVst.listInfos[MetaInfos::Filename] = fName;
+                    ObjectInfo infoVst(MetaTypes::object);
+                    infoVst.SetMeta(MetaInfos::ObjType, ObjTypes::VstPlugin);
+                    infoVst.SetMeta(MetaInfos::Filename, fName);
                     listObjInfoToAdd << infoVst;
                 }
 #endif
@@ -206,13 +205,13 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
             ObjectInfo info;
             stream >> info;
 
-            if(info.inputs!=0) {
-                info.listInfos[MetaInfos::Direction]=Directions::Input;
+            if(info.Meta(MetaInfos::nbInputs).toInt()!=0) {
+                info.SetMeta(MetaInfos::Direction,Directions::Input);
                 listObjInfoToAdd << info;
             }
 
-            if(info.outputs!=0) {
-                info.listInfos[MetaInfos::Direction]=Directions::Output;
+            if(info.Meta(MetaInfos::nbOutputs).toInt()!=0) {
+                info.SetMeta(MetaInfos::Direction,Directions::Output);
                 listObjInfoToAdd << info;
             }
         }
@@ -280,7 +279,7 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
 bool HostModel::setData ( const QModelIndex & index, const QVariant & value, int role )
 {
     ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-    switch(info.metaType) {
+    switch(info.Meta()) {
         case MetaTypes::object :
         //case MetaTypes::container :
         {
@@ -317,8 +316,8 @@ bool HostModel::setData ( const QModelIndex & index, const QVariant & value, int
 
         case MetaTypes::pin :
         {
-            ConnectionInfo pinInfo = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
-            if(pinInfo.type==MediaTypes::Parameter) {
+            ObjectInfo pinInfo = index.data(UserRoles::objInfo).value<ObjectInfo>();
+            if(pinInfo.Meta(MetaInfos::Media).toInt()==MediaTypes::Parameter) {
                 if(role==UserRoles::value) {
                     bool ok=true;
                     float newVal = value.toFloat(&ok);// item->data(Qt::DisplayRole).toFloat(&ok);
@@ -345,13 +344,13 @@ bool HostModel::setData ( const QModelIndex & index, const QVariant & value, int
         }
         case MetaTypes::cursor :
         {
-            ConnectionInfo pinInfo = index.parent().data(UserRoles::connectionInfo).value<ConnectionInfo>();
-            if(pinInfo.type==MediaTypes::Parameter) {
+            ObjectInfo pinInfo = index.parent().data(UserRoles::objInfo).value<ObjectInfo>();
+            if(pinInfo.Meta(MetaInfos::Media).toInt()==MediaTypes::Parameter) {
                 if(role==UserRoles::value) {
                     Connectables::ParameterPin* pin = static_cast<Connectables::ParameterPin*>(myHost->objFactory->GetPin(pinInfo));
                     ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-                    Directions::Enum direction = (Directions::Enum)info.listInfos.value(MetaInfos::Direction).toInt();
-                    LimitTypes::Enum limit = (LimitTypes::Enum)info.listInfos.value(MetaInfos::LimitType).toInt();
+                    Directions::Enum direction = (Directions::Enum)info.Meta(MetaInfos::Direction).toInt();
+                    LimitTypes::Enum limit = (LimitTypes::Enum)info.Meta(MetaInfos::LimitType).toInt();
                     pin->SetLimit(direction,limit,value.toFloat());
 
                     QStandardItem *item = itemFromIndex(index);

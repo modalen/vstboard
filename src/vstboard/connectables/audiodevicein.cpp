@@ -37,8 +37,8 @@ using namespace Connectables;
   \param index object number
   \param info object description
   */
-AudioDeviceIn::AudioDeviceIn(MainHost *myHost,int index, const ObjectInfo &info) :
-    Object(myHost,index, info),
+AudioDeviceIn::AudioDeviceIn(MainHost *myHost, ObjectInfo &info) :
+    Object(myHost, info),
     parentDevice(0)
 {
     listParameterPinOut->AddPin(0);
@@ -70,7 +70,7 @@ void AudioDeviceIn::Render()
 
     objMutex.lock();
     if(parentDevice) {
-        ParameterPinOut* pin=static_cast<ParameterPinOut*>(listParameterPinOut->listPins.value(0));
+        ParameterPin* pin=static_cast<ParameterPin*>(listParameterPinOut->listPins.value(0));
         if(pin)
             pin->ChangeValue(parentDevice->GetCpuUsage());
     }
@@ -119,27 +119,28 @@ bool AudioDeviceIn::Open()
     return true;
 }
 
-Pin* AudioDeviceIn::CreatePin(const ConnectionInfo &info)
+Pin* AudioDeviceIn::CreatePin(ObjectInfo &info)
 {
     Pin *newPin = Object::CreatePin(info);
+
+    int pinnumber = Meta(MetaInfos::PinNumber).toInt();
+
     if(newPin) {
-        if(info.type==MediaTypes::Audio)
-            newPin->setObjectName(QString("Input %1").arg(info.pinNumber));
+        if(info.Meta(MetaInfos::Media).toInt()==MediaTypes::Audio)
+            newPin->SetName(QString("Input %1").arg(info.Meta(MetaInfos::PinNumber).toInt()));
         return newPin;
     }
 
-    switch(info.direction) {
+
+
+    switch(info.Meta(MetaInfos::Direction).toInt()) {
         case Directions::Output :
-            if(info.pinNumber==0) {
-                ParameterPinOut *pin = new ParameterPinOut(this,0,0,"cpu%");
+            if(pinnumber==0) {
+                info.SetName(tr("cpu%"));
+                ParameterPin *pin = new ParameterPin(this,info,0);
                 pin->SetLimitsEnabled(false);
                 return pin;
             }
-            break;
-
-        default :
-            LOG("wrong PinDirection");
-            return 0;
             break;
     }
 
@@ -171,9 +172,9 @@ void AudioDeviceIn::SetBufferFromRingBuffer(QList<CircularBuffer*>listCircularBu
     }
 }
 
-QStandardItem *AudioDeviceIn::GetFullItem()
-{
-    QStandardItem *modelNode = Object::GetFullItem();
-    modelNode->setData(doublePrecision, UserRoles::isDoublePrecision);
-    return modelNode;
-}
+//QStandardItem *AudioDeviceIn::GetFullItem()
+//{
+//    QStandardItem *modelNode = Object::GetFullItem();
+//    modelNode->setData(doublePrecision, UserRoles::isDoublePrecision);
+//    return modelNode;
+//}

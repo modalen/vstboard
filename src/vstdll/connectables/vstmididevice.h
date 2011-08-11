@@ -33,7 +33,7 @@ namespace Connectables {
     Q_OBJECT
 
     public:
-        VstMidiDevice(MainHost *myHost, int index, const ObjectInfo &info);
+        VstMidiDevice(MainHost *myHost, ObjectInfo &info);
         ~VstMidiDevice();
         bool Open();
         bool Close();
@@ -41,6 +41,10 @@ namespace Connectables {
         void MidiMsgFromInput(long msg);
 
         QList<long>midiQueue;
+
+    private:
+        int nbIn;
+        int nbOut;
 
     signals:
         void SendMsg(int msgType,void *data=0);

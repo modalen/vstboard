@@ -20,15 +20,15 @@
 
 #include "miditoautomation.h"
 #include "midipinin.h"
-#include "../globals.h"
+#include "globals.h"
 #include "mainhost.h"
 #include "commands/comaddpin.h"
 #include "commands/comremovepin.h"
 
 using namespace Connectables;
 
-MidiToAutomation::MidiToAutomation(MainHost *myHost,int index) :
-        Object(myHost,index, ObjectInfo(MetaTypes::object, ObjTypes::MidiToAutomation, index, tr("Midi to Parameter")) )
+MidiToAutomation::MidiToAutomation(MainHost *myHost, ObjectInfo &info) :
+        Object(myHost,info)
 {
     for(int i=0;i<128;i++) {
         listValues << i;
@@ -57,7 +57,7 @@ void MidiToAutomation::Render()
 
     QHash<quint16,quint8>::Iterator i = listChanged.begin();
     while(i!=listChanged.end()) {
-        ParameterPinOut *pin = static_cast<ParameterPinOut*>(listParameterPinOut->listPins.value(i.key(),0));
+        ParameterPin *pin = static_cast<ParameterPin*>(listParameterPinOut->listPins.value(i.key(),0));
         if(pin)
             pin->ChangeValue(i.value());
         ++i;
@@ -115,14 +115,14 @@ void MidiToAutomation::ChangeValue(int ctrl, int value) {
         switch(GetLearningMode()) {
             case LearningMode::unlearn :
                 if(listParameterPinOut->listPins.contains(ctrl)) {
-                    emit UndoStackPush( new ComRemovePin(myHost, listParameterPinOut->listPins.value(ctrl)->GetConnectionInfo()) );
+                    emit UndoStackPush( new ComRemovePin(myHost, listParameterPinOut->listPins.value(ctrl)->info()) );
                 }
                 break;
             case LearningMode::learn :
                 if(!listParameterPinOut->listPins.contains(ctrl)) {
-                    ConnectionInfo info = listParameterPinOut->connInfo;
-                    info.pinNumber = ctrl;
-                    info.isRemoveable = true;
+                    ObjectInfo info = listParameterPinOut->info();
+                    info.SetMeta(MetaInfos::PinNumber, ctrl);
+                    info.SetMeta(MetaInfos::Removable, true);
                     emit UndoStackPush( new ComAddPin(myHost,info) );
                 }
             case LearningMode::off :
@@ -134,51 +134,61 @@ void MidiToAutomation::ChangeValue(int ctrl, int value) {
     }
 }
 
-Pin* MidiToAutomation::CreatePin(const ConnectionInfo &info)
+Pin* MidiToAutomation::CreatePin(ObjectInfo &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)
         return newPin;
 
-    if(info.type!=MediaTypes::Parameter) {
-        LOG("wrong PinType"<<info.type);
-        return 0;
-    }
+    int pinnumber = info.Meta(MetaInfos::PinNumber).toInt();
 
-    switch(info.direction) {
+    switch(info.Meta(MetaInfos::Direction).toInt()) {
         case Directions::Input : {
-            if(info.pinNumber == FixedPinNumber::learningMode) {
-                ParameterPin *newPin = new ParameterPinIn(this,FixedPinNumber::learningMode,"off",&listIsLearning,tr("Learn"));
+            if(pinnumber == FixedPinNumber::learningMode) {
+                info.SetName(tr("Learn"));
+                ParameterPin *newPin = new ParameterPin(this,info,"off",&listIsLearning);
                 newPin->SetLimitsEnabled(false);
                 return newPin;
             }
             break;
         }
-        case Directions::Output : {
-            ParameterPin *pin = 0;
 
-            if(info.pinNumber<128)
-                return new ParameterPinOut(this,info.pinNumber,0,&listValues,QString("CC%1").arg(info.pinNumber),false,true);
-            if(info.pinNumber>=para_notes)
-                return new ParameterPinOut(this,info.pinNumber,0,&listValues,QString("note%1").arg(info.pinNumber),false,true);
-            if(info.pinNumber==para_prog)
-                return new ParameterPinOut(this,info.pinNumber,0,&listValues,"prog");
-            if(info.pinNumber==para_velocity)
-                pin = new ParameterPinOut(this,info.pinNumber,0,&listValues,"vel");
-            if(info.pinNumber==para_notepitch)
-                pin = new ParameterPinOut(this,info.pinNumber,0,&listValues,"note");
-            if(info.pinNumber==para_pitchbend)
-                pin = new ParameterPinOut(this,info.pinNumber,0,&listValues,"p.bend");
-            if(info.pinNumber==para_chanpress)
-                pin = new ParameterPinOut(this,info.pinNumber,0,&listValues,"pressr");
-            if(info.pinNumber==para_aftertouch)
-                pin = new ParameterPinOut(this,info.pinNumber,0,&listValues,"aftr.t");
-            if(pin) {
-                return pin;
+        case Directions::Output : {
+
+            if(pinnumber<128) {
+                info.SetName( tr("CC%1").arg(info.Meta(MetaInfos::PinNumber).toInt()) );
+                info.SetMeta(MetaInfos::Removable,true);
+
+            } else if(pinnumber>=para_notes) {
+                info.SetName( tr("note%1").arg(info.Meta(MetaInfos::PinNumber).toInt()) );
+                info.SetMeta(MetaInfos::Removable,true);
+
+            } else switch(pinnumber) {
+                case para_prog:
+                    info.SetName( tr("prog") );
+                    break;
+                case para_velocity:
+                    info.SetName( tr("vel") );
+                    break;
+                case para_notepitch:
+                    info.SetName( tr("note") );
+                    break;
+                case para_pitchbend:
+                    info.SetName( tr("p.bend") );
+                    break;
+                case para_chanpress:
+                    info.SetName( tr("pressr") );
+                    break;
+                case para_aftertouch:
+                    info.SetName( tr("aftr.t") );
+                    break;
+                default :
+                    LOG("pin not created");
+                    return 0;
             }
 
-            break;
+            return new ParameterPin(this,info,0,&listValues);
         }
     }
-    return newPin;
+    return 0;
 }

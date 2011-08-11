@@ -22,23 +22,23 @@
 #define COMREMOVEPIN_H
 
 #include <QUndoCommand>
-#include "connectables/connectioninfo.h"
+#include "objectinfo.h"
 
 class MainHost;
 class ComRemovePin : public QUndoCommand
 {
 public:
     ComRemovePin(MainHost *myHost,
-                 const ConnectionInfo &pinInfo,
+                 const ObjectInfo &pinInfo,
                  QUndoCommand  *parent=0);
     void undo ();
     void redo ();
 private:
     MainHost *myHost;
-    ConnectionInfo pinInfo;
+    ObjectInfo pinInfo;
     int currentGroup;
     int currentProg;
-    QList<ConnectionInfo>listConnectedPins;
+    QList<ObjectInfo>listConnectedPins;
     QVariant value;
 };
 

@@ -37,16 +37,16 @@ namespace Connectables {
     Q_OBJECT
 
     public:
-        VstPlugin(MainHost *myHost,int index, const ObjectInfo & info);
+        VstPlugin(MainHost *myHost, ObjectInfo & info);
         ~VstPlugin();
         bool Open();
         bool Close();
         void Render();
-        long OnGetUniqueId() { return index; }
+//        long OnGetUniqueId() { return index; }
         VstIntPtr OnMasterCallback(long opcode, long index, long value, void *ptr, float opt, long currentReturnCode);
         void SetSleep(bool sleeping);
         void MidiMsgFromInput(long msg);
-        QString GetParameterName(ConnectionInfo pinInfo);
+        QString GetParameterName(const ObjectInfo &pinInfo);
         inline AEffect* GetPlugin() {return pEffect;}
 
         View::VstPluginWindow *editorWnd;
@@ -58,17 +58,17 @@ namespace Connectables {
 
         void SetContainerAttribs(const ObjectContainerAttribs &attr);
         void GetContainerAttribs(ObjectContainerAttribs &attr);
-        Pin* CreatePin(const ConnectionInfo &info);
+        Pin* CreatePin(ObjectInfo &info);
 
         bool DropFile(const QString &filename);
 
-        QStandardItem *GetFullItem();
+//        QStandardItem *GetFullItem();
 
         QDataStream & toStream (QDataStream &) const;
         bool fromStream (QDataStream &);
 
     protected:
-        void SetId(int id) {objInfo.id = id;}
+//        void SetId(int id) {objInfo.listInfos[MetaInfos::id] = id;}
         bool initPlugin();
         void processEvents(VstEvents* events);
         void onVstProgramChanged();
@@ -99,7 +99,7 @@ namespace Connectables {
         void RaiseEditor();
         void EditorDestroyed();
         void EditIdle();
-        void OnParameterChanged(ConnectionInfo pinInfo, float value);
+        void OnParameterChanged(const ObjectInfo &pinInfo, float value);
         void OnShowEditor();
         void OnHideEditor();
         void OnEditorClosed();
@@ -108,8 +108,8 @@ namespace Connectables {
         bool LoadProgram(const QString &filename);
         void SaveProgram(const QString &filename);
 //        void TakeScreenshot();
-        void UserRemovePin(const ConnectionInfo &info);
-        void UserAddPin(const ConnectionInfo &info);
+        void UserRemovePin(const ObjectInfo &info);
+        void UserAddPin(const ObjectInfo &info);
 
         void SetEditorWnd(View::VstPluginWindow *wnd);
 

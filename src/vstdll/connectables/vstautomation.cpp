@@ -26,8 +26,8 @@
 
 using namespace Connectables;
 
-VstAutomation::VstAutomation(MainHost *myHost,int index) :
-        Object(myHost,index, ObjectInfo(MetaTypes::object, ObjTypes::VstAutomation, index,tr("VstAutomation")) )
+VstAutomation::VstAutomation(MainHost *myHost, ObjectInfo &info) :
+        Object(myHost,info )
 {
     for(int i=0;i<128;i++) {
         listValues << i;
@@ -83,10 +83,10 @@ void VstAutomation::ValueFromHost(int pinNum, float value)
             {
                 QUndoCommand *com = new QUndoCommand(tr("Remove pin"));
                 if(listParameterPinOut->listPins.contains(pinNum)) {
-                    new ComRemovePin(myHost, listParameterPinOut->listPins.value(pinNum)->GetConnectionInfo(),com);
+                    new ComRemovePin(myHost, listParameterPinOut->listPins.value(pinNum)->info(),com);
                 }
                 if(listParameterPinIn->listPins.contains(pinNum)) {
-                    new ComRemovePin(myHost, listParameterPinIn->listPins.value(pinNum)->GetConnectionInfo(),com);
+                    new ComRemovePin(myHost, listParameterPinIn->listPins.value(pinNum)->info(),com);
                 }
                 if(com->childCount())
                     emit UndoStackPush(com);
@@ -98,15 +98,15 @@ void VstAutomation::ValueFromHost(int pinNum, float value)
             {
                 QUndoCommand *com = new QUndoCommand(tr("Add pin"));
                 if(!listParameterPinOut->listPins.contains(pinNum)) {
-                    ConnectionInfo info = listParameterPinOut->connInfo;
-                    info.pinNumber = pinNum;
-                    info.isRemoveable = true;
+                    ObjectInfo info(listParameterPinOut->info());
+                    info.SetMeta(MetaInfos::PinNumber, pinNum);
+                    info.SetMeta(MetaInfos::Removable,true);
                     new ComAddPin(myHost,info,com);
                 }
                 if(!listParameterPinIn->listPins.contains(pinNum)) {
-                    ConnectionInfo info = listParameterPinIn->connInfo;
-                    info.pinNumber = pinNum;
-                    info.isRemoveable = true;
+                    ObjectInfo info(listParameterPinIn->info());
+                    info.SetMeta(MetaInfos::PinNumber, pinNum);
+                    info.SetMeta(MetaInfos::Removable,true);
                     new ComAddPin(myHost,info,com);
                 }
                 if(com->childCount())
@@ -121,10 +121,10 @@ void VstAutomation::ValueFromHost(int pinNum, float value)
     }
 }
 
-void VstAutomation::OnParameterChanged(ConnectionInfo pinInfo, float value)
+void VstAutomation::OnParameterChanged(const ObjectInfo &pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
-    if(pinInfo.pinNumber==FixedPinNumber::numberOfPins) {
+    if(pinInfo.Meta(MetaInfos::PinNumber).toInt()==FixedPinNumber::numberOfPins) {
         int nbPins=static_cast<ParameterPin*>( listParameterPinIn->listPins.value(FixedPinNumber::numberOfPins) )->GetIndex();
 
         QUndoCommand *com = new QUndoCommand(tr("Change number of pins"));
@@ -134,11 +134,11 @@ void VstAutomation::OnParameterChanged(ConnectionInfo pinInfo, float value)
         listParameterPinOut->SetNbPins(nbPins,&listAdded,&listRemoved);
         qSort(listRemoved.begin(),listRemoved.end(),qGreater<quint16>());
         foreach(quint16 i, listRemoved)
-            new ComRemovePin(myHost,listParameterPinOut->listPins.value(i)->GetConnectionInfo(),com);
+            new ComRemovePin(myHost,listParameterPinOut->listPins.value(i)->info(),com);
         foreach(quint16 i, listAdded) {
-            ConnectionInfo info = listParameterPinOut->connInfo;
-            info.pinNumber = i;
-            info.isRemoveable = true;
+            ObjectInfo info(listParameterPinOut->info());
+            info.SetMeta(MetaInfos::PinNumber, i);
+            info.SetMeta(MetaInfos::Removable,true);
             new ComAddPin(myHost,info,com);
         }
 
@@ -148,11 +148,11 @@ void VstAutomation::OnParameterChanged(ConnectionInfo pinInfo, float value)
         listParameterPinIn->SetNbPins(nbPins,&listAdded,&listRemoved);
         qSort(listRemoved.begin(),listRemoved.end(),qGreater<quint16>());
         foreach(quint16 i, listRemoved)
-            new ComRemovePin(myHost,listParameterPinIn->listPins.value(i)->GetConnectionInfo(),com);
+            new ComRemovePin(myHost,listParameterPinIn->listPins.value(i)->info(),com);
         foreach(quint16 i, listAdded) {
-            ConnectionInfo info = listParameterPinIn->connInfo;
-            info.pinNumber = i;
-            info.isRemoveable = true;
+            ObjectInfo info(listParameterPinIn->info());
+            info.SetMeta(MetaInfos::PinNumber, i);
+            info.SetMeta(MetaInfos::Removable,true);
             new ComAddPin(myHost,info,com);
         }
 
@@ -163,8 +163,8 @@ void VstAutomation::OnParameterChanged(ConnectionInfo pinInfo, float value)
         return;
     }
 
-    if(pinInfo.direction==Directions::Input && pinInfo.pinNumber<200)
-        listChanged.insert(pinInfo.pinNumber,value);
+    if(pinInfo.Meta(MetaInfos::Direction).toInt()==Directions::Input && pinInfo.Meta(MetaInfos::PinNumber).toInt()<200)
+        listChanged.insert(pinInfo.Meta(MetaInfos::PinNumber).toInt(),value);
 }
 
 bool VstAutomation::Close()
@@ -179,46 +179,47 @@ bool VstAutomation::Open()
     return Object::Open();
 }
 
-Pin* VstAutomation::CreatePin(const ConnectionInfo &info)
+Pin* VstAutomation::CreatePin(ObjectInfo &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)
         return newPin;
 
-    if(info.type!=MediaTypes::Parameter) {
-        LOG("wrong PinType"<<info.type);
+    if(info.Meta(MetaInfos::Media).toInt()!=MediaTypes::Parameter) {
+        LOG("wrong PinType");
         return 0;
     }
 
-    switch(info.direction) {
-        case Directions::Output :
-            if(info.pinNumber == FixedPinNumber::vstProgNumber) {
-                int prog=(int)static_cast<MainHostVst*>(myHost)->myVstPlugin->getProgram();
-                ParameterPin *newPin = new ParameterPinOut(this,FixedPinNumber::vstProgNumber,prog,&listValues,tr("Prog"));
-                newPin->SetLimitsEnabled(false);
-                return newPin;
-            }
+    int pinnumber = info.Meta(MetaInfos::PinNumber).toInt();
 
-            return new ParameterPinOut(this,info.pinNumber,0,QString("autom%1").arg(info.pinNumber),false,true);
+    switch(pinnumber) {
 
-        case Directions::Input :
-            if(info.pinNumber == FixedPinNumber::numberOfPins) {
-                ParameterPinIn *newPin = new ParameterPinIn(this,FixedPinNumber::numberOfPins,VST_AUTOMATION_DEFAULT_NB_PINS,&listValues,tr("NbPins"));
-                newPin->SetLimitsEnabled(false);
-                return newPin;
-            }
-            if(info.pinNumber == FixedPinNumber::learningMode) {
-                ParameterPin *newPin = new ParameterPinIn(this,FixedPinNumber::learningMode,"off",&listIsLearning,tr("Learn"));
-                newPin->SetLimitsEnabled(false);
-                return newPin;
-            }
+       case FixedPinNumber::vstProgNumber : {
+            int prog=(int)static_cast<MainHostVst*>(myHost)->myVstPlugin->getProgram();
+            info.SetName(tr("Prog"));
+            ParameterPin *newPin = new ParameterPin(this,info,prog,&listValues);
+            newPin->SetLimitsEnabled(false);
+            return newPin;
+        }
 
-            return new ParameterPinIn(this,info.pinNumber,0,QString("autom%1").arg(info.pinNumber),false,true);
+        case FixedPinNumber::numberOfPins : {
+            info.SetName(tr("NbPins"));
+            ParameterPin *newPin = new ParameterPin(this,info,VST_AUTOMATION_DEFAULT_NB_PINS,&listValues);
+            newPin->SetLimitsEnabled(false);
+            return newPin;
+        }
 
-        default :
-            LOG("wrong PinDirection"<<info.direction);
-            return 0;
+        case FixedPinNumber::learningMode : {
+            info.SetName(tr("Learn"));
+            ParameterPin *newPin = new ParameterPin(this,info,"off",&listIsLearning);
+            newPin->SetLimitsEnabled(false);
+            return newPin;
+        }
 
     }
+
+    info.SetName(tr("autom%1").arg(pinnumber));
+    return new ParameterPin(this,info,0);
+
     return 0;
 }

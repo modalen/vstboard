@@ -23,7 +23,7 @@
 
 using namespace View;
 
-MinMaxPinView::MinMaxPinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
+MinMaxPinView::MinMaxPinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ObjectInfo &pinInfo, ViewConfig *config) :
         ConnectablePinView(angle,model,parent,pinInfo,config),
         cursorCreated(false)
 {
@@ -60,8 +60,8 @@ void MinMaxPinView::SetLimitModelIndex(QPersistentModelIndex index)
         CreateCursors();
 
     ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-    int direction = info.listInfos.value(MetaInfos::Direction).toInt();
-    int limit = info.listInfos.value(MetaInfos::LimitType).toInt();
+    int direction = info.Meta(MetaInfos::Direction).toInt();
+    int limit = info.Meta(MetaInfos::LimitType).toInt();
     if(direction == Directions::Input) {
         if(limit == LimitTypes::Min) {
             inMin->SetModelIndex(index);

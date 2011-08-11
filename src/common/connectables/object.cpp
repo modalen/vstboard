@@ -39,21 +39,12 @@ using namespace Connectables;
   \param index unique id
   \param info ObjectInfo defining this object
   */
-Object::Object(MainHost *host, int index, const ObjectInfo &info) :
+Object::Object(MainHost *host, ObjectInfo &info) :
     QObject(),
     parked(false),
     listenProgramChanges(true),
     myHost(host),
-    listAudioPinIn(new PinsList(host,this)),
-    listAudioPinOut(new PinsList(host,this)),
-    listMidiPinIn(new PinsList(host,this)),
-    listMidiPinOut(new PinsList(host,this)),
-    listBridgePinIn(new PinsList(host,this)),
-    listBridgePinOut(new PinsList(host,this)),
-    listParameterPinIn(new PinsList(host,this)),
-    listParameterPinOut(new PinsList(host,this)),
     solverNode(0),
-    index(index),
     savedIndex(-2),
     sleep(true),
     currentProgram(0),
@@ -63,86 +54,75 @@ Object::Object(MainHost *host, int index, const ObjectInfo &info) :
     containerId(FixedObjIds::noContainer)
 {
     ObjectInfo::metaType = MetaTypes::object;
-    ObjectInfo::objId = index;
-    ObjectInfo::parentId = 0;
+
+    listAudioPinIn = new PinsList(host,this);
+    listAudioPinOut = new PinsList(host,this);
+    listMidiPinIn = new PinsList(host,this);
+    listMidiPinOut = new PinsList(host,this);
+    listBridgePinIn = new PinsList(host,this);
+    listBridgePinOut = new PinsList(host,this);
+    listParameterPinIn = new PinsList(host,this);
+    listParameterPinOut = new PinsList(host,this);
 
     connect(this, SIGNAL(UndoStackPush(QUndoCommand*)),
             myHost, SLOT(UndoStackPush(QUndoCommand*)));
 
-    setObjectName(QString("%1.%2").arg(objInfo.name).arg(index));
+    setObjectName(QString("%1.%2").arg( Name() ).arg( ObjId() ));
+//    SetName(QString("%1.%2").arg( objInfo.objName ).arg( ObjectInfo::ObjId() ));
     doublePrecision=myHost->doublePrecision;
 
 #ifdef SCRIPTENGINE
     QScriptValue scriptObj = myHost->scriptEngine->newQObject(this);
-    myHost->scriptEngine->globalObject().setProperty(QString("Obj%1").arg(index), scriptObj);
+    myHost->scriptEngine->globalObject().setProperty(QString("Obj%1").arg(ObjectInfo::ObjId()), scriptObj);
 #endif
 
-    //init pins lists
-    ConnectionInfo i;
-    i.objId=index;
-    i.myHost=myHost;
+    listAudioPinIn->SetParent(this);
+    listAudioPinIn->SetObjId( myHost->objFactory->GetNewId() );
+    listAudioPinIn->SetMeta(MetaInfos::Media, MediaTypes::Audio);
+    listAudioPinIn->SetMeta(MetaInfos::Direction, Directions::Input);
+    listAudioPinIn->SetName("listAudioPinIn");
 
-    ObjectInfo o;
-    o.parentId = index;
-    o.metaType = MetaTypes::listPin;
+    listAudioPinOut->SetParent(this);
+    listAudioPinOut->SetObjId( myHost->objFactory->GetNewId() );
+    listAudioPinOut->SetMeta(MetaInfos::Media, MediaTypes::Audio);
+    listAudioPinOut->SetMeta(MetaInfos::Direction, Directions::Output);
+    listAudioPinOut->SetName("listAudioPinOut");
 
-    o.objId = myHost->objFactory->GetNewId();
-    o.listInfos[MetaInfos::Media]=MediaTypes::Audio;
-    o.listInfos[MetaInfos::Direction]=Directions::Input;
-    i.type=MediaTypes::Audio;
-    i.direction=Directions::Input;
-    listAudioPinIn->SetInfo(this,i,o);
-    listAudioPinIn->setObjectName("listAudioPinIn");
+    listMidiPinIn->SetParent(this);
+    listMidiPinIn->SetObjId( myHost->objFactory->GetNewId() );
+    listMidiPinIn->SetMeta(MetaInfos::Media, MediaTypes::Midi);
+    listMidiPinIn->SetMeta(MetaInfos::Direction, Directions::Input);
+    listMidiPinIn->SetName("listMidiPinIn");
 
-    o.objId = myHost->objFactory->GetNewId();
-    o.listInfos[MetaInfos::Direction]=Directions::Output;
-    i.direction=Directions::Output;
-    listAudioPinOut->SetInfo(this,i,o);
-    listAudioPinOut->setObjectName("listAudioPinOut");
+    listMidiPinOut->SetParent(this);
+    listMidiPinOut->SetObjId( myHost->objFactory->GetNewId() );
+    listMidiPinOut->SetMeta(MetaInfos::Media, MediaTypes::Midi);
+    listMidiPinOut->SetMeta(MetaInfos::Direction, Directions::Output);
+    listMidiPinOut->SetName("listMidiPinOut");
 
+    listBridgePinIn->SetParent(this);
+    listBridgePinIn->SetObjId( myHost->objFactory->GetNewId() );
+    listBridgePinIn->SetMeta(MetaInfos::Media, MediaTypes::Bridge);
+    listBridgePinIn->SetMeta(MetaInfos::Direction, Directions::Input);
+    listBridgePinIn->SetName("listBridgePinIn");
 
-    o.objId = myHost->objFactory->GetNewId();
-    o.listInfos[MetaInfos::Media]=MediaTypes::Midi;
-    o.listInfos[MetaInfos::Direction]=Directions::Input;
-    i.type=MediaTypes::Midi;
-    i.direction=Directions::Input;
-    listMidiPinIn->SetInfo(this,i,o);
-    listMidiPinIn->setObjectName("listMidiPinIn");
+    listBridgePinOut->SetParent(this);
+    listBridgePinOut->SetObjId( myHost->objFactory->GetNewId() );
+    listBridgePinOut->SetMeta(MetaInfos::Media, MediaTypes::Bridge);
+    listBridgePinOut->SetMeta(MetaInfos::Direction, Directions::Output);
+    listBridgePinOut->SetName("listBridgePinOut");
 
-    o.objId = myHost->objFactory->GetNewId();
-    o.listInfos[MetaInfos::Direction]=Directions::Output;
-    i.direction=Directions::Output;
-    listMidiPinOut->SetInfo(this,i,o);
-    listMidiPinOut->setObjectName("listMidiPinOut");
+    listParameterPinIn->SetParent(this);
+    listParameterPinIn->SetObjId( myHost->objFactory->GetNewId() );
+    listParameterPinIn->SetMeta(MetaInfos::Media, MediaTypes::Parameter);
+    listParameterPinIn->SetMeta(MetaInfos::Direction, Directions::Input);
+    listParameterPinIn->SetName("listParameterPinIn");
 
-
-    o.objId = myHost->objFactory->GetNewId();
-    o.listInfos[MetaInfos::Media]=MediaTypes::Bridge;
-    o.listInfos[MetaInfos::Direction]=Directions::Input;
-    i.type=MediaTypes::Bridge;
-    i.direction=Directions::Input;
-    listBridgePinIn->SetInfo(this,i,o);
-    listBridgePinIn->setObjectName("listBridgePinIn");
-
-    o.objId = myHost->objFactory->GetNewId();
-    o.listInfos[MetaInfos::Direction]=Directions::Output;
-    i.direction=Directions::Output;
-    listBridgePinOut->SetInfo(this,i,o);
-    listBridgePinOut->setObjectName("listBridgePinOut");
-
-    o.objId = myHost->objFactory->GetNewId();
-    o.listInfos[MetaInfos::Media]=MediaTypes::Parameter;
-    o.listInfos[MetaInfos::Direction]=Directions::Input;
-    i.type=MediaTypes::Parameter;
-    i.direction=Directions::Input;
-    listParameterPinIn->SetInfo(this,i,o);
-    listParameterPinIn->setObjectName("listParameterPinIn");
-
-    o.objId = myHost->objFactory->GetNewId();
-    o.listInfos[MetaInfos::Direction]=Directions::Output;
-    i.direction=Directions::Output;
-    listParameterPinOut->SetInfo(this,i,o);
-    listParameterPinOut->setObjectName("listParameterPinOut");
+    listParameterPinOut->SetParent(this);
+    listParameterPinOut->SetObjId( myHost->objFactory->GetNewId() );
+    listParameterPinOut->SetMeta(MetaInfos::Media, MediaTypes::Parameter);
+    listParameterPinOut->SetMeta(MetaInfos::Direction, Directions::Output);
+    listParameterPinOut->SetName("listParameterPinOut");
 
     pinLists.insert("audioin", listAudioPinIn);
     pinLists.insert("audioout", listAudioPinOut);
@@ -152,8 +132,6 @@ Object::Object(MainHost *host, int index, const ObjectInfo &info) :
     pinLists.insert("bridgeout", listBridgePinOut);
     pinLists.insert("parameterin",listParameterPinIn);
     pinLists.insert("parameterout",listParameterPinOut);
-
-
 }
 
 /*!
@@ -171,7 +149,7 @@ Object::~Object()
     }
     Close();
 
-    myHost->objFactory->RemoveObject(index);
+    myHost->objFactory->RemoveObject(ObjectInfo::ObjId());
 }
 
 /*!
@@ -233,16 +211,7 @@ void Object::SetBridgePinsOutVisible(bool visible)
     listBridgePinOut->SetVisible(visible);
 }
 
-/*!
-  Set the objects name, update the view
-  */
-void Object::setObjectName(const QString &name)
-{
-    if(modelIndex.isValid())
-        myHost->GetModel()->setData(modelIndex, name, Qt::DisplayRole);
 
-    QObject::setObjectName(name);
-}
 
 /*!
   Toggle sleep mode, the object is not rendered when sleeping
@@ -316,7 +285,6 @@ void Object::LoadProgram(int prog)
 {
     //if prog is already loaded, update model
     if(prog==currentProgId && currentProgram) {
-        UpdateModelNode();
         return;
     }
 
@@ -333,7 +301,6 @@ void Object::LoadProgram(int prog)
     currentProgram=listPrograms.value(currentProgId);
     currentProgram->Load(listParameterPinIn,listParameterPinOut);
 
-    UpdateModelNode();
 
     //if the loaded program was a temporary prog, delete it
     if(progWas==TEMP_PROGRAM) {
@@ -381,17 +348,17 @@ void Object::NewRenderLoop()
   \param pinInfo a ConnectionInfo describing the pin
   \return a pointer to the pin, 0 if not found
   */
-Pin * Object::GetPin(const ConnectionInfo &pinInfo)
+Pin * Object::GetPin(const ObjectInfo &pinInfo)
 {
     Pin* pin=0;
     bool autoCreate=false;
 
-    if(objInfo.listInfos.value(MetaInfos::ObjType).toInt() == ObjTypes::Dummy || !errorMessage.isEmpty())
+    if(Meta(MetaInfos::ObjType).toInt() == ObjTypes::Dummy || !Meta(MetaInfos::errorMessage).isNull())
         autoCreate=true;
 
     foreach(PinsList *lst, pinLists) {
-        if(lst->connInfo.type == pinInfo.type && lst->connInfo.direction == pinInfo.direction) {
-            pin=lst->GetPin(pinInfo.pinNumber,autoCreate);
+        if(lst->Meta(MetaInfos::Media) == Meta(MetaInfos::Media) && lst->Meta(MetaInfos::Direction) == pinInfo.Meta(MetaInfos::Direction)) {
+            pin=lst->GetPin(pinInfo.Meta(MetaInfos::PinNumber).toInt(),autoCreate);
             if(pin)
                 return pin;
         }
@@ -407,82 +374,44 @@ Pin * Object::GetPin(const ConnectionInfo &pinInfo)
   */
 QStandardItem *Object::GetParkingItem()
 {
-    QStandardItem *modelNode=new QStandardItem();
-    modelNode->setData(index,UserRoles::value);
-    modelNode->setData(objectName(), Qt::DisplayRole);
+//    QStandardItem *modelNode=new QStandardItem();
+//    modelNode->setData(index,UserRoles::value);
+//    modelNode->setData(objectName(), Qt::DisplayRole);
 
     //suspend the object if not used in the next program
     QTimer::singleShot(50,this,SLOT(SuspendIfParked()));
 
-    return modelNode;
+//    return modelNode;
+    return 0;
 }
 
-/*!
-  Create a full model used when the object is on a panel
-  The caller is the owner of the return pointer and should delete it
-  \return a pointer to the QStandardItem
-  */
-QStandardItem *Object::GetFullItem()
-{
-    QStandardItem *modelNode = new QStandardItem();
-    modelNode->setData(QVariant::fromValue(objInfo), UserRoles::objInfo);
-    modelNode->setData(index, UserRoles::value);
-    modelNode->setData(objectName(), Qt::DisplayRole);
-    modelNode->setData(errorMessage, UserRoles::errorMessage);
-    Resume();
-    return modelNode;
-}
+///*!
+//  Create a full model used when the object is on a panel
+//  The caller is the owner of the return pointer and should delete it
+//  \return a pointer to the QStandardItem
+//  */
+//QStandardItem *Object::GetFullItem()
+//{
+//    QStandardItem *modelNode = new QStandardItem();
+//    modelNode->setData(QVariant::fromValue(objInfo), UserRoles::objInfo);
+//    modelNode->setData(index, UserRoles::value);
+//    modelNode->setData(objectName(), Qt::DisplayRole);
+//    modelNode->setData(errorMessage, UserRoles::errorMessage);
+//    Resume();
 
-/*!
-  Set the container Id, called by the parent container
-  notify the children pins
-  \param id the new container id
-  */
-void Object::SetContainerId(quint16 id)
-{
-    containerId = id;
-
-    foreach(PinsList *lst, pinLists) {
-        lst->SetContainerId(containerId);
-    }
-}
-
-/*!
-  Update the view
-  */
-QStandardItem * Object::UpdateModelNode()
-{
-    if(!modelIndex.isValid())
-        return 0;
-
-    QStandardItem *modelNode = myHost->GetModel()->itemFromIndex(modelIndex);
-    if(!modelNode) {
-        LOG("node not found"<<modelIndex);
-        return 0;
-    }
-
-    modelNode->setData(QVariant::fromValue(objInfo), UserRoles::objInfo);
-    modelNode->setData(errorMessage, UserRoles::errorMessage);
-
-    foreach(PinsList *lst, pinLists) {
-        Events::newObj *event = new Events::newObj(lst->objInfo,index);
-        myHost->PostEvent(event);
-        lst->UpdateModelNode(modelNode);
-    }
-
-    return modelNode;
-}
+//    return modelNode;
+//}
 
 /*!
   Called when a parameter pin has changed
   \param pinInfo the modified pin
   \param value the new value
   */
-void Object::OnParameterChanged(ConnectionInfo pinInfo, float value)
+void Object::OnParameterChanged(const ObjectInfo &pinInfo, float value)
 {
     //editor pin
-    if(pinInfo.pinNumber==FixedPinNumber::editorVisible) {
-        int val = static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(FixedPinNumber::editorVisible))->GetIndex();
+    if(pinInfo.Meta(MetaInfos::PinNumber).toInt()==FixedPinNumber::editorVisible) {
+        int val = static_cast<ParameterPin*>(listParameterPinIn->listPins.value(FixedPinNumber::editorVisible))->GetIndex();
         if(val)
             QTimer::singleShot(0, this, SLOT(OnShowEditor()));
         else
@@ -511,7 +440,7 @@ LearningMode::Enum Object::GetLearningMode()
     if(!listParameterPinIn->listPins.contains(FixedPinNumber::learningMode))
         return LearningMode::off;
 
-    return (LearningMode::Enum)static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(FixedPinNumber::learningMode))->GetIndex();
+    return (LearningMode::Enum)static_cast<ParameterPin*>(listParameterPinIn->listPins.value(FixedPinNumber::learningMode))->GetIndex();
 }
 
 /*!
@@ -562,13 +491,13 @@ void Object::CopyStatusTo(QSharedPointer<Object>objPtr)
     GetContainerAttribs(attr);
     objPtr->SetContainerAttribs(attr);
 
-    Connectables::ParameterPinIn* oldEditPin = static_cast<Connectables::ParameterPinIn*>(listParameterPinIn->GetPin(FixedPinNumber::editorVisible));
-    Connectables::ParameterPinIn* newEditPin = static_cast<Connectables::ParameterPinIn*>(objPtr->listParameterPinIn->GetPin(FixedPinNumber::editorVisible));
+    Connectables::ParameterPin* oldEditPin = static_cast<Connectables::ParameterPin*>(listParameterPinIn->GetPin(FixedPinNumber::editorVisible));
+    Connectables::ParameterPin* newEditPin = static_cast<Connectables::ParameterPin*>(objPtr->listParameterPinIn->GetPin(FixedPinNumber::editorVisible));
     if(newEditPin && oldEditPin)
         newEditPin->ChangeValue(oldEditPin->GetValue());
 
-    Connectables::ParameterPinIn* oldLearnPin = static_cast<Connectables::ParameterPinIn*>(listParameterPinIn->GetPin(FixedPinNumber::learningMode));
-    Connectables::ParameterPinIn* newLearnPin = static_cast<Connectables::ParameterPinIn*>(objPtr->listParameterPinIn->GetPin(FixedPinNumber::learningMode));
+    Connectables::ParameterPin* oldLearnPin = static_cast<Connectables::ParameterPin*>(listParameterPinIn->GetPin(FixedPinNumber::learningMode));
+    Connectables::ParameterPin* newLearnPin = static_cast<Connectables::ParameterPin*>(objPtr->listParameterPinIn->GetPin(FixedPinNumber::learningMode));
     if(newLearnPin && oldLearnPin)
         newLearnPin->ChangeValue(oldLearnPin->GetValue());
 }
@@ -583,38 +512,38 @@ void Object::SetBufferSize(unsigned long size)
     }
 }
 
-void Object::UserRemovePin(const ConnectionInfo &info)
+void Object::UserRemovePin(const ObjectInfo &info)
 {
-    if(info.type!=MediaTypes::Parameter)
+    if(info.Meta(MetaInfos::Media).toInt()!=MediaTypes::Parameter)
         return;
 
-    if(!info.isRemoveable)
+    if(!info.Meta(MetaInfos::Removable).toBool())
         return;
 
-    switch(info.direction) {
+    switch(info.Meta(MetaInfos::Direction).toInt()) {
         case Directions::Input :
-            listParameterPinIn->AsyncRemovePin(info.pinNumber);
+            listParameterPinIn->AsyncRemovePin( info.Meta(MetaInfos::PinNumber).toInt() );
             OnProgramDirty();
             break;
         case Directions::Output :
-            listParameterPinOut->AsyncRemovePin(info.pinNumber);
+            listParameterPinOut->AsyncRemovePin( info.Meta(MetaInfos::PinNumber).toInt() );
             OnProgramDirty();
             break;
     }
 }
 
-void Object::UserAddPin(const ConnectionInfo &info)
+void Object::UserAddPin(const ObjectInfo &info)
 {
-    if(info.type!=MediaTypes::Parameter)
+    if(info.Meta(MetaInfos::Media).toInt()!=MediaTypes::Parameter)
         return;
 
-    switch(info.direction) {
+    switch(info.Meta(MetaInfos::Direction).toInt() ) {
         case Directions::Input :
-            listParameterPinIn->AsyncAddPin(info.pinNumber);
+            listParameterPinIn->AsyncAddPin( info.Meta(MetaInfos::PinNumber).toInt() );
             OnProgramDirty();
             break;
         case Directions::Output :
-            listParameterPinOut->AsyncAddPin(info.pinNumber);
+            listParameterPinOut->AsyncAddPin( info.Meta(MetaInfos::PinNumber).toInt() );
             OnProgramDirty();
             break;
     }
@@ -625,21 +554,21 @@ void Object::UserAddPin(const ConnectionInfo &info)
   \param info ConnectionInfo defining the pin to be created
   \return a pointer to the new pin, 0 if not created
   */
-Pin* Object::CreatePin(const ConnectionInfo &info)
+Pin* Object::CreatePin(ObjectInfo &info)
 {
-    switch(info.direction) {
+    switch(info.Meta(MetaInfos::Direction).toInt()) {
         case Directions::Input :
-            switch(info.type) {
+            switch(info.Meta(MetaInfos::Media).toInt()) {
                 case MediaTypes::Audio : {
-                    return new AudioPin(this,info.direction,info.pinNumber,myHost->GetBufferSize(),doublePrecision);
+                    return new AudioPin(this,info,myHost->GetBufferSize(),doublePrecision);
                 }
 
                 case MediaTypes::Midi : {
-                    return new MidiPinIn(this,info.pinNumber);
+                    return new MidiPinIn(this,info);
                 }
 
                 case MediaTypes::Bridge : {
-                    return new BridgePinIn(this,info.pinNumber,info.bridge);
+                    return new BridgePinIn(this,info);
                 }
 
                 default :
@@ -648,17 +577,17 @@ Pin* Object::CreatePin(const ConnectionInfo &info)
             break;
 
         case Directions::Output :
-            switch(info.type) {
+            switch(info.Meta(MetaInfos::Media).toInt()) {
                 case MediaTypes::Audio : {
-                    return new AudioPin(this,info.direction,info.pinNumber,myHost->GetBufferSize(),doublePrecision);
+                    return new AudioPin(this,info,myHost->GetBufferSize(),doublePrecision);
                 }
 
                 case MediaTypes::Midi : {
-                    return new MidiPinOut(this,info.pinNumber);
+                    return new MidiPinOut(this,info);
                 }
 
                 case MediaTypes::Bridge : {
-                    return new BridgePinOut(this,info.pinNumber,info.bridge);
+                    return new BridgePinOut(this,info);
                 }
 
                 default :
@@ -680,7 +609,7 @@ Pin* Object::CreatePin(const ConnectionInfo &info)
   */
 QDataStream & Object::toStream(QDataStream & out) const
 {
-    out << (qint16)index;
+    out << (qint16)ObjectInfo::ObjId();
     out << sleep;
     out << listenProgramChanges;
 

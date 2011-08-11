@@ -37,7 +37,7 @@ Q_OBJECT
 public:
     explicit PathSolver(MainHost *parent);
     ~PathSolver();
-    void Resolve(hashCables cables, Renderer *renderer);
+    void Resolve(mapCables cables, Renderer *renderer);
 
 protected:
     void Clear();
@@ -58,7 +58,7 @@ protected:
     QList< QSharedPointer<Connectables::Object> >GetListChildren(QSharedPointer<Connectables::Object> objPtr);
 //    void GetListChildrenOfBridgePin(const ConnectionInfo &info, QList< QSharedPointer<Connectables::Object> > &listChildren);
 
-    hashCables listCables;
+    mapCables listCables;
     MainHost *myHost;
 
     QList<SolverNode*>listNodes;

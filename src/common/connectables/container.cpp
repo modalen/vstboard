@@ -22,7 +22,6 @@
 #include "mainhost.h"
 #include "projectfile/projectfile.h"
 #include "models/programsmodel.h"
-#include "events.h"
 
 using namespace Connectables;
 
@@ -36,8 +35,8 @@ using namespace Connectables;
   \param index object number
   \param info object description
   */
-Container::Container(MainHost *myHost,int index, const ObjectInfo &info) :
-    Object(myHost,index, info ),
+Container::Container(MainHost *myHost, ObjectInfo &info) :
+    Object(myHost, info ),
     bridgeIn(0),
     bridgeOut(0),
     bridgeSend(0),
@@ -92,15 +91,6 @@ const QModelIndex &Container::GetCablesIndex()
     item->appendRow(cab);
     cablesNode = cab->index();
     return cablesNode;
-}
-
-void Container::SetContainerId(quint16 id)
-{
-    Object::SetContainerId(id);
-
-    foreach(Object* obj, listLoadedObjects) {
-        obj->SetContainerId(index);
-    }
 }
 
 /*!
@@ -227,9 +217,9 @@ void Container::LoadProgram(int prog)
 {
 //    QMutexLocker ml(&progLoadMutex);
 
-    //if prog is already loaded, update model
+    //if prog is already loaded
     if(prog==currentProgId && currentContainerProgram) {
-        UpdateModelNode();
+
         return;
     }
 
@@ -282,9 +272,6 @@ void Container::LoadProgram(int prog)
 
     if(optimizerFlag)
         currentContainerProgram->LoadRendererState();
-
-    if(modelIndex.isValid())
-        UpdateModelNode();
 
     if(oldProg) {
         delete oldProg;
@@ -373,12 +360,12 @@ void Container::RemoveProgram(const QModelIndex &idx)
   */
 void Container::AddObject(QSharedPointer<Object> objPtr)
 {
-    objPtr->SetContainerId(index);
+    objPtr->SetContainer(this);
     objPtr->UnloadProgram();
 
     //bridges are not stored in program
-    int direction = objPtr->listInfos.value(MetaInfos::Direction).toInt();
-    if(objPtr->metaType == MetaTypes::bridge) {
+    int direction = objPtr->Meta(MetaInfos::Direction).toInt();
+    if(objPtr->Meta() == MetaTypes::bridge) {
         switch(direction) {
         case Directions::Input :
             bridgeIn=objPtr;
@@ -412,7 +399,7 @@ void Container::AddObject(QSharedPointer<Object> objPtr)
   */
 void Container::AddParkedObject(QSharedPointer<Object> objPtr)
 {
-    objPtr->SetContainerId(index);
+    objPtr->SetContainer(this);
     objPtr->UnloadProgram();
 
     listLoadedObjects << objPtr.data();
@@ -421,8 +408,8 @@ void Container::AddParkedObject(QSharedPointer<Object> objPtr)
 
 void Container::UserAddObject(const QSharedPointer<Object> &objPtr,
                               InsertionType::Enum insertType,
-                              QList< QPair<ConnectionInfo,ConnectionInfo> > *listOfAddedCables,
-                              QList< QPair<ConnectionInfo,ConnectionInfo> > *listOfRemovedCables,
+                              QList< QPair<ObjectInfo,ObjectInfo> > *listOfAddedCables,
+                              QList< QPair<ObjectInfo,ObjectInfo> > *listOfRemovedCables,
                               const QSharedPointer<Object> &targetPtr)
 {
     AddObject(objPtr);
@@ -464,13 +451,13 @@ void Container::UserAddObject(const QSharedPointer<Object> &objPtr,
 
 void Container::UserParkObject(QSharedPointer<Object> objPtr,
                                RemoveType::Enum removeType,
-                               QList< QPair<ConnectionInfo,ConnectionInfo> > *listOfAddedCables,
-                               QList< QPair<ConnectionInfo,ConnectionInfo> > *listOfRemovedCables)
+                               QList< QPair<ObjectInfo,ObjectInfo> > *listOfAddedCables,
+                               QList< QPair<ObjectInfo,ObjectInfo> > *listOfRemovedCables)
 {
     currentContainerProgram->CollectCableUpdates( listOfAddedCables, listOfRemovedCables );
 
     if(removeType==RemoveType::BridgeCables)
-        currentContainerProgram->CreateBridgeOverObj(objPtr->GetIndex());
+        currentContainerProgram->CreateBridgeOverObj(objPtr->ObjId());
 
     ParkObject(objPtr);
 
@@ -521,24 +508,24 @@ void Container::CopyCablesFromObj(QSharedPointer<Object> newObjPtr, QSharedPoint
 {
     if(!currentContainerProgram)
         return;
-    currentContainerProgram->CopyCablesFromObj( newObjPtr->GetIndex(), ObjPtr->GetIndex() );
+    currentContainerProgram->CopyCablesFromObj( newObjPtr->ObjId(), ObjPtr->ObjId());
 }
 
 void Container::MoveOutputCablesFromObj(QSharedPointer<Object> newObjPtr, QSharedPointer<Object> ObjPtr)
 {
     if(!currentContainerProgram)
         return;
-    currentContainerProgram->MoveOutputCablesFromObj( newObjPtr->GetIndex(), ObjPtr->GetIndex() );
+    currentContainerProgram->MoveOutputCablesFromObj( newObjPtr->ObjId(), ObjPtr->ObjId() );
 }
 
 void Container::MoveInputCablesFromObj(QSharedPointer<Object> newObjPtr, QSharedPointer<Object> ObjPtr)
 {
     if(!currentContainerProgram)
         return;
-    currentContainerProgram->MoveInputCablesFromObj( newObjPtr->GetIndex(), ObjPtr->GetIndex() );
+    currentContainerProgram->MoveInputCablesFromObj( newObjPtr->ObjId(), ObjPtr->ObjId() );
 }
 
-void Container::GetListOfConnectedPinsTo(const ConnectionInfo &pin, QList<ConnectionInfo> &list)
+void Container::GetListOfConnectedPinsTo(const ObjectInfo &pin, QList<ObjectInfo> &list)
 {
     if(!currentContainerProgram)
         return;
@@ -559,13 +546,15 @@ void Container::AddChildObject(QSharedPointer<Object> objPtr)
     if(objPtr->modelIndex.isValid() && objPtr->modelIndex.model()==&parkModel)
         parkModel.removeRow(objPtr->modelIndex.row());
 
-//    QStandardItem *item =
-            objPtr->GetFullItem();
+//    Events::newObj *event = new Events::newObj(objPtr->info(), index);
+//    myHost->PostEvent(event);
 
-    Events::newObj *event = new Events::newObj(objPtr->info(), index);
+//    QStandardItem *item = objPtr->GetFullItem();
+    objPtr->UpdateView(myHost);
+    objPtr->Resume();
+
+
 //    event->errorMessage = objPtr->errorMessage;
-    myHost->PostEvent(event);
-
 //    myHost->GetModel()->itemFromIndex( modelIndex )->appendRow(item);
 //    objPtr->modelIndex=item->index();
     objPtr->parked=false;
@@ -613,7 +602,7 @@ void Container::OnChildDeleted(Object *obj)
     }
 }
 
-void Container::UserAddCable(const ConnectionInfo &outputPin, const ConnectionInfo &inputPin)
+void Container::UserAddCable(const ObjectInfo &outputPin, const ObjectInfo &inputPin)
 {
     AddCable(outputPin,inputPin,false);
 
@@ -623,12 +612,12 @@ void Container::UserAddCable(const ConnectionInfo &outputPin, const ConnectionIn
     }
 }
 
-void Container::UserAddCable(const QPair<ConnectionInfo,ConnectionInfo>&pair)
+void Container::UserAddCable(const QPair<ObjectInfo,ObjectInfo>&pair)
 {
     UserAddCable(pair.first,pair.second);
 }
 
-void Container::UserRemoveCableFromPin(const ConnectionInfo &pin)
+void Container::UserRemoveCableFromPin(const ObjectInfo &pin)
 {
     RemoveCableFromPin(pin);
 
@@ -638,7 +627,7 @@ void Container::UserRemoveCableFromPin(const ConnectionInfo &pin)
     }
 }
 
-void  Container::UserRemoveCable(const ConnectionInfo &outputPin, const ConnectionInfo &inputPin)
+void  Container::UserRemoveCable(const ObjectInfo &outputPin, const ObjectInfo &inputPin)
 {
     RemoveCable(outputPin,inputPin);
 
@@ -648,7 +637,7 @@ void  Container::UserRemoveCable(const ConnectionInfo &outputPin, const Connecti
     }
 }
 
-void Container::UserRemoveCable(const QPair<ConnectionInfo,ConnectionInfo>&pair)
+void Container::UserRemoveCable(const QPair<ObjectInfo,ObjectInfo>&pair)
 {
     UserRemoveCable(pair.first,pair.second);
 }
@@ -659,7 +648,7 @@ void Container::UserRemoveCable(const QPair<ConnectionInfo,ConnectionInfo>&pair)
   \param inputPin the input pin (messages receiver)
   \param hidden true if the cable is hidden (the cables between containers are hidden)
   */
-void Container::AddCable(const ConnectionInfo &outputPin, const ConnectionInfo &inputPin, bool hidden)
+void Container::AddCable(const ObjectInfo &outputPin, const ObjectInfo &inputPin, bool hidden)
 {
     if(!currentContainerProgram)
         return;
@@ -671,7 +660,7 @@ void Container::AddCable(const ConnectionInfo &outputPin, const ConnectionInfo &
   \param outputPin the output pin (messages sender)
   \param inputPin the input pin (messages receiver)
   */
-void Container::RemoveCable(const ConnectionInfo &outputPin, const ConnectionInfo &inputPin)
+void Container::RemoveCable(const ObjectInfo &outputPin, const ObjectInfo &inputPin)
 {
     if(!currentContainerProgram)
         return;
@@ -682,7 +671,7 @@ void Container::RemoveCable(const ConnectionInfo &outputPin, const ConnectionInf
   Remove all cables from a Pin
   \param pin the pin to disconnect
   */
-void Container::RemoveCableFromPin(const ConnectionInfo &pin)
+void Container::RemoveCableFromPin(const ObjectInfo &pin)
 {
     if(!currentContainerProgram)
         return;
@@ -700,7 +689,7 @@ QDataStream & Container::toStream (QDataStream& out) const
         QDataStream tmpStream( &tmpBa, QIODevice::ReadWrite);
 
         //save container header
-        tmpStream << (qint16)index;
+        tmpStream << (qint16)ObjectInfo::ObjId();
         tmpStream << objectName();
         tmpStream << sleep;
         ProjectFile::SaveChunk( "CntHead", tmpBa, out);
@@ -801,7 +790,7 @@ bool Container::loadHeaderStream (QDataStream &in)
 
     QString name;
     in >> name;
-    setObjectName(name);
+    SetName(name);
 
     in >> sleep;
 
@@ -812,7 +801,7 @@ bool Container::loadObjectFromStream (QDataStream &in)
 {
     ObjectInfo info;
     in >> info;
-    info.objId=0;
+    info.SetObjId(0);
 
     QSharedPointer<Object> objPtr = myHost->objFactory->NewObject(info);
 
@@ -907,17 +896,17 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
         in >> tmpBa;
         ObjectInfo info;
         tmpStream >> info;
-        QSharedPointer<Object>obj = myHost->objFactory->GetObjectFromId( info.objId );
+        QSharedPointer<Object>obj = myHost->objFactory->GetObjectFromId( info.ObjId() );
         if(!obj) {
             obj = myHost->objFactory->NewObject(info);
             AddParkedObject(obj);
             tmpListObj << obj;
         } else {
-            obj->SetContainerId(index);
-            obj->ResetSavedIndex(info.objId);
+            obj->SetContainer(this);
+            obj->ResetSavedIndex(info.ObjId());
         }
         if(!obj) {
-            LOG("can't create obj"<<info.id<<info.name);
+            LOG("can't create obj");
         }
         if(obj) {
             obj->ProgramFromStream(progId, tmpStream);

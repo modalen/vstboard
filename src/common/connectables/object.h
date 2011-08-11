@@ -31,8 +31,7 @@
 #include "audiopin.h"
 #include "midipinin.h"
 #include "midipinout.h"
-#include "parameterpinin.h"
-#include "parameterpinout.h"
+#include "parameterpin.h"
 #include "bridgepinin.h"
 #include "bridgepinout.h"
 #include "objectprogram.h"
@@ -51,10 +50,8 @@ namespace Connectables {
     Q_OBJECT
     public:
 
-        Object(MainHost *host, int index, const ObjectInfo &info);
+        Object(MainHost *host, ObjectInfo &info);
         virtual ~Object();
-
-        void setObjectName(const QString &name);
 
         /*!
           When saving a project the index of the object is saved,
@@ -67,7 +64,7 @@ namespace Connectables {
           Get the current index
           \return index
           */
-        inline const int GetIndex() const {return index;}
+//        inline const int GetIndex() const {return index;}
 
         /// Reset the savedIndex to the current index, when the file is loaded or before saving
         inline void ResetSavedIndex(int id=-2) {savedIndex=id;}
@@ -112,7 +109,7 @@ namespace Connectables {
 
         LearningMode::Enum GetLearningMode();
         QStandardItem *GetParkingItem();
-        virtual QStandardItem *GetFullItem();
+//        virtual QStandardItem *GetFullItem();
 
         /*!
           Get the current container id
@@ -133,19 +130,17 @@ namespace Connectables {
         virtual bool Open();
         virtual bool Close();
         virtual void Hide();
-        virtual Pin * GetPin(const ConnectionInfo &pinInfo);
+        virtual Pin * GetPin(const ObjectInfo &pinInfo);
         virtual void SetSleep(bool sleeping);
         virtual QDataStream & toStream (QDataStream &) const;
         virtual bool fromStream (QDataStream &);
-        virtual void SetContainerId(quint16 id);
-        virtual QStandardItem * UpdateModelNode();
         virtual void SetBridgePinsInVisible(bool visible);
         virtual void SetBridgePinsOutVisible(bool visible);
         virtual void RemoveProgram(int prg);
         virtual void SetContainerAttribs(const ObjectContainerAttribs &attr);
         virtual void GetContainerAttribs(ObjectContainerAttribs &attr);
         virtual void CopyStatusTo(QSharedPointer<Object>objPtr);
-        virtual Pin* CreatePin(const ConnectionInfo &info);
+        virtual Pin* CreatePin(ObjectInfo &info);
         virtual bool IsDirty();
 
         /// Render the object, can be called multiple times if the rendering needs multiple passes
@@ -159,7 +154,7 @@ namespace Connectables {
           \param pinInfo
           \return the name
           */
-        virtual QString GetParameterName(ConnectionInfo pinInfo) {return "";}
+        virtual QString GetParameterName(const ObjectInfo &pinInfo) {return "";}
 
         /// the current model index
         QPersistentModelIndex modelIndex;
@@ -220,7 +215,7 @@ namespace Connectables {
         hashPrograms listPrograms;
 
         /// the object index
-        int index;
+//        int index;
 
         /// the index the object had when the project was saved
         int savedIndex;
@@ -269,7 +264,7 @@ namespace Connectables {
         /// set the sampling rate
         virtual void SetSampleRate(float rate=44100.0) {}
 
-        virtual void OnParameterChanged(ConnectionInfo pinInfo, float value);
+        virtual void OnParameterChanged(const ObjectInfo &pinInfo, float value);
 
         void ToggleEditor(bool visible);
 
@@ -279,8 +274,8 @@ namespace Connectables {
         /// to hide the editor window from another thread
         virtual void OnHideEditor() {}
 
-        virtual void UserRemovePin(const ConnectionInfo &info);
-        virtual void UserAddPin(const ConnectionInfo &info);
+        virtual void UserRemovePin(const ObjectInfo &info);
+        virtual void UserAddPin(const ObjectInfo &info);
 
         void SetErrorMessage(const QString &msg) {errorMessage=msg;}
     };

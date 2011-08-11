@@ -33,13 +33,13 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        explicit VstAutomation(MainHost *myHost,int index);
+        explicit VstAutomation(MainHost *myHost, ObjectInfo &info);
         ~VstAutomation();
         bool Open();
         bool Close();
         void Render();
         void ValueFromHost(int pinNum, float value);
-        Pin* CreatePin(const ConnectionInfo &info);
+        Pin* CreatePin(ObjectInfo &info);
     protected:
         /// list of values used by the learn pin (off, learn, unlearn)
         QList<QVariant>listIsLearning;
@@ -49,7 +49,7 @@ namespace Connectables {
         int progChanged;
 
     public slots:
-        void OnParameterChanged(ConnectionInfo pinInfo, float value);
+        void OnParameterChanged(const ObjectInfo &pinInfo, float value);
         void OnHostChangedProg(int prog);
     };
 }

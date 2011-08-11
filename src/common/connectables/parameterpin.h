@@ -35,8 +35,10 @@ namespace Connectables {
     Q_PROPERTY(QVariant value READ GetVariantValue WRITE SetVariantValue)
 
     public:
-        ParameterPin(Object *parent, Directions::Enum directions, int number, float defaultValue, const QString &name="", bool nameCanChange=false, bool isRemoveable=false, bool bridge=false);
-        ParameterPin(Object *parent, Directions::Enum directions, int number, const QVariant &defaultVariantValue, QList<QVariant> *listValues, const QString &name="", bool nameCanChange=false, bool isRemoveable=false, bool bridge=false);
+        ParameterPin(Object *parent, ObjectInfo &info, float defaultValue);
+        ParameterPin(Object *parent, ObjectInfo &info, const QVariant &defaultVariantValue, QList<QVariant> *listValues);
+
+        void ReceiveMsg(const PinMessage::Enum msgType,void *data=0);
 
         void ChangeValue(float val, bool fromObj=false);
         void ChangeValue(int index, bool fromObj=false);

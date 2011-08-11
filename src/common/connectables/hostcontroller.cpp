@@ -25,48 +25,43 @@
 
 using namespace Connectables;
 
-HostController::HostController(MainHost *myHost,int index):
-    Object(myHost,index, ObjectInfo(MetaTypes::object, ObjTypes::HostController, index, tr("HostController") ) ),
+HostController::HostController(MainHost *myHost, ObjectInfo &info):
+    Object(myHost, info ),
     tempoChanged(false),
     progChanged(false),
     grpChanged(false)
 {
 
-        for(int i=1;i<300;i++) {
-            listTempo << i;
-        }
+    for(int i=1;i<300;i++) {
+        listTempo << i;
+    }
 
-        for(int i=2;i<30;i++) {
-            listSign1 << i;
-        }
+    for(int i=2;i<30;i++) {
+        listSign1 << i;
+    }
 
-        for(int i=0;i<9;i++) {
-            listSign2 << (1<<i);
-        }
-        for(int i=0;i<128;i++) {
-            listPrg << i;
-        }
-        for(int i=0;i<128;i++) {
-            listGrp << i;
-        }
+    for(int i=0;i<9;i++) {
+        listSign2 << (1<<i);
+    }
+    for(int i=0;i<128;i++) {
+        listPrg << i;
+    }
+    for(int i=0;i<128;i++) {
+        listGrp << i;
+    }
 
-    int tempo=120;
-    int sign1=4;
-    int sign2=4;
-    myHost->GetTempo(tempo,sign1,sign2);
+    listParameterPinIn->AddPin(Param_Tempo);
+    listParameterPinIn->AddPin(Param_Sign1);
+    listParameterPinIn->AddPin(Param_Sign2);
+    listParameterPinIn->AddPin(Param_Group);
+    listParameterPinIn->AddPin(Param_Prog);
 
-    listParameterPinIn->listPins.insert(Param_Tempo, new ParameterPinIn(this,Param_Tempo,tempo,&listTempo,"bpm"));
-    listParameterPinIn->listPins.insert(Param_Sign1, new ParameterPinIn(this,Param_Sign1,sign1,&listSign1,"sign1"));
-    listParameterPinIn->listPins.insert(Param_Sign2, new ParameterPinIn(this,Param_Sign2,sign2,&listSign2,"sign2"));
-    listParameterPinIn->listPins.insert(Param_Group, new ParameterPinIn(this,Param_Group, myHost->programsModel->GetCurrentMidiGroup(),&listGrp,"Group"));
-    listParameterPinIn->listPins.insert(Param_Prog, new ParameterPinIn(this,Param_Prog, myHost->programsModel->GetCurrentMidiProg(),&listPrg,"Prog"));
-
-    listParameterPinOut->listPins.insert(Param_Tempo, new ParameterPinOut(this,Param_Tempo,tempo,&listTempo,"bpm"));
-    listParameterPinOut->listPins.insert(Param_Sign1, new ParameterPinOut(this,Param_Sign1,sign1,&listSign1,"sign1"));
-    listParameterPinOut->listPins.insert(Param_Sign2, new ParameterPinOut(this,Param_Sign2,sign2,&listSign2,"sign2"));
-    listParameterPinOut->listPins.insert(Param_Group, new ParameterPinOut(this,Param_Group, myHost->programsModel->GetCurrentMidiGroup(),&listGrp,"Group"));
-    listParameterPinOut->listPins.insert(Param_Prog, new ParameterPinOut(this,Param_Prog, myHost->programsModel->GetCurrentMidiProg(),&listPrg,"Prog"));
-    listParameterPinOut->listPins.insert(Param_Bar, new ParameterPinOut(this,Param_Bar, 0,"Bar"));
+    listParameterPinOut->AddPin(Param_Tempo);
+    listParameterPinOut->AddPin(Param_Sign1);
+    listParameterPinOut->AddPin(Param_Sign2);
+    listParameterPinOut->AddPin(Param_Group);
+    listParameterPinOut->AddPin(Param_Prog);
+    listParameterPinOut->AddPin(Param_Bar);
 
     connect(this, SIGNAL(progChange(int)),
             myHost->programsModel,SLOT(UserChangeProg(int)),
@@ -129,14 +124,14 @@ void HostController::Render()
 #endif
 }
 
-void HostController::OnParameterChanged(ConnectionInfo pinInfo, float value)
+void HostController::OnParameterChanged(const ObjectInfo &pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
 
-    if(pinInfo.direction!=Directions::Input)
+    if(pinInfo.Meta(MetaInfos::Direction).toInt()!=Directions::Input)
         return;
 
-    switch(pinInfo.pinNumber) {
+    switch(pinInfo.Meta(MetaInfos::PinNumber).toInt()) {
         case Param_Tempo :
         case Param_Sign1 :
         case Param_Sign2 :
@@ -170,9 +165,9 @@ void HostController::OnHostTempoChange(int tempo, int sign1, int sign2)
     static_cast<ParameterPin*>(listParameterPinOut->listPins.value(Param_Sign2))->SetVariantValue( sign2 );
 }
 
-void HostController::SetContainerId(quint16 id)
+void HostController::SetContainer(ObjectInfo *container)
 {
-    switch(id) {
+    switch(container->ObjId()) {
         case FixedObjIds::programContainer :
             listParameterPinIn->RemovePin(Param_Prog);
             disconnect(this, SIGNAL(progChange(int)),
@@ -188,5 +183,41 @@ void HostController::SetContainerId(quint16 id)
                    this,SLOT(OnHostGroupChanged(QModelIndex)));
     }
 
-    Object::SetContainerId(id);
+    ObjectInfo::SetContainer(container);
+}
+
+Pin* HostController::CreatePin(ObjectInfo &info)
+{
+    Pin *newPin = Object::CreatePin(info);
+    if(newPin)
+        return newPin;
+
+    int pinnumber = info.Meta(MetaInfos::PinNumber).toInt();
+    int tempo=120;
+    int sign1=4;
+    int sign2=4;
+    myHost->GetTempo(tempo,sign1,sign2);
+
+    switch(pinnumber) {
+        case Param_Tempo:
+            info.SetName(tr("bpm"));
+            return new ParameterPin(this,info,tempo,&listTempo);
+        case Param_Sign1:
+            info.SetName(tr("sign1"));
+            return new ParameterPin(this,info,sign1,&listSign1);
+        case Param_Sign2:
+            info.SetName(tr("sign2"));
+            return new ParameterPin(this,info,sign2,&listSign2);
+        case Param_Group:
+            info.SetName(tr("Group"));
+            return new ParameterPin(this,info, myHost->programsModel->GetCurrentMidiGroup(),&listGrp);
+        case Param_Prog:
+            info.SetName(tr("Prog"));
+            return new ParameterPin(this,info, myHost->programsModel->GetCurrentMidiProg(),&listPrg);
+        case Param_Bar:
+            info.SetName(tr("Bar"));
+            return new ParameterPin(this,info, 0);
+    }
+
+    return 0;
 }

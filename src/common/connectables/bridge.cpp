@@ -38,8 +38,8 @@ using namespace Connectables;
   \param index object number
   \param info ObjectInfo description of the object
   */
-Bridge::Bridge(MainHost *myHost,int index, const ObjectInfo & info) :
-        Object(myHost,index, info)
+Bridge::Bridge(MainHost *myHost, ObjectInfo & info) :
+        Object(myHost, info)
 {
     ObjectInfo::metaType = MetaTypes::bridge;
 }
@@ -54,8 +54,7 @@ bool Bridge::Open()
     listBridgePinIn->ChangeNumberOfPins(8);
     listBridgePinOut->ChangeNumberOfPins(8);
 
-    int direction = ObjectInfo::listInfos.value(MetaInfos::Direction).toInt();
-    switch(direction) {
+    switch(Meta(MetaInfos::Direction).toInt()) {
         case Directions::Input :
         case Directions::Return :
             listBridgePinIn->SetBridge(true);

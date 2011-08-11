@@ -26,8 +26,8 @@
 
 using namespace Connectables;
 
-VstAudioDeviceOut::VstAudioDeviceOut(MainHost *myHost, int index, const ObjectInfo &info) :
-    Object(myHost,index, info)
+VstAudioDeviceOut::VstAudioDeviceOut(MainHost *myHost, ObjectInfo &info) :
+    Object(myHost, info)
 {
 }
 
@@ -84,9 +84,9 @@ void VstAudioDeviceOut::GetBuffersD(double **buf, int &cpt, int sampleFrames)
     }
 }
 
-QStandardItem *VstAudioDeviceOut::GetFullItem()
-{
-    QStandardItem *modelNode = Object::GetFullItem();
-    modelNode->setData(doublePrecision, UserRoles::isDoublePrecision);
-    return modelNode;
-}
+//QStandardItem *VstAudioDeviceOut::GetFullItem()
+//{
+//    QStandardItem *modelNode = Object::GetFullItem();
+//    modelNode->setData(doublePrecision, UserRoles::isDoublePrecision);
+//    return modelNode;
+//}

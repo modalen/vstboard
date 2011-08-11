@@ -46,7 +46,7 @@ void PathSolver::Clear()
 
 }
 
-void PathSolver::Resolve(hashCables cables, Renderer *renderer)
+void PathSolver::Resolve(mapCables cables, Renderer *renderer)
 {
     Clear();
 
@@ -81,7 +81,7 @@ void PathSolver::CreateNodes()
         //don't add parked objects
         if(!objPtr.isNull() && !objPtr->parked) {
 //            if(objPtr->info().nodeType!=MetaTypes::bridge && objPtr->info().nodeType!=MetaTypes::container) {
-            if( objPtr->info().metaType!=MetaTypes::container) {
+            if( objPtr->Meta()!=MetaTypes::container) {
                 SolverNode *node = new SolverNode();
                 listNodes << node;
                 node->listOfObj << objPtr;
@@ -144,7 +144,7 @@ void PathSolver::RemoveUnusedNodes()
     foreach(SolverNode *node, listNodes) {
         bool onlyBridges=true;
         foreach(QSharedPointer<Connectables::Object>objPtr,node->listOfObj) {
-            if(objPtr->info().metaType!=MetaTypes::bridge) {
+            if(objPtr->Meta()!=MetaTypes::bridge) {
                 onlyBridges=false;
                 break;
             }
@@ -344,11 +344,11 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListParents( QShared
 {
     QList< QSharedPointer<Connectables::Object> >listParents;
 
-    hashCables::iterator i = listCables.begin();
+    mapCables::iterator i = listCables.begin();
     while (i != listCables.end()) {
-        QSharedPointer<Connectables::Object> parentPtr = myHost->objFactory->GetObjectFromId(i.key().objId);
+        QSharedPointer<Connectables::Object> parentPtr = myHost->objFactory->GetObjectFromId(i.key().ObjId());
         if(!parentPtr.isNull()) {
-            if(i.value().objId == objPtr->GetIndex()) {
+            if(i.value().ObjId() == objPtr->ObjId()) {
                 if(!listParents.contains(parentPtr)) {
                     listParents << parentPtr;
 //                    if(parentPtr->info().nodeType == MetaTypes::bridge)
@@ -385,11 +385,11 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListChildren( QShare
 {
     QList< QSharedPointer<Connectables::Object> >listChildren;
 
-    hashCables::iterator i = listCables.begin();
+    mapCables::iterator i = listCables.begin();
     while (i != listCables.end()) {
-        QSharedPointer<Connectables::Object> childPtr = myHost->objFactory->GetObjectFromId(i.value().objId);
+        QSharedPointer<Connectables::Object> childPtr = myHost->objFactory->GetObjectFromId(i.value().ObjId());
         if(!childPtr.isNull()) {
-            if(i.key().objId == objPtr->GetIndex()) {
+            if(i.key().ObjId() == objPtr->ObjId()) {
                 if(!listChildren.contains(childPtr)) {
                     listChildren << childPtr;
 //                    if(childPtr->info().nodeType == MetaTypes::bridge)

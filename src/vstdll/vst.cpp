@@ -179,7 +179,7 @@ bool Vst::addAudioIn(Connectables::VstAudioDeviceIn *dev)
         return false;
 
     lstAudioIn << dev;
-    dev->setObjectName( QString("Vst audio in %1").arg(lstAudioIn.count()) );
+    dev->SetName( QString("Vst audio in %1").arg(lstAudioIn.count()) );
     setNumInputs(lstAudioIn.count()*2);
     ioChanged();
     return true;
@@ -196,7 +196,7 @@ bool Vst::addAudioOut(Connectables::VstAudioDeviceOut *dev)
         return false;
 
     lstAudioOut << dev;
-    dev->setObjectName( QString("Vst audio out %1").arg(lstAudioOut.count()) );
+    dev->SetName( QString("Vst audio out %1").arg(lstAudioOut.count()) );
     setNumOutputs(lstAudioOut.count()*2);
     ioChanged();
     return true;

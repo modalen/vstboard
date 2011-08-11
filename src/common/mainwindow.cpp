@@ -122,35 +122,35 @@ bool MainWindow::event(QEvent *event)
 {
     if(event->type() == Events::typeNewObj) {
         Events::newObj *e = static_cast<Events::newObj*>(event);
-        QStandardItem *parentItem = mapItems.value( e->parentIndex, 0 );
+        QStandardItem *parentItem = mapItems.value( e->objInfo.ParentId(), 0 );
         if(!parentItem) {
-            if(e->objInfo.objId==FixedObjIds::mainContainer)
+            if(e->objInfo.ObjId()==FixedObjIds::mainContainer)
                 parentItem = model->invisibleRootItem();
             else {
-                LOG("parent not found"<<e->objInfo.name);
+                LOG("parent not found"<<e->objInfo.Name());
                 return true;
             }
         }
 
         QStandardItem *objItem = e->CreateItem();
-        mapItems.insert(e->objInfo.objId, objItem );
+        mapItems.insert(e->objInfo.ObjId(), objItem );
         parentItem->appendRow(objItem);
         return true;
     }
 
-    if(event->type() == Events::typeNewPin) {
-        Events::newPin *e = static_cast<Events::newPin*>(event);
-        QStandardItem *parentItem = mapItems.value( e->connectionInfo.objId, 0 );
-        if(!parentItem) {
-            LOG("parent not found");
-            return true;
-        }
+//    if(event->type() == Events::typeNewPin) {
+//        Events::newPin *e = static_cast<Events::newPin*>(event);
+//        QStandardItem *parentItem = mapItems.value( e->connectionInfo.objId, 0 );
+//        if(!parentItem) {
+//            LOG("parent not found");
+//            return true;
+//        }
 
-        QStandardItem *objItem = e->CreateItem();
-        mapPins.insert(e->connectionInfo, objItem );
-        parentItem->appendRow(objItem);
-        return true;
-    }
+//        QStandardItem *objItem = e->CreateItem();
+//        mapPins.insert(e->connectionInfo, objItem );
+//        parentItem->appendRow(objItem);
+//        return true;
+//    }
 
     return QMainWindow::event(event);
 }
@@ -236,45 +236,53 @@ void MainWindow::changeEvent(QEvent *e)
 void MainWindow::BuildListTools()
 {
     QStringList headerLabels;
-    headerLabels << "Name";
-
-    QStandardItem *parentItem=0;
-    QStandardItem *item=0;
-    ObjectInfo info;
+    headerLabels << tr("Name");
 
     listToolsModel = new ListToolsModel(this);
     listToolsModel->setHorizontalHeaderLabels(headerLabels);
-    parentItem = listToolsModel->invisibleRootItem();
+    QStandardItem *parentItem = listToolsModel->invisibleRootItem();
 
 #ifdef SCRIPTENGINE
-    //script
-    item = new QStandardItem(tr("Script"));
-    info.metaType = MetaTypes::object;
-    info.listInfos[MetaInfos::ObjType] = ObjTypes::Script;
-    item->setData(QVariant::fromValue(info), UserRoles::objInfo);
-    parentItem->appendRow(item);
+    {
+        //script
+        ObjectInfo info(MetaTypes::object);
+        info.SetMeta(MetaInfos::ObjType, ObjTypes::Script);
+
+        QStandardItem *item = new QStandardItem(tr("Script"));
+        item->setData(QVariant::fromValue(info), UserRoles::objInfo);
+        parentItem->appendRow(item);
+    }
 #endif
 
-    //midi parameters
-    item = new QStandardItem(tr("Midi to parameter"));
-    info.metaType = MetaTypes::object;
-    info.listInfos[MetaInfos::ObjType] = ObjTypes::MidiToAutomation;
-    item->setData(QVariant::fromValue(info), UserRoles::objInfo);
-    parentItem->appendRow(item);
+    {
+        //midi parameters
+        ObjectInfo info(MetaTypes::object);
+        info.SetMeta(MetaInfos::ObjType, ObjTypes::MidiToAutomation);
 
-    //midi sender
-    item = new QStandardItem(tr("Midi sender"));
-    info.metaType = MetaTypes::object;
-    info.listInfos[MetaInfos::ObjType] = ObjTypes::MidiSender;
-    item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-    parentItem->appendRow(item);
+        QStandardItem *item = new QStandardItem(tr("Midi to parameter"));
+        item->setData(QVariant::fromValue(info), UserRoles::objInfo);
+        parentItem->appendRow(item);
+    }
 
-    //host controller
-    item = new QStandardItem(tr("Host Controller"));
-    info.metaType = MetaTypes::object;
-    info.listInfos[MetaInfos::ObjType] = ObjTypes::HostController;
-    item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-    parentItem->appendRow(item);
+    {
+        //midi sender
+        ObjectInfo info(MetaTypes::object);
+        info.SetMeta(MetaInfos::ObjType, ObjTypes::MidiSender);
+
+        QStandardItem *item = new QStandardItem(tr("Midi sender"));
+        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
+        parentItem->appendRow(item);
+    }
+
+    {
+        //host controller
+        ObjectInfo info(MetaTypes::object);
+        info.SetMeta(MetaInfos::ObjType, ObjTypes::HostController);
+
+        QStandardItem *item = new QStandardItem(tr("Host Controller"));
+        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
+        parentItem->appendRow(item);
+    }
 
     ui->treeTools->setModel(listToolsModel);
     ui->treeTools->header()->setResizeMode(0,QHeaderView::Stretch);

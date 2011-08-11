@@ -34,7 +34,7 @@ using namespace Connectables;
   \param pinOut the output pin (the one sending the messages)
   \param pinIn the input pin (the receiver)
   */
-Cable::Cable(MainHost *myHost, const ConnectionInfo &pinOut, const ConnectionInfo &pinIn) :
+Cable::Cable(MainHost *myHost, const ObjectInfo &pinOut, const ObjectInfo &pinIn) :
         pinOut(pinOut),
         pinIn(pinIn),
         modelIndex(QModelIndex()),
@@ -63,18 +63,18 @@ Cable::Cable(const Cable & c) :
   */
 void Cable::AddToParentNode(const QModelIndex &parentIndex)
 {
-    QStandardItem *item = new QStandardItem(QString("cable %1:%2").arg(pinOut.objId).arg(pinIn.objId));
-    item->setData(QVariant::fromValue(ObjectInfo(MetaTypes::cable)),UserRoles::objInfo);
-    item->setData(QVariant::fromValue(pinOut),UserRoles::value);
-    item->setData(QVariant::fromValue(pinIn),UserRoles::connectionInfo);
+//    QStandardItem *item = new QStandardItem(QString("cable %1:%2").arg(pinOut.objId).arg(pinIn.objId));
+//    item->setData(QVariant::fromValue(ObjectInfo(MetaTypes::cable)),UserRoles::objInfo);
+//    item->setData(QVariant::fromValue(pinOut),UserRoles::value);
+//    item->setData(QVariant::fromValue(pinIn),UserRoles::connectionInfo);
 
-    QStandardItem *parentItem = myHost->GetModel()->itemFromIndex(parentIndex);
-    if(!parentItem) {
-        LOG("parent item not found");
-        return;
-    }
-    parentItem->appendRow(item);
-    modelIndex = item->index();
+//    QStandardItem *parentItem = myHost->GetModel()->itemFromIndex(parentIndex);
+//    if(!parentItem) {
+//        LOG("parent item not found");
+//        return;
+//    }
+//    parentItem->appendRow(item);
+//    modelIndex = item->index();
 }
 
 /*!
@@ -83,8 +83,8 @@ void Cable::AddToParentNode(const QModelIndex &parentIndex)
   */
 void Cable::RemoveFromParentNode(const QModelIndex &parentIndex)
 {
-    if(modelIndex.isValid() && parentIndex.isValid())
-        myHost->GetModel()->removeRow(modelIndex.row(), parentIndex);
+//    if(modelIndex.isValid() && parentIndex.isValid())
+//        myHost->GetModel()->removeRow(modelIndex.row(), parentIndex);
 
-    modelIndex=QModelIndex();
+//    modelIndex=QModelIndex();
 }

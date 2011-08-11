@@ -41,14 +41,13 @@ namespace Connectables {
 
     public:
         PinsList(MainHost *myHost, Object *parent);
-        void SetContainerId(const quint16 id);
         void Hide();
         void SetVisible(bool visible);
         void ChangeNumberOfPins(int newNbIn);
         void SetBridge(bool bridge);
-        void SetInfo(Object *parent,const ConnectionInfo &connInfo, const ObjectInfo &objInfo);
+//        void SetInfo(Object *parent,const ConnectionInfo &connInfo, const ObjectInfo &objInfo);
         Pin * GetPin(int pinNumber, bool autoCreate=false);
-        void UpdateModelNode(QStandardItem *parentNode=0);
+//        void UpdateModelNode(QStandardItem *parentNode=0);
         void ConnectAllTo(Container* container,PinsList *other, bool hidden=false);
         void AsyncAddPin(int nb);
         void AsyncRemovePin(int nb);
@@ -58,7 +57,6 @@ namespace Connectables {
         AudioBuffer *GetBuffer(int pinNumber);
 
         QMap<quint16,Pin*> listPins;
-        ConnectionInfo connInfo;
         ObjectInfo objInfo;
 
         virtual QDataStream & toStream (QDataStream &) const;

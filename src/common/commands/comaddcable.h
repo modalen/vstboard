@@ -2,23 +2,23 @@
 #define COMCONNECTPIN_H
 
 #include <QUndoCommand>
-#include "connectables/connectioninfo.h"
+#include "objectinfo.h"
 
 class MainHost;
 class ComAddCable : public QUndoCommand
 {
 public:
     ComAddCable(MainHost *myHost,
-                const ConnectionInfo &outInfo,
-                const ConnectionInfo &inInfo,
+                const ObjectInfo &outInfo,
+                const ObjectInfo &inInfo,
                 QUndoCommand  *parent=0);
     void undo ();
     void redo ();
 
 private:
     MainHost *myHost;
-    ConnectionInfo outInfo;
-    ConnectionInfo inInfo;
+    ObjectInfo outInfo;
+    ObjectInfo inInfo;
     int currentGroup;
     int currentProg;
 };

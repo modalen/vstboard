@@ -84,10 +84,11 @@ bool MidiDevices::Init()
         if(obj.isNull())
             continue;
 
-        if(obj->info().listInfos.value(MetaInfos::ObjType).toInt() == ObjTypes::MidiInterface) {
+        if(obj->info().Meta(MetaInfos::ObjType).toInt() == ObjTypes::MidiInterface) {
 //            if(!obj->errorMessage.isEmpty())
                 obj->Open();
-            obj->UpdateModelNode();
+//            obj->UpdateModelNode();
+                obj->UpdateView(myHost);
         }
     }
 
@@ -143,15 +144,14 @@ void MidiDevices::BuildModel()
         }
         lastName = devName;
 
-        ObjectInfo obj;
-        obj.metaType = MetaTypes::object;
-        obj.listInfos[MetaInfos::ObjType] = ObjTypes::MidiInterface;
-        obj.listInfos[MetaInfos::id] = i;
-        obj.listInfos[MetaInfos::name] = devName;
-        obj.listInfos[MetaInfos::apiName] = QString::fromLocal8Bit(devInfo->interf );
-        obj.listInfos[MetaInfos::duplicateNamesCounter] = cptDuplicateNames;
-        obj.listInfos[MetaInfos::nbInputs] = devInfo->input;
-        obj.listInfos[MetaInfos::nbOutputs] = devInfo->output;
+        ObjectInfo obj(MetaTypes::object);
+        obj.SetMeta(MetaInfos::ObjType, ObjTypes::MidiInterface);
+        obj.SetMeta(MetaInfos::devId, i);
+        obj.SetMeta(MetaInfos::devName, devName);
+        obj.SetMeta(MetaInfos::apiName, QString::fromLocal8Bit(devInfo->interf ));
+        obj.SetMeta(MetaInfos::duplicateNamesCounter, cptDuplicateNames);
+        obj.SetMeta(MetaInfos::nbInputs, devInfo->input);
+        obj.SetMeta(MetaInfos::nbOutputs, devInfo->output);
 
         items << new QStandardItem(devName);
         items << new QStandardItem(QString::number(devInfo->input));
@@ -191,13 +191,13 @@ void MidiDevices::MidiReceive_poll(PtTimestamp timestamp, void *userData)
                 if (result) {
                     PmError rslt = (PmError)Pm_Read(device->stream, &buffer, 1);
                     if (rslt == pmBufferOverflow) {
-                        LOG("midi buffer overflow on"<<device->GetIndex()<<device->objectName());
+                        LOG("midi buffer overflow");
                         continue;
                     }
                     if(rslt == 1 ) {
                         Pm_Enqueue(device->queue, &buffer);
                     } else {
-                        LOG("midi in error on %1 %2"<<device->GetIndex()<<device->objectName());
+                        LOG("midi in error on");
                         continue;
                     }
                 }

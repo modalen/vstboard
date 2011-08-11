@@ -30,7 +30,7 @@ namespace Connectables {
     class Cable : public ObjectInfo
     {
     public:
-        Cable(MainHost *myHost,const ConnectionInfo &pinOut, const ConnectionInfo &pinIn);
+        Cable(MainHost *myHost,const ObjectInfo &pinOut, const ObjectInfo &pinIn);
         Cable(const Cable & c);
         void AddToParentNode(const QModelIndex &parentIndex);
         void RemoveFromParentNode(const QModelIndex &parentIndex);
@@ -39,20 +39,20 @@ namespace Connectables {
           Get the output pin info
           \return a ConnectionInfo
           */
-        inline const ConnectionInfo & GetInfoOut() const {return pinOut;}
+        inline const ObjectInfo & GetInfoOut() const {return pinOut;}
 
         /*!
           Get the input pin info
           \return a ConnectionInfo
           */
-        inline const ConnectionInfo & GetInfoIn() const {return pinIn;}
+        inline const ObjectInfo & GetInfoIn() const {return pinIn;}
 
     protected:
         /// the output pin (from the sender object)
-        const ConnectionInfo pinOut;
+        const ObjectInfo pinOut;
 
         /// the input pin (the receiver object)
-        const ConnectionInfo pinIn;
+        const ObjectInfo pinIn;
 
         /// the cable index in the model
         QPersistentModelIndex modelIndex;

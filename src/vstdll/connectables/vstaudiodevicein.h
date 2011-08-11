@@ -33,7 +33,7 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        VstAudioDeviceIn(MainHost *myHost,int index, const ObjectInfo &info);
+        VstAudioDeviceIn(MainHost *myHost, ObjectInfo &info);
         ~VstAudioDeviceIn();
 
         bool Open();
@@ -42,7 +42,7 @@ namespace Connectables {
 
         void SetBuffers(float **buf, int &cpt, int sampleFrames);
         void SetBuffersD(double **buf, int &cpt, int sampleFrames);
-        QStandardItem *GetFullItem();
+//        QStandardItem *GetFullItem();
 
     public slots:
         void SetBufferSize(unsigned long size);

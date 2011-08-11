@@ -164,10 +164,10 @@ bool AudioDevices::Init()
             continue;
 
         ObjectInfo info( obj->info() );
-        if(info.listInfos.value(MetaInfos::ObjType).toInt() == ObjTypes::AudioInterface) {
+        if(info.Meta(MetaInfos::ObjType).toInt() == ObjTypes::AudioInterface) {
             QString errMsg;
             Connectables::AudioDevice *newDevice = AddDevice( info, &errMsg );
-            switch(info.listInfos.value(MetaInfos::Direction).toInt()) {
+            switch(info.Meta(MetaInfos::Direction).toInt()) {
                 case Directions::Input :
                     static_cast<Connectables::AudioDeviceIn*>(obj.data())->SetParentDevice(newDevice);
                     break;
@@ -177,7 +177,8 @@ bool AudioDevices::Init()
             }
 
             if(obj->Open()) {
-                obj->UpdateModelNode();
+//                obj->UpdateModelNode();
+                obj->UpdateView(myHost);
             } else {
                 static_cast<Connectables::Container*>(myHost->objFactory->GetObjectFromId( obj->GetContainerId() ).data())->UserParkObject( obj );
             }
@@ -238,15 +239,14 @@ void AudioDevices::BuildModel()
                 lastName = devName;
             }
 
-            ObjectInfo obj;
-            obj.metaType = MetaTypes::object;
-            obj.listInfos[MetaInfos::ObjType] = ObjTypes::AudioInterface;
-            obj.listInfos[MetaInfos::id] = devIndex;
-            obj.listInfos[MetaInfos::name] = devName;
-            obj.listInfos[MetaInfos::apiId] = apiInfo->type;
-            obj.listInfos[MetaInfos::duplicateNamesCounter] = cptDuplicateNames;
-            obj.listInfos[MetaInfos::nbInputs] = devInfo->maxInputChannels;
-            obj.listInfos[MetaInfos::nbOutputs] = devInfo->maxOutputChannels;
+            ObjectInfo obj(MetaTypes::object);
+            obj.SetMeta(MetaInfos::ObjType, ObjTypes::AudioInterface);
+            obj.SetMeta(MetaInfos::devId, devIndex);
+            obj.SetMeta(MetaInfos::devName, devName);
+            obj.SetMeta(MetaInfos::apiId, apiInfo->type);
+            obj.SetMeta(MetaInfos::duplicateNamesCounter, cptDuplicateNames);
+            obj.SetMeta(MetaInfos::nbInputs, devInfo->maxInputChannels);
+            obj.SetMeta(MetaInfos::nbOutputs, devInfo->maxOutputChannels);
 
             QList<QStandardItem *> listItems;
 
@@ -304,7 +304,7 @@ void AudioDevices::OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId
     int devCount = 0;
     while(!devItem && devCount<nbDev) {
         ObjectInfo info = apiItem->child(devCount,0)->data(UserRoles::objInfo).value<ObjectInfo>();
-        if(info.id == devId)
+        if(info.Meta(MetaInfos::devId).toInt() == devId)
             devItem = apiItem->child(devCount,0);
         devCount++;
     }
@@ -363,7 +363,7 @@ Connectables::AudioDevice * AudioDevices::AddDevice(ObjectInfo &objInfo, QString
     }
 
     mutexDevices.lock();
-    Connectables::AudioDevice *dev = listAudioDevices.value(objInfo.id,0);
+    Connectables::AudioDevice *dev = listAudioDevices.value(objInfo.Meta(MetaInfos::devId).toInt(),0);
     mutexDevices.unlock();
 
     if(!dev) {
@@ -375,7 +375,7 @@ Connectables::AudioDevice * AudioDevices::AddDevice(ObjectInfo &objInfo, QString
             return 0;
         }
         mutexDevices.lock();
-        listAudioDevices.insert(objInfo.id, dev);
+        listAudioDevices.insert(objInfo.Meta(MetaInfos::devId).toInt(), dev);
         mutexDevices.unlock();
     }
     return dev;
@@ -425,7 +425,7 @@ bool AudioDevices::FindPortAudioDevice(ObjectInfo &objInfo, PaDeviceInfo *dInfo)
     PaDeviceIndex foundSameNamePins=-1;
     PaDeviceIndex foundSameNamePinsId=-1;
 
-    PaHostApiTypeId apiType = (PaHostApiTypeId)objInfo.api;
+    PaHostApiTypeId apiType = (PaHostApiTypeId)objInfo.Meta(MetaInfos::apiId).toInt();
     PaHostApiIndex apiIndex = Pa_HostApiTypeIdToHostApiIndex( apiType );
     const PaHostApiInfo *apiInfo = Pa_GetHostApiInfo( apiIndex );
 
@@ -437,17 +437,17 @@ bool AudioDevices::FindPortAudioDevice(ObjectInfo &objInfo, PaDeviceInfo *dInfo)
         //remove " x64" from device name so we can share files with 32bit version
         devName.remove(QRegExp("( )?x64"));
 
-        if(devName == objInfo.name) {
+        if(devName == objInfo.Meta(MetaInfos::devName).toString()) {
 
-            if(info->maxInputChannels == objInfo.inputs
-            && info->maxOutputChannels == objInfo.outputs) {
-                if(objInfo.duplicateNamesCounter == cptDuplicateNames) {
+            if(info->maxInputChannels == objInfo.Meta(MetaInfos::nbInputs).toInt()
+            && info->maxOutputChannels == objInfo.Meta(MetaInfos::nbOutputs).toInt()) {
+                if(objInfo.Meta(MetaInfos::duplicateNamesCounter).toInt() == cptDuplicateNames) {
                     foundSameNamePinsId = devIndex;
                 } else {
                     foundSameNamePins = devIndex;
                 }
             } else {
-                if(objInfo.duplicateNamesCounter == cptDuplicateNames) {
+                if(objInfo.Meta(MetaInfos::duplicateNamesCounter).toInt() == cptDuplicateNames) {
                     foundSameNameId = devIndex;
                 } else {
                     foundSameName = devIndex;
@@ -470,7 +470,7 @@ bool AudioDevices::FindPortAudioDevice(ObjectInfo &objInfo, PaDeviceInfo *dInfo)
     else if(foundSameName!=-1)
         deviceNumber = foundSameName;
     else {
-        LOG("device not found"<<objInfo.apiName<<objInfo.name);
+        LOG("device not found");
         return false;
     }
 
@@ -482,7 +482,7 @@ bool AudioDevices::FindPortAudioDevice(ObjectInfo &objInfo, PaDeviceInfo *dInfo)
         }
         *dInfo = *i;
     }
-    objInfo.id = deviceNumber;
+    objInfo.SetMeta(MetaInfos::devId, deviceNumber);
     return true;
 }
 
@@ -493,8 +493,8 @@ void AudioDevices::ConfigDevice(const QModelIndex &index)
 
     if(index.data(UserRoles::objInfo).isValid()) {
         ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-        devId = (PaDeviceIndex)info.id;
-        apiIndex = (PaHostApiTypeId)info.api;
+        devId = (PaDeviceIndex)info.Meta(MetaInfos::devId).toInt();
+        apiIndex = (PaHostApiTypeId)info.Meta(MetaInfos::apiId).toInt();
     }
 
     switch(apiIndex) {

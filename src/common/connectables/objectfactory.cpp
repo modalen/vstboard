@@ -91,14 +91,14 @@ int ObjectFactory::IdFromSavedId(int savedId)
     return -1;
 }
 
-Pin *ObjectFactory::GetPin(const ConnectionInfo &pinInfo)
+Pin *ObjectFactory::GetPin(const ObjectInfo &pinInfo)
 {
-    if(!listObjects.contains(pinInfo.objId)) {
-        LOG("obj not found"<<pinInfo.objId);
+    if(!listObjects.contains(pinInfo.ObjId())) {
+        LOG("obj not found"<<pinInfo.ObjId());
         return 0;
     }
 
-    QSharedPointer<Object> objPtr = listObjects.value(pinInfo.objId).toStrongRef();
+    QSharedPointer<Object> objPtr = listObjects.value(pinInfo.ObjId()).toStrongRef();
     if(objPtr)
         return objPtr->GetPin(pinInfo);
 
@@ -116,14 +116,16 @@ QSharedPointer<Object> ObjectFactory::GetObj(const QModelIndex & index)
     return GetObjectFromId(index.data(UserRoles::value).toInt());
 }
 
-QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info)
+QSharedPointer<Object> ObjectFactory::NewObject( ObjectInfo &info)
 {
-    int objId = cptListObjects;
-    if(info.objId!=0) {
-        objId = info.objId;
-        if(listObjects.contains(objId)) {
-            LOG("forcedId already exists"<<objId);
+    int forcedObjId = 0;//cptListObjects;
+    if(info.ObjId()!=0) {
+        forcedObjId = info.ObjId();
+        if(listObjects.contains(forcedObjId)) {
+            LOG("forcedId already exists"<<forcedObjId);
         }
+    } else {
+        info.SetObjId( GetNewId() );
     }
 
     Object *obj=0;
@@ -131,45 +133,45 @@ QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info)
     obj=CreateOtherObjects(info);
 
     if(!obj) {
-        switch(info.metaType) {
+        switch(info.Meta()) {
 
             case MetaTypes::container :
-                obj = new Container(myHost,objId, info);
+                obj = new Container(myHost, info);
                 break;
 
             case MetaTypes::bridge :
-                obj = new Bridge(myHost,objId, info);
+                obj = new Bridge(myHost, info);
                 break;
 
             case MetaTypes::object :
 
-                switch(info.listInfos.value(MetaInfos::ObjType).toInt()) {
+                switch(info.Meta(MetaInfos::ObjType).toInt()) {
 #ifdef SCRIPTENGINE
                     case ObjTypes::Script:
-                        obj = new Script(myHost,objId,info);
+                        obj = new Script(myHost, info);
                         break;
 #endif
                     case ObjTypes::MidiSender:
-                        obj = new MidiSender(myHost,objId);
+                        obj = new MidiSender(myHost, info);
                         break;
 
                     case ObjTypes::MidiToAutomation:
-                        obj = new MidiToAutomation(myHost,objId);
+                        obj = new MidiToAutomation(myHost, info);
                         break;
 
                     case ObjTypes::HostController:
-                        obj = new HostController(myHost,objId);
+                        obj = new HostController(myHost, info);
                         break;
 
             #ifdef VSTSDK
                     case ObjTypes::VstPlugin:
-                        obj = new VstPlugin(myHost,objId, info);
+                        obj = new VstPlugin(myHost, info);
                         break;
             #endif
 
                     case ObjTypes::Dummy :
-                        obj = new Object(myHost, objId, info);
-                        obj->SetErrorMessage("Dummy object");
+                        info.SetMeta(MetaInfos::errorMessage,"Dummy object");
+                        obj = new Object(myHost, info);
                         break;
 
                     default:
@@ -180,26 +182,24 @@ QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info)
 
 
             default :
-                LOG("unknown nodeType"<<info.metaType);
+                LOG("unknown nodeType"<<info.Meta());
                 return QSharedPointer<Object>();
         }
     }
 
 
     QSharedPointer<Object> sharedObj(obj);
-    listObjects.insert(objId,sharedObj.toWeakRef());
+    listObjects.insert(info.ObjId(),sharedObj.toWeakRef());
 
     if(!obj->Open()) {
-        listObjects.remove(objId);
+        listObjects.remove(info.ObjId());
         sharedObj.clear();
         return QSharedPointer<Object>();
     }
     obj->SetSleep(false);
 
-    if(info.objId) {
-        obj->ResetSavedIndex(info.objId);
-    } else {
-        cptListObjects++;
+    if(forcedObjId) {
+        obj->ResetSavedIndex(forcedObjId);
     }
 
     return sharedObj;

@@ -27,11 +27,11 @@ using namespace Connectables;
 
 QMutex Script::mutexScript;
 
-Script::Script(MainHost *host, int index, const ObjectInfo &info) :
-    Object(host,index,info),
+Script::Script(MainHost *host, ObjectInfo &info) :
+    Object(host,info),
     editorWnd(0)
 {
-    setObjectName( QString("objScript%1").arg(index) );
+    SetName( QString("objScript%1").arg(ObjId()) );
     objScriptName = objectName();
     objScriptName.append("sc");
 
@@ -219,24 +219,27 @@ void Script::ReplaceScript(const QString &str)
     Open();
 }
 
-Pin* Script::CreatePin(const ConnectionInfo &info)
+Pin* Script::CreatePin(ObjectInfo &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)
         return newPin;
 
-    if(info.type == MediaTypes::Parameter) {
-        switch(info.direction) {
+    if(info.Meta(MetaInfos::Media).toInt() == MediaTypes::Parameter) {
+        switch(info.Meta(MetaInfos::Direction).toInt()) {
             case Directions::Input :
-                if(info.pinNumber == FixedPinNumber::editorVisible) {
-                    ParameterPin *newPin = new ParameterPinIn(this,FixedPinNumber::editorVisible,"hide",&listEditorVisible,tr("Editor"));
+                if(info.Meta(MetaInfos::PinNumber).toInt() == FixedPinNumber::editorVisible) {
+                    info.SetName(tr("Editor"));
+                    ParameterPin *newPin = new ParameterPin(this,info,"hide",&listEditorVisible);
                     newPin->SetLimitsEnabled(false);
                     return newPin;
                 }
-                return new ParameterPinIn(this,info.pinNumber,0,QString("ParamIn%1").arg(info.pinNumber));
+                info.SetName( QString("ParamIn%1").arg(info.Meta(MetaInfos::PinNumber).toInt()) );
+                return new ParameterPin(this,info,0);
 
             case Directions::Output :
-                return new ParameterPinOut(this,info.pinNumber,0,QString("ParamOut%1").arg(info.pinNumber));
+                info.SetName( QString("ParamOut%1").arg(info.Meta(MetaInfos::PinNumber).toInt()) );
+                return new ParameterPin(this,info,0);
 
         }
     }

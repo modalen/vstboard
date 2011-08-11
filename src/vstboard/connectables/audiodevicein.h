@@ -35,15 +35,15 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        AudioDeviceIn(MainHost *myHost,int index, const ObjectInfo &info);
+        AudioDeviceIn(MainHost *myHost, ObjectInfo &info);
         ~AudioDeviceIn();
         bool Open();
         bool Close();
         void Render();
-        Pin* CreatePin(const ConnectionInfo &info);
+        Pin* CreatePin(ObjectInfo &info);
         void SetParentDevice( AudioDevice *device );
         void SetBufferFromRingBuffer(QList<CircularBuffer*>listCircularBuffers);
-        QStandardItem *GetFullItem();
+//        QStandardItem *GetFullItem();
 
     protected:
         /// pointer to the linked AudioDevice

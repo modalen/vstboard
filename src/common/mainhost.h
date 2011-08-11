@@ -59,7 +59,7 @@ public:
 
     void Open();
 
-    void SendMsg(const ConnectionInfo &senderPin,const PinMessage::Enum msgType,void *data);
+    void SendMsg(const ObjectInfo &senderPin,const PinMessage::Enum msgType,void *data);
 
     void SetBufferSizeMs(unsigned int ms);
     void SetBufferSize(unsigned long size);
@@ -170,7 +170,7 @@ private:
     QMap<ConnectionInfo,Connectables::Pin*>listPins;
 
 
-    hashCables workingListOfCables;
+    mapCables workingListOfCables;
     QMutex *mutexListCables;
     Renderer *renderer;
 

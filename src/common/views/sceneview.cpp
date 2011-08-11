@@ -119,7 +119,7 @@ void SceneView::dataChanged ( const QModelIndex & topLeft, const QModelIndex & b
         } else {
             ObjectInfo info = tmpIndex.data(UserRoles::objInfo).value<ObjectInfo>();
 
-            switch( info.metaType ) {
+            switch( info.Meta() ) {
             case MetaTypes::object :
             case MetaTypes::container :
             {
@@ -204,7 +204,7 @@ void SceneView::rowsAboutToBeRemoved ( const QModelIndex & parent, int start, in
         const QPersistentModelIndex index = parent.child(i,0);
 
         ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-        switch(info.metaType) {
+        switch(info.Meta()) {
         case MetaTypes::object :
             {
                 ObjectView *obj = static_cast<ObjectView*>(hashItems.value(index,0));
@@ -248,13 +248,13 @@ void SceneView::rowsAboutToBeRemoved ( const QModelIndex & parent, int start, in
                     obj->Shrink();
                 }
 
-                mapConnectionInfo.remove(pin->GetConnectionInfo());
+                mapConnectionInfo.remove(pin->GetObjectInfo());
                 break;
             }
         case MetaTypes::cable :
             {
-                ConnectionInfo infoOut = index.data(UserRoles::value).value<ConnectionInfo>();
-                ConnectionInfo infoIn = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
+                ObjectInfo infoOut = index.data(UserRoles::value).value<ObjectInfo>();
+                ObjectInfo infoIn = index.data(UserRoles::connectionInfo).value<ObjectInfo>();
 
                 QPersistentModelIndex ixOut =  mapConnectionInfo.value(infoOut);
                 QPersistentModelIndex ixIn =  mapConnectionInfo.value(infoIn);
@@ -283,7 +283,7 @@ void SceneView::rowsAboutToBeRemoved ( const QModelIndex & parent, int start, in
                 QModelIndex p = parent;
                 while(p.isValid()) {
                     ObjectInfo pinfo = p.data(UserRoles::objInfo).value<ObjectInfo>();
-                    LOG(p.data().toString()<<pinfo.name<<pinfo.metaType);
+                    LOG(p.data().toString()<<pinfo.Meta());
                     p = p.parent();
                 }
             }
@@ -313,7 +313,7 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
         ObjectView *objView = 0;
         ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
 
-        switch(info.metaType) {
+        switch(info.Meta()) {
             case MetaTypes::container :
             {
                 int objId = index.data(UserRoles::value).toInt();
@@ -373,7 +373,7 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     continue;
                 }
 
-                switch(info.listInfos.value(MetaInfos::Direction).toInt()) {
+                switch(info.Meta(MetaInfos::Direction).toInt()) {
                     case Directions::Input :
                         objView = static_cast<MainContainerView*>(parentView)->bridgeIn;
                         break;
@@ -407,7 +407,7 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     continue;
                 }
 
-                if(info.listInfos.value(MetaInfos::ObjType).toInt() == ObjTypes::VstPlugin) {
+                if(info.Meta(MetaInfos::ObjType).toInt() == ObjTypes::VstPlugin) {
                     objView = new VstPluginView(myHost, model(),parentView);
                 } else {
                     objView = new ConnectableObjectView(myHost, model(),parentView);
@@ -437,8 +437,8 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
 
                 ListPinsView *v=0;
 
-                int media = info.listInfos.value(MetaInfos::Media).toInt();
-                int direction = info.listInfos.value(MetaInfos::Direction).toInt();
+                int media = info.Meta(MetaInfos::Media).toInt();
+                int direction = info.Meta(MetaInfos::Direction).toInt();
                 if(media==MediaTypes::Audio) {
                     if(direction==Directions::Input)
                         v = parentView->listAudioIn;
@@ -475,7 +475,7 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     LOG("MetaTypes::pin list not found");
                     continue;
                 }
-                ConnectionInfo pinInfo = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
+                ObjectInfo pinInfo = index.data(UserRoles::objInfo).value<ObjectInfo>();
                 Connectables::Pin *pin = objFactory->GetPin(pinInfo);
                 if(!pin) {
                     LOG("MetaTypes::pin pin not found");
@@ -486,8 +486,8 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                 ObjectInfo parentInfo = parent.parent().data(UserRoles::objInfo).value<ObjectInfo>();
                 float angle=.0f;
 
-                int media = info.listInfos.value(MetaInfos::Media).toInt();
-                int direction = info.listInfos.value(MetaInfos::Direction).toInt();
+                int media = info.Meta(MetaInfos::Media).toInt();
+                int direction = info.Meta(MetaInfos::Direction).toInt();
 
                 if(media == MetaTypes::bridge) {
                     if(direction==Directions::Input || direction==Directions::Output)
@@ -495,7 +495,7 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     if(direction==Directions::Send || direction==Directions::Return)
                         angle=-1.570796f; //-pi/2
 
-                    pinView = static_cast<PinView*>( new BridgePinView(angle, model(), parentList, pin->GetConnectionInfo(),myHost->mainWindow->viewConfig) );
+                    pinView = static_cast<PinView*>( new BridgePinView(angle, model(), parentList, pin->info(),myHost->mainWindow->viewConfig) );
                     connect(timerFalloff,SIGNAL(timeout()),
                             pinView,SLOT(updateVu()));
                 } else {
@@ -506,12 +506,12 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
 
 
                     if(media==MediaTypes::Parameter) {
-                        MinMaxPinView *p = new MinMaxPinView(angle,model(),parentList,pin->GetConnectionInfo(),myHost->mainWindow->viewConfig);
+                        MinMaxPinView *p = new MinMaxPinView(angle,model(),parentList,pin->info(),myHost->mainWindow->viewConfig);
                         connect(timerFalloff,SIGNAL(timeout()),
                                 p,SLOT(updateVu()));
                         pinView = static_cast<PinView*>(p);
                     } else {
-                        ConnectablePinView *p = new ConnectablePinView(angle, model(), parentList, pin->GetConnectionInfo(),myHost->mainWindow->viewConfig);
+                        ConnectablePinView *p = new ConnectablePinView(angle, model(), parentList, pin->info(),myHost->mainWindow->viewConfig);
                         connect(timerFalloff,SIGNAL(timeout()),
                                 p,SLOT(updateVu()));
                         pinView = static_cast<PinView*>(p);
@@ -525,16 +525,16 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                         this,SLOT(graphicObjectRemoved(QObject*)));
                 mapConnectionInfo.insert(pinInfo,index);
 
-                int pinPlace = parentList->GetPinPosition(pinInfo.pinNumber);
+                int pinPlace = parentList->GetPinPosition(pinInfo.Meta(MetaInfos::PinNumber).toInt());
                 parentList->layout->insertItem(pinPlace, pinView);
 
                 parentList->layout->setAlignment(pinView,Qt::AlignTop);
-                connect(pinView, SIGNAL(ConnectPins(ConnectionInfo,ConnectionInfo)),
-                        this, SLOT(ConnectPins(ConnectionInfo,ConnectionInfo)));
-                connect(pinView,SIGNAL(RemoveCablesFromPin(ConnectionInfo)),
-                        this,SLOT(RemoveCablesFromPin(ConnectionInfo)));
-                connect(pinView,SIGNAL(RemovePin(ConnectionInfo)),
-                        this,SLOT(RemovePin(ConnectionInfo)));
+                connect(pinView, SIGNAL(ConnectPins(ObjectInfo,ObjectInfo)),
+                        this, SLOT(ConnectPins(ObjectInfo,ObjectInfo)));
+                connect(pinView,SIGNAL(RemoveCablesFromPin(ObjectInfo)),
+                        this,SLOT(RemoveCablesFromPin(ObjectInfo)));
+                connect(pinView,SIGNAL(RemovePin(ObjectInfo)),
+                        this,SLOT(RemovePin(ObjectInfo)));
 
                 pinView->UpdateModelIndex(index);
                 break;
@@ -556,8 +556,8 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     LOG("add cable, container not found");
                     continue;
                 }
-                ConnectionInfo infoOut = index.data(UserRoles::value).value<ConnectionInfo>();
-                ConnectionInfo infoIn = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
+                ObjectInfo infoOut = index.data(UserRoles::value).value<ObjectInfo>();
+                ObjectInfo infoIn = index.data(UserRoles::connectionInfo).value<ObjectInfo>();
 
                 if(!mapConnectionInfo.contains(infoOut) || !mapConnectionInfo.contains(infoIn)) {
                     LOG("add cable, connectioninfo not found");
@@ -588,7 +588,7 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     QModelIndex p = parent;
                     while(p.isValid()) {
                         ObjectInfo pinfo = p.data(UserRoles::objInfo).value<ObjectInfo>();
-                        LOG(p.data().toString()<<pinfo.name<<pinfo.metaType);
+                        LOG(p.data().toString()<<pinfo.Meta());
                         p = p.parent();
                     }
                 }
@@ -605,7 +605,7 @@ void SceneView::graphicObjectRemoved ( QObject* obj)
     hashItems.remove( hashItems.key(obj) );
 }
 
-void SceneView::ConnectPins(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn)
+void SceneView::ConnectPins(const ObjectInfo &pinOut, const ObjectInfo &pinIn)
 {
 //    QPersistentModelIndex ixOut = mapConnectionInfo.value(pinOut);
 //    QPersistentModelIndex ixIn = mapConnectionInfo.value(pinIn);
@@ -628,7 +628,7 @@ void SceneView::ConnectPins(const ConnectionInfo &pinOut, const ConnectionInfo &
     emit UndoStackPush( new ComAddCable(myHost,pinOut,pinIn) );
 }
 
-void SceneView::RemoveCablesFromPin(const ConnectionInfo &pin)
+void SceneView::RemoveCablesFromPin(const ObjectInfo &pin)
 {
 //    QPersistentModelIndex ix = mapConnectionInfo.value(pin);
 //    QModelIndex parent = ix.parent().parent().parent();
@@ -638,7 +638,7 @@ void SceneView::RemoveCablesFromPin(const ConnectionInfo &pin)
     emit UndoStackPush( new ComDisconnectPin(myHost,pin) );
 }
 
-void SceneView::RemovePin(const ConnectionInfo &pin)
+void SceneView::RemovePin(const ObjectInfo &pin)
 {
 //    QPersistentModelIndex ix = mapConnectionInfo.value(pin);
 //    QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(pin.objId);

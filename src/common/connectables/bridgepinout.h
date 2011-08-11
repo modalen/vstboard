@@ -28,7 +28,7 @@ namespace Connectables {
     class BridgePinOut : public Pin
     {
     public:
-        BridgePinOut(Object *parent, int number, bool bridge=false);
+        BridgePinOut(Object *parent, ObjectInfo &info);
         void SendMsg(const PinMessage::Enum msgType,void *data=0);
         float GetValue();
 

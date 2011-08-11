@@ -37,10 +37,9 @@ using namespace Connectables;
   \param number pin number in the list
   \param bridge true if this pin is a bridge
   */
-Pin::Pin(Object *parent, MediaTypes::Enum type, Directions::Enum direction, int number, bool bridge) :
+Pin::Pin(Object *parent, ObjectInfo &info) :
     QObject(parent),
-    listId(0),
-    connectInfo(parent->getHost(),parent->GetIndex(),type,direction,number,bridge),
+    ObjectInfo(info),
     value(.0f),
     stepSize(.1f),
     parent(parent),
@@ -48,10 +47,6 @@ Pin::Pin(Object *parent, MediaTypes::Enum type, Directions::Enum direction, int 
     closed(false),
     valueChanged(false)
 {
-    ObjectInfo::metaType = MetaTypes::pin;
-
-    connectInfo.container = parent->GetContainerId();
-//    setObjectName(QString("pin:%1:%2:%3:%4").arg(connectInfo.objId).arg(connectInfo.type).arg(connectInfo.direction).arg(connectInfo.pinNumber));
 }
 
 /*!
@@ -65,34 +60,21 @@ Pin::~Pin()
 }
 
 /*!
-  Set the pin name
-  \param name
-  */
-void Pin::setObjectName(const QString &name)
-{
-    if(modelIndex.isValid())
-        parent->getHost()->GetModel()->setData(modelIndex,name,Qt::DisplayRole);
-
-    QObject::setObjectName(name);
-}
-
-/*!
   Send a message to all the connected pins
   \param msgType PinMessage
   \param data data to send
   */
 void Pin::SendMsg(const PinMessage::Enum msgType,void *data)
 {
-    parent->getHost()->SendMsg(connectInfo,(PinMessage::Enum)msgType,data);
+    parent->getHost()->SendMsg(info(),(PinMessage::Enum)msgType,data);
 }
 
 /*!
   Update the view with the new parent
   \param newParent
   */
-void Pin::SetParentModelIndex(const QModelIndex &newParent, int lstId)
+void Pin::SetParentModelIndex(const QModelIndex &newParent)
 {
-    listId = lstId;
     closed=false;
 
     //moving from another parent (when does it happen ?)
@@ -102,15 +84,6 @@ void Pin::SetParentModelIndex(const QModelIndex &newParent, int lstId)
 
     parentIndex=newParent;
     SetVisible(visible);
-}
-
-/*!
-  Set the new container id
-  \param id the new container id
-  */
-void Pin::SetContainerId(quint16 id)
-{
-    connectInfo.container = id;
 }
 
 /*!
@@ -134,7 +107,10 @@ void Pin::Close()
   */
 void Pin::SetBridge(bool bridge)
 {
-    connectInfo.bridge=bridge;
+    if(bridge)
+        SetMeta(MetaInfos::Media, MediaTypes::Bridge);
+    else
+        DelMeta(MetaInfos::Media);
 }
 
 /*!
@@ -155,8 +131,10 @@ void Pin::SetVisible(bool vis)
 
     if(visible) {// && !modelIndex.isValid()) {
 
-        Events::newPin *event = new Events::newPin(objectName(),GetValue(),connectInfo,stepSize,listId);
-        parent->getHost()->PostEvent(event);
+
+
+//        Events::newObj *event = new Events::newPin(objectName(),GetValue(),connectInfo,stepSize,listId);
+//        parent->getHost()->PostEvent(event);
 
 //        QStandardItem *item = new QStandardItem("pin");
 //        item->setData(objectName(),Qt::DisplayRole);
@@ -176,46 +154,48 @@ void Pin::SetVisible(bool vis)
 
     if(!visible && modelIndex.isValid()) {
         //remove cables from pin
-        QSharedPointer<Object> cnt = parent->getHost()->objFactory->GetObjectFromId(connectInfo.container);
+        QSharedPointer<Object> cnt = parent->getHost()->objFactory->GetObjectFromId(ContainerInfo()->ObjId());
         if(!cnt.isNull()) {
-            static_cast<Container*>(cnt.data())->UserRemoveCableFromPin(connectInfo);
+            static_cast<Container*>(cnt.data())->UserRemoveCableFromPin(info());
         }
 
         //remove pin
-        if(connectInfo.type!=MediaTypes::Bridge) {
+        if(Meta(MetaInfos::Media).toInt()!=MediaTypes::Bridge) {
             disconnect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
                     this,SLOT(updateView()));
         }
 
-        if(modelIndex.isValid())
-            parent->getHost()->GetModel()->removeRow(modelIndex.row(), modelIndex.parent());
+//        if(modelIndex.isValid())
+//            parent->getHost()->GetModel()->removeRow(modelIndex.row(), modelIndex.parent());
         modelIndex=QModelIndex();
     }
+
+//    MetaInfos::UpdateView();
 }
 
-/*!
-  Update the view model
-  Used when moved to a new container
-  */
-void Pin::UpdateModelNode()
-{
-    QStandardItem *item = parent->getHost()->GetModel()->itemFromIndex(modelIndex);
-    if(!item) {
-        LOG("item not found"<<modelIndex);
-        return;
-    }
-    item->setData(objectName(),Qt::DisplayRole);
-    item->setData(GetValue(),UserRoles::value);
-    item->setData(QVariant::fromValue(ObjectInfo(MetaTypes::pin)),UserRoles::objInfo);
-    item->setData(QVariant::fromValue(connectInfo),UserRoles::connectionInfo);
-    item->setData(stepSize,UserRoles::stepSize);
-    modelIndex = item->index();
-    if(connectInfo.type!=MediaTypes::Bridge) {
-        connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
-                this,SLOT(updateView()),
-                Qt::UniqueConnection);
-    }
-}
+///*!
+//  Update the view model
+//  Used when moved to a new container
+//  */
+//void Pin::UpdateModelNode()
+//{
+//    QStandardItem *item = parent->getHost()->GetModel()->itemFromIndex(modelIndex);
+//    if(!item) {
+//        LOG("item not found"<<modelIndex);
+//        return;
+//    }
+//    item->setData(objectName(),Qt::DisplayRole);
+//    item->setData(GetValue(),UserRoles::value);
+//    item->setData(QVariant::fromValue(ObjectInfo(MetaTypes::pin)),UserRoles::objInfo);
+//    item->setData(QVariant::fromValue(connectInfo),UserRoles::connectionInfo);
+//    item->setData(stepSize,UserRoles::stepSize);
+//    modelIndex = item->index();
+//    if(connectInfo.type!=MediaTypes::Bridge) {
+//        connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
+//                this,SLOT(updateView()),
+//                Qt::UniqueConnection);
+//    }
+//}
 
 /*!
   Update view values

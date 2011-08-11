@@ -72,7 +72,7 @@ namespace View {
         QModelIndex traverseTroughIndexes ( QModelIndex index );
 
         QHash<QPersistentModelIndex,QObject*>hashItems;
-        QMap<ConnectionInfo,QPersistentModelIndex>mapConnectionInfo;
+        QMap<ObjectInfo,QPersistentModelIndex>mapConnectionInfo;
 
         QGraphicsScene *sceneHost;
         QGraphicsScene *sceneProject;
@@ -95,9 +95,9 @@ namespace View {
         void UndoStackPush(QUndoCommand *cmd);
 
     public slots:
-        void ConnectPins(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn);
-        void RemoveCablesFromPin(const ConnectionInfo &pin);
-        void RemovePin(const ConnectionInfo &pin);
+        void ConnectPins(const ObjectInfo &pinOut, const ObjectInfo &pinIn);
+        void RemoveCablesFromPin(const ObjectInfo &pin);
+        void RemovePin(const ObjectInfo &pin);
         void ToggleHostView(bool show);
         void ToggleProjectView(bool show);
         void ToggleProgramView(bool show);
