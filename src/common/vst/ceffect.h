@@ -83,7 +83,7 @@ namespace vst
         virtual void EffSetProgramName(char *ptr) { EffDispatch(effSetProgramName, 0, 0, ptr); }
         virtual void EffGetProgramName(char *ptr) { EffDispatch(effGetProgramName, 0, 0, ptr); }
         virtual void EffGetParamLabel(long index, char *ptr) { EffDispatch(effGetParamLabel, index, 0, ptr); }
-        virtual void EffGetParamDisplay(long index, char *ptr) { EffDispatch(effGetParamDisplay, index, 0, ptr); }
+        QString EffGetParamDisplay(long index);
         QString EffGetParamName(long index);
         virtual void EffSetSampleRate(float fSampleRate) { EffDispatch(effSetSampleRate, 0, 0, 0, fSampleRate); }
         virtual void EffSetBlockSize(long value) { EffDispatch(effSetBlockSize, 0, value); }

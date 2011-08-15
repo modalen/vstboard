@@ -26,14 +26,18 @@ using namespace View;
 ConnectablePinView::ConnectablePinView(const MetaInfo &info, float angle, QGraphicsItem * parent, ViewConfig *config) :
     PinView(info,angle,parent,config),
     value(0),
-    overload(0)
+    overload(0),
+    textItem(0),
+    rectVu(0),
+    colorGroupId(ColorGroups::ND),
+    vuColor(Qt::gray)
 {
     setGeometry(0,0,50,15);
     setMinimumSize(50,15);
-    setMaximumSize(50,15);
+    setMaximumSize(100,15);
 
-    outline = new QGraphicsRectItem(geometry(), this);
-    highlight = new QGraphicsRectItem(geometry(), this);
+    outline = new QGraphicsRectItem(rect(), this);
+    highlight = new QGraphicsRectItem(rect(), this);
     highlight->setVisible(false);
 
     rectVu = new QGraphicsRectItem(this);
@@ -52,6 +56,8 @@ ConnectablePinView::ConnectablePinView(const MetaInfo &info, float angle, QGraph
         rectVu->setRect(rect());
         break;
     case MediaTypes::Parameter :
+        defaultCursor = Qt::PointingHandCursor;
+        setCursor(defaultCursor);
         colorGroupId=ColorGroups::ParameterPin;
         break;
     default :
@@ -64,11 +70,7 @@ ConnectablePinView::ConnectablePinView(const MetaInfo &info, float angle, QGraph
     rectVu->setBrush( vuColor );
     highlight->setBrush( config->GetColor(ColorGroups::Object, Colors::HighlightBackground) );
     textItem->setBrush(  config->GetColor(ColorGroups::Object, Colors::Text) );
-
-    if(Meta(MetaInfos::displayedText).isValid())
-        textItem->setText(Meta(MetaInfos::displayedText).toString());
-    else
-        textItem->setText(Name());
+    UpdateModelIndex(info);
 }
 
 void ConnectablePinView::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)
@@ -95,6 +97,33 @@ void ConnectablePinView::UpdateColor(ColorGroups::Enum groupId, Colors::Enum col
     }
 }
 
+void ConnectablePinView::resizeEvent ( QGraphicsSceneResizeEvent * event )
+{
+    PinView::resizeEvent(event);
+
+    if(outline) {
+        QRectF r = outline->rect();
+        r.setSize(event->newSize());
+        outline->setRect(r);
+    }
+    if(highlight){
+        QRectF r = highlight->rect();
+        r.setSize(event->newSize());
+        highlight->setRect(r);
+    }
+    if(rectVu) {
+        QRectF r = rectVu->rect();
+        if(Meta(MetaInfos::Media).toInt() == MediaTypes::Midi) {
+            r.setSize(event->newSize());
+            rectVu->setRect(r);
+        } else if(value>.0f) {
+            r.setWidth(value*event->newSize().width());
+            r.setHeight(event->newSize().height());
+            rectVu->setRect(r);
+        }
+    }
+}
+
 void ConnectablePinView::mousePressEvent ( QGraphicsSceneMouseEvent * event )
 {
     ResetOveload();
@@ -109,13 +138,17 @@ void ConnectablePinView::UpdateModelIndex(const MetaInfo &info)
     if(Meta(MetaInfos::displayedText).isValid())
         newName = Meta(MetaInfos::displayedText).toString();
 
-    if(newName!=textItem->text())
+    if(newName!=textItem->text()) {
         textItem->setText(newName);
+
+        if(textItem->boundingRect().width()>size().width())
+            setMinimumWidth( textItem->boundingRect().width()+10 );
+    }
 
     if(Meta(MetaInfos::Media).toInt() == MediaTypes::Parameter) {
         value = Meta(MetaInfos::Value).toFloat();
-        float newVu = geometry().width() * value;
-        rectVu->setRect(0,0, newVu, geometry().height());
+        float newVu = size().width() * value;
+        rectVu->setRect(0,0, newVu, size().height());
     } else {
         float newVal = Meta(MetaInfos::Value).toFloat();
         value = std::max(value,newVal);
@@ -155,14 +188,14 @@ void ConnectablePinView::updateVu()
         if(value<.0f) {
             value=-1.0f;
         } else {
-            newVu = geometry().width() * value;
+            newVu = size().width() * value;
         }
-        if(newVu<0.0) {
+        if(newVu<0.0f) {
             LOG("updateVu <0"<<newVu);
             newVu=0.0f;
         }
 
-        rectVu->setRect(0,0, newVu, geometry().height());
+        rectVu->setRect(0,0, newVu, size().height());
     }
 
     if(Meta(MetaInfos::Media).toInt()== MediaTypes::Midi) {
@@ -174,8 +207,8 @@ void ConnectablePinView::updateVu()
         }
         QColor c = vuColor;
 
-        if(value<0.7)
-            c.setAlphaF( value/0.7 );
+        if(value<0.7f)
+            c.setAlphaF( value/0.7f );
 
         rectVu->setBrush(c);
     }

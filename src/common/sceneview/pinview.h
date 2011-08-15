@@ -79,10 +79,10 @@ namespace View {
         void dropEvent ( QGraphicsSceneDragDropEvent  * event );
 
         /// outline
-        QAbstractGraphicsShapeItem *outline;
+        QGraphicsRectItem *outline;
 
         /// highlight
-        QAbstractGraphicsShapeItem *highlight;
+        QGraphicsRectItem *highlight;
 
         /// list of connected cables
         QList<CableView *> connectedCables;
@@ -94,6 +94,8 @@ namespace View {
 
         QAction *actDel;
         QAction *actUnplug;
+
+        Qt::CursorShape defaultCursor;
 
     signals:
         /*!

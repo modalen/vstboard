@@ -1,7 +1,7 @@
 #ifndef OBJECTDROPZONE_H
 #define OBJECTDROPZONE_H
 
-#include <QGraphicsWidget>
+#include "precomp.h"
 
 namespace View {
     class ObjectDropZone : public QGraphicsWidget

@@ -38,9 +38,11 @@ namespace View {
 
 
     protected:
-        QAbstractGraphicsShapeItem *vuValue;
+        QGraphicsPolygonItem *bridgeOutline;
+        QGraphicsPolygonItem *bridgeVuValue;
+        QGraphicsPolygonItem *bridgeHighlight;
         float value;
-        MediaTypes::Enum valueType;
+//        MediaTypes::Enum valueType;
 
     public slots:
         void updateVu();

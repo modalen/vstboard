@@ -40,7 +40,7 @@ namespace View {
         VstPluginWindow(QWidget *parent = 0);
         ~VstPluginWindow();
 
-        bool SetPlugin(Connectables::VstPlugin *plugin);
+        bool SetPlugin(QObject *plug);
         WId GetWinId();
 //        const QPixmap GetScreenshot();
 
@@ -62,6 +62,7 @@ namespace View {
         void Hide();
 
     public slots:
+        void UnsetPlugin();
         void SetWindowSize(int newWidth, int newHeight);
 
     };

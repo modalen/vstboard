@@ -62,14 +62,8 @@ VstPlugin::~VstPlugin()
 bool VstPlugin::Close()
 {
     if(editorWnd) {
-        editorWnd->disconnect();
-        editorWnd->SetPlugin(0);
-        disconnect(editorWnd);
-        QTimer::singleShot(0,editorWnd,SLOT(close()));
+        QMetaObject::invokeMethod(editorWnd, "UnsetPlugin", Qt::BlockingQueuedConnection);
         editorWnd=0;
-        objMutex.lock();
-        EffEditClose();
-        objMutex.unlock();
     }
     mapPlugins.remove(pEffect);
 
@@ -432,13 +426,6 @@ void VstPlugin::RaiseEditor()
     editorWnd->raise();
 }
 
-//void VstPlugin::TakeScreenshot()
-//{
-//    const QPixmap backgroundPic = editorWnd->GetScreenshot();
-//    ImageCollection::Get()->AddImage( QString::number( pEffect->uniqueID ), backgroundPic );
-//    modelNode->setData( QString::number( pEffect->uniqueID ), UserRoles::editorImage );
-//}
-
 void VstPlugin::SetEditorWnd(QWidget *wnd)
 {
     if(editorWnd) {
@@ -447,13 +434,6 @@ void VstPlugin::SetEditorWnd(QWidget *wnd)
     }
 
     editorWnd = static_cast<View::VstPluginWindow*>(wnd);
-    editorWnd->setAttribute(Qt::WA_ShowWithoutActivating);
-
-    if(!editorWnd->SetPlugin(this)) {
-        editorWnd=0;
-        OnHideEditor();
-        return;
-    }
 
     connect(this,SIGNAL(ShowEditorWindow()),
             editorWnd,SLOT(show()));
@@ -465,14 +445,6 @@ void VstPlugin::SetEditorWnd(QWidget *wnd)
             this,SLOT(EditorDestroyed()));
     connect(this,SIGNAL(WindowSizeChange(int,int)),
             editorWnd,SLOT(SetWindowSize(int,int)));
-
-    //no screenshot in db, create one
-//    if(!ImageCollection::Get()->ImageExists(QString::number( pEffect->uniqueID ))) {
-//        OnEditorVisibilityChanged(true);
-//        connect(MainHost::Get()->updateViewTimer,SIGNAL(timeout()),
-//                this,SLOT(EditIdle()));
-//        QTimer::singleShot(100,this,SLOT(TakeScreenshot()));
-//    }
 }
 
 void VstPlugin::OnEditorClosed()
@@ -547,14 +519,17 @@ void VstPlugin::EditIdle()
 QString VstPlugin::GetParameterName(const MetaInfo &pinInfo)
 {
     if(closed)
-        return "nd";
+        return "";
+
 
     int pinnumber = pinInfo.Meta(MetaInfos::PinNumber).toInt();
-    if(pEffect && pinnumber < pEffect->numParams)
-        return EffGetParamName( pinnumber );
-    else
-        LOG("parameter id out of range"<<pinnumber);
+    if(pEffect && pinnumber < pEffect->numParams) {
+        QString s( EffGetParamName(pinnumber) );
+        s.append( EffGetParamDisplay(pinnumber) );
+        return s;
+    }
 
+    LOG("parameter id out of range"<<pinnumber);
     return "";
 }
 
@@ -640,27 +615,25 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
                 case LearningMode::unlearn :
                     if(!pin->Meta(MetaInfos::Hidden).toBool())
                         emit UndoStackPush( new ComRemovePin(myHost, pin->info()) );
-//                    pin->SetVisible(false);
                     break;
 
                 case LearningMode::learn :
                     if(pin->Meta(MetaInfos::Hidden).toBool())
                         emit UndoStackPush( new ComAddPin(myHost, pin->info()) );
-//                    pin->SetVisible(true);
 
                 case LearningMode::off :
-                    pin->ChangeValue(opt);
+                    pin->ChangeValue(opt,true);
 
                 }
             }
-            break;
+            return 1L;
 
         case audioMasterCurrentId : //2
             return Meta(MetaInfos::devId).toInt();
 
         case audioMasterIdle : //3
             QApplication::processEvents();
-            break;
+            return 1L;
 
         case audioMasterPinConnected : { //4
             Pin *p=0;
@@ -680,7 +653,7 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
 
         case audioMasterWantMidi : //6
             bWantMidi=true;
-            return true;
+            return 1L;
 
         case audioMasterProcessEvents : //8
             processEvents((VstEvents*)ptr);
@@ -703,7 +676,7 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
 
         case audioMasterSizeWindow : //15
             emit WindowSizeChange((int)index,(int)value);
-            break;
+            return 1L;
 
         case audioMasterGetSampleRate : //16
             return sampleRate;
@@ -866,7 +839,7 @@ Pin* VstPlugin::CreatePin(MetaInfo &info)
                     info.SetMeta(MetaInfos::Removable, hasEditor);
                 }
                 pin = new ParameterPin(this,info,EffGetParameter(info.Meta(MetaInfos::PinNumber).toInt()));
-                pin->SetDefaultVisible(!hasEditor);
+//                pin->SetDefaultVisible(!hasEditor);
                 pin->SetNameCanChange(hasEditor);
                 return pin;
             }

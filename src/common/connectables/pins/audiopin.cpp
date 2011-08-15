@@ -135,7 +135,7 @@ float AudioPin::GetValue()
     float newVu=.0f;
     newVu=buffer->GetVu();
 
-    if(newVu != value) {
+    if(newVu != internValue) {
         valueChanged=true;
     }
     return newVu;

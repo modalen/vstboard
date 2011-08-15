@@ -24,11 +24,31 @@
 using namespace View;
 
 MinMaxPinView::MinMaxPinView(const MetaInfo &info, float angle, QGraphicsItem * parent, ViewConfig *config) :
-        ConnectablePinView(info,angle,parent,config),
-        cursorCreated(false)
+    ConnectablePinView(info,angle,parent,config),
+    cursorCreated(false),
+    inMin(0),
+    inMax(0),
+    outMin(0),
+    outMax(0),
+    scaledView(0)
 {
-    if(Meta(MetaInfos::LimitInMin).isValid())
+    if(Meta(MetaInfos::LimitEnabled).isValid())
         CreateCursors();
+
+    UpdateModelIndex(info);
+}
+
+void MinMaxPinView::resizeEvent ( QGraphicsSceneResizeEvent * event )
+{
+    ConnectablePinView::resizeEvent(event);
+
+    if(cursorCreated) {
+        inMin->setPos( Meta(MetaInfos::LimitInMin).toFloat()*event->newSize().width(), 0 );
+        inMax->setPos( Meta(MetaInfos::LimitInMax).toFloat()*event->newSize().width(), 0 );
+        outMin->setPos( Meta(MetaInfos::LimitOutMin).toFloat()*event->newSize().width(), 0 );
+        outMax->setPos( Meta(MetaInfos::LimitOutMax).toFloat()*event->newSize().width(), 0 );
+        UpdateScaleView();
+    }
 }
 
 void MinMaxPinView::CreateCursors()

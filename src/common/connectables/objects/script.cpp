@@ -60,7 +60,6 @@ void Script::SetEditorWnd(QWidget *wnd)
     }
 
     editorWnd = static_cast<View::ScriptEditor*>(wnd);
-    editorWnd->setAttribute(Qt::WA_ShowWithoutActivating);
 
     editorWnd->SetObject(this);
     connect(editorWnd, SIGNAL(Execute(QString)),

@@ -41,14 +41,7 @@ namespace Events {
         sendObj(const MetaInfo &objInfo, Events::type type) :
             QEvent((QEvent::Type)type),
             objInfo(objInfo)
-        {}
-
-        QStandardItem *CreateItem() {
-            QStandardItem *item = new QStandardItem(objInfo.Name());
-            item->setData(QVariant::fromValue(objInfo), UserRoles::objInfo);
-            item->setData(objInfo.ObjId(), UserRoles::value);
-//            item->setData(errorMessage, UserRoles::errorMessage);
-            return item;
+        {
         }
 
         MetaInfo objInfo;

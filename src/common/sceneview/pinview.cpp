@@ -45,10 +45,11 @@ PinView::PinView(const MetaInfo &info, float angle, QGraphicsItem * parent, View
     outline(0),
     highlight(0),
     pinAngle(angle),
-    config(config)
+    config(config),
+    defaultCursor(Qt::OpenHandCursor)
 {
     setAcceptDrops(true);
-    setCursor(Qt::PointingHandCursor);
+    setCursor(defaultCursor);
     connect( config, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)) ,
             this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
 
@@ -157,7 +158,7 @@ void PinView::mouseMoveEvent ( QGraphicsSceneMouseEvent  * event )
         delete currentLine;
         currentLine = 0;
     }
-    setCursor(Qt::OpenHandCursor);
+    setCursor(defaultCursor);
 }
 
 /*!
@@ -166,7 +167,7 @@ void PinView::mouseMoveEvent ( QGraphicsSceneMouseEvent  * event )
   */
 void PinView::mouseReleaseEvent ( QGraphicsSceneMouseEvent  * /*event*/ )
 {
-    setCursor(Qt::OpenHandCursor);
+    setCursor(defaultCursor);
 }
 
 /*!

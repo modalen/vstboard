@@ -33,6 +33,7 @@ namespace View {
         void UpdateModelIndex(const MetaInfo &info);
 
     protected:
+        void resizeEvent ( QGraphicsSceneResizeEvent * event );
         void CreateCursors();
         void UpdateScaleView();
         CursorView *inMin;

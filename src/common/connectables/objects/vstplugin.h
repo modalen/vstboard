@@ -42,14 +42,11 @@ namespace Connectables {
         bool Open();
         bool Close();
         void Render();
-//        long OnGetUniqueId() { return index; }
         VstIntPtr OnMasterCallback(long opcode, long index, long value, void *ptr, float opt, long currentReturnCode);
         void SetSleep(bool sleeping);
         void MidiMsgFromInput(long msg);
         QString GetParameterName(const MetaInfo &pinInfo);
         inline AEffect* GetPlugin() {return pEffect;}
-
-        View::VstPluginWindow *editorWnd;
 
         static QMap<AEffect*,VstPlugin*>mapPlugins;
         static VstPlugin *pluginLoading;
@@ -62,13 +59,10 @@ namespace Connectables {
 
         bool DropFile(const QString &filename);
 
-//        QStandardItem *GetFullItem();
-
         QDataStream & toStream (QDataStream &) const;
         bool fromStream (QDataStream &);
 
     protected:
-//        void SetId(int id) {objInfo.listInfos[MetaInfos::id] = id;}
         bool initPlugin();
         void processEvents(VstEvents* events);
         void onVstProgramChanged();
@@ -88,6 +82,9 @@ namespace Connectables {
 
         char *savedChunk;
         quint32 savedChunkSize;
+
+    private:
+        View::VstPluginWindow *editorWnd;
 
     signals:
         void WindowSizeChange(int newWidth, int newHeight);

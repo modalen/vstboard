@@ -33,7 +33,6 @@ namespace View {
     public:
         explicit CursorView(MetaInfos::Enum type,QGraphicsItem *parent, ViewConfig *config);
         void SetValue(float newVal);
-//        void SetModelIndex(const MetaInfo &info);
         inline float GetValue() const {return value;}
         void setPos ( const QPointF & pos );
         void setPos ( qreal x, qreal y );

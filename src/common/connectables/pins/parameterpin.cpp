@@ -31,7 +31,6 @@ ParameterPin::ParameterPin(Object *parent, MetaInfo &info, float defaultValue) :
         Pin(parent,info),
         listValues(0),
         internStepIndex(0),
-        defaultVisible(true),
         defaultValue(defaultValue),
         defaultIndex(0),
         loading(false),
@@ -41,11 +40,12 @@ ParameterPin::ParameterPin(Object *parent, MetaInfo &info, float defaultValue) :
 {
     stepSize=.1f;
     SetMeta(MetaInfos::StepSize, stepSize );
+    SetMeta(MetaInfos::DefaultValue,defaultValue);
     SetLimitsEnabled(true);
 
-    value = defaultValue;
+    internValue = defaultValue;
     loading=true;
-    OnValueChanged( defaultValue );
+    ChangeValue(defaultValue,true);
     loading=false;
 }
 
@@ -53,32 +53,35 @@ ParameterPin::ParameterPin(Object *parent, MetaInfo &info, float defaultValue) :
 ParameterPin::ParameterPin(Object *parent, MetaInfo &info, const QVariant &defaultVariantValue, QList<QVariant> *listValues) :
         Pin(parent,info),
         listValues(listValues),
-        defaultVisible(true),
         defaultValue( .0f ),
         loading(false),
         dirty(false),
         outStepIndex(0),
         outValue(.0f)
 {
-//    SetVisible(true);
     stepSize=1.0f/(listValues->size()-1);
     SetMeta(MetaInfos::StepSize, stepSize );
     SetLimitsEnabled(true);
 
     internStepIndex=listValues->indexOf(defaultVariantValue);
     defaultIndex=internStepIndex;
-    OnValueChanged( .0f);//stepIndex*stepSize );
+    SetMeta(MetaInfos::ValueStep,internStepIndex);
+    SetMeta(MetaInfos::DefaultValueStep,defaultIndex);
+
+    ChangeValue(internStepIndex*stepSize,true);
     loading=false;
 }
 
 void ParameterPin::SetLimitsEnabled(bool enable)
 {
     if(enable) {
+        SetMeta(MetaInfos::LimitEnabled,true);
         SetMeta(MetaInfos::LimitInMin, .0f);
         SetMeta(MetaInfos::LimitInMax, 1.0f);
         SetMeta(MetaInfos::LimitOutMin, .0f);
         SetMeta(MetaInfos::LimitOutMax, 1.0f);
     } else {
+        DelMeta(MetaInfos::LimitEnabled);
         DelMeta(MetaInfos::LimitInMin);
         DelMeta(MetaInfos::LimitInMax);
         DelMeta(MetaInfos::LimitOutMin);
@@ -100,17 +103,17 @@ void ParameterPin::SetRemoveable()
 
 void ParameterPin::GetDefault(ObjectParameter &param)
 {
-    param.index=defaultIndex;
-    param.value=defaultValue;
+    param.index=Meta(MetaInfos::DefaultValueStep).toInt();//defaultIndex;
+    param.value=Meta(MetaInfos::DefaultValue).toFloat();//defaultValue;
     param.visible = !Meta(MetaInfos::Hidden).toBool();
 //    param.visible=defaultVisible;
 }
 
 void ParameterPin::GetValues(ObjectParameter &param)
 {
-    param.index=internStepIndex;
+    param.index=Meta(MetaInfos::ValueStep).toFloat();//internStepIndex;
     param.value=Meta(MetaInfos::Value).toFloat();
-    param.visible=!Meta(MetaInfos::Hidden).toBool();;
+    param.visible=!Meta(MetaInfos::Hidden).toBool();
     param.limitInMin=Meta(MetaInfos::LimitInMin).toFloat();
     param.limitInMax=Meta(MetaInfos::LimitInMax).toFloat();
     param.limitOutMin=Meta(MetaInfos::LimitOutMin).toFloat();
@@ -130,9 +133,15 @@ void ParameterPin::ChangeValue(float val, bool fromObj)
     val = std::max(val,.0f);
 
     float oldVal = outValue;
-    OnValueChanged(val);
+
+    internValue = val;
+    outValue = ScaleValue(val);
+
     if(!loading && std::abs(oldVal-outValue)<0.001f)
         return;
+
+    SetMeta(MetaInfos::Value,internValue);
+    OnValueChanged();
 
     if(!fromObj)
         parent->OnParameterChanged(info(),outValue);
@@ -145,12 +154,18 @@ void ParameterPin::ChangeValue(int index, bool fromObj)
     index = std::max(index,0);
 
     int oldVal=outStepIndex;
-    internStepIndex=index;
+    internValue = FloatFromInt(index);
+    outValue = ScaleValue( internValue );
 
-    OnValueChanged( FloatFromInt(index) );
+    internStepIndex = index;
+    outStepIndex = IntFromFloat(outValue);
 
     if(!loading && oldVal==outStepIndex)
         return;
+
+    SetMeta(MetaInfos::ValueStep,internStepIndex);
+    SetMeta(MetaInfos::Value,FloatFromInt(index));
+    OnValueChanged();
 
     if(!fromObj)
         parent->OnParameterChanged(info(),outValue);
@@ -207,15 +222,9 @@ void ParameterPin::Load(const ObjectParameter &param)
     loading = false;
 }
 
-void ParameterPin::OnValueChanged(float val)
+void ParameterPin::OnValueChanged()
 {
-//    float test = std::abs(value-val);
-//    if(std::abs(value-val)>0.001f)
-        valueChanged=true;
-
-    value=val;
-    outValue=ScaleValue(val);
-    outStepIndex = IntFromFloat(outValue);
+    valueChanged=true;
 
     if(!loading && !dirty && Meta(MetaInfos::Direction).toInt()==Directions::Input) {
         dirty=true;
@@ -226,10 +235,8 @@ void ParameterPin::OnValueChanged(float val)
         if(nameCanChange)
             SetName(parent->GetParameterName(info()));
 
-        if(listValues) {
+        if(listValues)
             SetMeta(MetaInfos::displayedText, QString("%1:%2").arg(Name()).arg(listValues->at(outStepIndex).toString()) );
-            valueChanged=true;
-        }
     }
 
     if(Meta(MetaInfos::Direction).toInt()==Directions::Output)

@@ -70,9 +70,9 @@ void BridgePinIn::NewRenderLoop()
 float BridgePinIn::GetValue()
 {
     if(valueChanged) {
-        if(value==1.0f) value=0.99f;
-        else value=1.0f;
+        if(internValue==1.0f) internValue=0.99f;
+        else internValue=1.0f;
         SetMeta(MetaInfos::Media, valueType);
     }
-    return value;
+    return internValue;
 }

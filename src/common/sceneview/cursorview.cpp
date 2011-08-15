@@ -124,13 +124,8 @@ void CursorView::SetValue(float newVal)
     value=newVal;
 
     setPos(value*parentWidget()->rect().width(),0);
+    return;
 }
-
-//void CursorView::SetModelIndex(const MetaInfo &info)
-//{
-//    *(MetaInfo*)this=info;
-//    SetValue(Meta(MetaInfos::Value).toFloat());
-//}
 
 void CursorView::ValueChanged(float newVal)
 {
@@ -140,7 +135,6 @@ void CursorView::ValueChanged(float newVal)
     if(newVal<0.0f) newVal=0.0f;
 
     emit valChanged(type,newVal);
-//    model->setData(modelIndex,newVal,UserRoles::value);
 }
 
 QVariant CursorView::itemChange(GraphicsItemChange change, const QVariant &value)

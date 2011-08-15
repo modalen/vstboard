@@ -83,9 +83,10 @@ bool HostModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, Insert
             info.setFile( fName );
 
             if ( info.isFile() && info.isReadable() ) {
+                QString fileType(info.suffix().toLower());
 #ifdef VSTSDK
                 //vst plugin
-                if ( info.suffix()=="dll" ) {
+                if ( fileType=="dll" ) {
 
                     MetaInfo infoVst(MetaTypes::object);
                     infoVst.SetMeta(MetaInfos::ObjType, ObjTypes::VstPlugin);
@@ -94,7 +95,7 @@ bool HostModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, Insert
                 }
 #endif
                 //setup file
-                if ( info.suffix()==SETUP_FILE_EXTENSION ) {
+                if ( fileType==SETUP_FILE_EXTENSION ) {
                     if(myHost->programsModel->userWantsToUnloadSetup()) {
                         //load on the next loop : we have to get out of the container before loading files
                         LoadFileMapper->setMapping(delayedAction, fName);
@@ -104,7 +105,7 @@ bool HostModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, Insert
                 }
 
                 //project file
-                if ( info.suffix()==PROJECT_FILE_EXTENSION ) {
+                if ( fileType==PROJECT_FILE_EXTENSION ) {
                     if(myHost->programsModel->userWantsToUnloadProject()) {
                         //load on the next loop : we have to get out of the container before loading files
                         LoadFileMapper->setMapping(delayedAction, fName);
@@ -114,20 +115,20 @@ bool HostModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, Insert
                 }
 
                 //fxb file
-                if( info.suffix() == VST_BANK_FILE_EXTENSION || info.suffix() == VST_PROGRAM_FILE_EXTENSION) {
+                if( fileType == VST_BANK_FILE_EXTENSION || fileType == VST_PROGRAM_FILE_EXTENSION) {
                     QSharedPointer<Connectables::VstPlugin> senderObj = myHost->objFactory->GetObjectFromId(senderInfo.ObjId()).staticCast<Connectables::VstPlugin>();
                     if(!senderObj) {
                         LOG("fxb fxp target not found");
                         return false;
                     }
 
-                    if( info.suffix() == VST_BANK_FILE_EXTENSION && senderObj->LoadBank(fName) ) {
+                    if( fileType == VST_BANK_FILE_EXTENSION && senderObj->LoadBank(fName) ) {
                         senderInfo.SetMeta(MetaInfos::bankFile,fName);
                         return true;
                     }
 
 
-                    if( info.suffix() == VST_PROGRAM_FILE_EXTENSION && senderObj->LoadProgram(fName) ) {
+                    if( fileType == VST_PROGRAM_FILE_EXTENSION && senderObj->LoadProgram(fName) ) {
                         senderInfo.SetMeta(MetaInfos::programFile,fName);
                         return true;
                     }

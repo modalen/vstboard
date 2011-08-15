@@ -53,7 +53,7 @@ namespace Connectables {
           Get the current value (vu meter or parameter value)
           \return current value
           */
-        virtual float GetValue() {return value;}
+        virtual float GetValue() {return internValue;}
 
 //        virtual void SetParentModelIndex(const QModelIndex &newParent);
 
@@ -74,7 +74,7 @@ namespace Connectables {
     protected:
 
         /// current value
-        float value;
+        float internValue;
 
         /// pointer to the parent Object
         Object *parent;

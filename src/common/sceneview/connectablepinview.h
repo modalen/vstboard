@@ -32,8 +32,9 @@ namespace View {
     public:
         ConnectablePinView(const MetaInfo &info, float angle, QGraphicsItem * parent, ViewConfig *config);
         virtual void UpdateModelIndex(const MetaInfo &info);
-
+bool ent;
     protected:
+        void resizeEvent ( QGraphicsSceneResizeEvent * event );
         void keyPressEvent ( QKeyEvent * event );
         void ValueChanged(float newVal);
         void wheelEvent ( QGraphicsSceneWheelEvent * event );

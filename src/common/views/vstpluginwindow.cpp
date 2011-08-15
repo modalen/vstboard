@@ -30,6 +30,7 @@ VstPluginWindow::VstPluginWindow(QWidget *parent) :
     ui(new Ui::VstPluginWindow)
 {
     setAttribute(Qt::WA_DeleteOnClose);
+    setAttribute(Qt::WA_ShowWithoutActivating);
     ui->setupUi(this);
 }
 
@@ -38,30 +39,29 @@ VstPluginWindow::~VstPluginWindow()
     delete ui;
 }
 
-//void VstPluginWindow::changeEvent(QEvent *e)
-//{
-//    QFrame::changeEvent(e);
-//    switch (e->type()) {
-//    case QEvent::LanguageChange:
-//        ui->retranslateUi(this);
-//        break;
-//    default:
-//        break;
-//    }
-//}
-
 WId VstPluginWindow::GetWinId()
 {
     return ui->scrollAreaWidgetContents->winId();
 }
 
-bool VstPluginWindow::SetPlugin(Connectables::VstPlugin *plugin)
+void VstPluginWindow::UnsetPlugin()
 {
-    bool windowOk = false;
-    this->plugin = plugin;
+    if(plugin) {
+        disconnect(plugin);
+        plugin->disconnect();
+        plugin->EffEditClose();
+        plugin = 0;
+    }
+    close();
+}
 
+bool VstPluginWindow::SetPlugin(QObject *plug)
+{
+    plugin = static_cast<Connectables::VstPlugin*>(plug);
     if(!plugin)
         return false;
+
+    bool windowOk = false;
 
     setWindowFlags(Qt::Tool);
 
@@ -75,7 +75,7 @@ bool VstPluginWindow::SetPlugin(Connectables::VstPlugin *plugin)
 
     //try to open the window
     plugin->objMutex.lock();
-    res = plugin->EffEditOpen(ui->scrollAreaWidgetContents->winId());
+    res = plugin->EffEditOpen(GetWinId());
     plugin->objMutex.unlock();
 
     if(res == 1L)
@@ -86,12 +86,15 @@ bool VstPluginWindow::SetPlugin(Connectables::VstPlugin *plugin)
     if(res == 1L)
         windowOk=true;
 
-    if(!windowOk)
+    if(!windowOk) {
+        plugin=0;
         return false;
+    }
 
     SetWindowSize(rect->right, rect->bottom);
     setWindowTitle(plugin->objectName());
 
+    plugin->SetEditorWnd(this);
     return true;
 }
 

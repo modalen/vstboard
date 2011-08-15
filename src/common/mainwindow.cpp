@@ -123,20 +123,20 @@ bool MainWindow::event(QEvent *event)
         case Events::typeNewObj : {
             Events::sendObj *e = static_cast<Events::sendObj*>(event);
             e->objInfo.SetModel(hostModel);
-            LOG("add" << e->objInfo.toStringFull());
+//            LOG("add" << e->objInfo.toStringFull());
             mySceneView->AddObj(e->objInfo);
             return true;
         }
         case Events::typeDelObj : {
             Events::delObj *e = static_cast<Events::delObj*>(event);
-            LOG("del" << e->objId);
+//            LOG("del" << e->objId);
             mySceneView->DelObj(e->objId);
             return true;
         }
         case Events::typeUpdateObj : {
             Events::sendObj *e = static_cast<Events::sendObj*>(event);
             e->objInfo.SetModel(hostModel);
-            LOG("update" << e->objInfo.toStringFull());
+//            LOG("update" << e->objInfo.toStringFull());
             mySceneView->UpdateObj(e->objInfo);
             return true;
         }
@@ -159,7 +159,8 @@ void MainWindow::DisplayMessage(QMessageBox::Icon icon,const QString &text, cons
 void MainWindow::CreateNewPluginWindow(QObject* obj)
 {
     View::VstPluginWindow *editorWnd = new View::VstPluginWindow(this);
-    static_cast<Connectables::Object*>(obj)->SetEditorWnd(editorWnd);
+    if(!editorWnd->SetPlugin(obj))
+        editorWnd->close();
 }
 void MainWindow::CreateNewScriptEditor(QObject* obj)
 {

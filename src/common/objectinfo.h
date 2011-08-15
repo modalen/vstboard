@@ -57,6 +57,9 @@ namespace MetaInfos {
         Removable,
         Bridge,
         Value,
+        ValueStep,
+        DefaultValue,
+        DefaultValueStep,
         StepSize,
         Dirty,
         DoublePrecision,
@@ -69,10 +72,11 @@ namespace MetaInfos {
         EditorPosition,
         EditorVScroll,
         EditorHScroll,
+        LimitEnabled,
         LimitInMin,
         LimitInMax,
         LimitOutMin,
-        LimitOutMax,
+        LimitOutMax
     };
 }
 

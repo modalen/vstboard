@@ -45,21 +45,14 @@ namespace Connectables {
         void ChangeValue(const QVariant &variant, bool fromObj=false);
         void Load(const ObjectParameter &param);
 
-        virtual void OnValueChanged(float val);
+        void OnValueChanged();
 
         inline int GetIndex() {return outStepIndex;}
         QVariant GetVariantValue();
         void SetVariantValue(const QVariant &val);
-
         void GetDefault(ObjectParameter &param);
         void GetValues(ObjectParameter &param);
-
-        void SetDefaultValue(float value) {defaultValue = value;}
-        void SetDefaultVisible(bool vis) {defaultVisible = vis;}
         void SetRemoveable();
-//        void SetVisible(bool vis);
-
-//        void SetLimit(Directions::Enum direction, LimitTypes::Enum limit, float newVal);
         void SetLimitsEnabled(bool enable);
 
     private:
@@ -69,7 +62,6 @@ namespace Connectables {
         QList<QVariant> *listValues;
         int internStepIndex;
         float stepSize;
-        bool defaultVisible;
         float defaultValue;
         int defaultIndex;
         bool loading;
@@ -77,17 +69,6 @@ namespace Connectables {
 
         int outStepIndex;
         float outValue;
-
-//        QPersistentModelIndex indexLimitInMin;
-//        QPersistentModelIndex indexLimitInMax;
-//        QPersistentModelIndex indexLimitOutMin;
-//        QPersistentModelIndex indexLimitOutMax;
-//        MetaInfo metaLimitInMin;
-//        MetaInfo metaLimitInMax;
-//        MetaInfo metaLimitOutMin;
-//        MetaInfo metaLimitOutMax;
-
-//        bool limitsEnabled;
 
     signals:
         void SetProgDirty();
