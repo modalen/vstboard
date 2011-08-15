@@ -20,20 +20,20 @@
 
 
 #include "objectfactory.h"
-#include "midisender.h"
-#include "miditoautomation.h"
-#include "hostcontroller.h"
-#include "container.h"
-#include "bridge.h"
+#include "objects/midisender.h"
+#include "objects/miditoautomation.h"
+#include "objects/hostcontroller.h"
+#include "objects/container.h"
+#include "objects/bridge.h"
 #include "mainhost.h"
 
 #ifdef SCRIPTENGINE
-    #include "script.h"
+    #include "objects/script.h"
 #endif
 
 #ifdef VSTSDK
-    #include "vstplugin.h"
-    #include "../vst/cvsthost.h"
+    #include "objects/vstplugin.h"
+    #include "vst/cvsthost.h"
 #endif
 
 /*!
@@ -91,32 +91,47 @@ int ObjectFactory::IdFromSavedId(int savedId)
     return -1;
 }
 
-Pin *ObjectFactory::GetPin(const ObjectInfo &pinInfo)
+Pin *ObjectFactory::GetPin(const MetaInfo &pinInfo)
 {
-    if(!listObjects.contains(pinInfo.ObjId())) {
-        LOG("obj not found"<<pinInfo.ObjId());
+    if(!listObjects.contains(pinInfo.ParentObjectId())) {
+        LOG("obj not found"<<pinInfo.toStringFull());
         return 0;
     }
 
-    QSharedPointer<Object> objPtr = listObjects.value(pinInfo.ObjId()).toStrongRef();
+    QSharedPointer<Object> objPtr = listObjects.value(pinInfo.ParentObjectId()).toStrongRef();
     if(objPtr)
         return objPtr->GetPin(pinInfo);
 
     return 0;
 }
 
+bool ObjectFactory::UpdatePinInfo(MetaInfo &pinInfo)
+{
+    if(!listObjects.contains(pinInfo.ParentObjectId())) {
+        LOG("obj not found"<<pinInfo.toStringFull());
+        return false;
+    }
+
+    QSharedPointer<Object> objPtr = listObjects.value(pinInfo.ParentObjectId()).toStrongRef();
+    if(!objPtr)
+        return false;
+
+    pinInfo = objPtr->GetPin(pinInfo)->info();
+    return true;
+}
+
 QSharedPointer<Object> ObjectFactory::GetObj(const QModelIndex & index)
 {
     //the object is not created, do it
     if(!index.data(UserRoles::value).isValid()) {
-        return NewObject( index.data(UserRoles::objInfo).value<ObjectInfo>() );
+        return NewObject( index.data(UserRoles::objInfo).value<MetaInfo>() );
     }
 
     //or return the existing object
     return GetObjectFromId(index.data(UserRoles::value).toInt());
 }
 
-QSharedPointer<Object> ObjectFactory::NewObject( ObjectInfo &info)
+QSharedPointer<Object> ObjectFactory::NewObject( MetaInfo &info)
 {
     int forcedObjId = 0;//cptListObjects;
     if(info.ObjId()!=0) {
@@ -133,7 +148,7 @@ QSharedPointer<Object> ObjectFactory::NewObject( ObjectInfo &info)
     obj=CreateOtherObjects(info);
 
     if(!obj) {
-        switch(info.Meta()) {
+        switch(info.Type()) {
 
             case MetaTypes::container :
                 obj = new Container(myHost, info);
@@ -182,7 +197,7 @@ QSharedPointer<Object> ObjectFactory::NewObject( ObjectInfo &info)
 
 
             default :
-                LOG("unknown nodeType"<<info.Meta());
+                LOG("unknown nodeType"<<info.Type());
                 return QSharedPointer<Object>();
         }
     }

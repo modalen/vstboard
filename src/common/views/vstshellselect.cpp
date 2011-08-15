@@ -21,7 +21,7 @@
 #include "vstshellselect.h"
 #include "ui_vstshellselect.h"
 #include "mainhost.h"
-#include "connectables/vstplugin.h"
+#include "connectables/objects/vstplugin.h"
 #include "commands/comaddobject.h"
 using namespace View;
 

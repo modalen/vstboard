@@ -22,7 +22,7 @@
 #define VSTAUDIODEVICEOUT_H
 
 //#include "precomp.h"
-#include "connectables/object.h"
+#include "connectables/objects/object.h"
 #include "objectinfo.h"
 
 class AudioBuffer;
@@ -33,7 +33,7 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        VstAudioDeviceOut(MainHost *myHost, ObjectInfo &info);
+        VstAudioDeviceOut(MainHost *myHost, MetaInfo &info);
         ~VstAudioDeviceOut();
 
         bool Open();

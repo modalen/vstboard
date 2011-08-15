@@ -24,7 +24,7 @@
 
 using namespace Connectables;
 
-MidiDevice::MidiDevice(MainHost *myHost, ObjectInfo &info) :
+MidiDevice::MidiDevice(MainHost *myHost, MetaInfo &info) :
         Object(myHost, info),
         stream(0),
         queue(0),

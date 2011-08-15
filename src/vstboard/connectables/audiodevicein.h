@@ -22,7 +22,7 @@
 #define AUDIODEVICEIN_H
 
 //#include "precomp.h"
-#include "connectables/object.h"
+#include "connectables/objects/object.h"
 #include "objectinfo.h"
 #include "circularbuffer.h"
 
@@ -35,12 +35,12 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        AudioDeviceIn(MainHost *myHost, ObjectInfo &info);
+        AudioDeviceIn(MainHost *myHost, MetaInfo &info);
         ~AudioDeviceIn();
         bool Open();
         bool Close();
         void Render();
-        Pin* CreatePin(ObjectInfo &info);
+        Pin* CreatePin(MetaInfo &info);
         void SetParentDevice( AudioDevice *device );
         void SetBufferFromRingBuffer(QList<CircularBuffer*>listCircularBuffers);
 //        QStandardItem *GetFullItem();

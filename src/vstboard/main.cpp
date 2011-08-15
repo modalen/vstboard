@@ -79,8 +79,8 @@ public:
 
 int main(int argc, char *argv[])
 {
-    qRegisterMetaType<ConnectionInfo>("ConnectionInfo");
-    qRegisterMetaType<ObjectInfo>("ObjectInfo");
+//    qRegisterMetaType<ConnectionInfo>("ConnectionInfo");
+    qRegisterMetaType<MetaInfo>("MetaInfo");
     qRegisterMetaType<int>("MediaTypes::Enum");
     qRegisterMetaType<QVariant>("QVariant");
     qRegisterMetaType<AudioBuffer*>("AudioBuffer*");
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QMessageBox::StandardButtons>("QMessageBox::StandardButtons");
     qRegisterMetaType<QMessageBox::StandardButton>("QMessageBox::StandardButton");
 
-    qRegisterMetaTypeStreamOperators<ObjectInfo>("ObjectInfo");
+    qRegisterMetaTypeStreamOperators<MetaInfo>("ObjectInfo");
 
 #ifndef QT_NO_DEBUG
     qInstallMsgHandler(myMessageOutput);
@@ -122,13 +122,14 @@ int main(int argc, char *argv[])
 #endif
 
     MainHostHost host;
-    EngineThread engine(&host);
-    host.moveToThread(&engine);
+    EngineThread engine;
     MainWindowHost w(&host);
-    host.Open();
+    host.moveToThread(&engine);
+    QMetaObject::invokeMethod(&host,"Open",Qt::BlockingQueuedConnection);
     w.readSettings();
     w.show();
     w.LoadDefaultFiles();
+
 
     app.exec();
     return 0;

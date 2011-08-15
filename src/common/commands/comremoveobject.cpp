@@ -1,31 +1,20 @@
 #include "comremoveobject.h"
 #include "mainhost.h"
-#include "connectables/container.h"
+#include "connectables/objects/container.h"
 #include "models/programsmodel.h"
 
 ComRemoveObject::ComRemoveObject( MainHost *myHost,
-                                  const QModelIndex &objIndex,
+                                  const MetaInfo &objectInfo,
                                   RemoveType::Enum removeType,
                                   QUndoCommand  *parent) :
     QUndoCommand(parent),
     myHost(myHost),
+    objectInfo(objectInfo),
     removeType(removeType),
     currentGroup(0),
     currentProg(0)
 {
-    QSharedPointer<Connectables::Container>container = myHost->objFactory->GetObj( objIndex.parent() ).staticCast<Connectables::Container>();
-    if(!container)
-        return;
-
-    QSharedPointer<Connectables::Object>object = myHost->objFactory->GetObj( objIndex );
-    if(!object)
-        return;
-
-    setText(QObject::tr("Remove %1").arg(object->objectName()));
-
-    //save references
-    ContainerPtr = container;
-    objectInfo = object->info();
+    setText(QObject::tr("Remove %1").arg(objectInfo.Name()));
 
     currentGroup = myHost->programsModel->GetCurrentMidiGroup();
     currentProg =  myHost->programsModel->GetCurrentMidiProg();
@@ -40,7 +29,6 @@ void ComRemoveObject::undo ()
     if(!obj) {
         //object was deleted, create a new one
         obj = myHost->objFactory->NewObject( objectInfo );
-        ObjectPtr = obj;
     }
     if(!obj)
         return;
@@ -48,7 +36,7 @@ void ComRemoveObject::undo ()
     objectInfo = obj->info();
 
     //get the container
-    QSharedPointer<Connectables::Container> container = ContainerPtr.toStrongRef();
+    QSharedPointer<Connectables::Container> container = myHost->objFactory->GetObjectFromId( objectInfo.ContainerId() ).staticCast<Connectables::Container>();
     if(!container)
         return;
 
@@ -61,12 +49,16 @@ void ComRemoveObject::undo ()
     obj->SetContainerAttribs(attr);
 
     //remove cables added at creation
-    QPair<ObjectInfo,ObjectInfo>pair;
+    QPair<MetaInfo,MetaInfo>pair;
     foreach( pair, listAddedCables) {
+        myHost->objFactory->UpdatePinInfo( pair.first );
+        myHost->objFactory->UpdatePinInfo( pair.second );
         container->UserRemoveCable(pair);
     }
     //add cables removed at creation
     foreach( pair, listRemovedCables) {
+        myHost->objFactory->UpdatePinInfo( pair.first );
+        myHost->objFactory->UpdatePinInfo( pair.second );
         container->UserAddCable(pair);
     }
 
@@ -84,7 +76,7 @@ void ComRemoveObject::redo()
         return;
 
     //get the container
-    QSharedPointer<Connectables::Container> container = ContainerPtr.toStrongRef();
+    QSharedPointer<Connectables::Container> container = myHost->objFactory->GetObjectFromId( objectInfo.ContainerId() ).staticCast<Connectables::Container>();
     if(!container)
         return;
 

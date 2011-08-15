@@ -26,7 +26,7 @@
 #pragma warning( disable : 4100 )
 #endif
 
-#include "../precomp.h"
+#include "precomp.h"
 #include "audioeffectx.h"
 
 class MainHost;

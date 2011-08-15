@@ -21,25 +21,39 @@
 #ifndef HOSTMODEL_H
 #define HOSTMODEL_H
 
-#include "../precomp.h"
+#include "precomp.h"
+
+namespace InsertionType {
+    enum Enum {
+        NoInsertion,
+        InsertBefore,
+        InsertAfter,
+        Replace,
+        AddBefore,
+        AddAfter
+    };
+}
+
+namespace RemoveType {
+    enum Enum {
+        RemoveWithCables,
+        BridgeCables
+    };
+}
 
 class MainHost;
-
-class HostModel : public QStandardItemModel
+class MetaInfo;
+class HostModel : QObject
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     HostModel(MainHost *myHost=0, QObject *parent=0);
-    QMimeData * mimeData ( const QModelIndexList & indexes ) const;
-    bool dropMimeData ( const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent );
-    bool setData ( const QModelIndex & index, const QVariant & value, int role = Qt::EditRole );
+    bool dropMime ( const QMimeData * data, MetaInfo & senderInfo, InsertionType::Enum insertType=InsertionType::NoInsertion );
+    void valueChanged( const MetaInfo & senderInfo, int info, const QVariant &value);
 protected:
-    QMap<int,QStandardItem*>mapObjects;
     MainHost *myHost;
     QTimer *delayedAction;
     QSignalMapper *LoadFileMapper;
-signals:
-    void UndoStackPush(QUndoCommand *cmd);
 };
 
 #endif // HOSTMODEL_H

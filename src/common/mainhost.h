@@ -24,8 +24,8 @@
 //#include "precomp.h"
 #include <QUndoStack>
 #include "connectables/objectfactory.h"
-#include "connectables/object.h"
-#include "connectables/container.h"
+#include "connectables/objects/object.h"
+#include "connectables/objects/container.h"
 #include "renderer/pathsolver.h"
 #include "renderer/renderer.h"
 #include "globals.h"
@@ -35,21 +35,16 @@
     #include "vst/cvsthost.h"
 #endif
 
-class MainWindow;
-class ProgramsModel;
-class MainHost;
-
 class EngineThread : public QThread
 {
 public:
-    EngineThread(MainHost *myHost);
+    EngineThread();
     ~EngineThread();
     void run();
-
-private:
-    MainHost *myHost;
 };
 
+class MainWindow;
+class ProgramsModel;
 class MainHost : public QObject
 {
 Q_OBJECT
@@ -57,9 +52,9 @@ public:
     MainHost( QObject *parent = 0, QString settingsGroup="");
     virtual ~MainHost();
 
-    void Open();
+    Q_INVOKABLE void Open();
 
-    void SendMsg(const ObjectInfo &senderPin,const PinMessage::Enum msgType,void *data);
+    void SendMsg(const MetaInfo &senderPin,const PinMessage::Enum msgType,void *data);
 
     void SetBufferSizeMs(unsigned int ms);
     void SetBufferSize(unsigned long size);
@@ -107,10 +102,10 @@ public:
 
     QTimer *updateViewTimer;
 
-    HostModel * GetModel() {return model;}
-    void SetModel(HostModel *m) {
-        model=m;
-    }
+//    HostModel * GetModel() {return model;}
+//    void SetModel(HostModel *m) {
+//        model=m;
+//    }
     ProgramsModel *programsModel;
     Connectables::ObjectFactory *objFactory;
     MainWindow *mainWindow;
@@ -136,7 +131,7 @@ public:
 
     QMutex mutexRender;
 
-    QUndoStack * GetUndoStack() {return &undoStack;}
+    QUndoStack * GetUndoStack() {return undoStack;}
 
     void AddEventsListener( QObject *obj) {eventsListeners << obj;}
     void RemoveEventsListener( QObject *obj) {eventsListeners.removeAll(obj);}
@@ -146,11 +141,13 @@ public:
         }
     }
 
+    virtual bool event(QEvent *event);
+
 protected:
     QTime timeFromStart;
     float sampleRate;
     unsigned long bufferSize;
-    QUndoStack undoStack;
+    QUndoStack *undoStack;
 
     QList<QObject*>eventsListeners;
 
@@ -167,8 +164,6 @@ private:
     bool solverUpdateEnabled;
 
     QMap<int,Connectables::Object*>listContainers;
-    QMap<ConnectionInfo,Connectables::Pin*>listPins;
-
 
     mapCables workingListOfCables;
     QMutex *mutexListCables;
@@ -176,7 +171,7 @@ private:
 
     QMutex solverMutex;
 
-    HostModel *model;
+//    HostModel *model;
 
     int currentTempo;
     int currentTimeSig1;
@@ -213,7 +208,7 @@ public slots:
     void ClearProject();
     void SaveSetupFile(bool saveAs);
     void SaveProjectFile(bool saveAs);
-    void UndoStackPush(QUndoCommand *cmd) {undoStack.push(cmd);}
+    void UndoStackPush(QUndoCommand *cmd) {undoStack->push(cmd);}
 
 private slots:
     void UpdateSolver(bool forceUpdate=false);

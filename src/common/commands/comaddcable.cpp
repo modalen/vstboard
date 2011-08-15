@@ -1,12 +1,12 @@
 #include "comaddcable.h"
 #include "connectables/objectfactory.h"
-#include "connectables/container.h"
+#include "connectables/objects/container.h"
 #include "mainhost.h"
 #include "models/programsmodel.h"
 
 ComAddCable::ComAddCable(MainHost *myHost,
-                         const ObjectInfo &outInfo,
-                         const ObjectInfo &inInfo,
+                         const MetaInfo &outInfo,
+                         const MetaInfo &inInfo,
                          QUndoCommand  *parent) :
     QUndoCommand(parent),
     myHost(myHost),
@@ -21,9 +21,9 @@ ComAddCable::ComAddCable(MainHost *myHost,
     currentProg =  myHost->programsModel->GetCurrentMidiProg();
 
     if(outInfo.Meta(MetaInfos::Direction).toInt()==Directions::Input) {
-        ObjectInfo tmp(outInfo);
-        this->outInfo=ObjectInfo(inInfo);
-        this->inInfo=ObjectInfo(tmp);
+        MetaInfo tmp(outInfo);
+        this->outInfo=MetaInfo(inInfo);
+        this->inInfo=MetaInfo(tmp);
     }
 }
 
@@ -34,6 +34,9 @@ void ComAddCable::undo ()
     QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( inInfo.ContainerId() ).staticCast<Connectables::Container>();
     if(!cntPtr)
         return;
+
+    myHost->objFactory->UpdatePinInfo(outInfo);
+    myHost->objFactory->UpdatePinInfo(inInfo);
     static_cast<Connectables::Container*>(cntPtr.data())->UserRemoveCable(outInfo,inInfo);
 }
 
@@ -44,5 +47,8 @@ void ComAddCable::redo ()
     QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( inInfo.ContainerId() ).staticCast<Connectables::Container>();
     if(!cntPtr)
         return;
+
+    myHost->objFactory->UpdatePinInfo(outInfo);
+    myHost->objFactory->UpdatePinInfo(inInfo);
     static_cast<Connectables::Container*>(cntPtr.data())->UserAddCable(outInfo,inInfo);
 }

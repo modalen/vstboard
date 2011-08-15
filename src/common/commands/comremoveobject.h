@@ -3,7 +3,7 @@
 
 #include "precomp.h"
 #include <QUndoCommand>
-#include "connectables/container.h"
+#include "connectables/objects/container.h"
 
 
 class MainHost;
@@ -11,7 +11,7 @@ class ComRemoveObject : public QUndoCommand
 {
 public:
     ComRemoveObject( MainHost *myHost,
-                     const QModelIndex &objIndex,
+                     const MetaInfo &objectInfo,
                      RemoveType::Enum removeType,
                      QUndoCommand  *parent=0);
     void undo ();
@@ -20,14 +20,12 @@ public:
 private:
     MainHost *myHost;
 
-    ObjectInfo objectInfo;
-    QWeakPointer<Connectables::Object>ObjectPtr;
-    QWeakPointer<Connectables::Container>ContainerPtr;
+    MetaInfo objectInfo;
     RemoveType::Enum removeType;
     ObjectContainerAttribs attr;
 
-    QList< QPair<ObjectInfo,ObjectInfo> >listAddedCables;
-    QList< QPair<ObjectInfo,ObjectInfo> >listRemovedCables;
+    QList< QPair<MetaInfo,MetaInfo> >listAddedCables;
+    QList< QPair<MetaInfo,MetaInfo> >listRemovedCables;
 
     QByteArray objState;
 

@@ -1,11 +1,11 @@
 #include "comdisconnectpin.h"
 #include "connectables/objectfactory.h"
-#include "connectables/container.h"
+#include "connectables/objects/container.h"
 #include "mainhost.h"
 #include "models/programsmodel.h"
 
 ComDisconnectPin::ComDisconnectPin(MainHost *myHost,
-                                   const ObjectInfo &pinInfo,
+                                   const MetaInfo &pinInfo,
                                    QUndoCommand  *parent) :
     QUndoCommand(parent),
     myHost(myHost),
@@ -27,7 +27,8 @@ void ComDisconnectPin::undo ()
     if(!cntPtr)
         return;
 
-    foreach(ObjectInfo info, listConnectedPins) {
+    foreach(MetaInfo info, listConnectedPins) {
+        myHost->objFactory->UpdatePinInfo( info );
         if(pinInfo.Meta(MetaInfos::Direction).toInt()==Directions::Output) {
             cntPtr->UserAddCable(pinInfo, info);
         } else {

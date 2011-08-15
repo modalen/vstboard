@@ -20,7 +20,7 @@
 
 
 #include "objectprogram.h"
-#include "parameterpin.h"
+#include "pins/parameterpin.h"
 
 using namespace Connectables;
 

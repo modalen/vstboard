@@ -20,7 +20,7 @@
 
 
 #include "cable.h"
-#include "../mainhost.h"
+#include "mainhost.h"
 
 using namespace Connectables;
 
@@ -29,62 +29,51 @@ using namespace Connectables;
   \brief cable are created in Container to connect Objects
   */
 
+Cable::Cable() :
+    ObjectInfo()
+{
+    SetType(MetaTypes::cable);
+    SetName("Cable");
+}
+
 /*!
   \param myHost pointer to the MainHost
   \param pinOut the output pin (the one sending the messages)
   \param pinIn the input pin (the receiver)
   */
-Cable::Cable(MainHost *myHost, const ObjectInfo &pinOut, const ObjectInfo &pinIn) :
-        pinOut(pinOut),
-        pinIn(pinIn),
-        modelIndex(QModelIndex()),
-        myHost(myHost)
+Cable::Cable( const MetaInfo &pinOut, const MetaInfo &pinIn) :
+    ObjectInfo(),
+    pinOut(pinOut),
+    pinIn(pinIn)
 {
-    ObjectInfo::metaType = MetaTypes::cable;
+    SetType(MetaTypes::cable);
+    SetName("Cable");
+    SetMeta(MetaInfos::nbOutputs,QVariant::fromValue(pinOut.info()));
+    SetMeta(MetaInfos::nbInputs,QVariant::fromValue(pinIn.info()));
 }
 
-/*!
-  Copy a cable
-  \param c the model
-  */
-Cable::Cable(const Cable & c) :
-        pinOut(c.pinOut),
-        pinIn(c.pinIn),
-        modelIndex(c.modelIndex),
-        myHost(c.myHost)
+QDataStream & Cable::toStream (QDataStream& out) const
 {
-    ObjectInfo::metaType = MetaTypes::cable;
+    out << *(MetaInfo*)this;
+    out << pinOut;
+    out << pinIn;
+    return out;
 }
 
-/*!
-  Add the cable in the model
-  \param parentIndex the Container index
-  \return true if cable is created
-  */
-void Cable::AddToParentNode(const QModelIndex &parentIndex)
+QDataStream & Cable::fromStream (QDataStream& in)
 {
-//    QStandardItem *item = new QStandardItem(QString("cable %1:%2").arg(pinOut.objId).arg(pinIn.objId));
-//    item->setData(QVariant::fromValue(ObjectInfo(MetaTypes::cable)),UserRoles::objInfo);
-//    item->setData(QVariant::fromValue(pinOut),UserRoles::value);
-//    item->setData(QVariant::fromValue(pinIn),UserRoles::connectionInfo);
-
-//    QStandardItem *parentItem = myHost->GetModel()->itemFromIndex(parentIndex);
-//    if(!parentItem) {
-//        LOG("parent item not found");
-//        return;
-//    }
-//    parentItem->appendRow(item);
-//    modelIndex = item->index();
+    in >> *(MetaInfo*)this;
+    in >> pinOut;
+    in >> pinIn;
+    return in;
 }
 
-/*!
-  Remove the cable from the model
-  \param parentIndex the Container index
-  */
-void Cable::RemoveFromParentNode(const QModelIndex &parentIndex)
+QDataStream & operator<< (QDataStream & out, const Connectables::Cable& value)
 {
-//    if(modelIndex.isValid() && parentIndex.isValid())
-//        myHost->GetModel()->removeRow(modelIndex.row(), parentIndex);
+    return value.toStream(out);
+}
 
-//    modelIndex=QModelIndex();
+QDataStream & operator>> (QDataStream & in, Connectables::Cable& value)
+{
+    return value.fromStream(in);
 }

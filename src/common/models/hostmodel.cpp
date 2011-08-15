@@ -23,97 +23,43 @@
 #include "connectables/objectfactory.h"
 #include "mainhost.h"
 #include "models/programsmodel.h"
-#include "objectinfo.h"
-#include "connectables/vstplugin.h"
+#include "connectables/objects/vstplugin.h"
 #include "commands/comaddobject.h"
+#include "objectinfo.h"
+#include "events.h"
+#include "mainwindow.h"
 
 HostModel::HostModel(MainHost *myHost, QObject *parent) :
-        QStandardItemModel(parent),
+    QObject(parent),
     myHost(myHost),
     delayedAction(0),
     LoadFileMapper(0)
 {
+    setObjectName("MainHostModel");
+
     LoadFileMapper = new QSignalMapper(this);
     delayedAction = new QTimer(this);
     delayedAction->setSingleShot(true);
     if(myHost) {
         connect(LoadFileMapper, SIGNAL(mapped(QString)), myHost, SLOT(LoadFile(QString)));
         connect(delayedAction, SIGNAL(timeout()), LoadFileMapper, SLOT(map()));
-        connect(this, SIGNAL(UndoStackPush(QUndoCommand*)),
-                myHost, SLOT(UndoStackPush(QUndoCommand*)));
     }
 }
 
-QMimeData * HostModel::mimeData ( const QModelIndexList & indexes ) const
+void HostModel::valueChanged( const MetaInfo & senderInfo, int info, const QVariant &value)
 {
-
-
-    foreach(QModelIndex index, indexes) {
-        ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-        switch(info.Meta()) {
-            case MetaTypes::pin :
-
-                if(index.data(UserRoles::connectionInfo).isValid()) {
-                    ConnectionInfo connectInfo = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
-
-                    QByteArray bytes;
-                    QDataStream stream(&bytes,QIODevice::WriteOnly);
-                    stream << connectInfo;
-
-                    QMimeData *mimeData = new QMimeData;
-                    mimeData->setData("application/x-pin",bytes);
-                    return mimeData;
-                }
-
-            default:
-                return QStandardItemModel::mimeData(indexes);
-
-        }
-    }
-
-    return QStandardItemModel::mimeData(indexes);
+    Events::valChanged *e = new Events::valChanged(MetaInfo(senderInfo), (MetaInfos::Enum)info, value);
+    myHost->mainWindow->PostEvent(e);
 }
 
-/*!
-    Drop mime data on the model
-    \param column autoconnect position : 1=before,2=replace,3=after
-  */
-bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent )
+bool HostModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, InsertionType::Enum insertType )
 {
-    if(!parent.isValid()) {
-        LOG("parent not valid");
-        return false;
-    }
-
-    QModelIndex senderIndex = parent.sibling(parent.row(),0);
-    if(!senderIndex.isValid()) {
-        LOG("senderIndex not valid");
-        return false;
-    }
-    ObjectInfo senderInfo = senderIndex.data(UserRoles::objInfo).value<ObjectInfo>();
-
-    QSharedPointer<Connectables::Container> targetContainer;
-    switch(senderInfo.Meta()) {
-        case MetaTypes::container :
-            targetContainer = myHost->objFactory->GetObj(senderIndex).staticCast<Connectables::Container>();
-            break;
-        case MetaTypes::object :
-            targetContainer = myHost->objFactory->GetObj(senderIndex.parent()).staticCast<Connectables::Container>();
-            break;
-    }
-
-    if(!targetContainer) {
-        LOG("container not found");
-        return false;
-    }
-
-//    QList< QSharedPointer<Connectables::Object> > listObjToAdd;
-    QList<ObjectInfo>listObjInfoToAdd;
+    QList<MetaInfo>listObjInfoToAdd;
 
     //objects from parking
     if(data->hasFormat("application/x-qstandarditemmodeldatalist")) {
         QStandardItemModel mod;
-        mod.dropMimeData(data,action,0,0,QModelIndex());
+        mod.dropMimeData(data,Qt::MoveAction,0,0,QModelIndex());
         int a=mod.rowCount();
         for(int i=0;i<a;i++) {
             QStandardItem *it = mod.invisibleRootItem()->child(i);
@@ -123,7 +69,6 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
                     LOG("x-qstandarditemmodeldatalist object not found");
                     continue;
                 }
-//                listObjToAdd << objPtr;
                 listObjInfoToAdd << objPtr->info();
             }
         }
@@ -142,7 +87,7 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
                 //vst plugin
                 if ( info.suffix()=="dll" ) {
 
-                    ObjectInfo infoVst(MetaTypes::object);
+                    MetaInfo infoVst(MetaTypes::object);
                     infoVst.SetMeta(MetaInfos::ObjType, ObjTypes::VstPlugin);
                     infoVst.SetMeta(MetaInfos::Filename, fName);
                     listObjInfoToAdd << infoVst;
@@ -170,24 +115,20 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
 
                 //fxb file
                 if( info.suffix() == VST_BANK_FILE_EXTENSION || info.suffix() == VST_PROGRAM_FILE_EXTENSION) {
-                    QSharedPointer<Connectables::VstPlugin> senderObj = myHost->objFactory->GetObj(senderIndex).staticCast<Connectables::VstPlugin>();
+                    QSharedPointer<Connectables::VstPlugin> senderObj = myHost->objFactory->GetObjectFromId(senderInfo.ObjId()).staticCast<Connectables::VstPlugin>();
                     if(!senderObj) {
                         LOG("fxb fxp target not found");
                         return false;
                     }
 
                     if( info.suffix() == VST_BANK_FILE_EXTENSION && senderObj->LoadBank(fName) ) {
-                        QStandardItem *item = itemFromIndex(senderIndex);
-                        if(item)
-                            item->setData(fName,UserRoles::bankFile);
+                        senderInfo.SetMeta(MetaInfos::bankFile,fName);
                         return true;
                     }
 
 
                     if( info.suffix() == VST_PROGRAM_FILE_EXTENSION && senderObj->LoadProgram(fName) ) {
-                        QStandardItem *item = itemFromIndex(senderIndex);
-                        if(item)
-                            item->setData(fName,UserRoles::programFile);
+                        senderInfo.SetMeta(MetaInfos::programFile,fName);
                         return true;
                     }
                 }
@@ -202,7 +143,7 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
         QDataStream stream(&b,QIODevice::ReadOnly);
 
         while(!stream.atEnd()) {
-            ObjectInfo info;
+            MetaInfo info;
             stream >> info;
 
             if(info.Meta(MetaInfos::nbInputs).toInt()!=0) {
@@ -223,7 +164,7 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
         QDataStream stream(&b,QIODevice::ReadOnly);
 
         while(!stream.atEnd()) {
-            ObjectInfo info;
+            MetaInfo info;
             stream >> info;
             listObjInfoToAdd << info;
         }
@@ -235,134 +176,118 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
         QDataStream stream(&b,QIODevice::ReadOnly);
 
         while(!stream.atEnd()) {
-            ObjectInfo info;
+            MetaInfo info;
             stream >> info;
             listObjInfoToAdd << info;
         }
     }
 
 
-    foreach(ObjectInfo info, listObjInfoToAdd) {
+    foreach(MetaInfo info, listObjInfoToAdd) {
 
-        QSharedPointer<Connectables::Object> senderObj = myHost->objFactory->GetObj(senderIndex);
+        if(senderInfo.Type()==MetaTypes::container)
+            info.SetContainerId(senderInfo.ObjId());
+        else
+            info.SetContainerId(senderInfo.ContainerId());
 
-        InsertionType::Enum insertType = InsertionType::NoInsertion;
-        switch(column) {
-            case 0:
-                insertType = InsertionType::NoInsertion;
-                break;
-            case 1:
-                if(action==Qt::MoveAction)
-                    insertType = InsertionType::InsertBefore;
-                else
-                    insertType = InsertionType::AddBefore;
-                break;
-            case 2:
-                insertType = InsertionType::Replace;
-                break;
-            case 3:
-                if(action==Qt::MoveAction)
-                    insertType = InsertionType::InsertAfter;
-                else
-                    insertType = InsertionType::AddAfter;
-                break;
-        }
+        if(senderInfo.Type()!=MetaTypes::object)
+            senderInfo=MetaInfo();
 
-        ComAddObject *com = new ComAddObject(myHost, info, targetContainer, senderObj, insertType);
+        ComAddObject *com = new ComAddObject(myHost, info, senderInfo, insertType);
         Connectables::VstPlugin::shellSelectView->command=com;
-        emit UndoStackPush(com);
+        //emit UndoStackPush(com);
+        Events::command *e = new Events::command(com);
+        myHost->mainWindow->PostEvent(e);
     }
 
     return true;
 }
 
-bool HostModel::setData ( const QModelIndex & index, const QVariant & value, int role )
-{
-    ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-    switch(info.Meta()) {
-        case MetaTypes::object :
-        //case MetaTypes::container :
-        {
-            int objId = index.data(UserRoles::value).toInt();
-            if(!objId) {
-                LOG("MetaTypes::object has no object Id");
-                return false;
-            }
-            QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->GetObjectFromId(objId);
-            if(objPtr.isNull()) {
-                LOG("MetaTypes::object the object deleted"<<objId);
-                return false;
-            }
+//bool HostModel::setData ( const QModelIndex & index, const QVariant & value, int role )
+//{
+//    MetaInfo info = index.data(UserRoles::objInfo).value<MetaInfo>();
+//    switch(info.Type()) {
+//        case MetaTypes::object :
+//        //case MetaTypes::container :
+//        {
+//            int objId = index.data(UserRoles::value).toInt();
+//            if(!objId) {
+//                LOG("MetaTypes::object has no object Id");
+//                return false;
+//            }
+//            QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->GetObjectFromId(objId);
+//            if(objPtr.isNull()) {
+//                LOG("MetaTypes::object the object deleted"<<objId);
+//                return false;
+//            }
 
-            //save vst bank file
-            if(role == UserRoles::bankFile) {
-                objPtr.staticCast<Connectables::VstPlugin>()->SaveBank( value.toString() );
-                QStandardItem *item = itemFromIndex(index);
-                if(item)
-                    item->setData(value,UserRoles::bankFile);
-                return true;
-            }
+//            //save vst bank file
+//            if(role == UserRoles::bankFile) {
+//                objPtr.staticCast<Connectables::VstPlugin>()->SaveBank( value.toString() );
+//                QStandardItem *item = itemFromIndex(index);
+//                if(item)
+//                    item->setData(value,UserRoles::bankFile);
+//                return true;
+//            }
 
-            //save vst program file
-            if(role == UserRoles::programFile) {
-                objPtr.staticCast<Connectables::VstPlugin>()->SaveProgram( value.toString() );
-                QStandardItem *item = itemFromIndex(index);
-                if(item)
-                    item->setData(value,UserRoles::programFile);
-                return true;
-            }
-            break;
-        }
+//            //save vst program file
+//            if(role == UserRoles::programFile) {
+//                objPtr.staticCast<Connectables::VstPlugin>()->SaveProgram( value.toString() );
+//                QStandardItem *item = itemFromIndex(index);
+//                if(item)
+//                    item->setData(value,UserRoles::programFile);
+//                return true;
+//            }
+//            break;
+//        }
 
-        case MetaTypes::pin :
-        {
-            ObjectInfo pinInfo = index.data(UserRoles::objInfo).value<ObjectInfo>();
-            if(pinInfo.Meta(MetaInfos::Media).toInt()==MediaTypes::Parameter) {
-                if(role==UserRoles::value) {
-                    bool ok=true;
-                    float newVal = value.toFloat(&ok);// item->data(Qt::DisplayRole).toFloat(&ok);
-                    if(!ok) {
-                        LOG("pin can't convert value to float");
-                        return false;
-                    }
+//        case MetaTypes::pin :
+//        {
+//            MetaInfo pinInfo = index.data(UserRoles::objInfo).value<MetaInfo>();
+//            if(pinInfo.Meta(MetaInfos::Media).toInt()==MediaTypes::Parameter) {
+//                if(role==UserRoles::value) {
+//                    bool ok=true;
+//                    float newVal = value.toFloat(&ok);// item->data(Qt::DisplayRole).toFloat(&ok);
+//                    if(!ok) {
+//                        LOG("pin can't convert value to float");
+//                        return false;
+//                    }
 
-                    if(newVal>1.0f) newVal=1.0f;
-                    if(newVal<.0f) newVal=.0f;
-                    Connectables::ParameterPin* pin = static_cast<Connectables::ParameterPin*>(myHost->objFactory->GetPin(pinInfo));
-                    if(!pin) {
-                        return false;
-                    }
-                    pin->ChangeValue( newVal );
+//                    if(newVal>1.0f) newVal=1.0f;
+//                    if(newVal<.0f) newVal=.0f;
+//                    Connectables::ParameterPin* pin = static_cast<Connectables::ParameterPin*>(myHost->objFactory->GetPin(pinInfo));
+//                    if(!pin) {
+//                        return false;
+//                    }
+//                    pin->ChangeValue( newVal );
 
-                    QStandardItem *item = itemFromIndex(index);
-                    if(item)
-                        item->setData(newVal,role);
-                    return true;
-                }
-            }
-            break;
-        }
-        case MetaTypes::cursor :
-        {
-            ObjectInfo pinInfo = index.parent().data(UserRoles::objInfo).value<ObjectInfo>();
-            if(pinInfo.Meta(MetaInfos::Media).toInt()==MediaTypes::Parameter) {
-                if(role==UserRoles::value) {
-                    Connectables::ParameterPin* pin = static_cast<Connectables::ParameterPin*>(myHost->objFactory->GetPin(pinInfo));
-                    ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-                    Directions::Enum direction = (Directions::Enum)info.Meta(MetaInfos::Direction).toInt();
-                    LimitTypes::Enum limit = (LimitTypes::Enum)info.Meta(MetaInfos::LimitType).toInt();
-                    pin->SetLimit(direction,limit,value.toFloat());
+//                    QStandardItem *item = itemFromIndex(index);
+//                    if(item)
+//                        item->setData(newVal,role);
+//                    return true;
+//                }
+//            }
+//            break;
+//        }
+//        case MetaTypes::cursor :
+//        {
+//            MetaInfo pinInfo = index.parent().data(UserRoles::objInfo).value<MetaInfo>();
+//            if(pinInfo.Meta(MetaInfos::Media).toInt()==MediaTypes::Parameter) {
+//                if(role==UserRoles::value) {
+//                    Connectables::ParameterPin* pin = static_cast<Connectables::ParameterPin*>(myHost->objFactory->GetPin(pinInfo));
+//                    MetaInfo info = index.data(UserRoles::objInfo).value<MetaInfo>();
+//                    Directions::Enum direction = (Directions::Enum)info.Meta(MetaInfos::Direction).toInt();
+//                    LimitTypes::Enum limit = (LimitTypes::Enum)info.Meta(MetaInfos::LimitType).toInt();
+//                    pin->SetLimit(direction,limit,value.toFloat());
 
-                    QStandardItem *item = itemFromIndex(index);
-                    if(item)
-                        item->setData(value,role);
-                }
-            }
-        }
-        default:
-            break;
+//                    QStandardItem *item = itemFromIndex(index);
+//                    if(item)
+//                        item->setData(value,role);
+//                }
+//            }
+//        }
+//        default:
+//            break;
 
-    }
-
-    return QStandardItemModel::setData(index,value,role);
-}
+//    }
+//}

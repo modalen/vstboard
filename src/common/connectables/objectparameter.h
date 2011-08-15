@@ -21,7 +21,7 @@
 #ifndef OBJECTPARAMETER_H
 #define OBJECTPARAMETER_H
 
-#include "../precomp.h"
+#include "precomp.h"
 
 namespace Connectables {
 

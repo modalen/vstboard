@@ -21,9 +21,9 @@
 #ifndef OBJECTFACTORY_H
 #define OBJECTFACTORY_H
 
-#include "../precomp.h"
-#include "../globals.h"
-#include "object.h"
+#include "precomp.h"
+#include "globals.h"
+#include "objects/object.h"
 #include "objectinfo.h"
 
 class MainHost;
@@ -39,7 +39,7 @@ namespace Connectables {
         ObjectFactory(MainHost *myHost);
         ~ObjectFactory();
 
-        QSharedPointer<Object> NewObject( ObjectInfo &info);
+        QSharedPointer<Object> NewObject( MetaInfo &info);
         QSharedPointer<Object> GetObj(const QModelIndex & index);
         inline void RemoveObject(int id) {
             listObjects.remove(id);
@@ -57,7 +57,8 @@ namespace Connectables {
 
         int IdFromSavedId(int savedId);
         void ResetSavedId();
-        Pin *GetPin(const ObjectInfo &pinInfo);
+        Pin *GetPin(const MetaInfo &pinInfo);
+        bool UpdatePinInfo(MetaInfo &pinInfo);
 //        inline Pin *GetPin(const QModelIndex & index) {
 //            return GetPin( index.data(UserRoles::objInfo).value<ConnectionInfo>() );
 //        }
@@ -67,7 +68,7 @@ namespace Connectables {
         int GetNewId() {return cptListObjects++;}
 
     protected:
-        virtual Object *CreateOtherObjects(ObjectInfo &info)=0;
+        virtual Object *CreateOtherObjects(MetaInfo &info)=0;
 
         hashObjects listObjects;
         int cptListObjects;

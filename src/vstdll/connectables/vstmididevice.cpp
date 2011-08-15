@@ -25,7 +25,7 @@
 
 using namespace Connectables;
 
-VstMidiDevice::VstMidiDevice(MainHost *myHost, ObjectInfo &info) :
+VstMidiDevice::VstMidiDevice(MainHost *myHost, MetaInfo &info) :
     Object(myHost, info),
     nbIn(0),
     nbOut(0)

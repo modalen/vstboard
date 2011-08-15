@@ -22,31 +22,55 @@
 #include "mainhost.h"
 #include "events.h"
 
-ObjectInfo::ObjectInfo() :
-    metaType(MetaTypes::ND),
+MetaInfo::MetaInfo() :
+    objType(MetaTypes::ND),
     objId(0),
     objName(""),
+    parentId(0),
+    containerId(0),
+    parentObjectId(0),
+    model(0)
+{
+}
+
+MetaInfo::MetaInfo(const MetaTypes::Enum type) :
+    objType(type),
+    objId(0),
+    objName(""),
+    parentId(0),
+    containerId(0),
+    parentObjectId(0),
+    model(0)
+{
+
+}
+
+ObjectInfo::ObjectInfo() :
+    MetaInfo(),
     parentInfo(0),
     containerInfo(0)
 {
 }
 
-ObjectInfo::ObjectInfo( MetaTypes::Enum nodeType, ObjTypes::Enum objType, int id, QString name) :
-    metaType(nodeType),
-    objId(id),
-    objName(name),
+//ObjectInfo::ObjectInfo( MetaTypes::Enum nodeType, ObjTypes::Enum objType, int id, QString name) :
+//    metaType(nodeType),
+//    objId(id),
+//    objName(name),
+//    parentInfo(0),
+//    containerInfo(0),
+//    parentId(0),
+//    containerId(0),
+//    parentObjectId(0)
+//{
+//    if(objType)
+//        SetMeta(MetaInfos::ObjType,objType);
+//}
+
+ObjectInfo::ObjectInfo(const MetaInfo &c) :
+    MetaInfo(c),
     parentInfo(0),
     containerInfo(0)
 {
-    if(objType)
-        SetMeta(MetaInfos::ObjType,objType);
-}
-
-ObjectInfo::ObjectInfo(const ObjectInfo &c)
-{
-    *this = c;
-    if(parentInfo)
-        parentInfo->childrenInfo << this;
 }
 
 ObjectInfo::~ObjectInfo()
@@ -55,28 +79,58 @@ ObjectInfo::~ObjectInfo()
         parentInfo->childrenInfo.removeAll(this);
         parentInfo=0;
     }
+    foreach(ObjectInfo *info, childrenInfo) {
+        info->SetParent(0);
+    }
+}
+
+void ObjectInfo::AddToView(MainHost *myHost)
+{
+    if(!ContainerId())
+        return;
+
+    if(Meta(MetaInfos::Hidden).toBool())
+        return;
+
+    Events::sendObj *event = new Events::sendObj(info(), Events::typeNewObj);
+    myHost->PostEvent(event);
+
+    foreach(ObjectInfo *info, childrenInfo) {
+        info->AddToView(myHost);
+    }
+}
+
+void ObjectInfo::RemoveFromView(MainHost *myHost)
+{
+    Events::delObj *event = new Events::delObj(ObjId());
+    myHost->PostEvent(event);
 }
 
 void ObjectInfo::UpdateView(MainHost *myHost)
 {
-    Events::newObj *event = new Events::newObj(info());
-    myHost->PostEvent(event);
+    if(!ContainerId())
+        return;
 
-    foreach(ObjectInfo *info, childrenInfo) {
-        info->UpdateView(myHost);
-    }
+    if(Meta(MetaInfos::Hidden).toBool())
+        return;
+
+    Events::sendObj *event = new Events::sendObj(info(), Events::typeUpdateObj);
+    myHost->PostEvent(event);
 }
 
-
 void ObjectInfo::SetContainer(ObjectInfo *container) {
+
+    if(Meta(MetaInfos::Bridge).toBool())
+        container = container->ContainerInfo();
+
     containerInfo = container;
 
     if(container)
-        containerId = container->ObjId();
+        SetContainerId(container->ObjId());
     else
-        containerId = 0;
+        SetContainerId(0);
 
-    if(metaType!=MetaTypes::container) {
+    if(Type()!=MetaTypes::container) {
         foreach(ObjectInfo *info, childrenInfo) {
             info->SetContainer(container);
         }
@@ -90,62 +144,81 @@ void ObjectInfo::SetParent(ObjectInfo *parent)
     }
 
     parentInfo = parent;
-    parentId = parent->ObjId();
-    parentObjectId = ParentObjectInfo()->ObjId();
 
     if(parentInfo) {
+        SetParentId(parent->ObjId());
         parentInfo->childrenInfo << this;
 
-        if(parentInfo->Meta()==MetaTypes::container)
-            SetContainer(parentInfo);
+        if(parentInfo->Type()==MetaTypes::object || parentInfo->Type()==MetaTypes::container || parentInfo->Type()==MetaTypes::bridge)
+            SetParentObjectId(ParentId());
         else
-            SetContainer(parentInfo->ContainerInfo());
+            SetParentObjectId(ParentInfo()->ParentObjectId());
     } else {
-        SetContainer(0);
+        SetParentId(0);
+        SetParentObjectId(0);
+        SetContainerId(0);
+        containerInfo=0;
+    }
+
+    foreach(ObjectInfo *info, childrenInfo) {
+        info->SetParent(this);
     }
 }
 
 
-bool ObjectInfo::CanConnectTo(const ObjectInfo &c) const
+bool MetaInfo::CanConnectTo(const MetaInfo &c) const
 {
-
     //don't connect object to itself
 //    if(objId == c.objId)
 //        return false;
 
-    //must be the same type (audio/midi/automation) or a bridge pin
-    if(Meta(MetaInfos::Media)!=MediaTypes::Bridge && c.Meta(MetaInfos::Media)!=MediaTypes::Bridge && Meta(MetaInfos::Media) != c.Meta(MetaInfos::Media))
+    //must be in the same container
+    if(ContainerId() != c.ContainerId())
         return false;
-
 
     //must be opposite directions
     if(Meta(MetaInfos::Direction) == c.Meta(MetaInfos::Direction))
         return false;
 
-    int cntA = ContainerInfo()->ObjId();
-    int cntB = c.ContainerInfo()->ObjId();
+    //must be the same type (audio/midi/automation) or a bridge pin
+    if(Meta(MetaInfos::Media)!=MediaTypes::Bridge
+        && c.Meta(MetaInfos::Media)!=MediaTypes::Bridge
+        && Meta(MetaInfos::Media) != c.Meta(MetaInfos::Media))
+        return false;
 
-    //if it's a bridge : get the container's container id
-    if(Meta(MetaInfos::Media)==MediaTypes::Bridge)
-        cntA = ContainerInfo()->ContainerInfo()->ObjId();
-
-    if(c.Meta(MetaInfos::Media)!=MediaTypes::Bridge)
-        cntB = c.ContainerInfo()->ContainerInfo()->ObjId();
-
-    //must be in the same container
-    if(cntA == cntB)
-        return true;
-
-    return false;
+    return true;
 }
 
-QDataStream & ObjectInfo::toStream(QDataStream& stream) const
+QString MetaInfo::toString() const
 {
-    stream << (quint8)metaType;
+    return QString("type:%1 id:%2 name:%3 parent:%4 container:%5 obj:%6")
+            .arg(objType)
+            .arg(objId)
+            .arg(objName)
+            .arg(parentId)
+            .arg(containerId)
+            .arg(parentObjectId);
+}
+
+QString MetaInfo::toStringFull() const
+{
+    QString str(toString());
+    QMap<MetaInfos::Enum,QVariant>::iterator i = listInfos.begin();
+    while(i != listInfos.end()) {
+        str.append( QString(" %1:%2").arg(i.key()).arg(i.value().toString()));
+        ++i;
+    }
+    return str;
+}
+
+QDataStream & MetaInfo::toStream(QDataStream& stream) const
+{
+    stream << (quint8)objType;
     stream << objId;
     stream << objName;
-    stream << parentInfo->ObjId();
-    stream << containerInfo->ObjId();
+    stream << parentId;
+    stream << containerId;
+    stream << parentObjectId;
 
     stream << (quint16)listInfos.size();
     QMap<MetaInfos::Enum,QVariant>::iterator i = listInfos.begin();
@@ -155,10 +228,10 @@ QDataStream & ObjectInfo::toStream(QDataStream& stream) const
         ++i;
     }
 
-    stream << (quint16)childrenInfo.size();
-    foreach(ObjectInfo* o, childrenInfo) {
-        stream << o->ObjId();
-    }
+//    stream << (quint16)childrenInfo.size();
+//    foreach(ObjectInfo* o, childrenInfo) {
+//        stream << o->ObjId();
+//    }
 
 //    stream << (quint8)metaType;
 //    stream << (quint8)objType;
@@ -174,16 +247,16 @@ QDataStream & ObjectInfo::toStream(QDataStream& stream) const
     return stream;
 }
 
-QDataStream & ObjectInfo::fromStream(QDataStream& stream)
+QDataStream & MetaInfo::fromStream(QDataStream& stream)
 {
     quint8 type;
     stream >> type;
-    metaType=(MetaTypes::Enum)type;
+    objType=(MetaTypes::Enum)type;
     stream >> objId;
     stream >> objName;
-    quint32 id;
-    stream >> id;
-    stream >> id;
+    stream >> parentId;
+    stream >> containerId;
+    stream >> parentObjectId;
 
     quint16 nb;
     stream >> nb;
@@ -193,14 +266,13 @@ QDataStream & ObjectInfo::fromStream(QDataStream& stream)
         stream >> id;
         stream >> val;
         listInfos.insert((MetaInfos::Enum)id,val);
-        ++i;
     }
 
-    stream >> nb;
-    for(int i=0; i<nb; i++) {
-        quint32 id;
-        stream >> id;
-    }
+//    stream >> nb;
+//    for(int i=0; i<nb; i++) {
+//        quint32 id;
+//        stream >> id;
+//    }
 
 //    stream >> (quint8&)metaType;
 //    stream >> (quint8&)objType;
@@ -216,12 +288,12 @@ QDataStream & ObjectInfo::fromStream(QDataStream& stream)
     return stream;
 }
 
-QDataStream & operator<< (QDataStream& stream, const ObjectInfo& objInfo)
+QDataStream & operator<< (QDataStream& stream, const MetaInfo& objInfo)
 {
    return objInfo.toStream(stream);
 }
 
-QDataStream & operator>> (QDataStream& stream, ObjectInfo& objInfo)
+QDataStream & operator>> (QDataStream& stream, MetaInfo& objInfo)
 {
     return objInfo.fromStream(stream);
 }

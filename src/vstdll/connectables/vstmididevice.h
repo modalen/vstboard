@@ -22,7 +22,7 @@
 #define VSTMIDIDEVICE_H
 
 //#include "precomp.h"
-#include "connectables/object.h"
+#include "connectables/objects/object.h"
 
 #define QUEUE_SIZE 1024
 
@@ -33,7 +33,7 @@ namespace Connectables {
     Q_OBJECT
 
     public:
-        VstMidiDevice(MainHost *myHost, ObjectInfo &info);
+        VstMidiDevice(MainHost *myHost, MetaInfo &info);
         ~VstMidiDevice();
         bool Open();
         bool Close();

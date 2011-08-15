@@ -18,7 +18,7 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 #include "vst.h"
-#include "connectables/connectioninfo.h"
+//#include "connectables/connectioninfo.h"
 #include "objectinfo.h"
 #include "mainhostvst.h"
 #include "projectfile/projectfile.h"
@@ -61,13 +61,13 @@ Vst::Vst (audioMasterCallback audioMaster, bool asInstrument) :
     programsAreChunks(true);
     vst_strncpy (programName, "Default", kVstMaxProgNameLen);	// default program name
 
-    qRegisterMetaType<ConnectionInfo>("ConnectionInfo");
-    qRegisterMetaType<ObjectInfo>("ObjectInfo");
+//    qRegisterMetaType<ConnectionInfo>("ConnectionInfo");
+    qRegisterMetaType<MetaInfo>("MetaInfo");
     qRegisterMetaType<int>("MediaTypes::Enum");
     qRegisterMetaType<QVariant>("QVariant");
     qRegisterMetaType<AudioBuffer*>("AudioBuffer*");
 
-    qRegisterMetaTypeStreamOperators<ObjectInfo>("ObjectInfo");
+    qRegisterMetaTypeStreamOperators<MetaInfo>("ObjectInfo");
 
     QCoreApplication::setOrganizationName("CtrlBrk");
     QCoreApplication::setApplicationName("VstBoard");
@@ -81,6 +81,7 @@ Vst::Vst (audioMasterCallback audioMaster, bool asInstrument) :
         qApp->installTranslator(&myappTranslator);
 #endif
     myHost = new MainHostVst(this,0,"plugin/");
+    myHost->moveToThread(&engine);
     if(myHost->doublePrecision)
         canDoubleReplacing(true);
 
@@ -125,7 +126,7 @@ void Vst::open()
              this,SLOT(OnMainHostTempoChange()));
     }
 
-     myHost->Open();
+     QMetaObject::invokeMethod(myHost,"Open",Qt::BlockingQueuedConnection);
 
      //load default setup file
      QString currentSetupFile = ConfigDialog::defaultSetupFile(myHost);

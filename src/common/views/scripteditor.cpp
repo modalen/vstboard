@@ -20,7 +20,7 @@
 
 #include "scripteditor.h"
 #include "ui_scripteditor.h"
-#include "connectables/script.h"
+#include "connectables/objects/script.h"
 
 using namespace View;
 

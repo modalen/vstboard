@@ -22,11 +22,11 @@
 #include "globals.h"
 #include "audiobuffer.h"
 #include "mainhostvst.h"
-#include "../vst.h"
+#include "vst.h"
 
 using namespace Connectables;
 
-VstAudioDeviceOut::VstAudioDeviceOut(MainHost *myHost, ObjectInfo &info) :
+VstAudioDeviceOut::VstAudioDeviceOut(MainHost *myHost, MetaInfo &info) :
     Object(myHost, info)
 {
 }

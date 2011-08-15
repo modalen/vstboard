@@ -2,7 +2,7 @@
 #define NODE_H
 
 //#include "precomp.h"
-#include "connectables/object.h"
+#include "connectables/objects/object.h"
 
 class Node
 {

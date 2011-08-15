@@ -22,7 +22,7 @@
 #define AUDIODEVICEOUT_H
 
 //#include "precomp.h"
-#include "connectables/object.h"
+#include "connectables/objects/object.h"
 #include "objectinfo.h"
 #include "circularbuffer.h"
 
@@ -35,7 +35,7 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        AudioDeviceOut(MainHost *myHost, ObjectInfo &info);
+        AudioDeviceOut(MainHost *myHost, MetaInfo &info);
         ~AudioDeviceOut();    
         bool Open();
         bool Close();

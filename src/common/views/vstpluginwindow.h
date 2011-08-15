@@ -21,7 +21,7 @@
 #ifndef VSTPLUGINWINDOW_H
 #define VSTPLUGINWINDOW_H
 
-#include "../precomp.h"
+#include "precomp.h"
 
 namespace Ui {
     class VstPluginWindow;

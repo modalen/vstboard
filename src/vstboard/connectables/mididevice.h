@@ -24,7 +24,7 @@
 //#include "precomp.h"
 #include "portmidi.h"
 #include "pmutil.h"
-#include "connectables/object.h"
+#include "connectables/objects/object.h"
 
 #define QUEUE_SIZE 1024
 
@@ -35,7 +35,7 @@ namespace Connectables {
     Q_OBJECT
 
     public:
-        MidiDevice(MainHost *myHost, ObjectInfo &info);
+        MidiDevice(MainHost *myHost, MetaInfo &info);
         ~MidiDevice();
         bool Open();
         bool Close();

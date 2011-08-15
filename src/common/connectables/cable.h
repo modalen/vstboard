@@ -21,7 +21,6 @@
 #ifndef CABLE_H
 #define CABLE_H
 
-#include "connectioninfo.h"
 #include "objectinfo.h"
 
 class MainHost;
@@ -30,36 +29,34 @@ namespace Connectables {
     class Cable : public ObjectInfo
     {
     public:
-        Cable(MainHost *myHost,const ObjectInfo &pinOut, const ObjectInfo &pinIn);
-        Cable(const Cable & c);
-        void AddToParentNode(const QModelIndex &parentIndex);
-        void RemoveFromParentNode(const QModelIndex &parentIndex);
+        Cable();
+        Cable(const MetaInfo &pinOut, const MetaInfo &pinIn);
 
         /*!
           Get the output pin info
           \return a ConnectionInfo
           */
-        inline const ObjectInfo & GetInfoOut() const {return pinOut;}
+        inline const MetaInfo & GetInfoOut() const {return pinOut;}
 
         /*!
           Get the input pin info
           \return a ConnectionInfo
           */
-        inline const ObjectInfo & GetInfoIn() const {return pinIn;}
+        inline const MetaInfo & GetInfoIn() const {return pinIn;}
+
+        QDataStream & toStream (QDataStream &) const;
+        QDataStream & fromStream (QDataStream &);
 
     protected:
         /// the output pin (from the sender object)
-        const ObjectInfo pinOut;
+        MetaInfo pinOut;
 
         /// the input pin (the receiver object)
-        const ObjectInfo pinIn;
-
-        /// the cable index in the model
-        QPersistentModelIndex modelIndex;
-
-        /// pointer to the MainHost
-        MainHost *myHost;
+        MetaInfo pinIn;
     };
 }
+
+QDataStream & operator<< (QDataStream & out, const Connectables::Cable& value);
+QDataStream & operator>> (QDataStream & in, Connectables::Cable& value);
 
 #endif // CABLE_H

@@ -31,11 +31,11 @@ ObjectFactoryHost::ObjectFactoryHost(MainHost *myHost) :
 {
 }
 
-Object *ObjectFactoryHost::CreateOtherObjects(ObjectInfo &info)
+Object *ObjectFactoryHost::CreateOtherObjects(MetaInfo &info)
 {
     Object *obj=0;
 
-    switch(info.Meta()) {
+    switch(info.Type()) {
         case MetaTypes::object :
 
             switch(info.Meta(MetaInfos::ObjType).toInt()) {

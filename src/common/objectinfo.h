@@ -23,6 +23,7 @@
 
 #include "precomp.h"
 #include "globals.h"
+#include "models/hostmodel.h"
 
 namespace MetaTypes {
     enum Enum {
@@ -32,18 +33,17 @@ namespace MetaTypes {
         bridge,
         listPin,
         pin,
-        cable,
-        cursor
+        cable
     };
 }
 
 namespace MetaInfos {
     enum Enum {
+        ND,
         ObjType,
         Direction,
         Media,
         Filename,
-        LimitType,
         devId,
         devName,
         apiId,
@@ -53,8 +53,26 @@ namespace MetaInfos {
         nbOutputs,
         errorMessage,
         PinNumber,
-        Visible,
-        Removable
+        Hidden,
+        Removable,
+        Bridge,
+        Value,
+        StepSize,
+        Dirty,
+        DoublePrecision,
+        Position,
+        bankFile,
+        programFile,
+        displayedText,
+        EditorVisible,
+        EditorSize,
+        EditorPosition,
+        EditorVScroll,
+        EditorHScroll,
+        LimitInMin,
+        LimitInMax,
+        LimitOutMin,
+        LimitOutMax,
     };
 }
 
@@ -122,27 +140,22 @@ namespace FixedObjIds {
     };
 }
 
-namespace LimitTypes {
-    enum Enum {
-        Min,
-        Max
-    };
-}
-
 class ObjectInfo;
 typedef QMultiMap < ObjectInfo, ObjectInfo > mapCables;
 
 class MainHost;
-class ObjectInfo
+class ObjectInfo;
+class MetaInfo
 {
-public:
-    ObjectInfo();
-    virtual ~ObjectInfo();
-    ObjectInfo( MetaTypes::Enum metaType, ObjTypes::Enum objType=ObjTypes::ND, int id=0, QString objName="");
-    ObjectInfo(const ObjectInfo &c);
+    public:
+    MetaInfo();
+    MetaInfo(const MetaTypes::Enum type);
 
-    inline MetaTypes::Enum Meta() const {
-        return metaType;
+    inline MetaTypes::Enum Type() const {
+        return objType;
+    }
+    inline void SetType(const MetaTypes::Enum type) {
+        objType=type;
     }
 
     inline void SetObjId(const quint32 id) {
@@ -152,6 +165,97 @@ public:
         return objId;
     }
 
+    inline void SetParentId(const quint32 id) {
+        parentId = id;
+    }
+    inline quint32 ParentId() const {
+        return parentId;
+    }
+
+    inline void SetContainerId(const quint32 id) {
+        containerId = id;
+    }
+    inline quint32 ContainerId() const {
+        return containerId;
+    }
+
+    inline void SetParentObjectId(const quint32 id) {
+        parentObjectId = id;
+    }
+    inline quint32 ParentObjectId() const {
+        return parentObjectId;
+    }
+
+    inline void SetName(const QString &name) {
+        if(!name.isEmpty())
+            objName = name;
+    }
+    inline const QString & Name() const {
+        return objName;
+    }
+
+    inline const QVariant Meta(MetaInfos::Enum inf) const {
+        return listInfos.value(inf);
+    }
+    inline void SetMeta(MetaInfos::Enum inf, const QVariant &val) {
+        listInfos[inf]=val;
+        if(model)
+            model->valueChanged(*this,inf,val);
+    }
+    inline void DelMeta(MetaInfos::Enum inf) {
+        listInfos.remove(inf);
+    }
+
+    inline void SetModel(HostModel *m) {
+        model = m;
+    }
+//    inline HostModel *Model() const {
+//        return model;
+//    }
+
+    bool DropMime(const QMimeData *data, InsertionType::Enum insertType = InsertionType::NoInsertion) {
+        if(!model)
+            return false;
+        return model->dropMime(data,MetaInfo(*this),insertType);
+    }
+
+    inline const MetaInfo & info() const {return *this;}
+
+    bool CanConnectTo(const MetaInfo &c) const;
+
+    QString toString() const;
+    QString toStringFull() const;
+
+    QDataStream & toStream(QDataStream& stream) const;
+    QDataStream & fromStream(QDataStream& stream);
+
+private:
+    MetaTypes::Enum objType;
+    quint32 objId;
+    quint32 parentId;
+    quint32 parentObjectId;
+    quint32 containerId;
+    QString objName;
+    QMap<MetaInfos::Enum,QVariant>listInfos;
+    HostModel *model;
+
+};
+
+
+Q_DECLARE_METATYPE(MetaInfo);
+
+QDataStream & operator<< (QDataStream& stream, const MetaInfo& info);
+QDataStream & operator>> (QDataStream& stream, MetaInfo& info);
+
+
+class ObjectInfo : public MetaInfo
+{
+public:
+    ObjectInfo();
+    virtual ~ObjectInfo();
+//    ObjectInfo( MetaTypes::Enum metaType, ObjTypes::Enum objType=ObjTypes::ND, int id=0, QString objName="");
+    ObjectInfo(const MetaInfo &c);
+
     inline ObjectInfo * ParentInfo() const {
         return parentInfo;
     }
@@ -160,63 +264,17 @@ public:
         return containerInfo;
     }
 
-    inline quint32 ParentId() const {
-        return parentId;
-    }
-    inline quint32 ParentObjectId() const {
-        return parentObjectId;
-    }
-    inline quint32 ContainerId() const {
-        return containerId;
-    }
-
-    inline void SetName(const QString &name) {
-        objName = name;
-    }
-    inline const QString & Name() const {
-        return objName;
-    }
-
-    inline void SetMeta(MetaInfos::Enum inf, const QVariant &val) {
-        listInfos[inf]=val;
-    }
-    inline const QVariant Meta(MetaInfos::Enum inf) const {
-        return listInfos.value(inf);
-    }
-    inline void DelMeta(MetaInfos::Enum inf) {
-        listInfos.remove(inf);
-    }
-
     void SetParent(ObjectInfo *parent);
     virtual void SetContainer(ObjectInfo *container);
 
-    inline ObjectInfo & info() {return *this;}
+    void AddToView(MainHost *myHost);
+    void RemoveFromView(MainHost *myHost);
     void UpdateView(MainHost *myHost);
 
-    bool CanConnectTo(const ObjectInfo &c) const;
-
-    QDataStream & toStream(QDataStream& stream) const;
-    QDataStream & fromStream(QDataStream& stream);
-
-protected:
-    MetaTypes::Enum metaType;
-
 private:
-    quint32 objId;
-    quint32 parentId;
-    quint32 parentObjectId;
-    quint32 containerId;
-    QString objName;
     ObjectInfo* parentInfo;
     ObjectInfo* containerInfo;
-    QMap<MetaInfos::Enum,QVariant>listInfos;
     QList<ObjectInfo*>childrenInfo;
-
-    const ObjectInfo * ParentObjectInfo() const {
-        if(metaType==MetaTypes::object || metaType==MetaTypes::container || metaType==MetaTypes::bridge)
-            return this;
-        else return ParentInfo()->ParentObjectInfo();
-    }
 };
 
 inline bool operator==(const ObjectInfo &c1, const ObjectInfo &c2) {
@@ -226,13 +284,6 @@ inline bool operator==(const ObjectInfo &c1, const ObjectInfo &c2) {
 inline bool operator<(const ObjectInfo &c1, const ObjectInfo &c2) {
     return c1.ObjId() < c2.ObjId();
 }
-
-Q_DECLARE_METATYPE(ObjectInfo);
-
-QDataStream & operator<< (QDataStream& stream, const ObjectInfo& objInfo);
-QDataStream & operator>> (QDataStream& stream, ObjectInfo& objInfo);
-
-
 
 class ObjectContainerAttribs
 {

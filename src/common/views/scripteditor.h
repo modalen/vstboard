@@ -18,7 +18,6 @@ namespace View {
     public:
         explicit ScriptEditor(QWidget *parent = 0);
         ~ScriptEditor();
-        void SetScript(const QString &script);
         void SetObject(Connectables::Script *script);
 
     protected:
@@ -27,6 +26,9 @@ namespace View {
     signals:
         void Execute(const QString &str);
         void Hide();
+
+    public slots:
+        void SetScript(const QString &script);
 
     private slots:
         void on_btExecute_clicked();

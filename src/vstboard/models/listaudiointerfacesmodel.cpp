@@ -48,7 +48,7 @@ QMimeData  * ListAudioInterfacesModel::mimeData ( const QModelIndexList  & index
             continue;
         if(idx.column()!=0)
             continue;
-        stream << itemFromIndex(idx)->data(UserRoles::objInfo).value<ObjectInfo>();
+        stream << itemFromIndex(idx)->data(UserRoles::objInfo).value<MetaInfo>();
     }
 
     data->setData("application/x-audiointerface",b);

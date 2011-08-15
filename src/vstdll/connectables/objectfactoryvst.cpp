@@ -32,11 +32,11 @@ ObjectFactoryVst::ObjectFactoryVst(MainHost *myHost) :
 {
 }
 
-Object *ObjectFactoryVst::CreateOtherObjects(ObjectInfo &info)
+Object *ObjectFactoryVst::CreateOtherObjects(MetaInfo &info)
 {
     Object *obj=0;
 
-    switch(info.Meta()) {
+    switch(info.Type()) {
         case MetaTypes::object :
 
             switch(info.Meta(MetaInfos::ObjType).toInt()) {

@@ -37,7 +37,7 @@ using namespace Connectables;
   \param index object number
   \param info object description
   */
-AudioDeviceIn::AudioDeviceIn(MainHost *myHost, ObjectInfo &info) :
+AudioDeviceIn::AudioDeviceIn(MainHost *myHost, MetaInfo &info) :
     Object(myHost, info),
     parentDevice(0)
 {
@@ -119,7 +119,7 @@ bool AudioDeviceIn::Open()
     return true;
 }
 
-Pin* AudioDeviceIn::CreatePin(ObjectInfo &info)
+Pin* AudioDeviceIn::CreatePin(MetaInfo &info)
 {
     Pin *newPin = Object::CreatePin(info);
 

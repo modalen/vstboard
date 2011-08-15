@@ -35,7 +35,7 @@ QMimeData  * ListToolsModel::mimeData ( const QModelIndexList  & indexes ) const
     foreach(QModelIndex idx, indexes) {
         if(idx.column()!=0)
             continue;
-        stream << itemFromIndex(idx)->data(UserRoles::objInfo).value<ObjectInfo>();
+        stream << itemFromIndex(idx)->data(UserRoles::objInfo).value<MetaInfo>();
     }
 
     data->setData("application/x-tools",b);

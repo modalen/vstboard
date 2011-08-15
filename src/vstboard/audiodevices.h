@@ -51,7 +51,7 @@ public:
     explicit AudioDevices(MainHostHost *myHost);
     ~AudioDevices();
     ListAudioInterfacesModel * GetModel() {return model;}
-    Connectables::AudioDevice * AddDevice(ObjectInfo &objInfo, QString *errMsg=0);
+    Connectables::AudioDevice * AddDevice(MetaInfo &objInfo, QString *errMsg=0);
     void RemoveDevice(PaDeviceIndex devId);
 
     void PutPinsBuffersInRingBuffers();
@@ -62,7 +62,7 @@ public:
     /// model index of the asio devices, used by the view to expand this branch only
     QPersistentModelIndex AsioIndex;
 
-    bool FindPortAudioDevice(ObjectInfo &objInfo, PaDeviceInfo *dInfo);
+    bool FindPortAudioDevice(MetaInfo &objInfo, PaDeviceInfo *dInfo);
 private:
     bool Init();
     void BuildModel();

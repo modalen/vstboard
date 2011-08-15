@@ -23,10 +23,8 @@
 
 #include "precomp.h"
 #include "globals.h"
-#include "connectioninfo.h"
 #include "objectinfo.h"
 #include "audiobuffer.h"
-#include "objectinfo.h"
 
 namespace Connectables {
 
@@ -48,7 +46,7 @@ namespace Connectables {
 //        void SetInfo(Object *parent,const ConnectionInfo &connInfo, const ObjectInfo &objInfo);
         Pin * GetPin(int pinNumber, bool autoCreate=false);
 //        void UpdateModelNode(QStandardItem *parentNode=0);
-        void ConnectAllTo(Container* container,PinsList *other, bool hidden=false);
+        void ConnectAllTo(Container* container, const PinsList *other, bool hidden=false);
         void AsyncAddPin(int nb);
         void AsyncRemovePin(int nb);
 
@@ -57,7 +55,7 @@ namespace Connectables {
         AudioBuffer *GetBuffer(int pinNumber);
 
         QMap<quint16,Pin*> listPins;
-        ObjectInfo objInfo;
+        MetaInfo getMetaForPin(int nb);
 
         virtual QDataStream & toStream (QDataStream &) const;
         virtual QDataStream & fromStream (QDataStream &);

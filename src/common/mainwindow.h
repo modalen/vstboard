@@ -24,8 +24,8 @@
 //#include "precomp.h"
 #include "mainhost.h"
 #include "models/listtoolsmodel.h"
-#include "views/sceneview.h"
-#include "views/viewconfig.h"
+#include "sceneview/sceneview.h"
+#include "viewconfig.h"
 
 namespace Ui {
     class MainWindow;
@@ -48,8 +48,6 @@ public:
     View::SceneView *mySceneView;
     View::ViewConfig *viewConfig;
 
-    HostModel *model;
-
     inline int GetLastMessageResult() {return lastMessageResult;}
 
     virtual bool event(QEvent *event);
@@ -61,6 +59,10 @@ public:
             qApp->postEvent(obj,event,priority);
         }
     }
+
+    Q_INVOKABLE void CreateNewPluginWindow(QObject* obj);
+    Q_INVOKABLE void CreateNewScriptEditor(QObject* obj);
+    Q_INVOKABLE void DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton);
 
 protected:
     void changeEvent(QEvent *e);
@@ -80,15 +82,10 @@ protected:
 
     Ui::MainWindow *ui;
     MainHost *myHost;
-
     View::ViewConfigDialog *viewConfigDlg;
-
     int lastMessageResult;
-
-    QMap<int,QStandardItem*>mapItems;
-    QMap<ConnectionInfo,QStandardItem*>mapPins;
-
     QList<QObject*>eventsListeners;
+    HostModel *hostModel;
 
 signals:
     void askLoadSetup(const QString &file);
@@ -105,8 +102,6 @@ public slots:
     void currentFileChanged();
     void OnViewConfigClosed();
     void LoadDefaultFiles();
-    void CreateNewPluginWindow(Connectables::Object* obj);
-    void DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton);
 
 private slots:
     void on_actionLoad_Setup_triggered();
@@ -128,6 +123,8 @@ private slots:
 
     void on_solverView_clicked(const QModelIndex &index);
     void on_actionAppearance_toggled(bool arg1);
+
+    friend class View::SceneView;
 };
 
 #endif // MAINWINDOW_H

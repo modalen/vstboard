@@ -20,7 +20,7 @@
 
 #include "ceffect.h"
 #include "cvsthost.h"
-#include "../mainhost.h"
+#include "mainhost.h"
 #include "vstbank.h"
 #include "vstprogram.h"
 

@@ -88,7 +88,7 @@ bool MidiDevices::Init()
 //            if(!obj->errorMessage.isEmpty())
                 obj->Open();
 //            obj->UpdateModelNode();
-                obj->UpdateView(myHost);
+                obj->AddToView(myHost);
         }
     }
 
@@ -144,7 +144,7 @@ void MidiDevices::BuildModel()
         }
         lastName = devName;
 
-        ObjectInfo obj(MetaTypes::object);
+        MetaInfo obj(MetaTypes::object);
         obj.SetMeta(MetaInfos::ObjType, ObjTypes::MidiInterface);
         obj.SetMeta(MetaInfos::devId, i);
         obj.SetMeta(MetaInfos::devName, devName);

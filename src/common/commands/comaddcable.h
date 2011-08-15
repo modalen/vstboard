@@ -9,16 +9,16 @@ class ComAddCable : public QUndoCommand
 {
 public:
     ComAddCable(MainHost *myHost,
-                const ObjectInfo &outInfo,
-                const ObjectInfo &inInfo,
+                const MetaInfo &outInfo,
+                const MetaInfo &inInfo,
                 QUndoCommand  *parent=0);
     void undo ();
     void redo ();
 
 private:
     MainHost *myHost;
-    ObjectInfo outInfo;
-    ObjectInfo inInfo;
+    MetaInfo outInfo;
+    MetaInfo inInfo;
     int currentGroup;
     int currentProg;
 };

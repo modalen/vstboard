@@ -21,7 +21,7 @@
 
 #include "cvsthost.h"                   /* private prototypes                */
 #include "ceffect.h"
-#include "../connectables/vstplugin.h"
+#include "connectables/objects/vstplugin.h"
 
 using namespace vst;
 
@@ -157,11 +157,12 @@ void CVSTHost::UpdateTimeInfo(double timer, int addSamples, double sampleRate)
     vstTimeInfo.barStartPos = barLengthq*currentBar;
 }
 
-float CVSTHost::GetCurrentBarTic()
+float CVSTHost::GetCurrentBarTic(int &step)
 {
-    float step = floor((vstTimeInfo.ppqPos-vstTimeInfo.barStartPos)*vstTimeInfo.timeSigDenominator/4);
+    float s = floor((vstTimeInfo.ppqPos-vstTimeInfo.barStartPos)*vstTimeInfo.timeSigDenominator/4);
     float total = ((barLengthq*vstTimeInfo.timeSigDenominator/4)-1);
-    return step / total;
+    step=1+s;
+    return s / total;
 }
 
 /*****************************************************************************/

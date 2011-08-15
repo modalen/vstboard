@@ -228,21 +228,4 @@ namespace Event {
     const QEvent::Type Shortcut = QEvent::Type(QEvent::User+3);
 }
 
-namespace InsertionType {
-    enum Enum {
-        NoInsertion,
-        InsertBefore,
-        InsertAfter,
-        Replace,
-        AddBefore,
-        AddAfter
-    };
-}
-
-namespace RemoveType {
-    enum Enum {
-        RemoveWithCables,
-        BridgeCables
-    };
-}
 #endif // GLOBALS_H

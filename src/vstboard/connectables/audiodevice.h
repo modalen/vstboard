@@ -24,13 +24,13 @@
 #include <QWaitCondition>
 
 //#include "precomp.h"
-#include "connectables/object.h"
+#include "connectables/objects/object.h"
 #include "objectinfo.h"
 #include "portaudio.h"
 #include "pa_win_wmme.h"
 #include "pa_win_ds.h"
 #include "pa_win_wasapi.h"
-#include "../circularbuffer.h"
+#include "circularbuffer.h"
 
 class MainHostHost;
 namespace Connectables {
@@ -41,7 +41,7 @@ namespace Connectables {
     {
         Q_OBJECT
     public:
-        AudioDevice(PaDeviceInfo &devInfo, MainHostHost *myHost,const ObjectInfo &info, QObject *parent=0);
+        AudioDevice(PaDeviceInfo &devInfo, MainHostHost *myHost,const MetaInfo &info, QObject *parent=0);
         ~AudioDevice();
 
         bool Open();
@@ -88,7 +88,7 @@ namespace Connectables {
         PaDeviceInfo devInfo;
 
         /// objcet description
-        ObjectInfo objInfo;
+        MetaInfo objInfo;
 
         /// pointer to the AudioDeviceIn, can be null
         AudioDeviceIn *devIn;

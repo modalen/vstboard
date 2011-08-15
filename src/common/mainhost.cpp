@@ -20,10 +20,10 @@
 #include "mainhost.h"
 #include "mainwindow.h"
 #include "models/programsmodel.h"
-#include "connectables/container.h"
+#include "connectables/objects/container.h"
 
 #ifdef VSTSDK
-    #include "connectables/vstplugin.h"
+    #include "connectables/objects/vstplugin.h"
     int MainHost::vstUsersCounter=0;
 #endif
 
@@ -32,9 +32,8 @@
 #include "views/configdialog.h"
 #include "events.h"
 
-EngineThread::EngineThread(MainHost *myHost) :
-    QThread(myHost),
-    myHost(myHost)
+EngineThread::EngineThread() :
+    QThread()
 {
     setObjectName("EngineThread");
     start(QThread::HighPriority);
@@ -63,7 +62,7 @@ MainHost::MainHost(QObject *parent, QString settingsGroup) :
     mutexListCables(new QMutex(QMutex::Recursive)),
     settingsGroup(settingsGroup),
     undoProgramChangesEnabled(false),
-    model(0)
+    undoStack(new QUndoStack(this))
 {
     doublePrecision=GetSetting("doublePrecision",false).toBool();
 
@@ -108,6 +107,8 @@ MainHost::MainHost(QObject *parent, QString settingsGroup) :
 
 MainHost::~MainHost()
 {
+    eventsListeners.clear();
+
     EnableSolverUpdate(false);
 
     updateViewTimer->stop();
@@ -138,6 +139,41 @@ MainHost::~MainHost()
     delete mutexListCables;
 }
 
+bool MainHost::event(QEvent *event)
+{
+    switch(event->type()) {
+        case Events::typeCommand : {
+            Events::command *e = static_cast<Events::command*>(event);
+//            LOG("command");
+
+            undoStack->push(e->cmd);
+            return true;
+        }
+        case Events::typeValChanged : {
+            Events::valChanged *e = static_cast<Events::valChanged*>(event);
+//            LOG("valchanged"<<e->value<<e->objInfo.toStringFull());
+            Connectables::Pin *pin = objFactory->GetPin(e->objInfo);
+            if(!pin)
+                return true;
+
+            Connectables::ParameterPin* p = static_cast<Connectables::ParameterPin*>(pin);
+            p->SetMeta(e->type,e->value);
+            switch(e->type) {
+                case MetaInfos::Value :
+                case MetaInfos::LimitInMin :
+                case MetaInfos::LimitInMax :
+                case MetaInfos::LimitOutMin :
+                case MetaInfos::LimitOutMax :
+                    p->ChangeValue(p->Meta(MetaInfos::Value).toFloat());
+                    break;
+            }
+            return true;
+        }
+    }
+
+    return QObject::event(event);
+}
+
 void MainHost::Open()
 {
     EnableSolverUpdate(false);
@@ -154,7 +190,7 @@ void MainHost::Open()
 
 void MainHost::SetupMainContainer()
 {
-    ObjectInfo info(MetaTypes::container);
+    MetaInfo info(MetaTypes::container);
     info.SetName("mainContainer");
     info.SetObjId(FixedObjIds::mainContainer);
 
@@ -170,7 +206,7 @@ void MainHost::SetupMainContainer()
 //    mainContainer->modelIndex=item->index();
 //    mainContainer->GetFullItem();
     mainContainer->Resume();
-    Events::newObj *event = new Events::newObj(mainContainer->info());
+    Events::sendObj *event = new Events::sendObj(mainContainer->info(), Events::typeNewObj);
     PostEvent(event);
 
     mainContainer->parked=false;
@@ -191,7 +227,7 @@ void MainHost::SetupHostContainer()
             mainWindow->mySceneView->viewHost->ClearViewPrograms();
     }
 
-    ObjectInfo info(MetaTypes::container);
+    MetaInfo info(MetaTypes::container);
     info.SetName("hostContainer");
     info.SetObjId(FixedObjIds::hostContainer);
 
@@ -208,25 +244,25 @@ void MainHost::SetupHostContainer()
 
 
     //bridge in
-    ObjectInfo in(MetaTypes::bridge);
+    MetaInfo in(MetaTypes::bridge);
     in.SetName("in");
     in.SetMeta(MetaInfos::Direction, Directions::Input);
     in.SetObjId(FixedObjIds::hostContainerIn);
 
     bridge = objFactory->NewObject(in);
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     hostContainer->AddObject( bridge );
 
     hostContainer->bridgeIn = bridge;
 
     //bridge out
-    ObjectInfo out(MetaTypes::bridge);
+    MetaInfo out(MetaTypes::bridge);
     out.SetName("out");
     out.SetMeta(MetaInfos::Direction, Directions::Output);
     out.SetObjId(FixedObjIds::hostContainerOut);
 
     bridge = objFactory->NewObject(out);
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     hostContainer->AddObject( bridge );
 
     hostContainer->bridgeOut = bridge;
@@ -238,25 +274,25 @@ void MainHost::SetupHostContainer()
     }
 
     //send bridge
-    ObjectInfo send(MetaTypes::bridge);
+    MetaInfo send(MetaTypes::bridge);
     send.SetName("send");
     send.SetMeta(MetaInfos::Direction, Directions::Send);
     send.SetObjId(FixedObjIds::hostContainerSend);
 
     bridge = objFactory->NewObject(send);
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     hostContainer->AddObject( bridge );
 
     hostContainer->bridgeSend = bridge;
 
     //return bridge
-    ObjectInfo retrn(MetaTypes::bridge);
+    MetaInfo retrn(MetaTypes::bridge);
     retrn.SetName("return");
     retrn.SetMeta(MetaInfos::Direction, Directions::Return);
     retrn.SetObjId(FixedObjIds::hostContainerReturn);
 
     bridge = objFactory->NewObject(retrn);
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     hostContainer->AddObject( bridge );
 
     hostContainer->bridgeReturn = bridge;
@@ -288,7 +324,7 @@ void MainHost::SetupProjectContainer()
 
     timeFromStart.restart();
 
-    ObjectInfo info(MetaTypes::container);
+    MetaInfo info(MetaTypes::container);
     info.SetName("projectContainer");
     info.SetObjId(FixedObjIds::projectContainer);
 
@@ -304,25 +340,25 @@ void MainHost::SetupProjectContainer()
     QSharedPointer<Connectables::Object> bridge;
 
     //bridge in
-    ObjectInfo in(MetaTypes::bridge);
+    MetaInfo in(MetaTypes::bridge);
     in.SetName("in");
     in.SetMeta(MetaInfos::Direction, Directions::Input);
     in.SetObjId(FixedObjIds::projectContainerIn);
 
     bridge = objFactory->NewObject(in);
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     projectContainer->AddObject( bridge );
 
     projectContainer->bridgeIn = bridge;
 
     //bridge out
-    ObjectInfo out(MetaTypes::bridge);
+    MetaInfo out(MetaTypes::bridge);
     out.SetName("out");
     out.SetMeta(MetaInfos::Direction, Directions::Output);
     out.SetObjId(FixedObjIds::projectContainerOut);
 
     bridge = objFactory->NewObject(out);
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     projectContainer->AddObject( bridge );
 
     projectContainer->bridgeOut = bridge;
@@ -335,25 +371,25 @@ void MainHost::SetupProjectContainer()
 
 
     //bridge send
-    ObjectInfo send(MetaTypes::bridge);
+    MetaInfo send(MetaTypes::bridge);
     send.SetName("send");
     send.SetMeta(MetaInfos::Direction, Directions::Send);
     send.SetObjId(FixedObjIds::projectContainerSend);
 
     bridge = objFactory->NewObject(send);
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     projectContainer->AddObject( bridge );
 
     projectContainer->bridgeSend = bridge;
 
     //bridge return
-    ObjectInfo retrn(MetaTypes::bridge);
+    MetaInfo retrn(MetaTypes::bridge);
     retrn.SetName("return");
     retrn.SetMeta(MetaInfos::Direction, Directions::Return);
     retrn.SetObjId(FixedObjIds::projectContainerReturn);
 
     bridge = objFactory->NewObject(retrn);
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     projectContainer->AddObject( bridge );
 
     projectContainer->bridgeReturn = bridge;
@@ -390,7 +426,7 @@ void MainHost::SetupProgramContainer()
             mainWindow->mySceneView->viewProgram->ClearViewPrograms();
     }
 
-    ObjectInfo info(MetaTypes::container);
+    MetaInfo info(MetaTypes::container);
     info.SetName("programContainer");
     info.SetObjId(FixedObjIds::programContainer);
 
@@ -407,25 +443,25 @@ void MainHost::SetupProgramContainer()
     QSharedPointer<Connectables::Object> bridge;
 
     //bridge in
-    ObjectInfo in(MetaTypes::bridge);
+    MetaInfo in(MetaTypes::bridge);
     in.SetName("in");
     in.SetMeta(MetaInfos::Direction, Directions::Input);
     in.SetObjId(FixedObjIds::programContainerIn);
 
     bridge = objFactory->NewObject(in);
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     programContainer->AddObject( bridge );
 
     programContainer->bridgeIn = bridge;
 
     //bridge out
-    ObjectInfo out(MetaTypes::bridge);
+    MetaInfo out(MetaTypes::bridge);
     out.SetName("out");
     out.SetMeta(MetaInfos::Direction, Directions::Output);
     out.SetObjId(FixedObjIds::programContainerOut);
 
     bridge = objFactory->NewObject(out);
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     programContainer->AddObject( bridge );
 
     programContainer->bridgeOut = bridge;
@@ -438,25 +474,25 @@ void MainHost::SetupProgramContainer()
 
 
     //bridge send
-    ObjectInfo send(MetaTypes::bridge);
+    MetaInfo send(MetaTypes::bridge);
     send.SetName("send");
     send.SetMeta(MetaInfos::Direction, Directions::Send);
     send.SetObjId(FixedObjIds::programContainerSend);
 
     bridge = objFactory->NewObject(send);
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     programContainer->AddObject( bridge );
 
     programContainer->bridgeSend = bridge;
 
     //bridge return
-    ObjectInfo retrn(MetaTypes::bridge);
+    MetaInfo retrn(MetaTypes::bridge);
     retrn.SetName("return");
     retrn.SetMeta(MetaInfos::Direction, Directions::Return);
     retrn.SetObjId(FixedObjIds::programContainerReturn);
 
     bridge = objFactory->NewObject(retrn);
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     programContainer->AddObject( bridge );
 
     programContainer->bridgeReturn = bridge;
@@ -494,7 +530,7 @@ void MainHost::SetupGroupContainer()
             mainWindow->mySceneView->viewGroup->ClearViewPrograms();
     }
 
-    ObjectInfo info(MetaTypes::container);
+    MetaInfo info(MetaTypes::container);
     info.SetName("groupContainer");
     info.SetObjId(FixedObjIds::groupContainer);
 
@@ -510,25 +546,25 @@ void MainHost::SetupGroupContainer()
     QSharedPointer<Connectables::Object> bridge;
 
     //bridge in
-    ObjectInfo in(MetaTypes::bridge);
+    MetaInfo in(MetaTypes::bridge);
     in.SetName("in");
     in.SetMeta(MetaInfos::Direction, Directions::Input);
     in.SetObjId(FixedObjIds::groupContainerIn);
 
     bridge = objFactory->NewObject(in);
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     groupContainer->AddObject( bridge );
 
     groupContainer->bridgeIn = bridge;
 
     //bridge out
-    ObjectInfo out(MetaTypes::bridge);
+    MetaInfo out(MetaTypes::bridge);
     out.SetName("out");
     out.SetMeta(MetaInfos::Direction, Directions::Output);
     out.SetObjId(FixedObjIds::groupContainerOut);
 
     bridge = objFactory->NewObject(out);
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     groupContainer->AddObject( bridge );
 
     groupContainer->bridgeOut = bridge;
@@ -540,25 +576,25 @@ void MainHost::SetupGroupContainer()
     }
 
     //bridge send
-    ObjectInfo send(MetaTypes::bridge);
+    MetaInfo send(MetaTypes::bridge);
     send.SetName("send");
     send.SetMeta(MetaInfos::Direction, Directions::Send);
     send.SetObjId(FixedObjIds::groupContainerSend);
 
     bridge = objFactory->NewObject(send);
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     groupContainer->AddObject( bridge );
 
     groupContainer->bridgeSend = bridge;
 
     //bridge return
-    ObjectInfo retrn(MetaTypes::bridge);
+    MetaInfo retrn(MetaTypes::bridge);
     retrn.SetName("return");
     retrn.SetMeta(MetaInfos::Direction, Directions::Return);
     retrn.SetObjId(FixedObjIds::groupContainerReturn);
 
     bridge = objFactory->NewObject(retrn);
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     groupContainer->AddObject( bridge );
 
     groupContainer->bridgeReturn = bridge;
@@ -645,7 +681,7 @@ void MainHost::ChangeNbThreads(int nbThreads)
 
 }
 
-void MainHost::SendMsg(const ObjectInfo &senderPin,const PinMessage::Enum msgType,void *data)
+void MainHost::SendMsg(const MetaInfo &senderPin,const PinMessage::Enum msgType,void *data)
 {
     QMutexLocker lock(mutexListCables);
 
@@ -825,7 +861,7 @@ void MainHost::LoadSetupFile(const QString &filename)
     if(name.isEmpty())
         return;
 
-    undoStack.clear();
+    undoStack->clear();
 
     if(ProjectFile::LoadFromFile(this,name)) {
         ConfigDialog::AddRecentSetupFile(name,this);
@@ -859,7 +895,7 @@ void MainHost::LoadProjectFile(const QString &filename)
     if(name.isEmpty())
         return;
 
-    undoStack.clear();
+    undoStack->clear();
 
     if(ProjectFile::LoadFromFile(this,name)) {
         ConfigDialog::AddRecentProjectFile(name,this);
@@ -876,7 +912,7 @@ void MainHost::ReloadProject()
     if(currentProjectFile.isEmpty())
         return;
 
-    undoStack.clear();
+    undoStack->clear();
 
     ProjectFile::LoadFromFile(this,currentProjectFile);
 }
@@ -886,7 +922,7 @@ void MainHost::ReloadSetup()
     if(currentSetupFile.isEmpty())
         return;
 
-    undoStack.clear();
+    undoStack->clear();
 
     ConfigDialog::AddRecentSetupFile(currentSetupFile,this);
 }
@@ -896,7 +932,7 @@ void MainHost::ClearSetup()
     if(!programsModel->userWantsToUnloadSetup())
         return;
 
-    undoStack.clear();
+    undoStack->clear();
 
     EnableSolverUpdate(false);
     SetupHostContainer();
@@ -914,7 +950,7 @@ void MainHost::ClearProject()
     if(!programsModel->userWantsToUnloadProject())
         return;
 
-    undoStack.clear();
+    undoStack->clear();
 
     EnableSolverUpdate(false);
     SetupProjectContainer();

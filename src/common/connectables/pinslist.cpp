@@ -20,13 +20,13 @@
 
 
 #include "pinslist.h"
-#include "pin.h"
+#include "pins/pin.h"
 #include "audiobuffer.h"
-#include "audiopin.h"
-#include "midipinin.h"
-#include "midipinout.h"
-#include "bridgepinin.h"
-#include "bridgepinout.h"
+#include "pins/audiopin.h"
+#include "pins/midipinin.h"
+#include "pins/midipinout.h"
+#include "pins/bridgepinin.h"
+#include "pins/bridgepinout.h"
 #include "mainhost.h"
 
 using namespace Connectables;
@@ -36,7 +36,7 @@ PinsList::PinsList(MainHost *myHost, Object *parent) :
         parent(parent),
         myHost(myHost)
 {
-    ObjectInfo::metaType = MetaTypes::listPin;
+    SetType( MetaTypes::listPin );
     ObjectInfo::SetParent(parent);
 
     connect(this,SIGNAL(PinAdded(int)),
@@ -67,6 +67,11 @@ void PinsList::ChangeNumberOfPins(int newNb)
 //}
 
 void PinsList::SetVisible(bool visible) {
+    if(visible)
+        SetMeta(MetaInfos::Hidden,true);
+    else
+        DelMeta(MetaInfos::Hidden);
+
     foreach(Pin* pin, listPins) {
         pin->SetVisible(visible);
     }
@@ -74,6 +79,8 @@ void PinsList::SetVisible(bool visible) {
 
 void PinsList::SetBridge(bool bridge)
 {
+    SetMeta(MetaInfos::Hidden,true);
+
     foreach(Pin* pin, listPins) {
         pin->SetBridge(bridge);
     }
@@ -86,7 +93,7 @@ Pin * PinsList::GetPin(int pinNumber, bool autoCreate)
         if(autoCreate) {
             AddPin(pinNumber);
         } else {
-            LOG("pin not in list"<<pinNumber);
+//            LOG("pin not in list"<<pinNumber<<info().toStringFull());
             return 0;
         }
     }
@@ -107,7 +114,7 @@ AudioBuffer *PinsList::GetBuffer(int pinNumber)
     return static_cast<AudioPin*>(listPins.value(pinNumber))->GetBuffer();
 }
 
-void PinsList::ConnectAllTo(Container* container, PinsList *other, bool hidden)
+void PinsList::ConnectAllTo(Container* container, const PinsList *other, bool hidden)
 {
 //    QSharedPointer<Object>cntPtr = myHost->objFactory->GetObjectFromId(ContainerId());//myHost->objFactory->GetObj(modelList.parent().parent());
 
@@ -177,7 +184,7 @@ void PinsList::SetNbPins(int nb, QList<quint16> *listAdded,QList<quint16> *listR
         cpt++;
     }
 
-    UpdateView(myHost);
+
 }
 
 Pin * PinsList::AddPin(int nb)
@@ -185,19 +192,17 @@ Pin * PinsList::AddPin(int nb)
     if(listPins.contains(nb))
         return listPins.value(nb);
 
-    ObjectInfo pinInfo(info());
-    pinInfo.SetMeta(MetaInfos::PinNumber,nb);
-    Pin *newPin = static_cast<Object*>(parent)->CreatePin(pinInfo);
-
+    Pin *newPin = static_cast<Object*>(parent)->CreatePin( getMetaForPin(nb) );
     if(!newPin) {
         LOG("pin not created"<<nb);
         return 0;
     }
     listPins.insert(nb, newPin);
-
-    if(modelList.isValid())
-        newPin->SetParent(this);
-//        newPin->SetParentModelIndex(modelList,objInfo.id);
+    newPin->SetParent(this);
+    if(ContainerId()) {
+        newPin->SetContainer(ContainerInfo());
+    }
+    newPin->AddToView(myHost);
 
     static_cast<Object*>(parent)->OnProgramDirty();
     return newPin;
@@ -212,13 +217,28 @@ void PinsList::RemovePin(int nb)
     delete listPins.take(nb);
 }
 
+MetaInfo PinsList::getMetaForPin(int nb)
+{
+    if(listPins.contains(nb))
+        return listPins.value(nb)->info();
+
+    MetaInfo info(MetaTypes::pin);
+    info.SetName("pin");
+    info.SetObjId( myHost->objFactory->GetNewId() );
+    info.SetMeta(MetaInfos::Media, Meta(MetaInfos::Media));
+    info.SetMeta(MetaInfos::Direction, Meta(MetaInfos::Direction));
+    info.SetParentId(ObjId());
+    info.SetContainerId(ContainerId());
+    info.SetParentObjectId(ParentObjectId());
+    info.SetMeta(MetaInfos::PinNumber,nb);
+    info.SetParentId(ObjId());
+    return info;
+}
+
 QDataStream & PinsList::toStream(QDataStream & out) const
 {
-//    out << connInfo;
-    out << objInfo;
-
+    out << *(MetaInfo*)this;
     out << (quint16)listPins.count();
-
     QMap<quint16,Pin*>::ConstIterator i = listPins.constBegin();
     while(i!=listPins.constEnd()) {
         Pin *pin=i.value();
@@ -232,21 +252,16 @@ QDataStream & PinsList::toStream(QDataStream & out) const
 
 QDataStream & PinsList::fromStream(QDataStream & in)
 {
-//    in >> connInfo;
-    in >> objInfo;
-
+    in >> *(MetaInfo*)this;
     quint16 nbPins;
     in >> nbPins;
-
     for(quint16 i=0; i<nbPins; i++) {
         quint16 id;
         in >> id;
         QVariant value;
         in >> value;
 
-        ObjectInfo pinInfo(objInfo);
-        pinInfo.SetMeta(MetaInfos::PinNumber,id);
-        Pin *newPin = parent->CreatePin(pinInfo);
+        Pin *newPin = parent->CreatePin( getMetaForPin(id) );
         if(!newPin)
             return in;
         listPins.insert(id,newPin);

@@ -163,7 +163,7 @@ bool AudioDevices::Init()
         if(obj.isNull())
             continue;
 
-        ObjectInfo info( obj->info() );
+        MetaInfo info( obj->info() );
         if(info.Meta(MetaInfos::ObjType).toInt() == ObjTypes::AudioInterface) {
             QString errMsg;
             Connectables::AudioDevice *newDevice = AddDevice( info, &errMsg );
@@ -178,7 +178,7 @@ bool AudioDevices::Init()
 
             if(obj->Open()) {
 //                obj->UpdateModelNode();
-                obj->UpdateView(myHost);
+                obj->AddToView(myHost);
             } else {
                 static_cast<Connectables::Container*>(myHost->objFactory->GetObjectFromId( obj->GetContainerId() ).data())->UserParkObject( obj );
             }
@@ -239,7 +239,7 @@ void AudioDevices::BuildModel()
                 lastName = devName;
             }
 
-            ObjectInfo obj(MetaTypes::object);
+            MetaInfo obj(MetaTypes::object);
             obj.SetMeta(MetaInfos::ObjType, ObjTypes::AudioInterface);
             obj.SetMeta(MetaInfos::devId, devIndex);
             obj.SetMeta(MetaInfos::devName, devName);
@@ -303,7 +303,7 @@ void AudioDevices::OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId
     int nbDev = apiItem->rowCount();
     int devCount = 0;
     while(!devItem && devCount<nbDev) {
-        ObjectInfo info = apiItem->child(devCount,0)->data(UserRoles::objInfo).value<ObjectInfo>();
+        MetaInfo info = apiItem->child(devCount,0)->data(UserRoles::objInfo).value<MetaInfo>();
         if(info.Meta(MetaInfos::devId).toInt() == devId)
             devItem = apiItem->child(devCount,0);
         devCount++;
@@ -353,7 +353,7 @@ void AudioDevices::OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId
     }
 }
 
-Connectables::AudioDevice * AudioDevices::AddDevice(ObjectInfo &objInfo, QString *errMsg)
+Connectables::AudioDevice * AudioDevices::AddDevice(MetaInfo &objInfo, QString *errMsg)
 {
     PaDeviceInfo PAinfo;
 
@@ -416,7 +416,7 @@ void AudioDevices::PutPinsBuffersInRingBuffers()
   \param[out] devInfo the PaDeviceInfo of the object found
   \return true if found
   */
-bool AudioDevices::FindPortAudioDevice(ObjectInfo &objInfo, PaDeviceInfo *dInfo)
+bool AudioDevices::FindPortAudioDevice(MetaInfo &objInfo, PaDeviceInfo *dInfo)
 {
     int cptDuplicateNames=0;
 
@@ -492,7 +492,7 @@ void AudioDevices::ConfigDevice(const QModelIndex &index)
     PaDeviceIndex devId=-1;
 
     if(index.data(UserRoles::objInfo).isValid()) {
-        ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
+        MetaInfo info = index.data(UserRoles::objInfo).value<MetaInfo>();
         devId = (PaDeviceIndex)info.Meta(MetaInfos::devId).toInt();
         apiIndex = (PaHostApiTypeId)info.Meta(MetaInfos::apiId).toInt();
     }

@@ -23,7 +23,7 @@
 #include "models/programsmodel.h"
 
 ComRemovePin::ComRemovePin(MainHost *myHost,
-                           const ObjectInfo &pinInfo,
+                           const MetaInfo &pinInfo,
                            QUndoCommand  *parent) :
     QUndoCommand(parent),
     myHost(myHost),
@@ -45,13 +45,14 @@ void ComRemovePin::undo ()
     if(!cntPtr)
         return;
 
-    QSharedPointer<Connectables::Object>objPtr = myHost->objFactory->GetObjectFromId( pinInfo.ObjId() );
+    QSharedPointer<Connectables::Object>objPtr = myHost->objFactory->GetObjectFromId( pinInfo.ParentObjectId() );
     if(!objPtr)
         return;
 
     objPtr->UserAddPin(pinInfo);
 
-    foreach( ObjectInfo info, listConnectedPins) {
+    foreach( MetaInfo info, listConnectedPins) {
+        myHost->objFactory->UpdatePinInfo( info );
         if(pinInfo.Meta(MetaInfos::Direction).toInt()==Directions::Output)
             cntPtr->UserAddCable(pinInfo,info);
         else
@@ -74,7 +75,7 @@ void ComRemovePin::redo ()
     if(!cntPtr)
         return;
 
-    QSharedPointer<Connectables::Object>objPtr = myHost->objFactory->GetObjectFromId( pinInfo.ObjId() );
+    QSharedPointer<Connectables::Object>objPtr = myHost->objFactory->GetObjectFromId( pinInfo.ParentObjectId() );
     if(!objPtr)
         return;
 

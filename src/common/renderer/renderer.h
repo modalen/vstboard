@@ -22,7 +22,7 @@
 #define RENDERER_H
 
 //#include "precomp.h"
-#include "connectables/object.h"
+#include "connectables/objects/object.h"
 #include "renderthread.h"
 #include "optimizer.h"
 

@@ -670,8 +670,16 @@ bool ProgramsModel::userWantsToUnloadGroup()
     msgBox.setInformativeText(tr("Do you want to save your changes?"));
     msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Save);
-
     int res = msgBox.exec();
+//    QMetaObject::invokeMethod(myHost->mainWindow,"DisplayMessage",
+//            Qt::BlockingQueuedConnection,
+//            Q_ARG(QMessageBox::Icon, QMessageBox::Critical),
+//            Q_ARG(QString, tr("The group has been modified.")),
+//            Q_ARG(QString, tr("Do you want to save your changes?")),
+//            Q_ARG(QMessageBox::StandardButtons, QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel),
+//            Q_ARG(QMessageBox::StandardButton, QMessageBox::Save)
+//        );
+//    int res = myHost->mainWindow->GetLastMessageResult();
     openedPrompt=false;
 
     switch(res) {
@@ -711,8 +719,16 @@ bool ProgramsModel::userWantsToUnloadProgram()
     msgBox.setInformativeText(tr("Do you want to save your changes?"));
     msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Save);
-
     int res = msgBox.exec();
+//    QMetaObject::invokeMethod(myHost->mainWindow,"DisplayMessage",
+//            Qt::BlockingQueuedConnection,
+//            Q_ARG(QMessageBox::Icon, QMessageBox::Critical),
+//            Q_ARG(QString, tr("The progarm has been modified.")),
+//            Q_ARG(QString, tr("Do you want to save your changes?")),
+//            Q_ARG(QMessageBox::StandardButtons, QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel),
+//            Q_ARG(QMessageBox::StandardButton, QMessageBox::Save)
+//        );
+//    int res = myHost->mainWindow->GetLastMessageResult();
     openedPrompt=false;
 
     switch(res) {
@@ -752,11 +768,14 @@ bool ProgramsModel::userWantsToUnloadProject()
     }
 
     //prompt
-//    emit DisplayMessage(QMessageBox::Question,
-//                        tr("The project has been modified."),
-//                        tr("Do you want to save your changes?"),
-//                        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
-//                        QMessageBox::Save);
+//    QMetaObject::invokeMethod(myHost->mainWindow,"DisplayMessage",
+//            Qt::BlockingQueuedConnection,
+//            Q_ARG(QMessageBox::Icon, QMessageBox::Critical),
+//            Q_ARG(QString, tr("The project has been modified.")),
+//            Q_ARG(QString, tr("Do you want to save your changes?")),
+//            Q_ARG(QMessageBox::StandardButtons, QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel),
+//            Q_ARG(QMessageBox::StandardButton, QMessageBox::Save)
+//        );
 //    int res = myHost->mainWindow->GetLastMessageResult();
 
     QMessageBox msgBox;
@@ -806,8 +825,16 @@ bool ProgramsModel::userWantsToUnloadSetup()
     msgBox.setInformativeText(tr("Do you want to save your changes?"));
     msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Save);
-
     int res=msgBox.exec();
+//    QMetaObject::invokeMethod(myHost->mainWindow,"DisplayMessage",
+//            Qt::BlockingQueuedConnection,
+//            Q_ARG(QMessageBox::Icon, QMessageBox::Critical),
+//            Q_ARG(QString, tr("The setup has been modified.")),
+//            Q_ARG(QString, tr("Do you want to save your changes?")),
+//            Q_ARG(QMessageBox::StandardButtons, QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel),
+//            Q_ARG(QMessageBox::StandardButton, QMessageBox::Save)
+//        );
+//    int res = myHost->mainWindow->GetLastMessageResult();
     openedPrompt=false;
 
     switch(res) {

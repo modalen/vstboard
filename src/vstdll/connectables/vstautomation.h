@@ -22,7 +22,7 @@
 #define VSTAUTOMATION_H
 
 //#include "precomp.h"
-#include "connectables/object.h"
+#include "connectables/objects/object.h"
 
 #define VST_AUTOMATION_DEFAULT_NB_PINS 2
 
@@ -33,13 +33,13 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        explicit VstAutomation(MainHost *myHost, ObjectInfo &info);
+        explicit VstAutomation(MainHost *myHost, MetaInfo &info);
         ~VstAutomation();
         bool Open();
         bool Close();
         void Render();
         void ValueFromHost(int pinNum, float value);
-        Pin* CreatePin(ObjectInfo &info);
+        Pin* CreatePin(MetaInfo &info);
     protected:
         /// list of values used by the learn pin (off, learn, unlearn)
         QList<QVariant>listIsLearning;
@@ -49,7 +49,7 @@ namespace Connectables {
         int progChanged;
 
     public slots:
-        void OnParameterChanged(const ObjectInfo &pinInfo, float value);
+        void OnParameterChanged(const MetaInfo &pinInfo, float value);
         void OnHostChangedProg(int prog);
     };
 }

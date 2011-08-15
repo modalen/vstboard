@@ -48,17 +48,17 @@ namespace Connectables {
         void RemoveObject(QSharedPointer<Object> objPtr);
         void ReplaceObject(QSharedPointer<Object> newObjPtr, QSharedPointer<Object> replacedObjPtr);
 
-        bool AddCable(const ObjectInfo &outputPin, const ObjectInfo &inputPin, bool hidden=false);
+        bool AddCable(const MetaInfo &outputPin, const MetaInfo &inputPin, bool hidden=false);
         void RemoveCable(Cable *cab);
 //        void RemoveCable(const QModelIndex & index);
-        void RemoveCable(const ObjectInfo &outputPin, const ObjectInfo &inputPin);
-        void RemoveCableFromPin(const ObjectInfo &pin);
+        void RemoveCable(const MetaInfo &outputPin, const MetaInfo &inputPin);
+        void RemoveCableFromPin(const MetaInfo &pin);
         void RemoveCableFromObj(int objId);
         void CreateBridgeOverObj(int objId);
         void CopyCablesFromObj(int newObjId, int oldObjId);
         void MoveOutputCablesFromObj(int newObjId, int oldObjId);
         void MoveInputCablesFromObj(int newObjId, int oldObjId);
-        void GetListOfConnectedPinsTo(const ObjectInfo &pin, QList<ObjectInfo> &list);
+        void GetListOfConnectedPinsTo(const MetaInfo &pin, QList<MetaInfo> &list);
 
         bool IsDirty();
         inline void SetDirty() {
@@ -68,8 +68,8 @@ namespace Connectables {
         void SaveRendererState();
         void LoadRendererState();
 
-        void CollectCableUpdates(QList< QPair<ObjectInfo,ObjectInfo> > *addedCables=0,
-                                QList< QPair<ObjectInfo,ObjectInfo> > *removedCables=0) {
+        void CollectCableUpdates(QList< QPair<MetaInfo,MetaInfo> > *addedCables=0,
+                                QList< QPair<MetaInfo,MetaInfo> > *removedCables=0) {
             collectedListOfAddedCables=addedCables;
             collectedListOfRemovedCables=removedCables;
         }
@@ -87,8 +87,8 @@ namespace Connectables {
             dirty=false;
         }
 
-        bool CableExists(const ObjectInfo &outputPin, const ObjectInfo &inputPin);
-        bool PinExistAndVisible(const ObjectInfo &info);
+        bool CableExists(const MetaInfo &outputPin, const MetaInfo &inputPin);
+        bool PinExistAndVisible(const MetaInfo &info);
 
         Container *container;
         bool dirty;
@@ -99,8 +99,8 @@ namespace Connectables {
 
         QMap<int,ObjectContainerAttribs>mapObjAttribs;
 
-        QList< QPair<ObjectInfo,ObjectInfo> > *collectedListOfAddedCables;
-        QList< QPair<ObjectInfo,ObjectInfo> > *collectedListOfRemovedCables;
+        QList< QPair<MetaInfo,MetaInfo> > *collectedListOfAddedCables;
+        QList< QPair<MetaInfo,MetaInfo> > *collectedListOfRemovedCables;
 
         friend class Container;
         friend class ParkingContainer;

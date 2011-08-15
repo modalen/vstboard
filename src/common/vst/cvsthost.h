@@ -29,7 +29,7 @@
 #pragma warning( disable: 4100 )
 #endif
 
-#include "../precomp.h"
+#include "precomp.h"
 #include "const.h"
 //#include "vstbank.h"
 
@@ -52,7 +52,7 @@ namespace vst
         void SetTempo(int tempo, int sign1, int sign2);
         void GetTempo(int &tempo, int &sign1, int &sign2);
         void UpdateTimeInfo(double timer, int addSamples, double sampleRate);
-        float GetCurrentBarTic();
+        float GetCurrentBarTic(int &step);
 
         int loopLenght;
         VstTimeInfo vstTimeInfo;

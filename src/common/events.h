@@ -23,19 +23,23 @@
 
 #include "precomp.h"
 #include "objectinfo.h"
-#include "connectables/connectioninfo.h"
 
 namespace Events {
 
     enum type {
-        typeNewObj = QEvent::User
+        typeNewObj = QEvent::User,
+        typeDelObj,
+        typeUpdateObj,
+        typeValChanged,
+        typeCommand
+//        typeDropMime
     };
 
-    class newObj : public QEvent
+    class sendObj : public QEvent
     {
     public:
-        newObj(const ObjectInfo &objInfo) :
-            QEvent((QEvent::Type)typeNewObj),
+        sendObj(const MetaInfo &objInfo, Events::type type) :
+            QEvent((QEvent::Type)type),
             objInfo(objInfo)
         {}
 
@@ -47,36 +51,60 @@ namespace Events {
             return item;
         }
 
-        ObjectInfo objInfo;
+        MetaInfo objInfo;
     };
 
-//    class newPin : public QEvent
+    class delObj : public QEvent
+    {
+    public:
+        delObj(quint32 objId) :
+            QEvent((QEvent::Type)typeDelObj),
+            objId(objId)
+        {}
+
+        quint32 objId;
+    };
+
+    class valChanged : public QEvent
+    {
+    public:
+        valChanged(const MetaInfo &objInfo, const MetaInfos::Enum type, const QVariant &value) :
+            QEvent((QEvent::Type)typeValChanged),
+            objInfo(objInfo),
+            type(type),
+            value(value)
+        {}
+
+        MetaInfo objInfo;
+        MetaInfos::Enum type;
+        QVariant value;
+
+    };
+
+    class command : public QEvent
+    {
+    public:
+        command(QUndoCommand *cmd) :
+            QEvent((QEvent::Type)typeCommand),
+            cmd(cmd)
+        {}
+
+        QUndoCommand *cmd;
+    };
+
+//    class dropMime : public QEvent
 //    {
 //    public:
-//        newPin(const QString &name, const QVariant &value,const ConnectionInfo &connectionInfo, float stepSize, int parentIndex) :
-//            QEvent((QEvent::Type)typeNewPin),
-//            name(name),
-//            value(value),
-//            connectionInfo(connectionInfo),
-//            stepSize(stepSize),
-//            parentIndex(parentIndex)
+//        dropMime(const QMimeData *data, const MetaInfo &senderInfo, InsertionType::Enum insertType = InsertionType::NoInsertion) :
+//            QEvent((QEvent::Type)typeDropMime),
+//            data(data),
+//            senderInfo(senderInfo),
+//            insertType(insertType)
 //        {}
 
-//        QStandardItem *CreateItem() {
-//            QStandardItem *item = new QStandardItem("pin");
-//            item->setData(name,Qt::DisplayRole);
-//            item->setData(value,UserRoles::value);
-//            item->setData( QVariant::fromValue(ObjectInfo(MetaTypes::pin)),UserRoles::objInfo);
-//            item->setData(QVariant::fromValue(connectionInfo),UserRoles::connectionInfo);
-//            item->setData(stepSize,UserRoles::stepSize);
-//            return item;
-//        }
-
-//        ConnectionInfo connectionInfo;
-//        int parentIndex;
-//        QString name;
-//        QVariant value;
-//        float stepSize;
+//        const QMimeData *data;
+//        MetaInfo senderInfo;
+//        InsertionType::Enum insertType;
 //    };
 }
 

@@ -20,7 +20,7 @@
 
 #include "renderer.h"
 #include "pathsolver.h"
-#include "connectables/object.h"
+#include "connectables/objects/object.h"
 #include "solvernode.h"
 #include "mainhost.h"
 #include "views/configdialog.h"

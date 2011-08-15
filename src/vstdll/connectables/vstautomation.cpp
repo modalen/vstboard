@@ -26,7 +26,7 @@
 
 using namespace Connectables;
 
-VstAutomation::VstAutomation(MainHost *myHost, ObjectInfo &info) :
+VstAutomation::VstAutomation(MainHost *myHost, MetaInfo &info) :
         Object(myHost,info )
 {
     for(int i=0;i<128;i++) {
@@ -98,14 +98,12 @@ void VstAutomation::ValueFromHost(int pinNum, float value)
             {
                 QUndoCommand *com = new QUndoCommand(tr("Add pin"));
                 if(!listParameterPinOut->listPins.contains(pinNum)) {
-                    ObjectInfo info(listParameterPinOut->info());
-                    info.SetMeta(MetaInfos::PinNumber, pinNum);
+                    MetaInfo info(listParameterPinOut->getMetaForPin(pinNum));
                     info.SetMeta(MetaInfos::Removable,true);
                     new ComAddPin(myHost,info,com);
                 }
                 if(!listParameterPinIn->listPins.contains(pinNum)) {
-                    ObjectInfo info(listParameterPinIn->info());
-                    info.SetMeta(MetaInfos::PinNumber, pinNum);
+                    MetaInfo info(listParameterPinIn->getMetaForPin(pinNum));
                     info.SetMeta(MetaInfos::Removable,true);
                     new ComAddPin(myHost,info,com);
                 }
@@ -121,7 +119,7 @@ void VstAutomation::ValueFromHost(int pinNum, float value)
     }
 }
 
-void VstAutomation::OnParameterChanged(const ObjectInfo &pinInfo, float value)
+void VstAutomation::OnParameterChanged(const MetaInfo &pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
     if(pinInfo.Meta(MetaInfos::PinNumber).toInt()==FixedPinNumber::numberOfPins) {
@@ -136,7 +134,7 @@ void VstAutomation::OnParameterChanged(const ObjectInfo &pinInfo, float value)
         foreach(quint16 i, listRemoved)
             new ComRemovePin(myHost,listParameterPinOut->listPins.value(i)->info(),com);
         foreach(quint16 i, listAdded) {
-            ObjectInfo info(listParameterPinOut->info());
+            MetaInfo info(listParameterPinOut->info());
             info.SetMeta(MetaInfos::PinNumber, i);
             info.SetMeta(MetaInfos::Removable,true);
             new ComAddPin(myHost,info,com);
@@ -150,7 +148,7 @@ void VstAutomation::OnParameterChanged(const ObjectInfo &pinInfo, float value)
         foreach(quint16 i, listRemoved)
             new ComRemovePin(myHost,listParameterPinIn->listPins.value(i)->info(),com);
         foreach(quint16 i, listAdded) {
-            ObjectInfo info(listParameterPinIn->info());
+            MetaInfo info(listParameterPinIn->info());
             info.SetMeta(MetaInfos::PinNumber, i);
             info.SetMeta(MetaInfos::Removable,true);
             new ComAddPin(myHost,info,com);
@@ -179,7 +177,7 @@ bool VstAutomation::Open()
     return Object::Open();
 }
 
-Pin* VstAutomation::CreatePin(ObjectInfo &info)
+Pin* VstAutomation::CreatePin(MetaInfo &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)

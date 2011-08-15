@@ -105,6 +105,7 @@ protected:
         QApplication *myApp;
         MainHostVst *myHost;
         MainWindowVst *myWindow;
+        EngineThread engine;
 
         char programName[kVstMaxProgNameLen + 1];
 

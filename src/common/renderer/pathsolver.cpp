@@ -81,7 +81,7 @@ void PathSolver::CreateNodes()
         //don't add parked objects
         if(!objPtr.isNull() && !objPtr->parked) {
 //            if(objPtr->info().nodeType!=MetaTypes::bridge && objPtr->info().nodeType!=MetaTypes::container) {
-            if( objPtr->Meta()!=MetaTypes::container) {
+            if( objPtr->Type()!=MetaTypes::container) {
                 SolverNode *node = new SolverNode();
                 listNodes << node;
                 node->listOfObj << objPtr;
@@ -144,7 +144,7 @@ void PathSolver::RemoveUnusedNodes()
     foreach(SolverNode *node, listNodes) {
         bool onlyBridges=true;
         foreach(QSharedPointer<Connectables::Object>objPtr,node->listOfObj) {
-            if(objPtr->Meta()!=MetaTypes::bridge) {
+            if(objPtr->Type()!=MetaTypes::bridge) {
                 onlyBridges=false;
                 break;
             }

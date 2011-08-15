@@ -48,7 +48,7 @@ void MainWindowVst::BuildListTools()
 
     {
         //vst audio in
-        ObjectInfo info(MetaTypes::object);
+        MetaInfo info(MetaTypes::object);
         info.SetMeta(MetaInfos::ObjType, ObjTypes::AudioInterface);
         info.SetMeta(MetaInfos::Direction, Directions::Input);
         info.SetName(tr("Vst audio In"));
@@ -60,7 +60,7 @@ void MainWindowVst::BuildListTools()
 
     {
         //vst audio out
-        ObjectInfo info(MetaTypes::object);
+        MetaInfo info(MetaTypes::object);
         info.SetMeta(MetaInfos::ObjType, ObjTypes::AudioInterface);
         info.SetMeta(MetaInfos::Direction, Directions::Output);
         info.SetName(tr("Vst audio Out"));
@@ -75,7 +75,7 @@ void MainWindowVst::BuildListTools()
 
     {
         //vst midi in
-        ObjectInfo info(MetaTypes::object);
+        MetaInfo info(MetaTypes::object);
         info.SetMeta(MetaInfos::ObjType, ObjTypes::MidiInterface);
         info.SetMeta(MetaInfos::nbInputs, 1);
         info.SetName(tr("Vst midi In"));
@@ -87,7 +87,7 @@ void MainWindowVst::BuildListTools()
 
     {
         //vst midi out
-        ObjectInfo info(MetaTypes::object);
+        MetaInfo info(MetaTypes::object);
         info.SetMeta(MetaInfos::ObjType, ObjTypes::MidiInterface);
         info.SetMeta(MetaInfos::nbOutputs, 1);
         info.SetName(tr("Vst midi Out"));
@@ -99,7 +99,7 @@ void MainWindowVst::BuildListTools()
 
     {
         //vst automation
-        ObjectInfo info(MetaTypes::object);
+        MetaInfo info(MetaTypes::object);
         info.SetMeta(MetaInfos::ObjType, ObjTypes::VstAutomation);
         info.SetName(tr("Vst Automation"));
 

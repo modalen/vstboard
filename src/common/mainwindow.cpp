@@ -27,8 +27,8 @@
 #include "objectinfo.h"
 #include "views/viewconfigdialog.h"
 #include "models/programsmodel.h"
-#include "connectables/vstplugin.h"
 #include "views/vstpluginwindow.h"
+#include "views/scripteditor.h"
 #include "events.h"
 
 MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
@@ -47,10 +47,9 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     myHost->AddEventsListener(this);
     AddEventsListener(myHost);
 
-    model = new HostModel(myHost,this);
-    model->setObjectName("MainHostModel");
-    model->setColumnCount(1);
-    myHost->SetModel(model);
+    hostModel = new HostModel(myHost,this);
+
+//    hostModel->setColumnCount(1);
 
     connect(this, SIGNAL(askLoadProject(QString)),
             myHost, SLOT(LoadProjectFile(QString)));
@@ -85,9 +84,9 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
 
     SetupBrowsersModels( ConfigDialog::defaultVstPath(myHost), ConfigDialog::defaultBankPath(myHost));
 
-    mySceneView = new View::SceneView(myHost, myHost->objFactory, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
+    mySceneView = new View::SceneView(myHost, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
     mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
-    mySceneView->setModel(myHost->GetModel());
+//    mySceneView->setModel(hostModel);
 
     ui->solverView->setModel(myHost->GetRendererModel());
     connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
@@ -95,7 +94,7 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
             ui->solverView, SLOT(resizeRowsToContents()));
 
-    ui->treeHostModel->setModel(myHost->GetModel());
+//    ui->treeHostModel->setModel(hostModel);
 
     setPalette( viewConfig->GetPaletteFromColorGroup( ColorGroups::Window, palette() ));
     connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
@@ -120,37 +119,28 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
 
 bool MainWindow::event(QEvent *event)
 {
-    if(event->type() == Events::typeNewObj) {
-        Events::newObj *e = static_cast<Events::newObj*>(event);
-        QStandardItem *parentItem = mapItems.value( e->objInfo.ParentId(), 0 );
-        if(!parentItem) {
-            if(e->objInfo.ObjId()==FixedObjIds::mainContainer)
-                parentItem = model->invisibleRootItem();
-            else {
-                LOG("parent not found"<<e->objInfo.Name());
-                return true;
-            }
+    switch(event->type()) {
+        case Events::typeNewObj : {
+            Events::sendObj *e = static_cast<Events::sendObj*>(event);
+            e->objInfo.SetModel(hostModel);
+            LOG("add" << e->objInfo.toStringFull());
+            mySceneView->AddObj(e->objInfo);
+            return true;
         }
-
-        QStandardItem *objItem = e->CreateItem();
-        mapItems.insert(e->objInfo.ObjId(), objItem );
-        parentItem->appendRow(objItem);
-        return true;
+        case Events::typeDelObj : {
+            Events::delObj *e = static_cast<Events::delObj*>(event);
+            LOG("del" << e->objId);
+            mySceneView->DelObj(e->objId);
+            return true;
+        }
+        case Events::typeUpdateObj : {
+            Events::sendObj *e = static_cast<Events::sendObj*>(event);
+            e->objInfo.SetModel(hostModel);
+            LOG("update" << e->objInfo.toStringFull());
+            mySceneView->UpdateObj(e->objInfo);
+            return true;
+        }
     }
-
-//    if(event->type() == Events::typeNewPin) {
-//        Events::newPin *e = static_cast<Events::newPin*>(event);
-//        QStandardItem *parentItem = mapItems.value( e->connectionInfo.objId, 0 );
-//        if(!parentItem) {
-//            LOG("parent not found");
-//            return true;
-//        }
-
-//        QStandardItem *objItem = e->CreateItem();
-//        mapPins.insert(e->connectionInfo, objItem );
-//        parentItem->appendRow(objItem);
-//        return true;
-//    }
 
     return QMainWindow::event(event);
 }
@@ -166,11 +156,15 @@ void MainWindow::DisplayMessage(QMessageBox::Icon icon,const QString &text, cons
     lastMessageResult=msgBox.exec();
 }
 
-void MainWindow::CreateNewPluginWindow(Connectables::Object* obj)
+void MainWindow::CreateNewPluginWindow(QObject* obj)
 {
     View::VstPluginWindow *editorWnd = new View::VstPluginWindow(this);
-    editorWnd->setAttribute(Qt::WA_ShowWithoutActivating);
-    static_cast<Connectables::VstPlugin*>(obj)->SetEditorWnd(editorWnd);
+    static_cast<Connectables::Object*>(obj)->SetEditorWnd(editorWnd);
+}
+void MainWindow::CreateNewScriptEditor(QObject* obj)
+{
+    View::ScriptEditor *editorWnd = new View::ScriptEditor(this);
+    static_cast<Connectables::Object*>(obj)->SetEditorWnd(editorWnd);
 }
 
 void MainWindow::SetupBrowsersModels(const QString &vstPath, const QString &browserPath)
@@ -245,7 +239,7 @@ void MainWindow::BuildListTools()
 #ifdef SCRIPTENGINE
     {
         //script
-        ObjectInfo info(MetaTypes::object);
+        MetaInfo info(MetaTypes::object);
         info.SetMeta(MetaInfos::ObjType, ObjTypes::Script);
 
         QStandardItem *item = new QStandardItem(tr("Script"));
@@ -256,7 +250,7 @@ void MainWindow::BuildListTools()
 
     {
         //midi parameters
-        ObjectInfo info(MetaTypes::object);
+        MetaInfo info(MetaTypes::object);
         info.SetMeta(MetaInfos::ObjType, ObjTypes::MidiToAutomation);
 
         QStandardItem *item = new QStandardItem(tr("Midi to parameter"));
@@ -266,7 +260,7 @@ void MainWindow::BuildListTools()
 
     {
         //midi sender
-        ObjectInfo info(MetaTypes::object);
+        MetaInfo info(MetaTypes::object);
         info.SetMeta(MetaInfos::ObjType, ObjTypes::MidiSender);
 
         QStandardItem *item = new QStandardItem(tr("Midi sender"));
@@ -276,7 +270,7 @@ void MainWindow::BuildListTools()
 
     {
         //host controller
-        ObjectInfo info(MetaTypes::object);
+        MetaInfo info(MetaTypes::object);
         info.SetMeta(MetaInfos::ObjType, ObjTypes::HostController);
 
         QStandardItem *item = new QStandardItem(tr("Host Controller"));

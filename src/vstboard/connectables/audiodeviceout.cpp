@@ -37,7 +37,7 @@ using namespace Connectables;
   \param index object number
   \param info object description
   */
-AudioDeviceOut::AudioDeviceOut(MainHost *myHost, ObjectInfo &info) :
+AudioDeviceOut::AudioDeviceOut(MainHost *myHost, MetaInfo &info) :
     Object(myHost, info),
     parentDevice(0)
 {

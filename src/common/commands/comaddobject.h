@@ -3,34 +3,32 @@
 
 #include "precomp.h"
 #include <QUndoCommand>
-#include "connectables/container.h"
+#include "connectables/objects/container.h"
 
 class MainHost;
 class ComAddObject : public QUndoCommand
 {
 public:
     ComAddObject(MainHost *myHost,
-                 const ObjectInfo & objInfo,
-                 const QSharedPointer<Connectables::Container> &container,
-                 const QSharedPointer<Connectables::Object> &targetObj,
+                 const MetaInfo &objInfo,
+                 const MetaInfo &targetInfo,
                  InsertionType::Enum insertType = InsertionType::NoInsertion,
                  QUndoCommand  *parent=0);
     void undo ();
     void redo ();
 
-    void ReloadObject(const ObjectInfo &info);
+    void ReloadObject(const MetaInfo &info);
 
 private:
     MainHost *myHost;
 
-    ObjectInfo objectInfo;
-    ObjectInfo targetInfo;
+    MetaInfo objectInfo;
+    MetaInfo targetInfo;
 
-    QWeakPointer<Connectables::Container>ContainerPtr;
     InsertionType::Enum insertType;
 
-    QList< QPair<ObjectInfo,ObjectInfo> >listAddedCables;
-    QList< QPair<ObjectInfo,ObjectInfo> >listRemovedCables;
+    QList< QPair<MetaInfo,MetaInfo> >listAddedCables;
+    QList< QPair<MetaInfo,MetaInfo> >listRemovedCables;
 
     ObjectContainerAttribs attr;
     QByteArray objState;

@@ -22,7 +22,7 @@
 #define PATHSOLVER_H
 
 //#include "precomp.h"
-#include "connectables/object.h"
+#include "connectables/objects/object.h"
 #include "solvernode.h"
 #include "globals.h"
 #include "renderer.h"

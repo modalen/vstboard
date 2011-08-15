@@ -19,7 +19,7 @@
 **************************************************************************/
 
 #include "connectables/audiodevice.h"
-#include "connectables/object.h"
+#include "connectables/objects/object.h"
 #include "connectables/audiodevicein.h"
 #include "connectables/audiodeviceout.h"
 #include "globals.h"
@@ -54,7 +54,7 @@ int AudioDevice::countInputDevices=0;
   /param info ObjectInfo describing the device
   /param parent a parent QObject (unused ?)
   */
-AudioDevice::AudioDevice(PaDeviceInfo &devInfo,MainHostHost *myHost,const ObjectInfo &info, QObject *parent) :
+AudioDevice::AudioDevice(PaDeviceInfo &devInfo,MainHostHost *myHost,const MetaInfo &info, QObject *parent) :
     QObject(parent),
     sampleRate(44100.0f),
     bufferSize(4096),
