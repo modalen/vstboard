@@ -34,6 +34,7 @@ class MainWindowHost : public MainWindow {
 
 public:
     MainWindowHost(MainHostHost * myHost, QWidget *parent = 0);
+    void Init();
     void readSettings();
 
 protected:

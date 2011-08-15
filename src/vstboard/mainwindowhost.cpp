@@ -29,9 +29,16 @@ MainWindowHost::MainWindowHost(MainHostHost * myHost,QWidget *parent) :
     MainWindow(myHost,parent)
 {
     setWindowTitle(APP_NAME);
+}
+
+void MainWindowHost::Init()
+{
+    MainWindow::Init();
+
+    MainHostHost *h = static_cast<MainHostHost*>(myHost);
 
     //audio devices
-    ui->treeAudioInterfaces->setModel(myHost->audioDevices->GetModel());
+    ui->treeAudioInterfaces->setModel(h->audioDevices->GetModel());
     ui->treeAudioInterfaces->header()->setResizeMode(0,QHeaderView::Stretch);
     ui->treeAudioInterfaces->header()->setResizeMode(1,QHeaderView::Fixed);
     ui->treeAudioInterfaces->header()->setResizeMode(2,QHeaderView::Fixed);
@@ -39,10 +46,10 @@ MainWindowHost::MainWindowHost(MainHostHost * myHost,QWidget *parent) :
     ui->treeAudioInterfaces->header()->resizeSection(1,30);
     ui->treeAudioInterfaces->header()->resizeSection(2,30);
     ui->treeAudioInterfaces->header()->resizeSection(3,40);
-    ui->treeAudioInterfaces->expand( myHost->audioDevices->AsioIndex );
+    ui->treeAudioInterfaces->expand( h->audioDevices->AsioIndex );
 
     //midi devices
-    ui->treeMidiInterfaces->setModel(myHost->midiDevices->GetModel());
+    ui->treeMidiInterfaces->setModel(h->midiDevices->GetModel());
     ui->treeMidiInterfaces->header()->setResizeMode(0,QHeaderView::Stretch);
     ui->treeMidiInterfaces->header()->setResizeMode(1,QHeaderView::Fixed);
     ui->treeMidiInterfaces->header()->setResizeMode(2,QHeaderView::Fixed);
@@ -52,7 +59,7 @@ MainWindowHost::MainWindowHost(MainHostHost * myHost,QWidget *parent) :
     BuildListTools();
 
     connect(ui->treeAudioInterfaces, SIGNAL(Config(const QModelIndex &)),
-            myHost->audioDevices, SLOT(ConfigDevice(const QModelIndex &)));
+            h->audioDevices, SLOT(ConfigDevice(const QModelIndex &)));
     connect(ui->treeAudioInterfaces, SIGNAL(UpdateList()),
             this, SLOT(UpdateAudioDevices()));
 
@@ -63,17 +70,17 @@ MainWindowHost::MainWindowHost(MainHostHost * myHost,QWidget *parent) :
              this, SLOT(UpdateMidiDevices()));
     ui->treeMidiInterfaces->addAction( updateMidiList );
 
-    myHost->SetSampleRate( ConfigDialog::defaultSampleRate(myHost) );
+    h->SetSampleRate( ConfigDialog::defaultSampleRate(h) );
 }
 
 void MainWindowHost::closeEvent(QCloseEvent *event)
 {
-    if(!myHost->programsModel->userWantsToUnloadSetup()) {
+    if(!myHost->programsModel->userWantsToUnloadProject()) {
         event->ignore();
         return;
     }
 
-    if(!myHost->programsModel->userWantsToUnloadProject()) {
+    if(!myHost->programsModel->userWantsToUnloadSetup()) {
         event->ignore();
         return;
     }

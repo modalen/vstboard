@@ -69,7 +69,11 @@ public:
 
     void BuildDefaultModel();
 
-    bool GetLastDialogAnser() {return lastDialogAnswer;}
+    bool GetLastDialogAnswer() {return lastDialogAnswer;}
+
+    Qt::CheckState GetProgAutosaveState() const {return progAutosaveState;}
+    Qt::CheckState GetGroupAutosaveState() const {return groupAutosaveState;}
+    const QModelIndex &GetCurrentProg() const {return currentPrg;}
 
 private:
     bool AddGroup(QModelIndex &index=QModelIndex(), int row=-1);

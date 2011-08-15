@@ -78,29 +78,10 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     connect(ui->mainToolBar, SIGNAL(visibilityChanged(bool)),
             ui->actionTool_bar, SLOT(setChecked(bool)));
 
-    //programs
-    myHost->programsModel = new ProgramsModel(myHost);
-    ui->Programs->SetModel( myHost->programsModel );
-
     SetupBrowsersModels( ConfigDialog::defaultVstPath(myHost), ConfigDialog::defaultBankPath(myHost));
 
-    mySceneView = new View::SceneView(myHost, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
-    mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
-//    mySceneView->setModel(hostModel);
-
-    ui->solverView->setModel(myHost->GetRendererModel());
-    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-            ui->solverView, SLOT(resizeColumnsToContents()));
-    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-            ui->solverView, SLOT(resizeRowsToContents()));
 
 //    ui->treeHostModel->setModel(hostModel);
-
-    setPalette( viewConfig->GetPaletteFromColorGroup( ColorGroups::Window, palette() ));
-    connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
-             myHost->programsModel, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
-    connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
-             this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)));
 
     QAction *undo = myHost->GetUndoStack()->createUndoAction(ui->mainToolBar);
     undo->setIcon(QIcon(":/img16x16/undo.png"));
@@ -115,6 +96,32 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     ui->mainToolBar->addAction( redo );
 
     ui->listUndo->setStack( myHost->GetUndoStack() );
+}
+
+void MainWindow::Init()
+{
+
+    //programs
+//    myHost->programsModel = new ProgramsModel(myHost);
+    ui->Programs->SetModel( myHost->programsModel );
+    myHost->programsModel->UserChangeProg(0);
+
+    mySceneView = new View::SceneView(myHost, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
+    mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
+//    mySceneView->setModel(hostModel);
+
+    ui->solverView->setModel(myHost->GetRendererModel());
+    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+            ui->solverView, SLOT(resizeColumnsToContents()));
+    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+            ui->solverView, SLOT(resizeRowsToContents()));
+
+    setPalette( viewConfig->GetPaletteFromColorGroup( ColorGroups::Window, palette() ));
+    connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
+             myHost->programsModel, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
+    connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
+             this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)));
+
 }
 
 bool MainWindow::event(QEvent *event)
@@ -427,7 +434,6 @@ void MainWindow::readSettings()
     ui->Programs->readSettings(myHost);
 
     viewConfig->LoadFromRegistry();
-
 
 }
 

@@ -52,7 +52,7 @@ public:
     MainHost( QObject *parent = 0, QString settingsGroup="");
     virtual ~MainHost();
 
-    Q_INVOKABLE void Open();
+    Q_INVOKABLE virtual void Init();
 
     void SendMsg(const MetaInfo &senderPin,const PinMessage::Enum msgType,void *data);
 
@@ -193,8 +193,6 @@ signals:
     void groupParkingModelChanged(QStandardItemModel *model);
     void TempoChanged(int tempo=120, int sign1=4, int sign2=4);
     void currentFileChanged();
-
-    void askUserWantToUnload();
 
 public slots:
     void SetTempo(int tempo=120, int sign1=4, int sign2=4);

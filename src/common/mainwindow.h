@@ -41,6 +41,7 @@ class MainWindow : public QMainWindow {
 public:
     MainWindow(MainHost * myHost, QWidget *parent = 0);
     virtual ~MainWindow();
+    virtual void Init();
     virtual void readSettings();
     void writeSettings();
 

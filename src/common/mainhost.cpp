@@ -62,47 +62,18 @@ MainHost::MainHost(QObject *parent, QString settingsGroup) :
     mutexListCables(new QMutex(QMutex::Recursive)),
     settingsGroup(settingsGroup),
     undoProgramChangesEnabled(false),
-    undoStack(new QUndoStack(this))
+    undoStack(new QUndoStack(this)),
+    renderer(0)
 {
     doublePrecision=GetSetting("doublePrecision",false).toBool();
-
     setObjectName("MainHost");
+
 
 #ifdef SCRIPTENGINE
     scriptEngine = new QScriptEngine(this);
     QScriptValue scriptObj = scriptEngine->newQObject(this);
     scriptEngine->globalObject().setProperty("MainHost", scriptObj);
 #endif
-
-#ifdef VSTSDK
-    if(!vst::CVSTHost::Get())
-        vstHost = new vst::CVSTHost();
-    else
-        vstHost = vst::CVSTHost::Get();
-
-    vstUsersCounter++;
-#endif
-
-    sampleRate = 44100.0;
-    bufferSize = 100;
-
-    currentTempo=120;
-    currentTimeSig1=4;
-    currentTimeSig2=4;
-
-    renderer = new Renderer(this);
-
-
-
-    //timer
-    timeFromStart.start();
-
-    updateViewTimer = new QTimer(this);
-    updateViewTimer->start(40);
-
-    connect(this,SIGNAL(SolverToUpdate()),
-            this,SLOT(UpdateSolver()),
-            Qt::QueuedConnection);
 }
 
 MainHost::~MainHost()
@@ -121,6 +92,7 @@ MainHost::~MainHost()
 
     solver->Resolve(workingListOfCables, renderer);
     delete renderer;
+    renderer=0;
 
     mainContainer.clear();
     hostContainer.clear();
@@ -174,9 +146,38 @@ bool MainHost::event(QEvent *event)
     return QObject::event(event);
 }
 
-void MainHost::Open()
+void MainHost::Init()
 {
+#ifdef VSTSDK
+    if(!vst::CVSTHost::Get())
+        vstHost = new vst::CVSTHost();
+    else
+        vstHost = vst::CVSTHost::Get();
+
+    vstUsersCounter++;
+#endif
+
+    sampleRate = 44100.0;
+    bufferSize = 100;
+
+    currentTempo=120;
+    currentTimeSig1=4;
+    currentTimeSig2=4;
+
+    renderer = new Renderer(this);
+
+    //timer
+    timeFromStart.start();
+
+    updateViewTimer = new QTimer(this);
+    updateViewTimer->start(40);
+
+    connect(this,SIGNAL(SolverToUpdate()),
+            this,SLOT(UpdateSolver()),
+            Qt::QueuedConnection);
+
     EnableSolverUpdate(false);
+    programsModel = new ProgramsModel(this);
 
     SetupMainContainer();
     SetupHostContainer();
@@ -635,6 +636,9 @@ bool MainHost::EnableSolverUpdate(bool enable)
 
 void MainHost::UpdateSolver(bool forceUpdate)
 {
+    if(!renderer)
+        return;
+
     solverMutex.lock();
 
         //update not forced, not needed or disabled : return
@@ -676,6 +680,8 @@ void MainHost::UpdateSolver(bool forceUpdate)
 
 void MainHost::ChangeNbThreads(int nbThreads)
 {
+    if(!renderer)
+        return;
     renderer->SetNbThreads(nbThreads);
     SetSolverUpdateNeeded();
 
@@ -734,6 +740,9 @@ void MainHost::Render(unsigned long samples)
 #ifdef VSTSDK
     CheckTempo();
 #endif
+
+    if(!renderer)
+        return;
 
     mutexRender.lock();
 
@@ -844,12 +853,9 @@ void MainHost::LoadFile(const QString &filename)
 
 void MainHost::LoadSetupFile(const QString &filename)
 {
-    connect(this, SIGNAL(askUserWantToUnload()),
-            programsModel, SLOT(asyncUserWantsToUnloadSetup()),
-            Qt::BlockingQueuedConnection);
-    emit askUserWantToUnload();
-    disconnect(this, SIGNAL(askUserWantToUnload()),
-            programsModel, SLOT(asyncUserWantsToUnloadSetup()));
+    QMetaObject::invokeMethod(programsModel,"asyncUserWantsToUnloadSetup",Qt::BlockingQueuedConnection);
+    if(!programsModel->GetLastDialogAnswer())
+        return;
 
     QString name = filename;
 
@@ -875,14 +881,8 @@ void MainHost::LoadSetupFile(const QString &filename)
 
 void MainHost::LoadProjectFile(const QString &filename)
 {
-    connect(this, SIGNAL(askUserWantToUnload()),
-            programsModel, SLOT(asyncUserWantsToUnloadProject()),
-            Qt::BlockingQueuedConnection);
-    emit askUserWantToUnload();
-    disconnect(this, SIGNAL(askUserWantToUnload()),
-            programsModel, SLOT(asyncUserWantsToUnloadProject()));
-
-    if(!programsModel->GetLastDialogAnser())
+    QMetaObject::invokeMethod(programsModel,"asyncUserWantsToUnloadProject",Qt::BlockingQueuedConnection);
+    if(!programsModel->GetLastDialogAnswer())
         return;
 
     QString name = filename;

@@ -79,12 +79,10 @@ public:
 
 int main(int argc, char *argv[])
 {
-//    qRegisterMetaType<ConnectionInfo>("ConnectionInfo");
     qRegisterMetaType<MetaInfo>("MetaInfo");
     qRegisterMetaType<int>("MediaTypes::Enum");
     qRegisterMetaType<QVariant>("QVariant");
     qRegisterMetaType<AudioBuffer*>("AudioBuffer*");
-
     qRegisterMetaType<Qt::CheckState>("Qt::CheckState");
     qRegisterMetaType<ColorGroups::Enum>("ColorGroups::Enum");
     qRegisterMetaType<Colors::Enum>("Colors::Enum");
@@ -94,7 +92,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QMessageBox::Icon>("QMessageBox::Icon");
     qRegisterMetaType<QMessageBox::StandardButtons>("QMessageBox::StandardButtons");
     qRegisterMetaType<QMessageBox::StandardButton>("QMessageBox::StandardButton");
-
+    qRegisterMetaType<Qt::Orientation>("Qt::Orientation");
     qRegisterMetaTypeStreamOperators<MetaInfo>("ObjectInfo");
 
 #ifndef QT_NO_DEBUG
@@ -123,13 +121,13 @@ int main(int argc, char *argv[])
 
     MainHostHost host;
     EngineThread engine;
-    MainWindowHost w(&host);
     host.moveToThread(&engine);
-    QMetaObject::invokeMethod(&host,"Open",Qt::BlockingQueuedConnection);
+    MainWindowHost w(&host);
+    QMetaObject::invokeMethod(&host,"Init",Qt::BlockingQueuedConnection);
+    w.Init();
     w.readSettings();
     w.show();
     w.LoadDefaultFiles();
-
 
     app.exec();
     return 0;

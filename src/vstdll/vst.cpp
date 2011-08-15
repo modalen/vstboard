@@ -61,12 +61,17 @@ Vst::Vst (audioMasterCallback audioMaster, bool asInstrument) :
     programsAreChunks(true);
     vst_strncpy (programName, "Default", kVstMaxProgNameLen);	// default program name
 
-//    qRegisterMetaType<ConnectionInfo>("ConnectionInfo");
     qRegisterMetaType<MetaInfo>("MetaInfo");
     qRegisterMetaType<int>("MediaTypes::Enum");
     qRegisterMetaType<QVariant>("QVariant");
     qRegisterMetaType<AudioBuffer*>("AudioBuffer*");
-
+    qRegisterMetaType<Qt::CheckState>("Qt::CheckState");
+    qRegisterMetaType<ColorGroups::Enum>("ColorGroups::Enum");
+    qRegisterMetaType<Colors::Enum>("Colors::Enum");
+    qRegisterMetaType<QMessageBox::Icon>("QMessageBox::Icon");
+    qRegisterMetaType<QMessageBox::StandardButtons>("QMessageBox::StandardButtons");
+    qRegisterMetaType<QMessageBox::StandardButton>("QMessageBox::StandardButton");
+    qRegisterMetaType<Qt::Orientation>("Qt::Orientation");
     qRegisterMetaTypeStreamOperators<MetaInfo>("ObjectInfo");
 
     QCoreApplication::setOrganizationName("CtrlBrk");
@@ -126,7 +131,8 @@ void Vst::open()
              this,SLOT(OnMainHostTempoChange()));
     }
 
-     QMetaObject::invokeMethod(myHost,"Open",Qt::BlockingQueuedConnection);
+    QMetaObject::invokeMethod(myHost,"Init",Qt::BlockingQueuedConnection);
+    myWindow->Init();
 
      //load default setup file
      QString currentSetupFile = ConfigDialog::defaultSetupFile(myHost);

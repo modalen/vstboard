@@ -26,9 +26,7 @@
 MainHostHost::MainHostHost(QObject *parent, QString settingsGroup) :
     MainHost(parent,settingsGroup)
 {
-    objFactory = new Connectables::ObjectFactoryHost(this);
-    midiDevices = new MidiDevices(this);
-    audioDevices = new AudioDevices(this);
+
 }
 
 MainHostHost::~MainHostHost()
@@ -38,6 +36,14 @@ MainHostHost::~MainHostHost()
     delete midiDevices;
     audioDevices=0;
     midiDevices=0;
+}
+
+void MainHostHost::Init()
+{
+    objFactory = new Connectables::ObjectFactoryHost(this);
+    MainHost::Init();
+    midiDevices = new MidiDevices(this);
+    audioDevices = new AudioDevices(this);
 }
 
 void MainHostHost::Render(unsigned long samples)

@@ -44,6 +44,9 @@ void ProgramList::SetModel(ProgramsModel *mod)
     model=mod;
     ui->listGrps->setModel(model);
     ui->listProgs->setModel(model);
+    ui->listProgs->setRootIndex( mod->GetCurrentProg().parent() );
+    ui->ProgAutosave->setCheckState(mod->GetProgAutosaveState());
+    ui->GroupAutosave->setCheckState(mod->GetGroupAutosaveState());
 
     //from model
     connect(model,SIGNAL(ProgAutosaveChanged(Qt::CheckState)),

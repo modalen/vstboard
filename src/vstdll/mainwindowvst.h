@@ -34,6 +34,7 @@ class MainWindowVst : public MainWindow {
 
 public:
     MainWindowVst(MainHost * myHost, QWidget *parent = 0);
+    void Init();
     void readSettings();
 
 protected:

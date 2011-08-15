@@ -24,6 +24,13 @@
 MainWindowVst::MainWindowVst(MainHost * myHost,QWidget *parent) :
         MainWindow(myHost,parent)
 {
+
+}
+
+void MainWindowVst::Init()
+{
+    MainWindow::Init();
+
     ui->actionRefresh_Audio_devices->setDisabled(true);
     ui->actionRefresh_Midi_devices->setDisabled(true);
     setWindowTitle(APP_NAME);

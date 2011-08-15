@@ -27,7 +27,11 @@ MainHostVst::MainHostVst(Vst *myVstPlugin, QObject *parent, QString settingsGrou
     MainHost(parent,settingsGroup),
     myVstPlugin(myVstPlugin)
 {
-    objFactory = new Connectables::ObjectFactoryVst(this);
+
 }
 
-
+void MainHostVst::Init()
+{
+    objFactory = new Connectables::ObjectFactoryVst(this);
+    MainHost::Init();
+}
