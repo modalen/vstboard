@@ -38,13 +38,13 @@ public:
     void SetNbThreads(int nbThreads);
     void SetEnabled(bool enabled) {stop=!enabled;}
     void OnNewRenderingOrder(const QList<SolverNode*> & listNodes);
-    QStandardItemModel * GetModel();
+//    QStandardItemModel * GetModel();
     Optimizer * GetOptimizer() { return &optimizer; }
 
     void LoadNodes(const QList<RendererNode*> & listNodes);
     QList<RendererNode*> SaveNodes();
 
-    QStandardItemModel model;
+//    QStandardItemModel model;
 
 protected:
     void InitThreads();
@@ -61,18 +61,18 @@ protected:
     QMutex mutexOptimize;
     bool needOptimize;
     int nextOptimize;
-    bool needBuildModel;
+//    bool needBuildModel;
     QList<RenderThread*>listOfThreads;
     QReadWriteLock mutex;
     QSemaphore sem;
     MainHost *myHost;
-    QTimer updateViewTimer;
+//    QTimer updateViewTimer;
     Optimizer optimizer;
 
 public slots:
 
     void StartRender();
-    void UpdateView();
+//    void UpdateView();
     void Optimize();
 
 friend class RenderThread;

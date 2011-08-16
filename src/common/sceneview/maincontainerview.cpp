@@ -53,15 +53,15 @@ void MainContainerView::SetConfig(ViewConfig *config)
     content->SetConfig(config);
 }
 
-QPointF MainContainerView::GetDropPos()
-{
-    return mapFromScene( content->GetDropPos() );
-}
+//QPointF MainContainerView::GetDropPos()
+//{
+//    return mapFromScene( content->GetDropPos() );
+//}
 
-void MainContainerView::SetDropPos(const QPointF &pt)
-{
-    content->SetDropPos( pt );
-}
+//void MainContainerView::SetDropPos(const QPointF &pt)
+//{
+//    content->SetDropPos( pt );
+//}
 
 //void MainContainerView::SetModelIndex(const MetaInfo &info)
 //{

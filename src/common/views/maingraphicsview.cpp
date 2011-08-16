@@ -160,11 +160,6 @@ void MainGraphicsView::SetViewProgram(int progId)
     verticalScrollBar()->setValue( state.scrolly );
 }
 
-void MainGraphicsView::RemoveViewProgram(const QModelIndex &idx)
-{
-    RemoveViewProgram(idx.data(ProgramsModel::ProgramId).toInt());
-}
-
 void MainGraphicsView::RemoveViewProgram(int prg)
 {
     if(!listPrograms.contains(prg))

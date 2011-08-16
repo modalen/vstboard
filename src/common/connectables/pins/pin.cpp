@@ -43,7 +43,8 @@ Pin::Pin(Object *parent, MetaInfo &info) :
     parent(parent),
     closed(false),
     valueChanged(false),
-    nameCanChange(false)
+    nameCanChange(false),
+    internValue(.0f)
 {
     SetType(MetaTypes::pin);
     setObjectName(Name());
@@ -110,17 +111,16 @@ void Pin::SetVisible(bool visible)
     if(closed)
         return;
 
-    if(!ContainerId())
-        return;
-
     if(visible) {
         DelMeta(MetaInfos::Hidden);
         connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
                 this,SLOT(updateView()),
                 Qt::UniqueConnection);
 
+        if(!ContainerId())
+            return;
+
         AddToView(parent->getHost());
-//        UpdateView(parent->getHost());
 
     } else {
 
@@ -135,9 +135,13 @@ void Pin::SetVisible(bool visible)
 
         //remove pin
         if(Meta(MetaInfos::Media).toInt()!=MediaTypes::Bridge) {
-            disconnect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
+            if(parent->getHost()->updateViewTimer)
+                disconnect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
                     this,SLOT(updateView()));
         }
+
+        if(!ContainerId())
+            return;
 
         RemoveFromView(parent->getHost());
 //        parent->getHost()->PostEvent( new Events::delObj(info().ObjId()) );

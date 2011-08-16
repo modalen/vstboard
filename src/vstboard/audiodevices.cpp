@@ -240,6 +240,7 @@ void AudioDevices::BuildModel()
             }
 
             MetaInfo obj(MetaTypes::object);
+            obj.SetName(devName);
             obj.SetMeta(MetaInfos::ObjType, ObjTypes::AudioInterface);
             obj.SetMeta(MetaInfos::devId, devIndex);
             obj.SetMeta(MetaInfos::devName, devName);

@@ -324,50 +324,16 @@ Pin * Object::GetPin(const MetaInfo &pinInfo)
         autoCreate=true;
 
     foreach(PinsList *lst, pinLists) {
-        if(lst->Meta(MetaInfos::Media) == pinInfo.Meta(MetaInfos::Media) && lst->Meta(MetaInfos::Direction) == pinInfo.Meta(MetaInfos::Direction)) {
+        if(lst->Meta(MetaInfos::Media).toInt() == pinInfo.Meta(MetaInfos::Media).toInt()
+                && lst->Meta(MetaInfos::Direction).toInt() == pinInfo.Meta(MetaInfos::Direction).toInt()) {
             pin=lst->GetPin(pinInfo.Meta(MetaInfos::PinNumber).toInt(),autoCreate);
             if(pin)
                 return pin;
         }
     }
-
+    LOG("pin not found"<<pinInfo.toStringFull());
     return 0;
 }
-
-///*!
-//  Create a small model used when the object is parked
-//  The caller is the owner of the return pointer and should delete it
-//  \return a pointer to the QStandardItem
-//  */
-//QStandardItem *Object::GetParkingItem()
-//{
-//    QStandardItem *modelNode=new QStandardItem();
-//    modelNode->setData(index,UserRoles::value);
-//    modelNode->setData(objectName(), Qt::DisplayRole);
-
-    //suspend the object if not used in the next program
-//    QTimer::singleShot(50,this,SLOT(SuspendIfParked()));
-
-//    return modelNode;
-//    return 0;
-//}
-
-///*!
-//  Create a full model used when the object is on a panel
-//  The caller is the owner of the return pointer and should delete it
-//  \return a pointer to the QStandardItem
-//  */
-//QStandardItem *Object::GetFullItem()
-//{
-//    QStandardItem *modelNode = new QStandardItem();
-//    modelNode->setData(QVariant::fromValue(objInfo), UserRoles::objInfo);
-//    modelNode->setData(index, UserRoles::value);
-//    modelNode->setData(objectName(), Qt::DisplayRole);
-//    modelNode->setData(errorMessage, UserRoles::errorMessage);
-//    Resume();
-
-//    return modelNode;
-//}
 
 /*!
   Called when a parameter pin has changed
@@ -422,6 +388,7 @@ void Object::SetContainerAttribs(const ObjectContainerAttribs &attr)
     SetMeta(MetaInfos::EditorPosition, attr.editorPosition);
     SetMeta(MetaInfos::EditorVScroll, attr.editorVScroll);
     SetMeta(MetaInfos::EditorHScroll, attr.editorHScroll);
+    UpdateView(myHost);
 }
 
 /*!

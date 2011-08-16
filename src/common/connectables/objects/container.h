@@ -147,8 +147,6 @@ namespace Connectables {
         bool loadObjectFromStream (QDataStream &);
         bool loadProgramFromStream (QDataStream &);
 
-        QMutex progLoadMutex;
-
         QList<int> listProgToRemove;
 
     public slots:
@@ -176,7 +174,7 @@ namespace Connectables {
         void LoadProgram(int prog);
 
         void SetProgram(const QModelIndex &idx);
-        void RemoveProgram(const QModelIndex &idx = QModelIndex());
+        void RemoveProgram(int progId=-1);
 
         void SetBufferSize(unsigned long size);
         void SetSampleRate(float rate=44100.0);

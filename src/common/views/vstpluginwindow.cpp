@@ -74,9 +74,9 @@ bool VstPluginWindow::SetPlugin(QObject *plug)
         windowOk=true;
 
     //try to open the window
-    plugin->objMutex.lock();
+//    plugin->objMutex.lock();
     res = plugin->EffEditOpen(GetWinId());
-    plugin->objMutex.unlock();
+//    plugin->objMutex.unlock();
 
     if(res == 1L)
         windowOk=true;

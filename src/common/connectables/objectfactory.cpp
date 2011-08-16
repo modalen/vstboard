@@ -202,7 +202,6 @@ QSharedPointer<Object> ObjectFactory::NewObject( MetaInfo &info)
         }
     }
 
-
     QSharedPointer<Object> sharedObj(obj);
     listObjects.insert(info.ObjId(),sharedObj.toWeakRef());
 

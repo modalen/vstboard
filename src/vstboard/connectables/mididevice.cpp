@@ -45,22 +45,22 @@ void MidiDevice::Render()
 
     if(devInfo->input) {
         PmEvent buffer;
-        Lock();
+        objMutex.lock();
 
         while (Pm_Dequeue(queue, &buffer) == 1) {
             foreach(Pin *pin,listMidiPinOut->listPins) {
                 pin->SendMsg(PinMessage::MidiMsg,(void*)&buffer.message);
             }
         }
-        Unlock();
+        objMutex.unlock();
     }
 }
 
 void MidiDevice::MidiMsgFromInput(long msg) {
     if(devInfo->output) {
-        Lock();
+        objMutex.lock();
         Pm_Enqueue(queue,(void*)&msg);
-        Unlock();
+        objMutex.unlock();
     }
 }
 

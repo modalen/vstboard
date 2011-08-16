@@ -48,7 +48,7 @@ class HostModel : QObject
     Q_OBJECT
 public:
     HostModel(MainHost *myHost=0, QObject *parent=0);
-    bool dropMime ( const QMimeData * data, MetaInfo & senderInfo, InsertionType::Enum insertType=InsertionType::NoInsertion );
+    bool dropMime ( const QMimeData * data, MetaInfo & senderInfo, const QPointF &pos, InsertionType::Enum insertType=InsertionType::NoInsertion );
     void valueChanged( const MetaInfo & senderInfo, int info, const QVariant &value);
 protected:
     MainHost *myHost;

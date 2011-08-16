@@ -328,10 +328,10 @@ void Container::UnloadProgram()
 /*!
   Try to remove the program now, retry later if we try to remove the current program
   */
-void Container::RemoveProgram(const QModelIndex &idx)
+void Container::RemoveProgram(int progId)
 {
-    if(idx.isValid())
-        listProgToRemove << idx.data(ProgramsModel::ProgramId).toInt();
+    if(progId>0)
+        listProgToRemove << progId;
 
     QList<int>remainingProgs;
 

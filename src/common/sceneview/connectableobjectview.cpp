@@ -118,7 +118,7 @@ void ConnectableObjectView::ObjectDropped(QGraphicsSceneDragDropEvent *event)
         insertType=InsertionType::Replace;
     } else {
         switch(event->dropAction()) {
-            case Qt::CopyAction:
+            case Qt::MoveAction:
                 if(sender()==dropAttachLeft) {
                     insertType=InsertionType::InsertBefore;
                     dropPos.rx()-=(geometry().width()+10);
@@ -126,7 +126,8 @@ void ConnectableObjectView::ObjectDropped(QGraphicsSceneDragDropEvent *event)
                     insertType=InsertionType::InsertAfter;
                     dropPos.rx()+=(geometry().width()+10);
                 }
-            case Qt::MoveAction:
+                break;
+            case Qt::CopyAction:
                 if(sender()==dropAttachLeft) {
                     insertType=InsertionType::AddBefore;
                     dropPos.rx()-=(geometry().width()+10);
@@ -134,15 +135,16 @@ void ConnectableObjectView::ObjectDropped(QGraphicsSceneDragDropEvent *event)
                     insertType=InsertionType::AddAfter;
                     dropPos.rx()+=(geometry().width()+10);
                 }
+                break;
         }
     }
 
 
-    MainContainerView *cnt = static_cast<MainContainerView*>(parentItem());
-    if(cnt)
-        cnt->SetDropPos( mapToScene(dropPos) );
+//    MainContainerView *cnt = static_cast<MainContainerView*>(parentItem());
+//    if(cnt)
+//        cnt->SetDropPos( mapToScene(dropPos) );
 
-    DropMime(event->mimeData(), insertType);
+    DropMime(event->mimeData(), mapToScene(dropPos), insertType);
 }
 
 void ConnectableObjectView::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)

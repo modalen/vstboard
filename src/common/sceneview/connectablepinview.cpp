@@ -34,7 +34,7 @@ ConnectablePinView::ConnectablePinView(const MetaInfo &info, float angle, QGraph
 {
     setGeometry(0,0,50,15);
     setMinimumSize(50,15);
-    setMaximumSize(100,15);
+    setMaximumSize(75,15);
 
     outline = new QGraphicsRectItem(rect(), this);
     highlight = new QGraphicsRectItem(rect(), this);

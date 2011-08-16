@@ -87,12 +87,6 @@ namespace Connectables {
         bool GetSleep();
         virtual void NewRenderLoop();
 
-        /// Lock the object mutex
-        inline void Lock() { objMutex.lock();}
-
-        /// Unlock the object mutex
-        inline void Unlock() { objMutex.unlock();}
-
         LearningMode::Enum GetLearningMode();
 //        QStandardItem *GetParkingItem();
 //        virtual QStandardItem *GetFullItem();
@@ -111,7 +105,6 @@ namespace Connectables {
 
         /// \return a pointer to the MainHost
         inline MainHost *getHost() {return myHost;}
-
 
         virtual bool Open();
         virtual bool Close();
@@ -156,6 +149,9 @@ namespace Connectables {
         virtual void ProgramToStream (int progId, QDataStream &out);
         virtual void ProgramFromStream (int progId, QDataStream &in);
 
+        /// global object mutex
+        QMutex objMutex;
+
     protected:
         /// pointer to the MainHost
         MainHost *myHost;
@@ -180,9 +176,6 @@ namespace Connectables {
 
         /// list of parameters output
         PinsList *listParameterPinOut;
-
-        /// global object mutex
-        QMutex objMutex;
 
         /// temporary SolverNode, used by PathSolver
         SolverNode *solverNode;

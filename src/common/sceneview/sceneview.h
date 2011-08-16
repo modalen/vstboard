@@ -43,7 +43,7 @@ namespace View {
 
         void SetParkings(QWidget *progPark, QWidget *groupPark);
 
-        void AddObj(const MetaInfo &info);
+        void AddObj(MetaInfo &info);
         void DelObj(quint32 objId);
         void UpdateObj(const MetaInfo &info);
 

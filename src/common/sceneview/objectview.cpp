@@ -269,6 +269,7 @@ void ObjectView::resizeEvent ( QGraphicsSceneResizeEvent * event )
 void ObjectView::mouseReleaseEvent ( QGraphicsSceneMouseEvent * event )
 {
     QGraphicsWidget::mouseReleaseEvent(event);
+    SetMeta(MetaInfos::Position,pos());
 //    model->setData(objIndex,pos(),UserRoles::position);
 }
 

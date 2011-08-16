@@ -43,6 +43,7 @@ namespace MetaInfos {
         ObjType,
         Direction,
         Media,
+        BridgeMedia,
         Filename,
         devId,
         devName,
@@ -191,8 +192,9 @@ class MetaInfo
     }
 
     inline void SetName(const QString &name) {
-        if(!name.isEmpty())
-            objName = name;
+        if(name.isEmpty())
+            return;
+        objName = name;
     }
     inline const QString & Name() const {
         return objName;
@@ -217,10 +219,10 @@ class MetaInfo
 //        return model;
 //    }
 
-    bool DropMime(const QMimeData *data, InsertionType::Enum insertType = InsertionType::NoInsertion) {
+    bool DropMime(const QMimeData *data, const QPointF &pos, InsertionType::Enum insertType = InsertionType::NoInsertion) {
         if(!model)
             return false;
-        return model->dropMime(data,MetaInfo(*this),insertType);
+        return model->dropMime(data,MetaInfo(*this),pos,insertType);
     }
 
     inline const MetaInfo & info() const {return *this;}
@@ -242,7 +244,6 @@ private:
     QString objName;
     QMap<MetaInfos::Enum,QVariant>listInfos;
     HostModel *model;
-
 };
 
 

@@ -38,8 +38,8 @@ namespace View {
 //        void SetModelIndex(const MetaInfo &info);
         void SetParking(QWidget *parking);
         QWidget *GetParking();
-        QPointF GetDropPos();
-        void SetDropPos(const QPointF &pt);
+//        QPointF GetDropPos();
+//        void SetDropPos(const QPointF &pt);
         void SetConfig(ViewConfig *config);
 
         BridgeView *bridgeIn;

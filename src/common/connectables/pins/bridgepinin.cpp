@@ -40,9 +40,11 @@ void BridgePinIn::ReceiveMsg(const PinMessage::Enum msgType,void *data)
         return;
     ++loopCounter;
 
-    MetaInfo i = info();
+    MetaInfo i(info());
     i.SetMeta(MetaInfos::Direction,Directions::Output);
-    parent->GetPin(i)->SendMsg(msgType,data);
+    Pin *p = parent->GetPin(i);
+    if(p)
+        p->SendMsg(msgType,data);
 
     switch(msgType) {
         case PinMessage::AudioBuffer :
@@ -72,7 +74,7 @@ float BridgePinIn::GetValue()
     if(valueChanged) {
         if(internValue==1.0f) internValue=0.99f;
         else internValue=1.0f;
-        SetMeta(MetaInfos::Media, valueType);
+        SetMeta(MetaInfos::BridgeMedia, valueType);
     }
     return internValue;
 }

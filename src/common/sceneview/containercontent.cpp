@@ -41,8 +41,8 @@ ContainerContent::ContainerContent(const MetaInfo &info, MainContainerView * par
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     setGeometry(0,0,50,50);
 
-    dropPos.setX(0);
-    dropPos.setY(0);
+//    dropPos.setX(0);
+//    dropPos.setY(0);
 
 }
 
@@ -62,18 +62,18 @@ void ContainerContent::SetConfig(ViewConfig *conf)
 //    objInfo = info;
 //}
 
-QPointF ContainerContent::GetDropPos()
-{
-    QPointF p = dropPos;
-    dropPos.rx()+=20;
-    dropPos.ry()+=20;
-    return p;
-}
+//QPointF ContainerContent::GetDropPos()
+//{
+//    QPointF p = dropPos;
+//    dropPos.rx()+=20;
+//    dropPos.ry()+=20;
+//    return p;
+//}
 
-void ContainerContent::SetDropPos(const QPointF &pt)
-{
-    dropPos=pt;
-}
+//void ContainerContent::SetDropPos(const QPointF &pt)
+//{
+//    dropPos=pt;
+//}
 
 void ContainerContent::dragEnterEvent( QGraphicsSceneDragDropEvent *event)
 {
@@ -118,7 +118,7 @@ void ContainerContent::dragLeaveEvent( QGraphicsSceneDragDropEvent *event)
 void ContainerContent::dropEvent( QGraphicsSceneDragDropEvent *event)
 {
     ObjectDropZone::dropEvent(event);
-    dropPos = event->scenePos();
+//    dropPos = event->scenePos();
 //    event->setAccepted(
 //                model->dropMimeData(event->mimeData(), event->proposedAction(), 0, 0, objIndex)
 //                );
@@ -126,7 +126,7 @@ void ContainerContent::dropEvent( QGraphicsSceneDragDropEvent *event)
 
 //    Events::dropMime *e = new Events::dropMime(event->mimeData(), info());
 //    myHost->mainWindow->PostEvent(e);
-    DropMime(event->mimeData());
+    DropMime(event->mimeData(),event->scenePos());
 }
 
 void ContainerContent::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)

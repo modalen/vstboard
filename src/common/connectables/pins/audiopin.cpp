@@ -77,46 +77,13 @@ bool AudioPin::SetDoublePrecision(bool dblp)
 
     if(doublePrecision) {
         SetMeta(MetaInfos::displayedText, QString(Name()+"=D=") );
-//        displayedText=objectName()+"=D=";
     } else {
         SetMeta(MetaInfos::displayedText, QString(Name()+"=S=") );
-//        displayedText=objectName()+"=S=";
     }
     valueChanged=true;
 
     doublePrecision=dblp;
     buffer->SetDoublePrecision(dblp);
-
-//    if(doublePrecision) {
-//        if(!bufferD) {
-//            LOG("no double precision buffer : can't convert to single precision");
-//            return false;
-//        }
-
-//        if(!buffer)
-//            buffer = new AudioBuffer(bufferD->IsExternallyAllocated());
-
-//        buffer->SetSize(bufferD->GetSize());
-//        buffer->ResetStackCounter();
-//        buffer->AddToStack(bufferD);
-//        delete bufferD;
-//        bufferD = 0;
-//    } else {
-//        if(!buffer) {
-//            LOG("no single precision buffer : can't convert to double precision");
-//            return false;
-//        }
-
-//        if(!bufferD)
-//            bufferD = new AudioBufferD(buffer->IsExternallyAllocated());
-
-//        bufferD->SetSize(buffer->GetSize());
-//        bufferD->ResetStackCounter();
-//        bufferD->AddToStack(buffer);
-//        delete buffer;
-//        buffer = 0;
-//    }
-
 
     return true;
 }

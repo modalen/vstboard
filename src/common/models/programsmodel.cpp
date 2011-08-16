@@ -388,16 +388,16 @@ bool ProgramsModel::removeRowsFromCommand ( int row, int count, const QModelInde
         }
 
         for(int i=0; i<count; i++)
-            emit ProgDelete(parent.child(row+i,0));
+            emit ProgDelete(parent.child(row+i,0).data(ProgramsModel::ProgramId).toInt());
 
     } else {
         for(int i=0; i<count; i++) {
             QModelIndex groupIndex = index(row+i,0);
             int nbProg = rowCount(groupIndex);
             for(int j=0; j<nbProg; j++) {
-                emit ProgDelete(groupIndex.child(j,0));
+                emit ProgDelete(groupIndex.child(j,0).data(ProgramsModel::ProgramId).toInt());
             }
-            emit GroupDelete(groupIndex);
+            emit GroupDelete(groupIndex.data(ProgramsModel::ProgramId).toInt());
         }
     }
 

@@ -34,8 +34,8 @@ namespace View {
     public:
         explicit ContainerContent(const MetaInfo &info, MainContainerView * parent = 0);
 //        void SetModelIndex(const MetaInfo &info);
-        QPointF GetDropPos();
-        void SetDropPos(const QPointF &pt);
+//        QPointF GetDropPos();
+//        void SetDropPos(const QPointF &pt);
         void SetConfig(ViewConfig *config);
 
     protected:
@@ -44,7 +44,7 @@ namespace View {
         void dragLeaveEvent( QGraphicsSceneDragDropEvent *event);
         void dropEvent( QGraphicsSceneDragDropEvent *event);
 
-        QPointF dropPos;
+//        QPointF dropPos;
 
         QPersistentModelIndex attachLeft;
         QPersistentModelIndex attachRight;

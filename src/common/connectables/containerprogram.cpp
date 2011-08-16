@@ -362,6 +362,7 @@ void ContainerProgram::CreateBridgeOverObj(int objId)
                     Cable *otherCab = listCables.at(j);
                     MetaInfo otherPin( cab->GetInfoOut() );
                     otherPin.SetMeta(MetaInfos::Direction,Directions::Input);
+                    myHost->objFactory->UpdatePinInfo(otherPin);
 
                     //find corresponding input cables
                     if(otherCab->GetInfoIn().ObjId()==otherPin.ObjId()) {
@@ -379,6 +380,7 @@ void ContainerProgram::CreateBridgeOverObj(int objId)
                     Cable *otherCab = listCables.at(j);
                     MetaInfo otherPin = cab->GetInfoIn();
                     otherPin.SetMeta(MetaInfos::Direction,Directions::Output);
+                    myHost->objFactory->UpdatePinInfo(otherPin);
 
                     //find corresponding output cables
                     if(otherCab->GetInfoOut().ObjId()==otherPin.ObjId()) {
@@ -419,8 +421,9 @@ void ContainerProgram::MoveOutputCablesFromObj(int newObjId, int oldObjId)
         Cable *cab = listCables.at(i);
         if(cab->GetInfoOut().ParentObjectId() == oldObjId
                 && cab->GetInfoOut().Meta(MetaInfos::Media).toInt() != MediaTypes::Parameter) {
-            MetaInfo newConnect = cab->info();
-            newConnect.SetObjId(newObjId);
+            MetaInfo newConnect(cab->GetInfoOut());
+            newConnect.SetParentObjectId(newObjId);
+            myHost->objFactory->UpdatePinInfo(newConnect);
             if( AddCable(newConnect, cab->GetInfoIn()) ) {
                 RemoveCable(cab);
             }
@@ -436,8 +439,9 @@ void ContainerProgram::MoveInputCablesFromObj(int newObjId, int oldObjId)
         Cable *cab = listCables.at(i);
         if(cab->GetInfoIn().ParentObjectId()==oldObjId
                 && cab->GetInfoIn().Meta(MetaInfos::Media).toInt() != MediaTypes::Parameter) {
-            MetaInfo newConnect = cab->GetInfoIn();
-            newConnect.SetObjId(newObjId);
+            MetaInfo newConnect(cab->GetInfoIn());
+            newConnect.SetParentObjectId(newObjId);
+            myHost->objFactory->UpdatePinInfo(newConnect);
             if( AddCable(cab->GetInfoOut(), newConnect) ) {
                 RemoveCable(cab);
             }

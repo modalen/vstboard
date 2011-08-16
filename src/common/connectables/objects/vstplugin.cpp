@@ -79,7 +79,7 @@ void VstPlugin::SetSleep(bool sleeping)
     if(closed)
         return;
 
-    Lock();
+    objMutex.lock();
 
     if(sleeping) {
         EffStopProcess();
@@ -89,7 +89,7 @@ void VstPlugin::SetSleep(bool sleeping)
         EffStartProcess();
     }
 
-    Unlock();
+    objMutex.unlock();
 
     Object::SetSleep(sleeping);
 }
@@ -135,7 +135,7 @@ void VstPlugin::Render()
     if(closed)
         return;
 
-    QMutexLocker lock(&objMutex);
+//    QMutexLocker lock(&objMutex);
 
     //midi events
     //=========================
@@ -262,7 +262,7 @@ bool VstPlugin::Open()
 {
 
     {
-        QMutexLocker lock(&objMutex);
+//        QMutexLocker lock(&objMutex);
         VstPlugin::pluginLoading = this;
 
         if(!Load( Meta(MetaInfos::Filename).toString() )) {
@@ -297,7 +297,7 @@ bool VstPlugin::Open()
 bool VstPlugin::initPlugin()
 {
     {
-        QMutexLocker lock(&objMutex);
+//        QMutexLocker lock(&objMutex);
 
         long ver = EffGetVstVersion();
 
@@ -459,8 +459,9 @@ void VstPlugin::OnShowEditor()
 
     emit ShowEditorWindow();
 
-    connect(myHost->updateViewTimer,SIGNAL(timeout()),
-            this,SLOT(EditIdle()));
+    if(bNeedIdle)
+        connect(myHost->updateViewTimer,SIGNAL(timeout()),
+                this,SLOT(EditIdle()));
 }
 
 void VstPlugin::OnHideEditor()

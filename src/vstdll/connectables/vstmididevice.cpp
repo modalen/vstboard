@@ -42,7 +42,7 @@ VstMidiDevice::~VstMidiDevice()
 void VstMidiDevice::Render()
 {
     if(nbIn>0) {
-        Lock();
+        objMutex.lock();
 
         foreach(long msg, midiQueue) {
 
@@ -52,15 +52,15 @@ void VstMidiDevice::Render()
             }
         }
         midiQueue.clear();
-        Unlock();
+        objMutex.unlock();
     }
 }
 
 void VstMidiDevice::MidiMsgFromInput(long msg) {
     if(nbOut>0) {
-        Lock();
+        objMutex.lock();
         midiQueue << msg;
-        Unlock();
+        objMutex.unlock();
     }
 }
 

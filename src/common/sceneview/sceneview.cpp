@@ -84,13 +84,13 @@ SceneView::SceneView(MainHost *myHost, MainGraphicsView *viewHost, MainGraphicsV
 
     connect(myHost->programsModel,SIGNAL(ProgChanged(QModelIndex)),
             viewProgram, SLOT(SetViewProgram(QModelIndex)));
-    connect(myHost->programsModel,SIGNAL(ProgDelete(QModelIndex)),
-            viewProgram, SLOT(RemoveViewProgram(QModelIndex)));
+    connect(myHost->programsModel,SIGNAL(ProgDelete(int)),
+            viewProgram, SLOT(RemoveViewProgram(int)));
 
     connect(myHost->programsModel,SIGNAL(GroupChanged(QModelIndex)),
             viewGroup, SLOT(SetViewProgram(QModelIndex)));
-    connect(myHost->programsModel,SIGNAL(GroupDelete(QModelIndex)),
-            viewGroup, SLOT(RemoveViewProgram(QModelIndex)));
+    connect(myHost->programsModel,SIGNAL(GroupDelete(int)),
+            viewGroup, SLOT(RemoveViewProgram(int)));
 }
 
 void SceneView::SetParkings(QWidget *progPark, QWidget *groupPark)
@@ -151,6 +151,9 @@ void SceneView::UpdateObj(const MetaInfo &info)
 
 void SceneView::DelObj(quint32 objId)
 {
+    if(!mapMetaInfos.contains(objId))
+        return;
+
     const MetaInfo info = mapMetaInfos.value(objId);
 
     switch(info.Type()) {
@@ -232,7 +235,7 @@ void SceneView::DelObj(quint32 objId)
     mapMetaInfos.remove(info.ObjId());
 }
 
-void SceneView::AddObj(const MetaInfo &info)
+void SceneView::AddObj(MetaInfo &info)
 {
     if( mapMetaInfos.contains(info.ObjId()) ) {
         UpdateObj(info);
@@ -330,7 +333,7 @@ void SceneView::AddObj(const MetaInfo &info)
         }
         case MetaTypes::object :
         {
-            MainContainerView *containerView = static_cast<MainContainerView*>(mapViewItems.value(info.ParentId(),0));
+            MainContainerView *containerView = static_cast<MainContainerView*>(mapViewItems.value(info.ContainerId(),0));
             if(!containerView) {
                 LOG("object container not found"<<info.toStringFull());
                 return;
@@ -344,9 +347,12 @@ void SceneView::AddObj(const MetaInfo &info)
             mapViewItems.insert( info.ObjId() , objView);
             mapMetaInfos.insert( info.ObjId(), MetaInfo(info));
 //                objView->SetModelIndex(info);
-            QPointF pos = containerView->GetDropPos();
-            objView->setPos(pos);
+//            QPointF pos = containerView->GetDropPos();
+//            objView->setPos(pos);
+//            info.SetMeta(MetaInfos::Position, pos);
 //            model()->setData(index,pos,UserRoles::position);
+            QPointF pos = info.Meta(MetaInfos::Position).toPointF();
+            objView->setPos(pos);
 
             objView->SetConfig(myHost->mainWindow->viewConfig);
 

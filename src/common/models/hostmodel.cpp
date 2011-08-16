@@ -52,7 +52,7 @@ void HostModel::valueChanged( const MetaInfo & senderInfo, int info, const QVari
     myHost->mainWindow->PostEvent(e);
 }
 
-bool HostModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, InsertionType::Enum insertType )
+bool HostModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, const QPointF &pos, InsertionType::Enum insertType )
 {
     QList<MetaInfo>listObjInfoToAdd;
 
@@ -191,10 +191,13 @@ bool HostModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, Insert
         else
             info.SetContainerId(senderInfo.ContainerId());
 
-        if(senderInfo.Type()!=MetaTypes::object)
-            senderInfo=MetaInfo();
+        info.SetMeta(MetaInfos::Position,pos);
 
-        ComAddObject *com = new ComAddObject(myHost, info, senderInfo, insertType);
+        MetaInfo targetInfo;
+        if(senderInfo.Type()==MetaTypes::object)
+            targetInfo=senderInfo;
+
+        ComAddObject *com = new ComAddObject(myHost, info, targetInfo, insertType);
         Connectables::VstPlugin::shellSelectView->command=com;
         //emit UndoStackPush(com);
         Events::command *e = new Events::command(com);

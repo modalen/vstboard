@@ -128,7 +128,6 @@ int main(int argc, char *argv[])
     w.readSettings();
     w.show();
     w.LoadDefaultFiles();
-
     app.exec();
     return 0;
 }

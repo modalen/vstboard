@@ -36,7 +36,8 @@ EngineThread::EngineThread() :
     QThread()
 {
     setObjectName("EngineThread");
-    start(QThread::HighPriority);
+    start(QThread::LowPriority);
+//    start(QThread::HighestPriority);
 }
 
 EngineThread::~EngineThread()
@@ -116,30 +117,39 @@ bool MainHost::event(QEvent *event)
     switch(event->type()) {
         case Events::typeCommand : {
             Events::command *e = static_cast<Events::command*>(event);
-//            LOG("command");
-
             undoStack->push(e->cmd);
             return true;
         }
         case Events::typeValChanged : {
             Events::valChanged *e = static_cast<Events::valChanged*>(event);
-//            LOG("valchanged"<<e->value<<e->objInfo.toStringFull());
-            Connectables::Pin *pin = objFactory->GetPin(e->objInfo);
-            if(!pin)
-                return true;
+            switch(e->objInfo.Type()) {
+                case MetaTypes::object : {
+                    QSharedPointer<Connectables::Object>obj = objFactory->GetObjectFromId(e->objInfo.ObjId());
+                    if(!obj)
+                        return true;
+                    obj->SetMeta(e->type,e->value);
+                    return true;
+                }
+                case MetaTypes::pin: {
+                    Connectables::Pin *pin = objFactory->GetPin(e->objInfo);
+                    if(!pin)
+                        return true;
 
-            Connectables::ParameterPin* p = static_cast<Connectables::ParameterPin*>(pin);
-            p->SetMeta(e->type,e->value);
-            switch(e->type) {
-                case MetaInfos::Value :
-                case MetaInfos::LimitInMin :
-                case MetaInfos::LimitInMax :
-                case MetaInfos::LimitOutMin :
-                case MetaInfos::LimitOutMax :
-                    p->ChangeValue(p->Meta(MetaInfos::Value).toFloat());
-                    break;
+                    Connectables::ParameterPin* p = static_cast<Connectables::ParameterPin*>(pin);
+                    p->SetMeta(e->type,e->value);
+                    switch(e->type) {
+                        case MetaInfos::Value :
+                        case MetaInfos::LimitInMin :
+                        case MetaInfos::LimitInMax :
+                        case MetaInfos::LimitOutMin :
+                        case MetaInfos::LimitOutMax :
+                            p->ChangeValue(p->Meta(MetaInfos::Value).toFloat());
+                    }
+                    return true;
+                }
             }
-            return true;
+
+
         }
     }
 
@@ -187,6 +197,8 @@ void MainHost::Init()
 
     EnableSolverUpdate(true);
     programsModel->BuildDefaultModel();
+
+//    QThread::currentThread()->setPriority(QThread::NormalPriority);
 }
 
 void MainHost::SetupMainContainer()
@@ -506,8 +518,8 @@ void MainHost::SetupProgramContainer()
 
     connect(programsModel, SIGNAL(ProgChanged(QModelIndex)),
             programContainer.data(), SLOT(SetProgram(QModelIndex)));
-    connect(programsModel, SIGNAL(ProgDelete(QModelIndex)),
-            programContainer.data(), SLOT(RemoveProgram(QModelIndex)));
+    connect(programsModel, SIGNAL(ProgDelete(int)),
+            programContainer.data(), SLOT(RemoveProgram(int)));
 
     emit programParkingModelChanged(&programContainer->parkModel);
 
@@ -608,8 +620,8 @@ void MainHost::SetupGroupContainer()
 
     connect(programsModel, SIGNAL(GroupChanged(QModelIndex)),
             groupContainer.data(), SLOT(SetProgram(QModelIndex)));
-    connect(programsModel, SIGNAL(GroupDelete(QModelIndex)),
-            groupContainer.data(), SLOT(RemoveProgram(QModelIndex)));
+    connect(programsModel, SIGNAL(GroupDelete(int)),
+            groupContainer.data(), SLOT(RemoveProgram(int)));
 
     emit groupParkingModelChanged(&groupContainer->parkModel);
 

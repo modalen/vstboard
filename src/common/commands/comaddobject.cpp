@@ -92,6 +92,12 @@ void ComAddObject::redo ()
     QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.ObjId() );
     if(!obj) {
         //object was deleted, create a new one
+        if(objectInfo.ObjId()==0)
+            objectInfo.SetObjId(myHost->objFactory->GetNewId());
+
+        ObjectInfo tmpMeta(objectInfo);
+        tmpMeta.AddToView(myHost);
+
         obj = myHost->objFactory->NewObject( objectInfo );
     }
     if(!obj)

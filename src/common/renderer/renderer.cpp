@@ -34,47 +34,47 @@ Renderer::Renderer(MainHost *myHost)
       newNodes(false),
       needOptimize(false),
       nextOptimize(0),
-      needBuildModel(false),
+//      needBuildModel(false),
       sem(0),
       myHost(myHost)
 {
     maxNumberOfThreads = ConfigDialog::defaultNumberOfThreads(myHost);
     InitThreads();
 
-    connect(&updateViewTimer, SIGNAL(timeout()),
-            this, SLOT(UpdateView()));
-    updateViewTimer.start(500);
+//    connect(&updateViewTimer, SIGNAL(timeout()),
+//            this, SLOT(UpdateView()));
+//    updateViewTimer.start(500);
 }
 
 Renderer::~Renderer()
 {
-    updateViewTimer.stop();
+//    updateViewTimer.stop();
     Clear();
 }
 
-void Renderer::UpdateView()
-{
-    if(!mutex.tryLockForRead())
-        return;
+//void Renderer::UpdateView()
+//{
+//    if(!mutex.tryLockForRead())
+//        return;
 
-    if(needBuildModel) {
-        needBuildModel=false;
-        optimizer.BuildModel( &model );
-        optimizer.UpdateView( &model );
-    }
+//    if(needBuildModel) {
+//        needBuildModel=false;
+//        optimizer.BuildModel( &model );
+//        optimizer.UpdateView( &model );
+//    }
 
-    int i = 0;
-    foreach(RenderThread *th, listOfThreads) {
-        model.setHorizontalHeaderItem(i, new QStandardItem( QString("%1 (cpu:%2)").arg(i).arg(th->currentCpu) ));
-        ++i;
-    }
-    mutex.unlock();
-}
+//    int i = 0;
+//    foreach(RenderThread *th, listOfThreads) {
+//        model.setHorizontalHeaderItem(i, new QStandardItem( QString("%1 (cpu:%2)").arg(i).arg(th->currentCpu) ));
+//        ++i;
+//    }
+//    mutex.unlock();
+//}
 
-QStandardItemModel * Renderer::GetModel()
-{
-    return &model;
-}
+//QStandardItemModel * Renderer::GetModel()
+//{
+//    return &model;
+//}
 
 void Renderer::Clear()
 {
@@ -171,7 +171,7 @@ void Renderer::StartRender()
         newNodes=false;
         mutexNodes.unlock();
         GetStepsFromOptimizer();
-        needBuildModel=true;
+//        needBuildModel=true;
     } else {
         mutexNodes.unlock();
     }
@@ -188,7 +188,7 @@ void Renderer::StartRender()
         optimizer.NewListOfNodes( tmpListOfNodes );
         optimizer.Optimize();
         GetStepsFromOptimizer();
-        needBuildModel=true;
+//        needBuildModel=true;
     } else {
         mutexOptimize.unlock();
     }

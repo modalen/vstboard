@@ -110,18 +110,17 @@ void MainWindow::Init()
     mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
 //    mySceneView->setModel(hostModel);
 
-    ui->solverView->setModel(myHost->GetRendererModel());
-    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-            ui->solverView, SLOT(resizeColumnsToContents()));
-    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-            ui->solverView, SLOT(resizeRowsToContents()));
+//    ui->solverView->setModel(myHost->GetRendererModel());
+//    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+//            ui->solverView, SLOT(resizeColumnsToContents()));
+//    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+//            ui->solverView, SLOT(resizeRowsToContents()));
 
     setPalette( viewConfig->GetPaletteFromColorGroup( ColorGroups::Window, palette() ));
     connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
              myHost->programsModel, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
     connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
              this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)));
-
 }
 
 bool MainWindow::event(QEvent *event)

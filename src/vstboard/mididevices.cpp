@@ -145,6 +145,7 @@ void MidiDevices::BuildModel()
         lastName = devName;
 
         MetaInfo obj(MetaTypes::object);
+        obj.SetName(devName);
         obj.SetMeta(MetaInfos::ObjType, ObjTypes::MidiInterface);
         obj.SetMeta(MetaInfos::devId, i);
         obj.SetMeta(MetaInfos::devName, devName);
@@ -182,7 +183,7 @@ void MidiDevices::MidiReceive_poll(PtTimestamp timestamp, void *userData)
            continue;
 
         //lock device while processing (no rendering, no delete)
-        device->Lock();
+        device->objMutex.lock();
 
         //it's a midi input
         if(device->devInfo->input) {
@@ -212,7 +213,7 @@ void MidiDevices::MidiReceive_poll(PtTimestamp timestamp, void *userData)
             }
         }
 
-        device->Unlock();
+        device->objMutex.unlock();
     }
 //    devices->mutexListMidi.unlock();
 }

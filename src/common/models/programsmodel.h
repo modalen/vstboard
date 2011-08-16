@@ -157,8 +157,8 @@ signals:
 
     void ProgChanged(const QModelIndex &prgIndex);
     void GroupChanged(const QModelIndex &grpIndex);
-    void ProgDelete(const QModelIndex &prgIndex);
-    void GroupDelete(const QModelIndex &grpIndex);
+    void ProgDelete(int progId);
+    void GroupDelete(int groupId);
 
     void ProgAutosaveChanged(const Qt::CheckState state);
     void GroupAutosaveChanged(const Qt::CheckState state);

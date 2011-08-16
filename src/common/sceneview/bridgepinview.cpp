@@ -125,7 +125,7 @@ void BridgePinView::updateVu()
     }
 
     QColor c;
-    switch(Meta(MetaInfos::Media).toInt()) {
+    switch(Meta(MetaInfos::BridgeMedia).toInt()) {
         case MediaTypes::Audio:
             c = config->GetColor(ColorGroups::AudioPin, Colors::Background);
             break;
