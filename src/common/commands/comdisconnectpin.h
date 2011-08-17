@@ -1,7 +1,6 @@
 #ifndef COMDISCONNECTPIN_H
 #define COMDISCONNECTPIN_H
 
-#include <QUndoCommand>
 #include "objectinfo.h"
 
 class MainHost;

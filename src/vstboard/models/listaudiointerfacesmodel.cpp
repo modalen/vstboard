@@ -19,6 +19,7 @@
 **************************************************************************/
 #include "listaudiointerfacesmodel.h"
 #include "objectinfo.h"
+#include "globals.h"
 
 ListAudioInterfacesModel::ListAudioInterfacesModel(QObject *parent) :
         QStandardItemModel(parent)
@@ -48,9 +49,9 @@ QMimeData  * ListAudioInterfacesModel::mimeData ( const QModelIndexList  & index
             continue;
         if(idx.column()!=0)
             continue;
-        stream << itemFromIndex(idx)->data(UserRoles::objInfo).value<MetaInfo>();
+        stream << itemFromIndex(idx)->data(UserRoles::metaInfo).value<MetaInfo>();
     }
 
-    data->setData("application/x-audiointerface",b);
+    data->setData(MIMETYPE_METAINFO,b);
     return data;
 }

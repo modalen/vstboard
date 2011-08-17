@@ -48,7 +48,7 @@ void ListAudioDevicesView::AudioDevContextMenu(const QPoint &pt)
 {
     QList<QAction *> lstActions;
 
-    if(currentIndex().sibling(0,0).data(UserRoles::objInfo).isValid())
+    if(currentIndex().sibling(0,0).data(UserRoles::metaInfo).isValid())
         lstActions << audioDevConfig;
 
     lstActions << updateList;
@@ -57,6 +57,6 @@ void ListAudioDevicesView::AudioDevContextMenu(const QPoint &pt)
 
 void ListAudioDevicesView::ConfigCurrentDevice()
 {
-    if(currentIndex().sibling(0,0).data(UserRoles::objInfo).isValid())
+    if(currentIndex().sibling(0,0).data(UserRoles::metaInfo).isValid())
         emit Config(currentIndex().sibling(0,0));
 }

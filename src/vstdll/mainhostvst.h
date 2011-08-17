@@ -29,7 +29,7 @@ class MainHostVst : public MainHost
 Q_OBJECT
 public:
     MainHostVst(Vst *myVstPlugin, QObject *parent = 0, QString settingsGroup="");
-    Q_INVOKABLE void Init();
+    Q_INVOKABLE void InitThread();
     Vst *myVstPlugin;
 
 };

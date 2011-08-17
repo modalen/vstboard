@@ -61,7 +61,7 @@ void MainWindowVst::BuildListTools()
         info.SetName(tr("Vst audio In"));
 
         QStandardItem *item = new QStandardItem(tr("Vst audio input"));
-        item->setData(QVariant::fromValue(info), UserRoles::objInfo);
+        item->setData(QVariant::fromValue(info), UserRoles::metaInfo);
         parentItem->appendRow(item);
     }
 
@@ -73,7 +73,7 @@ void MainWindowVst::BuildListTools()
         info.SetName(tr("Vst audio Out"));
 
         QStandardItem *item = new QStandardItem(tr("Vst audio output"));
-        item->setData(QVariant::fromValue(info), UserRoles::objInfo);
+        item->setData(QVariant::fromValue(info), UserRoles::metaInfo);
         parentItem->appendRow(item);
     }
 
@@ -88,7 +88,7 @@ void MainWindowVst::BuildListTools()
         info.SetName(tr("Vst midi In"));
 
         QStandardItem *item = new QStandardItem(tr("Vst midi input"));
-        item->setData(QVariant::fromValue(info), UserRoles::objInfo);
+        item->setData(QVariant::fromValue(info), UserRoles::metaInfo);
         parentItem->appendRow(item);
     }
 
@@ -100,7 +100,7 @@ void MainWindowVst::BuildListTools()
         info.SetName(tr("Vst midi Out"));
 
         QStandardItem *item = new QStandardItem(tr("Vst midi output"));
-        item->setData(QVariant::fromValue(info), UserRoles::objInfo);
+        item->setData(QVariant::fromValue(info), UserRoles::metaInfo);
         parentItem->appendRow(item);
     }
 
@@ -111,7 +111,7 @@ void MainWindowVst::BuildListTools()
         info.SetName(tr("Vst Automation"));
 
         QStandardItem *item = new QStandardItem(tr("Vst Automation"));
-        item->setData(QVariant::fromValue(info), UserRoles::objInfo);
+        item->setData(QVariant::fromValue(info), UserRoles::metaInfo);
         parentItem->appendRow(item);
     }
 }

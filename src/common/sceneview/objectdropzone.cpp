@@ -20,6 +20,7 @@
 
 #include "objectdropzone.h"
 #include "globals.h"
+#include "objectinfo.h"
 
 using namespace View;
 
@@ -70,16 +71,15 @@ void ObjectDropZone::dragEnterEvent( QGraphicsSceneDragDropEvent *event)
         }
     }
 
-    //accept Audio interface
-    //accept Midi interface
-    //accept Tools
-    if(event->mimeData()->hasFormat("application/x-audiointerface") ||
-       event->mimeData()->hasFormat("application/x-midiinterface") ||
-       event->mimeData()->hasFormat("application/x-tools")) {
-        event->setDropAction(Qt::CopyAction);
-        event->accept();
-        HighlightStart();
-        return;
+    //accept objects
+    if(event->mimeData()->hasFormat(MIMETYPE_METAINFO)) {
+        MetaInfo i(event->mimeData()->data(MIMETYPE_METAINFO));
+        if(i.Type()==MetaTypes::object) {
+            event->setDropAction(Qt::CopyAction);
+            event->accept();
+            HighlightStart();
+            return;
+        }
     }
     event->ignore();
 }

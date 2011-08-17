@@ -27,9 +27,6 @@
 #define DEFAULT_INPUTS 1
 #define DEFAULT_OUTPUTS 1
 
-#include <QObject>
-#include <QtGui/QApplication>
-#include <QTranslator>
 #include "mainwindowvst.h"
 #include "audioeffectx.h"
 #include "gui.h"
@@ -118,8 +115,8 @@ protected:
 
         VstInt32 bufferSize;
 
-        QMutex mutexDevices;
-        QMutex mutexParam;
+        DMutex mutexDevices;
+        DMutex mutexParam;
 
         Gui *qEditor;
 

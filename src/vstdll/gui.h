@@ -21,9 +21,6 @@
 #ifndef GUI_H
 #define GUI_H
 
-
-#include <QObject>
-
 #include "aeffeditor.h"
 #include "mainwindowvst.h"
 #include "resizehandle.h"

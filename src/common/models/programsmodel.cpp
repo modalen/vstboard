@@ -50,6 +50,8 @@ ProgramsModel::ProgramsModel(MainHost *myHost, QObject *parent) :
     currentCommandHasBeenProcessed(false),
     lastDialogAnswer(false)
 {
+    setObjectName("ProgramsModel");
+
     connect(this, SIGNAL(UndoStackPush(QUndoCommand*)),
             myHost, SLOT(UndoStackPush(QUndoCommand*)));
 

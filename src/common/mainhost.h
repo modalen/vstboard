@@ -22,37 +22,38 @@
 #define MAINHOST_H
 
 //#include "precomp.h"
-#include <QUndoStack>
 #include "connectables/objectfactory.h"
 #include "connectables/objects/object.h"
 #include "connectables/objects/container.h"
 #include "renderer/pathsolver.h"
 #include "renderer/renderer.h"
 #include "globals.h"
-#include "models/hostmodel.h"
+#include "objectinfo.h"
 
 #ifdef VSTSDK
     #include "vst/cvsthost.h"
 #endif
 
+
 class EngineThread : public QThread
 {
 public:
-    EngineThread();
+    EngineThread(QObject *parent=0);
     ~EngineThread();
     void run();
 };
 
 class MainWindow;
 class ProgramsModel;
-class MainHost : public QObject
+class MainHost : public QObject, public MetaTransporter
 {
 Q_OBJECT
 public:
     MainHost( QObject *parent = 0, QString settingsGroup="");
     virtual ~MainHost();
 
-    Q_INVOKABLE virtual void Init();
+    Q_INVOKABLE virtual void InitThread();
+    virtual void SetMainWindow(MainWindow *win);
 
     void SendMsg(const MetaInfo &senderPin,const PinMessage::Enum msgType,void *data);
 
@@ -129,27 +130,17 @@ public:
     QString currentProjectFile;
     QString currentSetupFile;
 
-    QMutex mutexRender;
+    DMutex mutexRender;
 
     QUndoStack * GetUndoStack() {return undoStack;}
 
-    void AddEventsListener( QObject *obj) {eventsListeners << obj;}
-    void RemoveEventsListener( QObject *obj) {eventsListeners.removeAll(obj);}
-    void PostEvent( QEvent * event, int priority=5) {
-        foreach(QObject *obj, eventsListeners) {
-            qApp->postEvent(obj,event,priority);
-        }
-    }
-
-    virtual bool event(QEvent *event);
+    bool event(QEvent *event);
 
 protected:
     QTime timeFromStart;
     float sampleRate;
     unsigned long bufferSize;
     QUndoStack *undoStack;
-
-    QList<QObject*>eventsListeners;
 
 private:
     void SetupMainContainer();
@@ -166,10 +157,10 @@ private:
     QMap<int,Connectables::Object*>listContainers;
 
     mapCables workingListOfCables;
-    QMutex *mutexListCables;
+    DMutex *mutexListCables;
     Renderer *renderer;
 
-    QMutex solverMutex;
+    DMutex solverMutex;
 
 //    HostModel *model;
 

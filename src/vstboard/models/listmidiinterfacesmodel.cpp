@@ -19,6 +19,7 @@
 **************************************************************************/
 #include "listmidiinterfacesmodel.h"
 #include "objectinfo.h"
+#include "globals.h"
 
 ListMidiInterfacesModel::ListMidiInterfacesModel(QObject *parent):
         QStandardItemModel(parent)
@@ -34,9 +35,9 @@ QMimeData  * ListMidiInterfacesModel::mimeData ( const QModelIndexList  & indexe
     foreach(QModelIndex idx, indexes) {
         if(idx.column()!=0)
             continue;
-        stream << itemFromIndex(idx)->data(UserRoles::objInfo).value<MetaInfo>();
+        stream << itemFromIndex(idx)->data(UserRoles::metaInfo).value<MetaInfo>();
     }
 
-    data->setData("application/x-midiinterface",b);
+    data->setData(MIMETYPE_METAINFO,b);
     return data;
 }

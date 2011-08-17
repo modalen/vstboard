@@ -21,8 +21,6 @@
 #ifndef COMREMOVEPROGRAM_H
 #define COMREMOVEPROGRAM_H
 
-#include <QUndoCommand>
-
 class ProgramsModel;
 class ComRemoveProgram : public QUndoCommand
 {

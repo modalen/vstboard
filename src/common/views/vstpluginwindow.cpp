@@ -36,6 +36,8 @@ VstPluginWindow::VstPluginWindow(QWidget *parent) :
 
 VstPluginWindow::~VstPluginWindow()
 {
+    if(plugin)
+        plugin->editorWnd=0;
     delete ui;
 }
 
@@ -48,7 +50,6 @@ void VstPluginWindow::UnsetPlugin()
 {
     if(plugin) {
         disconnect(plugin);
-        plugin->disconnect();
         plugin->EffEditClose();
         plugin = 0;
     }

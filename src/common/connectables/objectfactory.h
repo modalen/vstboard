@@ -40,7 +40,6 @@ namespace Connectables {
         ~ObjectFactory();
 
         QSharedPointer<Object> NewObject( MetaInfo &info);
-        QSharedPointer<Object> GetObj(const QModelIndex & index);
         inline void RemoveObject(int id) {
             listObjects.remove(id);
         }

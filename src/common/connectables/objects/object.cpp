@@ -17,8 +17,6 @@
 #    You should have received a copy of the under the terms of the GNU Lesser General Public License
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
-
-
 #include "object.h"
 #include "globals.h"
 #include "mainhost.h"
@@ -41,18 +39,15 @@ using namespace Connectables;
   */
 Object::Object(MainHost *myHost, MetaInfo &info) :
     QObject(),
-    ObjectInfo(info),
+    ObjectInfo(info,myHost),
     parked(false),
     listenProgramChanges(true),
     myHost(myHost),
-    solverNode(0),
-    savedIndex(-2),
+    savedIndex(0),
     sleep(true),
     currentProgram(0),
     currentProgId(TEMP_PROGRAM),
-    closed(true),
-    objInfo(info),
-    containerId(FixedObjIds::noContainer)
+    closed(true)
 {
     SetType(MetaTypes::object);
 
@@ -132,15 +127,15 @@ Object::~Object()
 {
     pinLists.clear();
 
-    if(containerId!=FixedObjIds::noContainer) {
-        QSharedPointer<Object>cntPtr = myHost->objFactory->GetObjectFromId( containerId );
+    if(ContainerId()) {
+        QSharedPointer<Container>cntPtr = myHost->objFactory->GetObjectFromId( ContainerId() ).staticCast<Container>();
         if(cntPtr) {
-            static_cast<Container*>(cntPtr.data())->OnChildDeleted(this);
+            cntPtr->OnChildDeleted(this);
         }
     }
     Close();
 
-    myHost->objFactory->RemoveObject(MetaInfo::ObjId());
+    myHost->objFactory->RemoveObject(ObjId());
 }
 
 /*!
@@ -331,7 +326,7 @@ Pin * Object::GetPin(const MetaInfo &pinInfo)
                 return pin;
         }
     }
-    LOG("pin not found"<<pinInfo.toStringFull());
+//    LOG("pin not found"<<pinInfo.toStringFull());
     return 0;
 }
 
@@ -388,7 +383,7 @@ void Object::SetContainerAttribs(const ObjectContainerAttribs &attr)
     SetMeta(MetaInfos::EditorPosition, attr.editorPosition);
     SetMeta(MetaInfos::EditorVScroll, attr.editorVScroll);
     SetMeta(MetaInfos::EditorHScroll, attr.editorHScroll);
-    UpdateView(myHost);
+    UpdateView();
 }
 
 /*!
@@ -406,7 +401,7 @@ void Object::GetContainerAttribs(ObjectContainerAttribs &attr)
 }
 
 /*!
-  Copy the position, editor visibility and learning state, used by HostModel when a plugin is replaced
+  Copy the position, editor visibility and learning state, used by SceneModel when a plugin is replaced
   \param objPtr destination object
   */
 void Object::CopyStatusTo(QSharedPointer<Object>objPtr)
@@ -562,7 +557,7 @@ bool Object::fromStream(QDataStream & in)
 {
 //    LoadProgram(TEMP_PROGRAM);
 
-    qint16 id;
+    quint32 id;
     in >> id;
     savedIndex=id;
     in >> sleep;

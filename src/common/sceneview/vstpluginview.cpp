@@ -21,9 +21,10 @@
 #include "vstpluginview.h"
 
 using namespace View;
+class SceneModel;
 
-VstPluginView::VstPluginView(const MetaInfo &info, MainContainerView * parent) :
-    ConnectableObjectView(info,parent)
+VstPluginView::VstPluginView(const MetaInfo &info, MainContainerView * parent, SceneModel *model) :
+    ConnectableObjectView(info,parent,model)
 {
     setObjectName("vstPluginView");
 

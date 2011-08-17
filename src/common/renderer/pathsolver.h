@@ -39,7 +39,7 @@ public:
     ~PathSolver();
     void Resolve(mapCables cables, Renderer *renderer);
 
-protected:
+private:
     void Clear();
     void CreateNodes();
     void PutParentsInNodes();
@@ -62,7 +62,9 @@ protected:
     MainHost *myHost;
 
     QList<SolverNode*>listNodes;
-    QMutex mutex;
+    DMutex mutex;
+
+    QMap< quint32 ,SolverNode*>mapObjNodes;
 
 };
 

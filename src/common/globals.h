@@ -40,128 +40,17 @@
 #define WASAPI_DEFAULT_INLATENCY 0
 #define WASAPI_DEFAULT_OUTLATENCY 0
 
+#define MIMETYPE_METAINFO QLatin1String("application/x-metainfo")
+#define MIMETYPE_GROUP QLatin1String("application/x-groupsdata")
+#define MIMETYPE_PROGRAM QLatin1String("application/x-programsdata")
+
 namespace UserRoles {
     enum Enum {
-        programGroup = Qt::UserRole+1,
-        programNumber,
-        shortcut,
-        connectionInfo,
-        value,
-        stepSize,
-        position,
-        parking,
-        objInfo,
-        nodeType,
-        editorVisible,
-        editorImage,
-        editorPos,
-        editorSize,
-        editorVScroll,
-        editorHScroll,
-        errorMessage,
-        isDirty,
-        type,
-        bankFile,
-        programFile,
-        isDoublePrecision
+        metaInfo = Qt::UserRole+1,
+        value
     };
 }
 
-/*
-namespace NodeType {
-    enum Enum {
-        ND,
-        object,
-        container,
-        bridge,
-        listPin,
-        pin,
-        cable,
-        cursor
-    };
-}
-
-namespace ObjType {
-    enum Enum {
-        ND,
-        AudioInterface,
-        AudioInterfaceIn,
-        AudioInterfaceOut,
-        MidiInterface,
-        VstPlugin,
-        MidiToAutomation,
-        MidiSender,
-        HostController,
-        Container,
-        ParkingContainer,
-        BridgeIn,
-        BridgeOut,
-        BridgeSend,
-        BridgeReturn,
-        listAudioIn,
-        listAudioOut,
-        listMidiIn,
-        listMidiOut,
-        listParamIn,
-        listParamOut,
-        listBridgeIn,
-        listBridgeOut,
-        dummy,
-        VstAutomation,
-        limitInMin,
-        limitInMax,
-        limitOutMin,
-        limitOutMax,
-        Script
-    };
-}
-
-namespace FixedObjId {
-    enum Enum {
-        mainContainer=1,
-        hostContainer,
-        hostContainerIn,
-        hostContainerOut,
-        hostContainerSend,
-        hostContainerReturn,
-        projectContainer,
-        projectContainerIn,
-        projectContainerOut,
-        projectContainerSend,
-        projectContainerReturn,
-        programContainer,
-        programContainerIn,
-        programContainerOut,
-        programContainerSend,
-        programContainerReturn,
-        groupContainer,
-        groupContainerIn,
-        groupContainerOut,
-        groupContainerSend,
-        groupContainerReturn,
-        parkingContainer,
-        noContainer=65535
-    };
-}
-
-namespace PinType {
-    enum Enum {
-        ND,
-        Audio,
-        Midi,
-        Parameter,
-        Bridge
-    };
-}
-
-namespace PinDirection {
-    enum Enum {
-        ND,
-        Input,
-        Output
-    };
-}
-*/
 namespace PinMessage {
     enum Enum {
         ND,
@@ -171,61 +60,21 @@ namespace PinMessage {
     };
 }
 
-#define FIXED_PIN_STARTINDEX 0xf000
-namespace FixedPinNumber {
+namespace InsertionType {
     enum Enum {
-        editorVisible = FIXED_PIN_STARTINDEX,
-        learningMode,
-        vstProgNumber,
-        numberOfPins
+        NoInsertion,
+        InsertBefore,
+        InsertAfter,
+        Replace,
+        AddBefore,
+        AddAfter
     };
 }
 
-#define MidiMessage(status, data1, data2) \
-         ((((data2) << 16) & 0xFF0000) | \
-          (((data1) << 8) & 0xFF00) | \
-          ((status) & 0xFF))
-#define MidiStatus(msg) ((msg) & 0xFF)
-#define MidiData1(msg) (((msg) >> 8) & 0xFF)
-#define MidiData2(msg) (((msg) >> 16) & 0xFF)
-
-namespace MidiConst {
-     enum Enum {
-        codeMask = 0xf0,
-        channelMask = 0x0f,
-
-        noteOff =   0x80, //key, velocity
-        noteOn =    0x90, //key, velocity
-        aftertouch = 0xa0, //key, value
-        ctrl =      0xb0, //ctrl, value
-        prog =      0xc0, //prog, nd
-        chanpressure = 0xd0, //value, nd
-        pitchbend = 0xe0, //lsb, msb
-        other = 0xf0 //nd,nd
-    };
-}
-
-namespace DefaultLayers {
+namespace RemoveType {
     enum Enum {
-        host,
-        project,
-        program,
+        RemoveWithCables,
+        BridgeCables
     };
 }
-
-namespace LearningMode {
-    enum Enum {
-        off,
-        learn,
-        unlearn
-    };
-}
-
-namespace Event {
-    const QEvent::Type ProgChange = QEvent::User;
-    const QEvent::Type UpdateSolver = QEvent::Type(QEvent::User+1);
-    const QEvent::Type PinMessage = QEvent::Type(QEvent::User+2);
-    const QEvent::Type Shortcut = QEvent::Type(QEvent::User+3);
-}
-
 #endif // GLOBALS_H

@@ -42,10 +42,10 @@ void MainWindowHost::Init()
     ui->treeAudioInterfaces->header()->setResizeMode(0,QHeaderView::Stretch);
     ui->treeAudioInterfaces->header()->setResizeMode(1,QHeaderView::Fixed);
     ui->treeAudioInterfaces->header()->setResizeMode(2,QHeaderView::Fixed);
-    ui->treeAudioInterfaces->header()->setResizeMode(3,QHeaderView::Fixed);
+//    ui->treeAudioInterfaces->header()->setResizeMode(3,QHeaderView::Fixed);
     ui->treeAudioInterfaces->header()->resizeSection(1,30);
     ui->treeAudioInterfaces->header()->resizeSection(2,30);
-    ui->treeAudioInterfaces->header()->resizeSection(3,40);
+//    ui->treeAudioInterfaces->header()->resizeSection(3,40);
     ui->treeAudioInterfaces->expand( h->audioDevices->AsioIndex );
 
     //midi devices

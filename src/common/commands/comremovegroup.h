@@ -1,8 +1,6 @@
 #ifndef COMREMOVEGROUP_H
 #define COMREMOVEGROUP_H
 
-#include <QUndoCommand>
-
 class ProgramsModel;
 class ComRemoveGroup : public QUndoCommand
 {

@@ -29,6 +29,7 @@
 #include "models/programsmodel.h"
 #include "views/vstpluginwindow.h"
 #include "views/scripteditor.h"
+#include "models/scenemodel.h"
 #include "events.h"
 
 MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
@@ -43,13 +44,17 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     viewConfigDlg(0),
     lastMessageResult(0)
 {
-    myHost->mainWindow=this;
-    myHost->AddEventsListener(this);
-    AddEventsListener(myHost);
+    ui->setupUi(this);
+    ui->statusBar->hide();
 
-    hostModel = new HostModel(myHost,this);
+    mySceneView = new View::SceneView(myHost, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
+    mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
 
-//    hostModel->setColumnCount(1);
+    sceneModel = new SceneModel(myHost,mySceneView,this);
+    sceneModel->AddListener(myHost);
+    myHost->AddListener(sceneModel);
+
+    mySceneView->SetModel(sceneModel);
 
     connect(this, SIGNAL(askLoadProject(QString)),
             myHost, SLOT(LoadProjectFile(QString)));
@@ -71,9 +76,6 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
             this,SLOT(groupParkingModelChanges(QStandardItemModel*)));
     connect(myHost,SIGNAL(currentFileChanged()),
             this,SLOT(currentFileChanged()));
-
-    ui->setupUi(this);
-    ui->statusBar->hide();
 
     connect(ui->mainToolBar, SIGNAL(visibilityChanged(bool)),
             ui->actionTool_bar, SLOT(setChecked(bool)));
@@ -101,13 +103,16 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
 void MainWindow::Init()
 {
 
+
+
+
     //programs
 //    myHost->programsModel = new ProgramsModel(myHost);
     ui->Programs->SetModel( myHost->programsModel );
     myHost->programsModel->UserChangeProg(0);
 
-    mySceneView = new View::SceneView(myHost, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
-    mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
+
+
 //    mySceneView->setModel(hostModel);
 
 //    ui->solverView->setModel(myHost->GetRendererModel());
@@ -121,34 +126,6 @@ void MainWindow::Init()
              myHost->programsModel, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
     connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
              this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)));
-}
-
-bool MainWindow::event(QEvent *event)
-{
-    switch(event->type()) {
-        case Events::typeNewObj : {
-            Events::sendObj *e = static_cast<Events::sendObj*>(event);
-            e->objInfo.SetModel(hostModel);
-//            LOG("add" << e->objInfo.toStringFull());
-            mySceneView->AddObj(e->objInfo);
-            return true;
-        }
-        case Events::typeDelObj : {
-            Events::delObj *e = static_cast<Events::delObj*>(event);
-//            LOG("del" << e->objId);
-            mySceneView->DelObj(e->objId);
-            return true;
-        }
-        case Events::typeUpdateObj : {
-            Events::sendObj *e = static_cast<Events::sendObj*>(event);
-            e->objInfo.SetModel(hostModel);
-//            LOG("update" << e->objInfo.toStringFull());
-            mySceneView->UpdateObj(e->objInfo);
-            return true;
-        }
-    }
-
-    return QMainWindow::event(event);
 }
 
 void MainWindow::DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton)
@@ -206,6 +183,9 @@ void MainWindow::SetupBrowsersModels(const QString &vstPath, const QString &brow
 
 MainWindow::~MainWindow()
 {
+    if(sceneModel)
+        sceneModel->RemoveAllListeners();
+
     if(ui)
         delete ui;
 }
@@ -250,7 +230,7 @@ void MainWindow::BuildListTools()
         info.SetMeta(MetaInfos::ObjType, ObjTypes::Script);
 
         QStandardItem *item = new QStandardItem(tr("Script"));
-        item->setData(QVariant::fromValue(info), UserRoles::objInfo);
+        item->setData(QVariant::fromValue(info), UserRoles::metaInfo);
         parentItem->appendRow(item);
     }
 #endif
@@ -261,7 +241,7 @@ void MainWindow::BuildListTools()
         info.SetMeta(MetaInfos::ObjType, ObjTypes::MidiToAutomation);
 
         QStandardItem *item = new QStandardItem(tr("Midi to parameter"));
-        item->setData(QVariant::fromValue(info), UserRoles::objInfo);
+        item->setData(QVariant::fromValue(info), UserRoles::metaInfo);
         parentItem->appendRow(item);
     }
 
@@ -271,7 +251,7 @@ void MainWindow::BuildListTools()
         info.SetMeta(MetaInfos::ObjType, ObjTypes::MidiSender);
 
         QStandardItem *item = new QStandardItem(tr("Midi sender"));
-        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
+        item->setData(QVariant::fromValue(info),UserRoles::metaInfo);
         parentItem->appendRow(item);
     }
 
@@ -281,7 +261,7 @@ void MainWindow::BuildListTools()
         info.SetMeta(MetaInfos::ObjType, ObjTypes::HostController);
 
         QStandardItem *item = new QStandardItem(tr("Host Controller"));
-        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
+        item->setData(QVariant::fromValue(info),UserRoles::metaInfo);
         parentItem->appendRow(item);
     }
 

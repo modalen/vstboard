@@ -19,14 +19,14 @@
 **************************************************************************/
 
 #include "maincontainerview.h"
-#include "connectables/objectfactory.h"
-
+#include "models/scenemodel.h"
 using namespace View;
 
-MainContainerView::MainContainerView(MainHost *myHost, const MetaInfo &info) :
-        ObjectView(info)
+MainContainerView::MainContainerView(const MetaInfo &info, SceneModel *model) :
+    ObjectView(info),
+    model(model)
 {
-    content = new ContainerContent(MetaInfo::info(),this);
+    content = new ContainerContent(MetaInfo::info(),this, model);
     content->setAcceptDrops(true);
 
     bridgeIn = new BridgeView(MetaInfo(), this);
@@ -52,23 +52,6 @@ void MainContainerView::SetConfig(ViewConfig *config)
     ObjectView::SetConfig(config);
     content->SetConfig(config);
 }
-
-//QPointF MainContainerView::GetDropPos()
-//{
-//    return mapFromScene( content->GetDropPos() );
-//}
-
-//void MainContainerView::SetDropPos(const QPointF &pt)
-//{
-//    content->SetDropPos( pt );
-//}
-
-//void MainContainerView::SetModelIndex(const MetaInfo &info)
-//{
-//    objInfo=info;
-//    setObjectName(QString("MainContainerView%1").arg(objInfo.ObjId()));
-//    content->SetModelIndex(objInfo);
-//}
 
 void MainContainerView::SetParking(QWidget *parking)
 {

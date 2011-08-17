@@ -19,7 +19,6 @@
 **************************************************************************/
 
 #include "connectablepinview.h"
-#include "connectables/objectfactory.h"
 
 using namespace View;
 
@@ -32,10 +31,6 @@ ConnectablePinView::ConnectablePinView(const MetaInfo &info, float angle, QGraph
     colorGroupId(ColorGroups::ND),
     vuColor(Qt::gray)
 {
-    setGeometry(0,0,50,15);
-    setMinimumSize(50,15);
-    setMaximumSize(75,15);
-
     outline = new QGraphicsRectItem(rect(), this);
     highlight = new QGraphicsRectItem(rect(), this);
     highlight->setVisible(false);
@@ -70,7 +65,14 @@ ConnectablePinView::ConnectablePinView(const MetaInfo &info, float angle, QGraph
     rectVu->setBrush( vuColor );
     highlight->setBrush( config->GetColor(ColorGroups::Object, Colors::HighlightBackground) );
     textItem->setBrush(  config->GetColor(ColorGroups::Object, Colors::Text) );
+
+    setGeometry(0,0,50,15);
+    setMinimumSize(50,15);
+    setMaximumSize(75,15);
+
     UpdateModelIndex(info);
+
+    setFocusPolicy(Qt::WheelFocus);
 }
 
 void ConnectablePinView::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)
@@ -122,6 +124,8 @@ void ConnectablePinView::resizeEvent ( QGraphicsSceneResizeEvent * event )
             rectVu->setRect(r);
         }
     }
+
+    UpdateCablesPosition();
 }
 
 void ConnectablePinView::mousePressEvent ( QGraphicsSceneMouseEvent * event )

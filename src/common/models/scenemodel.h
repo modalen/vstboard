@@ -22,38 +22,31 @@
 #define HOSTMODEL_H
 
 #include "precomp.h"
+#include "objectinfo.h"
+#include "globals.h"
 
-namespace InsertionType {
-    enum Enum {
-        NoInsertion,
-        InsertBefore,
-        InsertAfter,
-        Replace,
-        AddBefore,
-        AddAfter
-    };
-}
-
-namespace RemoveType {
-    enum Enum {
-        RemoveWithCables,
-        BridgeCables
-    };
+namespace View {
+    class SceneView;
 }
 
 class MainHost;
 class MetaInfo;
-class HostModel : QObject
+class SceneModel : public QObject, public MetaTransporter
 {
     Q_OBJECT
 public:
-    HostModel(MainHost *myHost=0, QObject *parent=0);
-    bool dropMime ( const QMimeData * data, MetaInfo & senderInfo, const QPointF &pos, InsertionType::Enum insertType=InsertionType::NoInsertion );
-    void valueChanged( const MetaInfo & senderInfo, int info, const QVariant &value);
+    SceneModel(MainHost *myHost, View::SceneView *view, QObject *parent=0);
+    bool dropMime ( const QMimeData * data, MetaInfo & senderInfo, QPointF &pos, InsertionType::Enum insertType=InsertionType::NoInsertion );
+    void valueChanged( const MetaInfo & senderInfo, int type, const QVariant &value);
+    bool event(QEvent *event);
+
 protected:
+    bool dropFile( const QString &fName, MetaInfo &info, MetaInfo &senderInfo);
+
     MainHost *myHost;
     QTimer *delayedAction;
     QSignalMapper *LoadFileMapper;
+    View::SceneView *mySceneView;
 };
 
 #endif // HOSTMODEL_H

@@ -23,7 +23,7 @@
 #include "maincontainerview.h"
 #include "pinview.h"
 #include "cableview.h"
-#include "events.h"
+#include "models/scenemodel.h"
 
 #ifdef _MSC_VER
 #pragma warning( disable: 4100 )
@@ -31,9 +31,10 @@
 
 using namespace View;
 
-ContainerContent::ContainerContent(const MetaInfo &info, MainContainerView * parent ) :
+ContainerContent::ContainerContent(const MetaInfo &info, MainContainerView * parent, SceneModel *model ) :
     ObjectDropZone(parent),
-    ObjectInfo(info),
+    MetaInfo(info),
+    model(model),
     rectAttachLeft(0),
     rectAttachRight(0),
     config(0)
@@ -78,13 +79,9 @@ void ContainerContent::SetConfig(ViewConfig *conf)
 void ContainerContent::dragEnterEvent( QGraphicsSceneDragDropEvent *event)
 {
     //update connecting cable position
-    if(event->mimeData()->hasFormat("application/x-pin")) {
-        if(PinView::currentLine && PinView::currentLine->scene()==scene()) {
-            PinView::currentLine->setVisible(true);
-            event->accept();
-        } else {
-            event->ignore();
-        }
+    if(PinView::currentLine && PinView::currentLine->scene()==scene()) {
+        PinView::currentLine->setVisible(true);
+        event->accept();
         QGraphicsWidget::dragEnterEvent(event);
         return;
     }
@@ -95,12 +92,10 @@ void ContainerContent::dragEnterEvent( QGraphicsSceneDragDropEvent *event)
 void ContainerContent::dragMoveEvent( QGraphicsSceneDragDropEvent *event)
 {
     //update connecting cable position
-    if(event->mimeData()->hasFormat("application/x-pin")) {
-        if(PinView::currentLine) {
-            PinView::currentLine->UpdatePosition( mapToScene(event->pos()) );
-            PinView::currentLine->setVisible(true);
-            event->ignore();
-        }
+    if(PinView::currentLine && PinView::currentLine->scene()==scene()) {
+        PinView::currentLine->UpdatePosition( mapToScene(event->pos()) );
+        PinView::currentLine->setVisible(true);
+        event->ignore();
         QGraphicsWidget::dragMoveEvent(event);
         return;
     }
@@ -109,24 +104,16 @@ void ContainerContent::dragMoveEvent( QGraphicsSceneDragDropEvent *event)
 
 void ContainerContent::dragLeaveEvent( QGraphicsSceneDragDropEvent *event)
 {
-    if(PinView::currentLine) {
+    if(PinView::currentLine)
         PinView::currentLine->setVisible(false);
-    }
+
     ObjectDropZone::dragLeaveEvent(event);
 }
 
 void ContainerContent::dropEvent( QGraphicsSceneDragDropEvent *event)
 {
     ObjectDropZone::dropEvent(event);
-//    dropPos = event->scenePos();
-//    event->setAccepted(
-//                model->dropMimeData(event->mimeData(), event->proposedAction(), 0, 0, objIndex)
-//                );
-//    event->setAccepted( DropMime(event->mimeData(), event->proposedAction()) );
-
-//    Events::dropMime *e = new Events::dropMime(event->mimeData(), info());
-//    myHost->mainWindow->PostEvent(e);
-    DropMime(event->mimeData(),event->scenePos());
+    model->dropMime(event->mimeData(),MetaInfo(*this),event->scenePos());
 }
 
 void ContainerContent::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)

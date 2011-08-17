@@ -48,7 +48,6 @@ private:
 
     ListMidiInterfacesModel *model;
 
-    QMutex mutexListMidi;
     MainHost *myHost;
 };
 

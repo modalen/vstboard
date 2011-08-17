@@ -1,7 +1,7 @@
 #ifndef RENDERTHREAD_H
 #define RENDERTHREAD_H
 
-//#include "precomp.h"
+#include "mutexdebug.h"
 
 class Renderer;
 class RendererNode;
@@ -35,7 +35,7 @@ protected:
 
     RendererNode* currentNode;
 
-    QMutex mutexRender;
+    DMutex mutexRender;
 };
 
 #endif // RENDERTHREAD_H

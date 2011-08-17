@@ -95,8 +95,9 @@ void ComAddObject::redo ()
         if(objectInfo.ObjId()==0)
             objectInfo.SetObjId(myHost->objFactory->GetNewId());
 
-        ObjectInfo tmpMeta(objectInfo);
-        tmpMeta.AddToView(myHost);
+        //add a temporary object on the view
+        ObjectInfo tmpMeta(objectInfo,myHost);
+        tmpMeta.AddToView();
 
         obj = myHost->objFactory->NewObject( objectInfo );
     }

@@ -89,12 +89,11 @@ bool AudioDeviceIn::Open()
     QMutexLocker l(&objMutex);
 
     closed=false;
-    errorMessage="";
 
     //create the audiodevice if needed
     if(!parentDevice) {
         MainHostHost *host=static_cast<MainHostHost*>(myHost);
-        parentDevice=host->audioDevices->AddDevice(objInfo, &errorMessage);
+        parentDevice=host->audioDevices->AddDevice( this );
         if(!parentDevice)
             return true;
     }
@@ -111,7 +110,7 @@ bool AudioDeviceIn::Open()
     //device already has a child
     if(!parentDevice->SetObjectInput(this)) {
         parentDevice=0;
-        errorMessage=tr("Already in use");
+        SetMeta(MetaInfos::errorMessage, tr("Already in use"));
         return true;
     }
 

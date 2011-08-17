@@ -19,7 +19,6 @@
 **************************************************************************/
 
 #include "cursorview.h"
-#include "globals.h"
 
 using namespace View;
 

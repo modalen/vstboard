@@ -34,7 +34,7 @@ public:
     MainHostHost(QObject *parent = 0, QString settingsGroup="");
     ~MainHostHost();
 
-    Q_INVOKABLE void Init();
+    Q_INVOKABLE void InitThread();
 
     AudioDevices *audioDevices;
     MidiDevices *midiDevices;

@@ -24,7 +24,7 @@
 #include "object.h"
 #include "bridge.h"
 #include "connectables/containerprogram.h"
-#include "models/hostmodel.h"
+#include "globals.h"
 
 namespace Connectables {
 
@@ -149,6 +149,8 @@ namespace Connectables {
 
         QList<int> listProgToRemove;
 
+        DMutex mutexCurrentProg;
+
     public slots:
         void UserAddObject(const QSharedPointer<Object> &objPtr,
                            InsertionType::Enum insertType = InsertionType::NoInsertion,
@@ -180,6 +182,7 @@ namespace Connectables {
         void SetSampleRate(float rate=44100.0);
 
         friend class ContainerProgram;
+
     };
 
 

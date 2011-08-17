@@ -116,19 +116,13 @@ bool ObjectFactory::UpdatePinInfo(MetaInfo &pinInfo)
     if(!objPtr)
         return false;
 
-    pinInfo = objPtr->GetPin(pinInfo)->info();
-    return true;
-}
-
-QSharedPointer<Object> ObjectFactory::GetObj(const QModelIndex & index)
-{
-    //the object is not created, do it
-    if(!index.data(UserRoles::value).isValid()) {
-        return NewObject( index.data(UserRoles::objInfo).value<MetaInfo>() );
+    Pin *pin = objPtr->GetPin(pinInfo);
+    if(!pin) {
+        pinInfo=MetaInfo();
+        return false;
     }
-
-    //or return the existing object
-    return GetObjectFromId(index.data(UserRoles::value).toInt());
+    pinInfo = pin->info();
+    return true;
 }
 
 QSharedPointer<Object> ObjectFactory::NewObject( MetaInfo &info)

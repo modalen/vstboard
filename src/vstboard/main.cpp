@@ -20,12 +20,11 @@
 //#ifndef QT_NO_DEBUG
 //    #include "vld.h"
 //#endif
-#include <QLibraryInfo>
-#include <QTranslator>
 
 #include "mainhosthost.h"
 #include "mainwindowhost.h"
 #include "objectinfo.h"
+
 
 #ifndef QT_NO_DEBUG
 
@@ -34,6 +33,10 @@
         qInstallMsgHandler(0);
         qDebug(msg);
         qInstallMsgHandler(myMessageOutput);
+
+        if(type!=QtDebugMsg) {
+            qDebug("pause");
+        }
 
          switch (type) {
 
@@ -119,15 +122,20 @@ int main(int argc, char *argv[])
         app.installTranslator(&myappTranslator);
 #endif
 
+    EngineThread *engine = new EngineThread();
     MainHostHost host;
-    EngineThread engine;
-    host.moveToThread(&engine);
+    host.moveToThread(engine);
+    QMetaObject::invokeMethod(&host,"InitThread",Qt::BlockingQueuedConnection);
+
     MainWindowHost w(&host);
-    QMetaObject::invokeMethod(&host,"Init",Qt::BlockingQueuedConnection);
+    host.SetMainWindow(&w);
     w.Init();
+
+
     w.readSettings();
     w.show();
     w.LoadDefaultFiles();
     app.exec();
+    delete engine;
     return 0;
 }

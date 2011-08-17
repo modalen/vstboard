@@ -37,7 +37,7 @@ using namespace View;
   */
 ObjectView::ObjectView(const MetaInfo &info, QGraphicsItem * parent ) :
     QGraphicsWidget(parent),
-    ObjectInfo(info),
+    MetaInfo(info),
     listAudioIn(0),
     listAudioOut(0),
     listMidiIn(0),

@@ -31,6 +31,7 @@
 #include "views/maingraphicsview.h"
 
 class MainHost;
+class SceneModel;
 class MetaInfo;
 namespace View {
     class MainContainerView;
@@ -39,9 +40,10 @@ namespace View {
     {
         Q_OBJECT
     public:
-        explicit SceneView(MainHost *myHost, MainGraphicsView *viewHost, MainGraphicsView *viewProject, MainGraphicsView *viewProgram, MainGraphicsView *viewGroup,QWidget *parent = 0);
+        explicit SceneView(MainHost *myHost, MainGraphicsView *viewHost, MainGraphicsView *viewProject, MainGraphicsView *viewProgram, MainGraphicsView *viewGroup, QWidget *parent = 0);
 
         void SetParkings(QWidget *progPark, QWidget *groupPark);
+        void SetModel(SceneModel *m) {model=m;}
 
         void AddObj(MetaInfo &info);
         void DelObj(quint32 objId);
@@ -52,7 +54,7 @@ namespace View {
         MainGraphicsView *viewProgram;
         MainGraphicsView *viewGroup;
 
-    protected:
+    private:
 
         //we need parent objects to avoid a bug in qgraphicssene
         QGraphicsRectItem *rootObjHost;
@@ -78,6 +80,7 @@ namespace View {
 
         QTimer *timerFalloff;
         MainHost *myHost;
+        SceneModel *model;
 
     public slots:
         void ConnectPins(const MetaInfo &pinOut, const MetaInfo &pinIn);

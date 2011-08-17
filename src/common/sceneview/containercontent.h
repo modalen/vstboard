@@ -25,14 +25,14 @@
 #include "mainwindow.h"
 #include "objectdropzone.h"
 
-class MainHost;
+class SceneModel;
 namespace View {
     class MainContainerView;
-    class ContainerContent : public ObjectDropZone, public ObjectInfo
+    class ContainerContent : public ObjectDropZone, public MetaInfo
     {
     Q_OBJECT
     public:
-        explicit ContainerContent(const MetaInfo &info, MainContainerView * parent = 0);
+        explicit ContainerContent(const MetaInfo &info, MainContainerView * parent, SceneModel *model );
 //        void SetModelIndex(const MetaInfo &info);
 //        QPointF GetDropPos();
 //        void SetDropPos(const QPointF &pt);
@@ -50,6 +50,8 @@ namespace View {
         QPersistentModelIndex attachRight;
         QGraphicsRectItem *rectAttachLeft;
         QGraphicsRectItem *rectAttachRight;
+
+        SceneModel *model;
 
         ViewConfig *config;
     signals:

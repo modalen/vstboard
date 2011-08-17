@@ -38,10 +38,10 @@ MainHostHost::~MainHostHost()
     midiDevices=0;
 }
 
-void MainHostHost::Init()
+void MainHostHost::InitThread()
 {
     objFactory = new Connectables::ObjectFactoryHost(this);
-    MainHost::Init();
+    MainHost::InitThread();
     midiDevices = new MidiDevices(this);
     audioDevices = new AudioDevices(this);
 }

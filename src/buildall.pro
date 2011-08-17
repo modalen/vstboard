@@ -9,3 +9,4 @@ SUBDIRS     = \
     dllLoaderInst
 
 CONFIG += ordered
+

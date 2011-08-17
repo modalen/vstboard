@@ -18,9 +18,6 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
-
 #include "gradientwidget.h"
 
 using namespace View;

@@ -49,7 +49,6 @@ SOURCES += \
     viewconfig.cpp \
     projectfile/projectfile.cpp \
     models/listtoolsmodel.cpp \
-    models/hostmodel.cpp \
     models/programsmodel.cpp \
     vst/vstbankbase.cpp \
     vst/vstprogram.cpp \
@@ -94,7 +93,8 @@ SOURCES += \
     commands/comdiscardchanges.cpp \
     commands/comchangeautosave.cpp \
     commands/comremovepin.cpp \
-    commands/comaddpin.cpp
+    commands/comaddpin.cpp \
+    models/scenemodel.cpp
 
 SOURCES += \
     views/configdialog.cpp \
@@ -140,7 +140,6 @@ HEADERS += \
     projectfile/fileversion.h \
     vst/vstbankbase.h \
     vst/vstprogram.h \
-    models/hostmodel.h \
     models/programsmodel.h \
     models/listtoolsmodel.h \
     renderer/solvernode.h \
@@ -184,7 +183,10 @@ HEADERS += \
     commands/comdiscardchanges.h \
     commands/comchangeautosave.h \
     commands/comremovepin.h \
-    commands/comaddpin.h
+    commands/comaddpin.h \
+    models/scenemodel.h \
+    connectables/mididefines.h \
+    mutexdebug.h
 
 HEADERS += \
     views/configdialog.h \
@@ -232,6 +234,12 @@ TRANSLATIONS = ../resources/translations/common_fr.ts
 
 RESOURCES += \
     ../resources/resources.qrc
+
+
+
+
+
+
 
 
 

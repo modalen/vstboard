@@ -41,6 +41,24 @@
 class SolverNode;
 class MainHost;
 
+#define FIXED_PIN_STARTINDEX 0xf000
+namespace FixedPinNumber {
+    enum Enum {
+        editorVisible = FIXED_PIN_STARTINDEX,
+        learningMode,
+        vstProgNumber,
+        numberOfPins
+    };
+}
+
+namespace LearningMode {
+    enum Enum {
+        off,
+        learn,
+        unlearn
+    };
+}
+
 namespace Connectables {
 
     typedef QHash<int,ObjectProgram*> hashPrograms;
@@ -58,29 +76,10 @@ namespace Connectables {
             used when loading a project file to map the connections with the current index
           \return saved index
           */
-        inline int GetSavedIndex() {return savedIndex;}
-
-        /*!
-          Get the current index
-          \return index
-          */
-//        inline const int GetIndex() const {return index;}
+        inline quint32 GetSavedIndex() {return savedIndex;}
 
         /// Reset the savedIndex to the current index, when the file is loaded or before saving
-        inline void ResetSavedIndex(int id=-2) {savedIndex=id;}
-
-          /*!
-          A SolverNode is a temporarry object used by the solver to create a rendering order
-          used by PathSolver
-          \return the current SolverNode
-          */
-        SolverNode *GetSolverNode() const {return solverNode;}
-
-        /*!
-          Set the solver node
-          used by PathSolver
-          */
-        void SetSolverNode(SolverNode *node) {solverNode=node;}
+        inline void ResetSavedIndex(quint32 id=0) {savedIndex=id;}
 
         PinsList* GetPinList(Directions::Enum dir, MediaTypes::Enum type) const;
 
@@ -90,12 +89,6 @@ namespace Connectables {
         LearningMode::Enum GetLearningMode();
 //        QStandardItem *GetParkingItem();
 //        virtual QStandardItem *GetFullItem();
-
-        /*!
-          Get the current container id
-          \return container id
-          */
-        const int GetContainerId() const {return containerId;}
 
         /*!
           Get the current program id
@@ -150,9 +143,10 @@ namespace Connectables {
         virtual void ProgramFromStream (int progId, QDataStream &in);
 
         /// global object mutex
-        QMutex objMutex;
+        DMutex objMutex;
 
     protected:
+
         /// pointer to the MainHost
         MainHost *myHost;
 
@@ -177,17 +171,11 @@ namespace Connectables {
         /// list of parameters output
         PinsList *listParameterPinOut;
 
-        /// temporary SolverNode, used by PathSolver
-        SolverNode *solverNode;
-
         /// list of programs
         hashPrograms listPrograms;
 
-        /// the object index
-//        int index;
-
         /// the index the object had when the project was saved
-        int savedIndex;
+        quint32 savedIndex;
 
         /// true if sleeping
         bool sleep;
@@ -200,16 +188,6 @@ namespace Connectables {
 
         /// true if the object is closed or is closing
         bool closed;
-
-        /// ObjectInfo defining the object
-        MetaInfo objInfo;
-
-        /// a string describing the error if the object can't be created
-        QString errorMessage;
-
-    private:
-        /// the current container id if not parked
-        quint16 containerId;
 
     signals:
         void ShowEditorWindow();
@@ -245,8 +223,6 @@ namespace Connectables {
 
         virtual void UserRemovePin(const MetaInfo &info);
         virtual void UserAddPin(const MetaInfo &info);
-
-        void SetErrorMessage(const QString &msg) {errorMessage=msg;}
 
         virtual void SetEditorWnd(QWidget *wnd) {}
     };

@@ -18,9 +18,8 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-
 #include "midisender.h"
-#include "globals.h"
+#include "connectables/mididefines.h"
 
 using namespace Connectables;
 

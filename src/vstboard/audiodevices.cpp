@@ -33,11 +33,13 @@ FakeTimer::FakeTimer(MainHostHost *myHost) :
     myHost(myHost),
     stop(false)
 {
+    LOG("fake timer starts");
     start(QThread::TimeCriticalPriority);
 }
 
 FakeTimer::~FakeTimer()
 {
+    LOG("fake timer stops");
     stop=true;
     wait(1000);
 }
@@ -163,26 +165,25 @@ bool AudioDevices::Init()
         if(obj.isNull())
             continue;
 
-        MetaInfo info( obj->info() );
-        if(info.Meta(MetaInfos::ObjType).toInt() == ObjTypes::AudioInterface) {
+        if(obj->Meta(MetaInfos::ObjType).toInt() == ObjTypes::AudioInterface) {
             QString errMsg;
-            Connectables::AudioDevice *newDevice = AddDevice( info, &errMsg );
-            switch(info.Meta(MetaInfos::Direction).toInt()) {
+            Connectables::AudioDevice *newDevice = AddDevice( obj.data() );
+            switch(obj->Meta(MetaInfos::Direction).toInt()) {
                 case Directions::Input :
-                    static_cast<Connectables::AudioDeviceIn*>(obj.data())->SetParentDevice(newDevice);
+                    obj.staticCast<Connectables::AudioDeviceIn>()->SetParentDevice(newDevice);
                     break;
                 case Directions::Output :
-                    static_cast<Connectables::AudioDeviceOut*>(obj.data())->SetParentDevice(newDevice);
+                    obj.staticCast<Connectables::AudioDeviceOut>()->SetParentDevice(newDevice);
                     break;
             }
 
             if(obj->Open()) {
 //                obj->UpdateModelNode();
-                obj->AddToView(myHost);
+                obj->AddToView();
             } else {
-                static_cast<Connectables::Container*>(myHost->objFactory->GetObjectFromId( obj->GetContainerId() ).data())->UserParkObject( obj );
+                static_cast<Connectables::Container*>(myHost->objFactory->GetObjectFromId( obj->ContainerId() ).data())->UserParkObject( obj );
             }
-            obj->SetErrorMessage(errMsg);
+            obj->SetMeta(MetaInfos::errorMessage,errMsg);
         }
     }
 
@@ -199,8 +200,9 @@ void AudioDevices::BuildModel()
 
     QStringList headerLabels;
     headerLabels << "Name";
-    headerLabels << "In";
-    headerLabels << "Out";
+//    headerLabels << "In";
+//    headerLabels << "Out";
+    headerLabels << "I/O";
     headerLabels << "InUse";
     model->setHorizontalHeaderLabels(  headerLabels );
 
@@ -228,6 +230,7 @@ void AudioDevices::BuildModel()
             const PaDeviceInfo *devInfo = Pa_GetDeviceInfo( devIndex );
 
             QString devName(devInfo->name);
+
             //remove " x64" from device name so we can share files with 32bit version
             devName.remove(QRegExp("( )?x64"));
 
@@ -239,41 +242,61 @@ void AudioDevices::BuildModel()
                 lastName = devName;
             }
 
-            MetaInfo obj(MetaTypes::object);
-            obj.SetName(devName);
-            obj.SetMeta(MetaInfos::ObjType, ObjTypes::AudioInterface);
-            obj.SetMeta(MetaInfos::devId, devIndex);
-            obj.SetMeta(MetaInfos::devName, devName);
-            obj.SetMeta(MetaInfos::apiId, apiInfo->type);
-            obj.SetMeta(MetaInfos::duplicateNamesCounter, cptDuplicateNames);
-            obj.SetMeta(MetaInfos::nbInputs, devInfo->maxInputChannels);
-            obj.SetMeta(MetaInfos::nbOutputs, devInfo->maxOutputChannels);
+            MetaInfo metaInfo(MetaTypes::object);
+            metaInfo.SetName(devName);
+            metaInfo.SetMeta(MetaInfos::ObjType, ObjTypes::AudioInterface);
+            metaInfo.SetMeta(MetaInfos::devId, devIndex);
+            metaInfo.SetMeta(MetaInfos::devName, devName);
+            metaInfo.SetMeta(MetaInfos::apiId, apiInfo->type);
+            metaInfo.SetMeta(MetaInfos::duplicateNamesCounter, cptDuplicateNames);
+            metaInfo.SetMeta(MetaInfos::nbInputs, devInfo->maxInputChannels);
+            metaInfo.SetMeta(MetaInfos::nbOutputs, devInfo->maxOutputChannels);
 
-            QList<QStandardItem *> listItems;
-
-            QStandardItem *devItem = new QStandardItem( devName);
-            devItem->setEditable(false);
-            devItem->setData(QVariant::fromValue(obj), UserRoles::objInfo);
-            devItem->setDragEnabled(true);
-            listItems << devItem;
-
-            QStandardItem *inputItem = new QStandardItem( QString::number(devInfo->maxInputChannels));
-            inputItem->setEditable(false);
-            listItems << inputItem;
-
-            QStandardItem *outputItem = new QStandardItem( QString::number(devInfo->maxOutputChannels));
-            outputItem->setEditable(false);
-            listItems << outputItem;
-
-            QStandardItem *inUseItem = new QStandardItem();
-            inUseItem->setCheckable(true);
-            inUseItem->setCheckable(false);
-            inUseItem->setEditable(false);
-            listItems << inUseItem;
-
-            apiItem->appendRow( listItems );
+            //separate input and output devices
+            if(devInfo->maxInputChannels>0) {
+                metaInfo.SetMeta(MetaInfos::Direction, Directions::Input);
+                AddDeviceToApiItem(metaInfo,apiItem);
+            }
+            if(devInfo->maxOutputChannels>0) {
+                metaInfo.SetMeta(MetaInfos::Direction, Directions::Output);
+                AddDeviceToApiItem(metaInfo,apiItem);
+            }
         }
     }
+}
+
+void AudioDevices::AddDeviceToApiItem(const MetaInfo &info, QStandardItem *apiItem)
+{
+    QList<QStandardItem *> listItems;
+
+    QStandardItem *devItem = new QStandardItem( info.Meta(MetaInfos::devName).toString() );
+    devItem->setEditable(false);
+    devItem->setData(QVariant::fromValue(info), UserRoles::metaInfo);
+    devItem->setDragEnabled(true);
+    listItems << devItem;
+
+    QStandardItem *IOitem = new QStandardItem();
+    if(info.Meta(MetaInfos::Direction).toInt() == Directions::Input)
+        IOitem->setText( info.Meta(MetaInfos::nbInputs).toString()+"in" );
+    if(info.Meta(MetaInfos::Direction).toInt() == Directions::Output)
+        IOitem->setText( info.Meta(MetaInfos::nbOutputs).toString()+"out" );
+
+    IOitem->setEditable(false);
+    listItems << IOitem;
+
+//    QStandardItem *outputItem = new QStandardItem();
+//    if(info.Meta(MetaInfos::Direction).toInt() == Directions::Output)
+//        outputItem->setText( info.Meta(MetaInfos::nbOutputs).toString() );
+//    outputItem->setEditable(false);
+//    listItems << outputItem;
+
+    QStandardItem *inUseItem = new QStandardItem();
+    inUseItem->setCheckable(true);
+    inUseItem->setCheckable(false);
+    inUseItem->setEditable(false);
+    listItems << inUseItem;
+
+    apiItem->appendRow( listItems );
 }
 
 /*!
@@ -303,38 +326,38 @@ void AudioDevices::OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId
     QStandardItem *devItem = 0;
     int nbDev = apiItem->rowCount();
     int devCount = 0;
-    while(!devItem && devCount<nbDev) {
-        MetaInfo info = apiItem->child(devCount,0)->data(UserRoles::objInfo).value<MetaInfo>();
-        if(info.Meta(MetaInfos::devId).toInt() == devId)
+    while(devCount<nbDev) {
+        MetaInfo info = apiItem->child(devCount,0)->data(UserRoles::metaInfo).value<MetaInfo>();
+        if(info.Meta(MetaInfos::devId).toInt() == devId) {
             devItem = apiItem->child(devCount,0);
+
+            //change status
+            QStandardItem *chk = apiItem->child( devItem->row(), 2);
+            if(!chk)
+                return;
+
+            if(inUse) {
+                if(chk->checkState()!=Qt::Checked) {
+                    chk->setCheckState(Qt::Checked);
+                    countActiveDevices++;
+                }
+
+                int inL = ceil(inLatency*1000);
+                int outL = ceil(outLatency*1000);
+                devItem->setToolTip( QString("Input latency %1ms\nOutput latency %2ms\nSample rate %3Hz")
+                                     .arg(inL).arg(outL).arg(sampleRate) );
+            } else {
+                if(chk->checkState()==Qt::Checked) {
+                    chk->setCheckState(Qt::Unchecked);
+                    countActiveDevices--;
+                }
+                devItem->setToolTip("");
+            }
+        }
         devCount++;
     }
 
-    if(!devItem) {
-        LOG("device not found"<<apiId<<devId);
-        return;
-    }
 
-    //change status
-    QStandardItem *chk = apiItem->child( devItem->row(), 3);
-
-    if(inUse) {
-        if(chk->checkState()!=Qt::Checked) {
-            apiItem->child( devItem->row(), 3)->setCheckState(Qt::Checked);
-            countActiveDevices++;
-        }
-
-        int inL = ceil(inLatency*1000);
-        int outL = ceil(outLatency*1000);
-        devItem->setToolTip( QString("Input latency %1ms\nOutput latency %2ms\nSample rate %3Hz")
-                             .arg(inL).arg(outL).arg(sampleRate) );
-    } else {
-        if(chk->checkState()==Qt::Checked) {
-            chk->setCheckState(Qt::Unchecked);
-            countActiveDevices--;
-        }
-        devItem->setToolTip("");
-    }
 
 //    qDebug()<<"countActiveDevices"<<countActiveDevices<<fakeRenderTimer;
 
@@ -352,31 +375,33 @@ void AudioDevices::OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId
         if(!fakeRenderTimer && !closing)
             fakeRenderTimer = new FakeTimer(myHost);
     }
+
+
 }
 
-Connectables::AudioDevice * AudioDevices::AddDevice(MetaInfo &objInfo, QString *errMsg)
+Connectables::AudioDevice * AudioDevices::AddDevice(Connectables::Object *obj)
 {
     PaDeviceInfo PAinfo;
 
-    if(!FindPortAudioDevice(objInfo, &PAinfo)) {
-        errMsg->append(tr("Device not found"));
+    if(!FindPortAudioDevice(obj, &PAinfo)) {
+        obj->SetMeta(MetaInfos::errorMessage,tr("Device not found"));
         return 0;
     }
 
     mutexDevices.lock();
-    Connectables::AudioDevice *dev = listAudioDevices.value(objInfo.Meta(MetaInfos::devId).toInt(),0);
+    Connectables::AudioDevice *dev = listAudioDevices.value(obj->Meta(MetaInfos::devId).toInt(),0);
     mutexDevices.unlock();
 
     if(!dev) {
-        dev = new Connectables::AudioDevice(PAinfo, myHost,objInfo);
+        dev = new Connectables::AudioDevice(PAinfo, myHost, obj->info());
         if(!dev->Open()) {
-            if(errMsg)
-                errMsg->append(dev->errorMessage);
+            if(!dev->errorMessage.isEmpty())
+                obj->SetMeta(MetaInfos::errorMessage,dev->errorMessage);
             delete dev;
             return 0;
         }
         mutexDevices.lock();
-        listAudioDevices.insert(objInfo.Meta(MetaInfos::devId).toInt(), dev);
+        listAudioDevices.insert(obj->Meta(MetaInfos::devId).toInt(), dev);
         mutexDevices.unlock();
     }
     return dev;
@@ -417,7 +442,7 @@ void AudioDevices::PutPinsBuffersInRingBuffers()
   \param[out] devInfo the PaDeviceInfo of the object found
   \return true if found
   */
-bool AudioDevices::FindPortAudioDevice(MetaInfo &objInfo, PaDeviceInfo *dInfo)
+bool AudioDevices::FindPortAudioDevice(Connectables::Object *obj, PaDeviceInfo *dInfo)
 {
     int cptDuplicateNames=0;
 
@@ -426,7 +451,7 @@ bool AudioDevices::FindPortAudioDevice(MetaInfo &objInfo, PaDeviceInfo *dInfo)
     PaDeviceIndex foundSameNamePins=-1;
     PaDeviceIndex foundSameNamePinsId=-1;
 
-    PaHostApiTypeId apiType = (PaHostApiTypeId)objInfo.Meta(MetaInfos::apiId).toInt();
+    PaHostApiTypeId apiType = (PaHostApiTypeId)obj->Meta(MetaInfos::apiId).toInt();
     PaHostApiIndex apiIndex = Pa_HostApiTypeIdToHostApiIndex( apiType );
     const PaHostApiInfo *apiInfo = Pa_GetHostApiInfo( apiIndex );
 
@@ -438,17 +463,17 @@ bool AudioDevices::FindPortAudioDevice(MetaInfo &objInfo, PaDeviceInfo *dInfo)
         //remove " x64" from device name so we can share files with 32bit version
         devName.remove(QRegExp("( )?x64"));
 
-        if(devName == objInfo.Meta(MetaInfos::devName).toString()) {
+        if(devName == obj->Meta(MetaInfos::devName).toString()) {
 
-            if(info->maxInputChannels == objInfo.Meta(MetaInfos::nbInputs).toInt()
-            && info->maxOutputChannels == objInfo.Meta(MetaInfos::nbOutputs).toInt()) {
-                if(objInfo.Meta(MetaInfos::duplicateNamesCounter).toInt() == cptDuplicateNames) {
+            if(info->maxInputChannels == obj->Meta(MetaInfos::nbInputs).toInt()
+            && info->maxOutputChannels == obj->Meta(MetaInfos::nbOutputs).toInt()) {
+                if(obj->Meta(MetaInfos::duplicateNamesCounter).toInt() == cptDuplicateNames) {
                     foundSameNamePinsId = devIndex;
                 } else {
                     foundSameNamePins = devIndex;
                 }
             } else {
-                if(objInfo.Meta(MetaInfos::duplicateNamesCounter).toInt() == cptDuplicateNames) {
+                if(obj->Meta(MetaInfos::duplicateNamesCounter).toInt() == cptDuplicateNames) {
                     foundSameNameId = devIndex;
                 } else {
                     foundSameName = devIndex;
@@ -483,7 +508,7 @@ bool AudioDevices::FindPortAudioDevice(MetaInfo &objInfo, PaDeviceInfo *dInfo)
         }
         *dInfo = *i;
     }
-    objInfo.SetMeta(MetaInfos::devId, deviceNumber);
+    obj->SetMeta(MetaInfos::devId, deviceNumber);
     return true;
 }
 
@@ -492,8 +517,8 @@ void AudioDevices::ConfigDevice(const QModelIndex &index)
     PaHostApiTypeId apiIndex;
     PaDeviceIndex devId=-1;
 
-    if(index.data(UserRoles::objInfo).isValid()) {
-        MetaInfo info = index.data(UserRoles::objInfo).value<MetaInfo>();
+    if(index.data(UserRoles::metaInfo).isValid()) {
+        MetaInfo info = index.data(UserRoles::metaInfo).value<MetaInfo>();
         devId = (PaDeviceIndex)info.Meta(MetaInfos::devId).toInt();
         apiIndex = (PaHostApiTypeId)info.Meta(MetaInfos::apiId).toInt();
     }

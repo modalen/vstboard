@@ -2,7 +2,6 @@
 #define COMADDOBJECT_H
 
 #include "precomp.h"
-#include <QUndoCommand>
 #include "connectables/objects/container.h"
 
 class MainHost;

@@ -26,6 +26,7 @@
 #include "objectinfo.h"
 #include "audiobuffer.h"
 
+class MainHost;
 namespace Connectables {
 
     class Pin;

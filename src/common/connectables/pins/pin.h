@@ -86,7 +86,7 @@ namespace Connectables {
         QPersistentModelIndex modelIndex;
 
         /// global pin mutex
-        QMutex objMutex;
+        DMutex objMutex;
 
         /// true if closed or closing (no send, no receive)
         bool closed;

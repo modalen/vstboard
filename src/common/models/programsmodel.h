@@ -23,10 +23,6 @@
 #include "precomp.h"
 #include "viewconfig.h"
 
-#define MIMETYPE_GROUP QLatin1String("application/x-groupsdata")
-#define MIMETYPE_PROGRAM QLatin1String("application/x-programsdata")
-
-
 class MainHost;
 class ProgramsModel : public QStandardItemModel
 {
@@ -50,10 +46,10 @@ public:
     QStringList mimeTypes () const;
     QMimeData * mimeData ( const QModelIndexList & indexes ) const;
 
-    Q_INVOKABLE bool userWantsToUnloadGroup();
-    Q_INVOKABLE bool userWantsToUnloadProgram();
-    Q_INVOKABLE bool userWantsToUnloadProject();
-    Q_INVOKABLE bool userWantsToUnloadSetup();
+    bool userWantsToUnloadGroup();
+    bool userWantsToUnloadProgram();
+    bool userWantsToUnloadProject();
+    bool userWantsToUnloadSetup();
 
     inline int GetCurrentMidiGroup() const {
         if(!currentGrp.isValid())

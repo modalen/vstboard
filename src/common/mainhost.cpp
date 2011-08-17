@@ -32,12 +32,12 @@
 #include "views/configdialog.h"
 #include "events.h"
 
-EngineThread::EngineThread() :
-    QThread()
+EngineThread::EngineThread(QObject *parent) :
+    QThread(parent)
 {
     setObjectName("EngineThread");
-    start(QThread::LowPriority);
-//    start(QThread::HighestPriority);
+//    start(QThread::LowPriority);
+    start(QThread::TimeCriticalPriority);
 }
 
 EngineThread::~EngineThread()
@@ -55,20 +55,37 @@ quint32 MainHost::currentFileVersion=PROJECT_AND_SETUP_FILE_VERSION;
 
 MainHost::MainHost(QObject *parent, QString settingsGroup) :
     QObject(parent),
+    MetaTransporter(),
     solver(new PathSolver(this)),
     objFactory(0),
     mainWindow(0),
     solverNeedAnUpdate(false),
     solverUpdateEnabled(true),
-    mutexListCables(new QMutex(QMutex::Recursive)),
+    mutexListCables(new DMutex(QMutex::Recursive)),
     settingsGroup(settingsGroup),
     undoProgramChangesEnabled(false),
     undoStack(new QUndoStack(this)),
-    renderer(0)
+    renderer(0),
+    programsModel(0),
+    updateViewTimer(0),
+    doublePrecision(false)
+
 {
-    doublePrecision=GetSetting("doublePrecision",false).toBool();
     setObjectName("MainHost");
 
+    sampleRate = 44100.0;
+    bufferSize = 100;
+
+    currentTempo=120;
+    currentTimeSig1=4;
+    currentTimeSig2=4;
+
+    doublePrecision=GetSetting("doublePrecision",false).toBool();
+    MetaTransporter::autoUpdate=false;
+
+#ifdef VSTSDK
+    vstHost=0;
+#endif
 
 #ifdef SCRIPTENGINE
     scriptEngine = new QScriptEngine(this);
@@ -79,7 +96,7 @@ MainHost::MainHost(QObject *parent, QString settingsGroup) :
 
 MainHost::~MainHost()
 {
-    eventsListeners.clear();
+    RemoveAllListeners();
 
     EnableSolverUpdate(false);
 
@@ -105,11 +122,52 @@ MainHost::~MainHost()
 
 #ifdef VSTSDK
     vstUsersCounter--;
-    if(vstUsersCounter==0)
+    if(vstUsersCounter==0 && vstHost)
         delete vstHost;
 #endif
 
     delete mutexListCables;
+}
+
+void MainHost::InitThread()
+{
+#ifdef VSTSDK
+    if(!vst::CVSTHost::Get())
+        vstHost = new vst::CVSTHost();
+    else
+        vstHost = vst::CVSTHost::Get();
+
+    vstUsersCounter++;
+#endif
+
+    renderer = new Renderer(this);
+
+    //timer
+    timeFromStart.start();
+
+    updateViewTimer = new QTimer(this);
+    updateViewTimer->start(40);
+
+    connect(this,SIGNAL(SolverToUpdate()),
+            this,SLOT(UpdateSolver()),
+            Qt::QueuedConnection);
+
+    programsModel = new ProgramsModel(this);
+}
+
+void MainHost::SetMainWindow(MainWindow *win)
+{
+    mainWindow=win;
+
+    EnableSolverUpdate(false);
+    SetupMainContainer();
+    SetupHostContainer();
+    SetupProjectContainer();
+    SetupProgramContainer();
+    SetupGroupContainer();
+
+    EnableSolverUpdate(true);
+    programsModel->BuildDefaultModel();
 }
 
 bool MainHost::event(QEvent *event)
@@ -148,57 +206,10 @@ bool MainHost::event(QEvent *event)
                     return true;
                 }
             }
-
-
         }
     }
 
     return QObject::event(event);
-}
-
-void MainHost::Init()
-{
-#ifdef VSTSDK
-    if(!vst::CVSTHost::Get())
-        vstHost = new vst::CVSTHost();
-    else
-        vstHost = vst::CVSTHost::Get();
-
-    vstUsersCounter++;
-#endif
-
-    sampleRate = 44100.0;
-    bufferSize = 100;
-
-    currentTempo=120;
-    currentTimeSig1=4;
-    currentTimeSig2=4;
-
-    renderer = new Renderer(this);
-
-    //timer
-    timeFromStart.start();
-
-    updateViewTimer = new QTimer(this);
-    updateViewTimer->start(40);
-
-    connect(this,SIGNAL(SolverToUpdate()),
-            this,SLOT(UpdateSolver()),
-            Qt::QueuedConnection);
-
-    EnableSolverUpdate(false);
-    programsModel = new ProgramsModel(this);
-
-    SetupMainContainer();
-    SetupHostContainer();
-    SetupProjectContainer();
-    SetupProgramContainer();
-    SetupGroupContainer();
-
-    EnableSolverUpdate(true);
-    programsModel->BuildDefaultModel();
-
-//    QThread::currentThread()->setPriority(QThread::NormalPriority);
 }
 
 void MainHost::SetupMainContainer()
@@ -865,8 +876,7 @@ void MainHost::LoadFile(const QString &filename)
 
 void MainHost::LoadSetupFile(const QString &filename)
 {
-    QMetaObject::invokeMethod(programsModel,"asyncUserWantsToUnloadSetup",Qt::BlockingQueuedConnection);
-    if(!programsModel->GetLastDialogAnswer())
+    if(!programsModel->userWantsToUnloadSetup())
         return;
 
     QString name = filename;
@@ -893,8 +903,7 @@ void MainHost::LoadSetupFile(const QString &filename)
 
 void MainHost::LoadProjectFile(const QString &filename)
 {
-    QMetaObject::invokeMethod(programsModel,"asyncUserWantsToUnloadProject",Qt::BlockingQueuedConnection);
-    if(!programsModel->GetLastDialogAnswer())
+    if(!programsModel->userWantsToUnloadProject())
         return;
 
     QString name = filename;

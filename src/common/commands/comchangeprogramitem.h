@@ -1,8 +1,6 @@
 #ifndef COMRENAMEPROGRAM_H
 #define COMRENAMEPROGRAM_H
 
-#include <QUndoCommand>
-
 class ProgramsModel;
 class ComChangeProgramItem : public QUndoCommand
 {

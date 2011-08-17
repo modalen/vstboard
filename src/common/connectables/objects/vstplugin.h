@@ -76,7 +76,7 @@ namespace Connectables {
         /// list of values used by the learn pin (off, learn, unlearn)
         QList<QVariant>listIsLearning;
 
-        QMutex midiEventsMutex;
+        DMutex midiEventsMutex;
         QList<VstMidiEvent*>listVstMidiEvents;
         QList<QVariant>listValues;
 

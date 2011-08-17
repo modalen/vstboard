@@ -56,9 +56,9 @@ protected:
     int numberOfSteps;
     bool stop;
 
-    QMutex mutexNodes;
+    DMutex mutexNodes;
     bool newNodes;
-    QMutex mutexOptimize;
+    DMutex mutexOptimize;
     bool needOptimize;
     int nextOptimize;
 //    bool needBuildModel;

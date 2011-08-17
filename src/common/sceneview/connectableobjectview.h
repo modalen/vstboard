@@ -26,21 +26,25 @@
 #include "objectdropzone.h"
 #include "maincontainerview.h"
 
-class MainHost;
+class SceneModel;
 namespace View {
 
     class ConnectableObjectView : public ObjectView
     {
     Q_OBJECT
     public:
-        ConnectableObjectView(const MetaInfo &info,MainContainerView * parent = 0);
+        ConnectableObjectView(const MetaInfo &info,MainContainerView * parent, SceneModel *model );
         virtual void SetConfig(ViewConfig *config);
 
     protected:
+        void resizeEvent ( QGraphicsSceneResizeEvent * event );
         QList<CableView*>listCables;
         ObjectDropZone *dropReplace;
         ObjectDropZone *dropAttachLeft;
         ObjectDropZone *dropAttachRight;
+
+    private:
+        SceneModel *model;
 
     public slots:
         void ObjectDropped(QGraphicsSceneDragDropEvent *event);

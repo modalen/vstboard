@@ -1,8 +1,6 @@
 #ifndef COMADDGROUP_H
 #define COMADDGROUP_H
 
-#include <QUndoCommand>
-
 class ProgramsModel;
 class ComAddGroup : public QUndoCommand
 {

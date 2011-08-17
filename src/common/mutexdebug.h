@@ -1,0 +1,94 @@
+/**************************************************************************
+#    Copyright 2010-2011 Raphaël François
+#    Contact : ctrlbrk76@gmail.com
+#
+#    This file is part of VstBoard.
+#
+#    VstBoard is free software: you can redistribute it and/or modify
+#    it under the terms of the under the terms of the GNU Lesser General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    VstBoard is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    under the terms of the GNU Lesser General Public License for more details.
+#
+#    You should have received a copy of the under the terms of the GNU Lesser General Public License
+#    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
+**************************************************************************/
+
+#ifndef MUTEXDEBUG_H
+#define MUTEXDEBUG_H
+
+#include "precomp.h"
+
+//#define DMutex DebugMutex
+#define DMutex QMutex
+
+class DebugMutex : public QMutex
+{
+public:
+    DebugMutex(RecursionMode mode = NonRecursive) :
+        QMutex(mode),
+        countUsage(0),
+        countLocked(0)
+    {}
+
+    ~DebugMutex()
+    {
+        LOG("mutex usage : "<<countUsage<<" locks"<<countLocked);
+    }
+
+    void lock()
+    {
+        ++countUsage;
+
+        if(!QMutex::tryLock()) {
+            ++countLocked;
+            LOG("wait lock");
+            QMutex::lock();
+        }
+    }
+
+    bool tryLock()
+    {
+        ++countUsage;
+
+        if(!QMutex::tryLock()) {
+            ++countLocked;
+            LOG("trylock failed");
+            return false;
+        }
+        return true;
+    }
+
+    bool tryLock(int timeout)
+    {
+        ++countUsage;
+
+        if(!QMutex::tryLock()) {
+            ++countLocked;
+            LOG("trylock failed");
+        }
+
+        if(!QMutex::tryLock(timeout)) {
+            LOG("trylock timeout"<<timeout);
+            return false;
+        }
+        return true;
+    }
+
+    void unlock()
+    {
+        QMutex::unlock();
+    }
+
+private:
+    Q_DISABLE_COPY(DebugMutex)
+
+    int countUsage;
+    int countLocked;
+};
+
+#endif // MUTEXDEBUG_H

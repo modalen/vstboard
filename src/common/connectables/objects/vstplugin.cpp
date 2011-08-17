@@ -62,7 +62,12 @@ VstPlugin::~VstPlugin()
 bool VstPlugin::Close()
 {
     if(editorWnd) {
-        QMetaObject::invokeMethod(editorWnd, "UnsetPlugin", Qt::BlockingQueuedConnection);
+        if(myHost->mainWindow->thread()!=QThread::currentThread()) {
+            QMetaObject::invokeMethod(editorWnd, "UnsetPlugin", Qt::BlockingQueuedConnection);
+        } else {
+            editorWnd->UnsetPlugin();
+        }
+        disconnect(editorWnd);
         editorWnd=0;
     }
     mapPlugins.remove(pEffect);
@@ -267,7 +272,7 @@ bool VstPlugin::Open()
 
         if(!Load( Meta(MetaInfos::Filename).toString() )) {
             VstPlugin::pluginLoading = 0;
-            errorMessage=tr("Error while loading plugin");
+            SetMeta(MetaInfos::errorMessage,tr("Error while loading plugin"));
             //return true to create a dummy object
             return true;
         }
@@ -441,8 +446,6 @@ void VstPlugin::SetEditorWnd(QWidget *wnd)
             editorWnd,SLOT(hide()));
     connect(editorWnd, SIGNAL(Hide()),
             this, SLOT(OnEditorClosed()));
-    connect(editorWnd,SIGNAL(destroyed()),
-            this,SLOT(EditorDestroyed()));
     connect(this,SIGNAL(WindowSizeChange(int,int)),
             editorWnd,SLOT(SetWindowSize(int,int)));
 }
@@ -854,7 +857,7 @@ QDataStream & VstPlugin::toStream(QDataStream & out) const
 {
     Object::toStream(out);
 
-    if(!errorMessage.isEmpty() && savedChunk) {
+    if(!Meta(MetaInfos::errorMessage).toString().isEmpty() && savedChunk) {
         out << savedChunkSize;
         out.writeRawData(savedChunk, savedChunkSize);
     } else if(pEffect && (pEffect->flags & effFlagsProgramChunks)) {

@@ -21,8 +21,6 @@
 #ifndef COMCHANGEAUTOSAVE_H
 #define COMCHANGEAUTOSAVE_H
 
-#include <QUndoCommand>
-
 class ProgramsModel;
 class ComChangeAutosave : public QUndoCommand
 {

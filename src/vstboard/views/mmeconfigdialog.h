@@ -1,8 +1,6 @@
 #ifndef MMECONFIGDIALOG_H
 #define MMECONFIGDIALOG_H
 
-#include <QDialog>
-
 namespace Ui {
     class MmeConfigDialog;
 }

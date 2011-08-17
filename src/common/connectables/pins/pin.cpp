@@ -39,7 +39,7 @@ using namespace Connectables;
   */
 Pin::Pin(Object *parent, MetaInfo &info) :
     QObject(parent),
-    ObjectInfo(info),
+    ObjectInfo(info,parent->getHost()),
     parent(parent),
     closed(false),
     valueChanged(false),
@@ -120,7 +120,7 @@ void Pin::SetVisible(bool visible)
         if(!ContainerId())
             return;
 
-        AddToView(parent->getHost());
+        AddToView();
 
     } else {
 
@@ -143,7 +143,7 @@ void Pin::SetVisible(bool visible)
         if(!ContainerId())
             return;
 
-        RemoveFromView(parent->getHost());
+        RemoveFromView();
 //        parent->getHost()->PostEvent( new Events::delObj(info().ObjId()) );
     }
 
@@ -168,5 +168,5 @@ void Pin::updateView()
     valueChanged=false;
 
     SetMeta(MetaInfos::Value,newVu);
-    UpdateView(parent->getHost());
+    UpdateView();
 }

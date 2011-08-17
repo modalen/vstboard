@@ -2,6 +2,7 @@
 #define OPTIMIZER_H
 
 #include "optimizerstep.h"
+#include "mutexdebug.h"
 
 class Optimizer
 {
@@ -22,7 +23,7 @@ protected:
     void Clear();
     QMap<int,OptimizerStep*>listOfSteps;
     int nbThreads;
-    QMutex mutex;
+    DMutex mutex;
 };
 
 #endif // OPTIMIZER_H

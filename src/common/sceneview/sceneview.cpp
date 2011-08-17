@@ -37,16 +37,18 @@
 #include "commands/comremovepin.h"
 #include "commands/comremoveobject.h"
 #include "models/programsmodel.h"
+#include "models/scenemodel.h"
 #include "events.h"
 
 using namespace View;
 
-SceneView::SceneView(MainHost *myHost, MainGraphicsView *viewHost, MainGraphicsView *viewProject, MainGraphicsView *viewProgram, MainGraphicsView *viewGroup,QWidget *parent) :
+SceneView::SceneView(MainHost *myHost, MainGraphicsView *viewHost, MainGraphicsView *viewProject, MainGraphicsView *viewProgram, MainGraphicsView *viewGroup, QWidget *parent) :
     QObject(parent),
     viewHost(viewHost),
     viewProject(viewProject),
     viewProgram(viewProgram),
     viewGroup(viewGroup),
+    model(model),
     rootObjHost(0),
     rootObjProject(0),
     rootObjProgram(0),
@@ -248,7 +250,7 @@ void SceneView::AddObj(MetaInfo &info)
         case MetaTypes::container :
         {
             if(info.ObjId() == FixedObjIds::hostContainer) {
-                hostContainerView = new MainContainerView(myHost, info);
+                hostContainerView = new MainContainerView(info,model);
                 objView=hostContainerView;
                 hostContainerView->setParentItem(rootObjHost);
                 connect(viewHost,SIGNAL(viewResized(QRectF)),
@@ -257,7 +259,7 @@ void SceneView::AddObj(MetaInfo &info)
             }
 
             else if(info.ObjId() == FixedObjIds::projectContainer) {
-                projectContainerView = new MainContainerView(myHost, info);
+                projectContainerView = new MainContainerView(info,model);
                 objView=projectContainerView;
                 projectContainerView->setParentItem(rootObjProject);
                 connect(viewProject,SIGNAL(viewResized(QRectF)),
@@ -266,7 +268,7 @@ void SceneView::AddObj(MetaInfo &info)
             }
 
             else if(info.ObjId() == FixedObjIds::programContainer) {
-                programContainerView = new MainContainerView(myHost, info);
+                programContainerView = new MainContainerView(info,model);
                 objView=programContainerView;
                 programContainerView->setParentItem(rootObjProgram);
                 connect(viewProgram,SIGNAL(viewResized(QRectF)),
@@ -276,7 +278,7 @@ void SceneView::AddObj(MetaInfo &info)
             }
 
             else if(info.ObjId() == FixedObjIds::groupContainer) {
-                groupContainerView = new MainContainerView(myHost, info);
+                groupContainerView = new MainContainerView(info,model);
                 objView=groupContainerView;
                 groupContainerView->setParentItem(rootObjInsert);
                 connect(viewGroup,SIGNAL(viewResized(QRectF)),
@@ -340,9 +342,9 @@ void SceneView::AddObj(MetaInfo &info)
             }
 
             if(info.Meta(MetaInfos::ObjType).toInt() == ObjTypes::VstPlugin) {
-                objView = new VstPluginView(info, containerView);
+                objView = new VstPluginView(info, containerView, model);
             } else {
-                objView = new ConnectableObjectView(info, containerView);
+                objView = new ConnectableObjectView(info, containerView, model);
             }
             mapViewItems.insert( info.ObjId() , objView);
             mapMetaInfos.insert( info.ObjId(), MetaInfo(info));
@@ -352,7 +354,7 @@ void SceneView::AddObj(MetaInfo &info)
 //            info.SetMeta(MetaInfos::Position, pos);
 //            model()->setData(index,pos,UserRoles::position);
             QPointF pos = info.Meta(MetaInfos::Position).toPointF();
-            objView->setPos(pos);
+             objView->setPos(pos);
 
             objView->SetConfig(myHost->mainWindow->viewConfig);
 
@@ -530,31 +532,31 @@ void SceneView::graphicObjectRemoved ( QObject* obj )
 void SceneView::ConnectPins(const MetaInfo &pinOut, const MetaInfo &pinIn)
 {
     Events::command *e = new Events::command(new ComAddCable(myHost,pinOut,pinIn));
-    myHost->mainWindow->PostEvent(e);
+    model->PostEvent(e);
 }
 
 void SceneView::RemoveCablesFromPin(const MetaInfo &pin)
 {
     Events::command *e = new Events::command(new ComDisconnectPin(myHost,pin));
-    myHost->mainWindow->PostEvent(e);
+    model->PostEvent(e);
 }
 
 void SceneView::RemovePin(const MetaInfo &pin)
 {
     Events::command *e = new Events::command(new ComRemovePin(myHost,pin));
-    myHost->mainWindow->PostEvent(e);
+    model->PostEvent(e);
 }
 
 void SceneView::RemoveObjWithCables(const MetaInfo &obj)
 {
     Events::command *e = new Events::command(new ComRemoveObject(myHost, obj, RemoveType::RemoveWithCables));
-    myHost->mainWindow->PostEvent(e);
+    model->PostEvent(e);
 }
 
 void SceneView::RemoveObjKeepCables(const MetaInfo &obj)
 {
     Events::command *e = new Events::command( new ComRemoveObject(myHost, obj, RemoveType::BridgeCables) );
-    myHost->mainWindow->PostEvent(e);
+    model->PostEvent(e);
 }
 
 void SceneView::ToggleHostView(bool show)

@@ -1,5 +1,5 @@
 /**************************************************************************
-#    Copyright 2010-2011 Raphaël François
+#    Copyright 2010-2011 RaphaÃ«l FranÃ§ois
 #    Contact : ctrlbrk76@gmail.com
 #
 #    This file is part of VstBoard.
@@ -17,21 +17,39 @@
 #    You should have received a copy of the under the terms of the GNU Lesser General Public License
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
-#include "mainhostvst.h"
-#include "vst.h"
-#include "connectables/vstaudiodevicein.h"
-#include "connectables/vstaudiodeviceout.h"
-#include "connectables/objectfactoryvst.h"
 
-MainHostVst::MainHostVst(Vst *myVstPlugin, QObject *parent, QString settingsGroup) :
-    MainHost(parent,settingsGroup),
-    myVstPlugin(myVstPlugin)
+#include <QtCore/QString>
+#include <QtTest/QtTest>
+
+#include "objectinfo.h"
+
+class TestTest : public QObject
 {
+    Q_OBJECT
 
+public:
+    TestTest();
+
+private Q_SLOTS:
+    void testCase1();
+};
+
+TestTest::TestTest()
+{
 }
 
-void MainHostVst::InitThread()
+void TestTest::testCase1()
 {
-    objFactory = new Connectables::ObjectFactoryVst(this);
-    MainHost::InitThread();
+    MetaInfo info;
+
+    QBENCHMARK {
+        for (int m = 100000; m >= 0; --m)
+            MetaInfo b(info);
+//            info.SetMeta(MetaInfos::Value,0.3254f);
+    }
+//    QVERIFY2(false, "Failure");
 }
+
+QTEST_APPLESS_MAIN(TestTest);
+
+#include "tst_testtest.moc"

@@ -20,8 +20,6 @@
 
 #include "pinview.h"
 #include "cableview.h"
-#include "connectables/pins/pin.h"
-#include "connectables/objectfactory.h"
 
 using namespace View;
 
@@ -41,7 +39,7 @@ CableView *PinView::currentLine = 0;
   */
 PinView::PinView(const MetaInfo &info, float angle, QGraphicsItem * parent, ViewConfig *config) :
     QGraphicsWidget(parent),
-    ObjectInfo(info),
+    MetaInfo(info),
     outline(0),
     highlight(0),
     pinAngle(angle),
@@ -70,7 +68,7 @@ PinView::PinView(const MetaInfo &info, float angle, QGraphicsItem * parent, View
             this,SLOT(Unplug()));
     addAction(actUnplug);
 
-    setFocusPolicy(Qt::WheelFocus);
+
 }
 
 /*!
@@ -143,7 +141,7 @@ void PinView::mouseMoveEvent ( QGraphicsSceneMouseEvent  * event )
     QByteArray bytes;
     QDataStream stream(&bytes, QIODevice::WriteOnly);
     info().toStream(stream);
-    mime->setData("application/x-pin",bytes);
+    mime->setData(MIMETYPE_METAINFO,bytes);
     drag->setMimeData(mime);
 
     if(!currentLine) {
@@ -196,8 +194,8 @@ void PinView::RemovePin()
   */
 void PinView::dragEnterEvent ( QGraphicsSceneDragDropEvent * event )
 {
-    if(event->mimeData()->hasFormat("application/x-pin")) {
-        QByteArray bytes = event->mimeData()->data("application/x-pin");
+    if(event->mimeData()->hasFormat(MIMETYPE_METAINFO)) {
+        QByteArray bytes = event->mimeData()->data(MIMETYPE_METAINFO);
         QDataStream stream(&bytes, QIODevice::ReadOnly);
         MetaInfo otherInfo;
         otherInfo.fromStream(stream);
@@ -246,7 +244,7 @@ void PinView::dropEvent ( QGraphicsSceneDragDropEvent  * event )
 {
     if(highlight)
         highlight->setVisible(false);
-    QByteArray bytes = event->mimeData()->data("application/x-pin");
+    QByteArray bytes = event->mimeData()->data(MIMETYPE_METAINFO);
     QDataStream stream(&bytes, QIODevice::ReadOnly);
     MetaInfo otherInfo;
     otherInfo.fromStream(stream);

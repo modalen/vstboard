@@ -21,7 +21,6 @@
 #ifndef COMREMOVEPIN_H
 #define COMREMOVEPIN_H
 
-#include <QUndoCommand>
 #include "objectinfo.h"
 
 class MainHost;

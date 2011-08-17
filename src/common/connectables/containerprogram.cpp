@@ -116,7 +116,7 @@ void ContainerProgram::Load(int progId)
         if(PinExistAndVisible(cab->GetInfoOut()) &&
            PinExistAndVisible(cab->GetInfoIn())) {
 //            cab->AddToParentNode(container->GetCablesIndex());
-            cab->AddToView(myHost);
+            cab->AddToView();
             myHost->OnCableAdded(cab);
         } else {
             //delete cable from program if pins are not found and can't be created
@@ -144,7 +144,7 @@ void ContainerProgram::Unload()
     foreach(Cable *cab, listCables) {
         myHost->OnCableRemoved(cab);
 //        cab->RemoveFromParentNode(container->GetCablesIndex());
-        cab->RemoveFromView(myHost);
+        cab->RemoveFromView();
     }
 
     foreach(QSharedPointer<Object> obj, listObjects) {
@@ -282,7 +282,7 @@ bool ContainerProgram::AddCable(const MetaInfo &outputPin, const MetaInfo &input
 
     if(!hidden && container) {
 //        cab->AddToParentNode(container->GetCablesIndex());
-        cab->AddToView(myHost);
+        cab->AddToView();
     }
 
     myHost->OnCableAdded(cab);
@@ -297,7 +297,7 @@ void ContainerProgram::RemoveCable(Cable *cab)
 
     listCables.removeAll(cab);
 //    cab->RemoveFromParentNode(container->GetCablesIndex());
-    cab->RemoveFromView(myHost);
+    cab->RemoveFromView();
     myHost->OnCableRemoved(cab);
     delete cab;
     SetDirty();
@@ -362,12 +362,13 @@ void ContainerProgram::CreateBridgeOverObj(int objId)
                     Cable *otherCab = listCables.at(j);
                     MetaInfo otherPin( cab->GetInfoOut() );
                     otherPin.SetMeta(MetaInfos::Direction,Directions::Input);
-                    myHost->objFactory->UpdatePinInfo(otherPin);
 
-                    //find corresponding input cables
-                    if(otherCab->GetInfoIn().ObjId()==otherPin.ObjId()) {
-                        //create a bridge
-                        AddCable(otherCab->GetInfoOut(), cab->GetInfoIn());
+                    if(myHost->objFactory->UpdatePinInfo(otherPin)) {
+                        //find corresponding input cables
+                        if(otherCab->GetInfoIn().ObjId()==otherPin.ObjId()) {
+                            //create a bridge
+                            AddCable(otherCab->GetInfoOut(), cab->GetInfoIn());
+                        }
                     }
                     --j;
                 }

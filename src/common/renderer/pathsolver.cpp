@@ -42,8 +42,8 @@ void PathSolver::Clear()
         delete line;
     }
     listNodes.clear();
+    mapObjNodes.clear();
     mutex.unlock();
-
 }
 
 void PathSolver::Resolve(mapCables cables, Renderer *renderer)
@@ -85,7 +85,7 @@ void PathSolver::CreateNodes()
                 SolverNode *node = new SolverNode();
                 listNodes << node;
                 node->listOfObj << objPtr;
-                objPtr->SetSolverNode(node);
+                mapObjNodes.insert(objPtr->ObjId(),node);
             }
         }
         ++i;
@@ -100,11 +100,11 @@ void PathSolver::PutParentsInNodes()
     foreach(SolverNode *node,listNodes) {
         foreach(QSharedPointer<Connectables::Object> parent,GetListParents(node->listOfObj.first())) {
             if(!parent.isNull())// && parent->info().nodeType!=MetaTypes::bridge)
-                node->AddParent( parent->GetSolverNode() );
+                node->AddParent( mapObjNodes.value(parent->ObjId()) );
         }
 //        foreach(QSharedPointer<Connectables::Object> child,GetListChildren(node->listOfObj.last())) {
 //            if(!child.isNull())// && child->info().nodeType!=MetaTypes::bridge)
-//                node->listChilds << child->GetSolverNode();
+//                node->listChilds << mapObjNodes.value(child);
 //        }
     }
 

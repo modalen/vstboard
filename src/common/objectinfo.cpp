@@ -22,6 +22,26 @@
 #include "mainhost.h"
 #include "events.h"
 
+void MetaTransporter::ValueChanged( const MetaInfo & senderInfo, int type, const QVariant &value)
+{
+    if(!autoUpdate)
+        return;
+
+    Events::valChanged *e = new Events::valChanged(MetaInfo(senderInfo), (MetaInfos::Enum)type, value);
+    PostEvent(e);
+}
+
+void MetaTransporter::PostEvent( QEvent * event) {
+#ifndef QT_NO_DEBUG
+    if(listeners.isEmpty()) {
+        LOG("no listener")
+    }
+#endif
+    foreach(QObject *obj, listeners) {
+        qApp->postEvent(obj,event);
+    }
+}
+
 MetaInfo::MetaInfo() :
     objType(MetaTypes::ND),
     objId(0),
@@ -29,8 +49,13 @@ MetaInfo::MetaInfo() :
     parentId(0),
     containerId(0),
     parentObjectId(0),
-    model(0)
+    transporter(0)
 {
+}
+
+MetaInfo::MetaInfo(const MetaInfo &c)
+{
+    *this=c;
 }
 
 MetaInfo::MetaInfo(const MetaTypes::Enum type) :
@@ -40,9 +65,14 @@ MetaInfo::MetaInfo(const MetaTypes::Enum type) :
     parentId(0),
     containerId(0),
     parentObjectId(0),
-    model(0)
+    transporter(0)
 {
+}
 
+MetaInfo::MetaInfo(const QByteArray &b)
+{
+    QDataStream stream(b);
+    fromStream(stream);
 }
 
 ObjectInfo::ObjectInfo() :
@@ -52,25 +82,19 @@ ObjectInfo::ObjectInfo() :
 {
 }
 
-//ObjectInfo::ObjectInfo( MetaTypes::Enum nodeType, ObjTypes::Enum objType, int id, QString name) :
-//    metaType(nodeType),
-//    objId(id),
-//    objName(name),
-//    parentInfo(0),
-//    containerInfo(0),
-//    parentId(0),
-//    containerId(0),
-//    parentObjectId(0)
-//{
-//    if(objType)
-//        SetMeta(MetaInfos::ObjType,objType);
-//}
+ObjectInfo::ObjectInfo(const ObjectInfo &c) :
+    MetaInfo(c)
+{
+    parentInfo=c.parentInfo;
+    containerInfo=c.containerInfo;
+}
 
-ObjectInfo::ObjectInfo(const MetaInfo &c) :
+ObjectInfo::ObjectInfo(const MetaInfo &c, MetaTransporter *transporter) :
     MetaInfo(c),
     parentInfo(0),
     containerInfo(0)
 {
+    SetTransporter(transporter);
 }
 
 ObjectInfo::~ObjectInfo()
@@ -84,7 +108,7 @@ ObjectInfo::~ObjectInfo()
     }
 }
 
-void ObjectInfo::AddToView(MainHost *myHost)
+void ObjectInfo::AddToView()
 {
     if(!ContainerId())
         return;
@@ -93,20 +117,28 @@ void ObjectInfo::AddToView(MainHost *myHost)
         return;
 
     Events::sendObj *event = new Events::sendObj(info(), Events::typeNewObj);
-    myHost->PostEvent(event);
+    if(transporter) {
+        transporter->PostEvent(event);
+    }  else {
+        LOG("transporter not set");
+    }
 
     foreach(ObjectInfo *info, childrenInfo) {
-        info->AddToView(myHost);
+        info->AddToView();
     }
 }
 
-void ObjectInfo::RemoveFromView(MainHost *myHost)
+void ObjectInfo::RemoveFromView()
 {
     Events::delObj *event = new Events::delObj(ObjId());
-    myHost->PostEvent(event);
+    if(transporter)
+        transporter->PostEvent(event);
+    else {
+        LOG("transporter not set")
+    }
 }
 
-void ObjectInfo::UpdateView(MainHost *myHost)
+void ObjectInfo::UpdateView()
 {
     if(!ContainerId())
         return;
@@ -115,7 +147,11 @@ void ObjectInfo::UpdateView(MainHost *myHost)
         return;
 
     Events::sendObj *event = new Events::sendObj(info(), Events::typeUpdateObj);
-    myHost->PostEvent(event);
+    if(transporter)
+        transporter->PostEvent(event);
+    else {
+        LOG("transporter not set")
+    }
 }
 
 void ObjectInfo::SetContainer(ObjectInfo *container) {
@@ -149,12 +185,15 @@ void ObjectInfo::SetParent(ObjectInfo *parent)
         SetParentId(parent->ObjId());
         parentInfo->childrenInfo << this;
 
+        SetTransporter(parent->Transporter());
+
         if(parentInfo->Type()==MetaTypes::object || parentInfo->Type()==MetaTypes::container || parentInfo->Type()==MetaTypes::bridge)
             SetParentObjectId(ParentId());
         else
             SetParentObjectId(ParentInfo()->ParentObjectId());
     } else {
         SetParentId(0);
+        SetTransporter(0);
         SetParentObjectId(0);
         SetContainerId(0);
         containerInfo=0;
@@ -171,6 +210,11 @@ bool MetaInfo::CanConnectTo(const MetaInfo &c) const
     //don't connect object to itself
 //    if(objId == c.objId)
 //        return false;
+
+    if(Type()!=MetaTypes::pin)
+        return false;
+    if(c.Type()!=MetaTypes::pin)
+        return false;
 
     //must be in the same container
     if(ContainerId() != c.ContainerId())
@@ -220,6 +264,7 @@ QDataStream & MetaInfo::toStream(QDataStream& stream) const
     stream << containerId;
     stream << parentObjectId;
 
+    mutexListInfos.lock();
     stream << (quint16)listInfos.size();
     QMap<MetaInfos::Enum,QVariant>::iterator i = listInfos.begin();
     while(i != listInfos.end()) {
@@ -227,6 +272,7 @@ QDataStream & MetaInfo::toStream(QDataStream& stream) const
         stream << i.value();
         ++i;
     }
+    mutexListInfos.unlock();
 
 //    stream << (quint16)childrenInfo.size();
 //    foreach(ObjectInfo* o, childrenInfo) {
@@ -260,6 +306,8 @@ QDataStream & MetaInfo::fromStream(QDataStream& stream)
 
     quint16 nb;
     stream >> nb;
+
+    mutexListInfos.lock();
     for(int i=0; i<nb; i++) {
         quint16 id;
         QVariant val;
@@ -267,6 +315,7 @@ QDataStream & MetaInfo::fromStream(QDataStream& stream)
         stream >> val;
         listInfos.insert((MetaInfos::Enum)id,val);
     }
+    mutexListInfos.unlock();
 
 //    stream >> nb;
 //    for(int i=0; i<nb; i++) {

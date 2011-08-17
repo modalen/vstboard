@@ -18,8 +18,8 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-
 #include "objectprogram.h"
+#include "objects/object.h"
 #include "pins/parameterpin.h"
 
 using namespace Connectables;

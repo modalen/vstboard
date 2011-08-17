@@ -35,6 +35,7 @@ namespace View {
     class ViewConfigDialog;
 }
 
+class SceneModel;
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -50,16 +51,6 @@ public:
     View::ViewConfig *viewConfig;
 
     inline int GetLastMessageResult() {return lastMessageResult;}
-
-    virtual bool event(QEvent *event);
-
-    void AddEventsListener( QObject *obj) {eventsListeners << obj;}
-    void RemoveEventsListener( QObject *obj) {eventsListeners.removeAll(obj);}
-    void PostEvent( QEvent * event, int priority=5) {
-        foreach(QObject *obj, eventsListeners) {
-            qApp->postEvent(obj,event,priority);
-        }
-    }
 
     Q_INVOKABLE void CreateNewPluginWindow(QObject* obj);
     Q_INVOKABLE void CreateNewScriptEditor(QObject* obj);
@@ -86,7 +77,7 @@ protected:
     View::ViewConfigDialog *viewConfigDlg;
     int lastMessageResult;
     QList<QObject*>eventsListeners;
-    HostModel *hostModel;
+    SceneModel *sceneModel;
 
 signals:
     void askLoadSetup(const QString &file);

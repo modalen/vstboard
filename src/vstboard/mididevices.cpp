@@ -21,9 +21,6 @@
 #include "objectinfo.h"
 #include "mainhost.h"
 
-//QList< QSharedPointer<Connectables::MidiDevice> >MidiDevices::listOpenedMidiDevices;
-//QMutex MidiDevices::mutexListMidi;
-
 MidiDevices::MidiDevices(MainHost *myHost) :
         QObject(myHost),
         model(0),
@@ -88,7 +85,7 @@ bool MidiDevices::Init()
 //            if(!obj->errorMessage.isEmpty())
                 obj->Open();
 //            obj->UpdateModelNode();
-                obj->AddToView(myHost);
+                obj->AddToView();
         }
     }
 
@@ -158,7 +155,7 @@ void MidiDevices::BuildModel()
         items << new QStandardItem(QString::number(devInfo->input));
         items << new QStandardItem(QString::number(devInfo->output));
 
-        items[0]->setData(QVariant::fromValue(obj), UserRoles::objInfo);
+        items[0]->setData(QVariant::fromValue(obj), UserRoles::metaInfo);
 
         parentItem->appendRow(items);
     }
@@ -183,7 +180,7 @@ void MidiDevices::MidiReceive_poll(PtTimestamp timestamp, void *userData)
            continue;
 
         //lock device while processing (no rendering, no delete)
-        device->objMutex.lock();
+//        device->objMutex.lock();
 
         //it's a midi input
         if(device->devInfo->input) {
@@ -213,7 +210,7 @@ void MidiDevices::MidiReceive_poll(PtTimestamp timestamp, void *userData)
             }
         }
 
-        device->objMutex.unlock();
+//        device->objMutex.unlock();
     }
 //    devices->mutexListMidi.unlock();
 }

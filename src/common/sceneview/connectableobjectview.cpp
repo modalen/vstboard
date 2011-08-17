@@ -20,28 +20,19 @@
 
 #include "connectableobjectview.h"
 #include "connectablepinview.h"
-#include "connectables/objectfactory.h"
-#include "connectables/objects/container.h"
-#include "models/hostmodel.h"
-
-//#ifdef VSTSDK
-//    #include "connectables/vstplugin.h"
-//    #include "views/vstpluginwindow.h"
-//#endif
+#include "models/scenemodel.h"
 
 using namespace View;
 
-ConnectableObjectView::ConnectableObjectView(const MetaInfo &info, MainContainerView * parent ) :
+ConnectableObjectView::ConnectableObjectView(const MetaInfo &info, MainContainerView * parent, SceneModel *model ) :
     ObjectView(info,parent),
+    model(model),
     dropReplace(0),
     dropAttachLeft(0),
     dropAttachRight(0)
 {
-    setGeometry(QRectF(0,0,105,15));
-
     titleText = new QGraphicsSimpleTextItem(Name(),this);
     titleText->moveBy(2,1);
-
 
     layout = new QGraphicsGridLayout() ;
     layout->setSpacing(0);
@@ -67,7 +58,7 @@ ConnectableObjectView::ConnectableObjectView(const MetaInfo &info, MainContainer
     layout->addItem(listParametersOut,2,1,Qt::AlignRight | Qt::AlignTop);
 
     dropReplace = new ObjectDropZone(this,parent->GetParking());
-    dropReplace->setGeometry(10,0,85, size().height());
+//    dropReplace->setGeometry(10,0,size().width()-20, size().height());
     connect(parent,SIGNAL(ParkingChanged(QWidget*)),
             dropReplace,SLOT(SetParking(QWidget*)));
     connect(dropReplace, SIGNAL(ObjectDropped(QGraphicsSceneDragDropEvent*)),
@@ -76,7 +67,7 @@ ConnectableObjectView::ConnectableObjectView(const MetaInfo &info, MainContainer
             dropReplace, SLOT(UpdateHeight()));
 
     dropAttachLeft = new ObjectDropZone(this,parent->GetParking());
-    dropAttachLeft->setGeometry(-10,0,20, size().height());
+//    dropAttachLeft->setGeometry(-10,0,20, size().height());
     connect(parent,SIGNAL(ParkingChanged(QWidget*)),
             dropAttachLeft,SLOT(SetParking(QWidget*)));
     connect(dropAttachLeft, SIGNAL(ObjectDropped(QGraphicsSceneDragDropEvent*)),
@@ -85,7 +76,7 @@ ConnectableObjectView::ConnectableObjectView(const MetaInfo &info, MainContainer
             dropAttachLeft, SLOT(UpdateHeight()));
 
     dropAttachRight = new ObjectDropZone(this,parent->GetParking());
-    dropAttachRight->setGeometry(95,0,20, size().height());
+//    dropAttachRight->setGeometry(size().width()-10,0,20, size().height());
     connect(parent,SIGNAL(ParkingChanged(QWidget*)),
             dropAttachLeft,SLOT(SetParking(QWidget*)));
     connect(dropAttachRight, SIGNAL(ObjectDropped(QGraphicsSceneDragDropEvent*)),
@@ -93,7 +84,19 @@ ConnectableObjectView::ConnectableObjectView(const MetaInfo &info, MainContainer
     connect(this, SIGNAL(heightChanged()),
             dropAttachRight, SLOT(UpdateHeight()));
 
+    setGeometry(QRectF(0,0,105,15));
+}
 
+void ConnectableObjectView::resizeEvent ( QGraphicsSceneResizeEvent * event )
+{
+    ObjectView::resizeEvent(event);
+
+    if(dropReplace)
+        dropReplace->setGeometry( 20,0,size().width()-40, event->newSize().height());
+    if(dropAttachLeft)
+        dropAttachLeft->setGeometry(-10,0,30, event->newSize().height());
+    if(dropAttachRight)
+        dropAttachRight->setGeometry(event->newSize().width()-20,0,30, event->newSize().height());
 }
 
 void ConnectableObjectView::SetConfig(ViewConfig *config)
@@ -143,8 +146,8 @@ void ConnectableObjectView::ObjectDropped(QGraphicsSceneDragDropEvent *event)
 //    MainContainerView *cnt = static_cast<MainContainerView*>(parentItem());
 //    if(cnt)
 //        cnt->SetDropPos( mapToScene(dropPos) );
-
-    DropMime(event->mimeData(), mapToScene(dropPos), insertType);
+    model->dropMime(event->mimeData(), MetaInfo(*this), mapToScene(dropPos), insertType);
+//    DropMime(event->mimeData(), mapToScene(dropPos), insertType);
 }
 
 void ConnectableObjectView::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)

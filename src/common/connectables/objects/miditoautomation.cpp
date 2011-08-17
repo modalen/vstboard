@@ -20,10 +20,10 @@
 
 #include "miditoautomation.h"
 #include "connectables/pins/midipinin.h"
-#include "globals.h"
 #include "mainhost.h"
 #include "commands/comaddpin.h"
 #include "commands/comremovepin.h"
+#include "connectables/mididefines.h"
 
 using namespace Connectables;
 

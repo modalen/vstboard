@@ -18,7 +18,6 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 #include "gui.h"
-#include <QtGui/QHBoxLayout>
 
 Gui::Gui(AudioEffectX* effect) :
     widget(0),

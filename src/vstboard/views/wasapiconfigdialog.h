@@ -1,8 +1,6 @@
 #ifndef WASAPICONFIGDIALOG_H
 #define WASAPICONFIGDIALOG_H
 
-#include <QDialog>
-
 namespace Ui {
     class WasapiConfigDialog;
 }

@@ -21,8 +21,6 @@
 #ifndef GROUPLISTVIEW_H
 #define GROUPLISTVIEW_H
 
-#include <QListView>
-
 class ProgramsModel;
 class GroupListView : public QListView
 {

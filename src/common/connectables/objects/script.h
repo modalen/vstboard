@@ -26,7 +26,7 @@ namespace Connectables {
         QString scriptText;
         QString comiledScript;
         View::ScriptEditor *editorWnd;
-        static QMutex mutexScript;
+        static DMutex mutexScript;
 
         QScriptValue scriptThisObj;
         QScriptValue objScript;

@@ -27,8 +27,6 @@
 #include "mainhosthost.h"
 #include "audiodevices.h"
 
-#include <qthread.h>
-
 class I : public QThread
 {
 public:
@@ -40,7 +38,7 @@ public:
 using namespace Connectables;
 
 //QHash<int,QSharedPointer<AudioDevice> >AudioDevice::listAudioDevices;
-QMutex AudioDevice::mutexCountInputDevicesReady;
+DMutex AudioDevice::mutexCountInputDevicesReady;
 int AudioDevice::countDevicesReady=0;
 int AudioDevice::countInputDevices=0;
 
@@ -92,7 +90,7 @@ AudioDevice::~AudioDevice()
 
     Close();
 
-    LOG(objectName()<<"deleted");
+//    LOG(objectName()<<"deleted");
 }
 
 /*!

@@ -132,13 +132,16 @@ bool Container::Close()
     if(currentContainerProgram) {
         currentContainerProgram->Unload();
         currentContainerProgram->ParkAllObj();
+        mutexCurrentProg.lock();
         delete currentContainerProgram;
+        mutexCurrentProg.unlock();
         currentContainerProgram=0;
     }
 
-    foreach(ContainerProgram *prog, listContainerPrograms) {
-        delete prog;
-    }
+    mutexCurrentProg.lock();
+    qDeleteAll(listContainerPrograms);
+    mutexCurrentProg.unlock();
+
     listContainerPrograms.clear();
 
     bridgeIn.clear();
@@ -221,11 +224,8 @@ void Container::SetSampleRate(float rate)
 
 void Container::LoadProgram(int prog)
 {
-//    QMutexLocker ml(&progLoadMutex);
-
     //if prog is already loaded
     if(prog==currentProgId && currentContainerProgram) {
-
         return;
     }
 
@@ -233,6 +233,7 @@ void Container::LoadProgram(int prog)
 
     if(!listContainerPrograms.contains(prog))
         listContainerPrograms.insert(prog,new ContainerProgram(myHost,this));
+
 
     ContainerProgram *oldProg = currentContainerProgram;
     ContainerProgram *newProg = listContainerPrograms.value(prog);
@@ -280,7 +281,9 @@ void Container::LoadProgram(int prog)
         currentContainerProgram->LoadRendererState();
 
     if(oldProg) {
+        mutexCurrentProg.lock();
         delete oldProg;
+        mutexCurrentProg.unlock();
     }
 }
 
@@ -307,7 +310,10 @@ void Container::SaveProgram()
 
     currentContainerProgram->Save();
 
+    mutexCurrentProg.lock();
     delete listContainerPrograms.take(currentProgId);
+    mutexCurrentProg.unlock();
+
     listContainerPrograms.insert(currentProgId,currentContainerProgram);
     ContainerProgram *tmp = new ContainerProgram(*currentContainerProgram);
     currentContainerProgram = tmp;
@@ -319,7 +325,11 @@ void Container::UnloadProgram()
         return;
 
     currentContainerProgram->Unload();
+
+    mutexCurrentProg.lock();
     delete currentContainerProgram;
+    mutexCurrentProg.unlock();
+
     currentContainerProgram=0;
 
     currentProgId=EMPTY_PROGRAM;
@@ -330,8 +340,10 @@ void Container::UnloadProgram()
   */
 void Container::RemoveProgram(int progId)
 {
-    if(progId>0)
+    if(progId>0) {
+//        LOG("add prog to remove progId"<<progId<<QThread::currentThread());
         listProgToRemove << progId;
+    }
 
     QList<int>remainingProgs;
 
@@ -340,12 +352,15 @@ void Container::RemoveProgram(int progId)
 
         if(listContainerPrograms.contains(p)) {
             if(p == currentProgId) {
-                remainingProgs << p;
                 if(progToSet==-1) {
-                    LOG("removing current program and no scheduled progChange "<<p<<objectName());
+                    LOG("removing current program and no scheduled progChange, prog not deleted "<<p<<objectName());
+                } else {
+                    remainingProgs << p;
                 }
             } else {
+                mutexCurrentProg.lock();
                 delete listContainerPrograms.take(p);
+                mutexCurrentProg.unlock();
             }
         } /*else {
             //the program does not exist, nothing to do
@@ -560,7 +575,7 @@ void Container::AddChildObject(QSharedPointer<Object> objPtr)
     objPtr->parked=false;
     objPtr->Resume();
     objPtr->SetParent(this);
-    objPtr->AddToView(myHost);
+    objPtr->AddToView();
 
 
 
@@ -588,7 +603,7 @@ void Container::ParkChildObject(QSharedPointer<Object> objPtr)
 //    parkModel.invisibleRootItem()->appendRow(item);
 //    objPtr->modelIndex=item->index();
     objPtr->parked=true;
-    objPtr->RemoveFromView(myHost);
+    objPtr->RemoveFromView();
     QTimer::singleShot(50,objPtr.data(),SLOT(SuspendIfParked()));
 
 //    myHost->SetSolverUpdateNeeded();
@@ -736,9 +751,7 @@ QDataStream & Container::toStream (QDataStream& out) const
 bool Container::fromStream (QDataStream& in)
 {
     //clear programs
-    foreach(ContainerProgram *prog, listContainerPrograms) {
-        delete prog;
-    }
+    qDeleteAll(listContainerPrograms);
     listContainerPrograms.clear();
 
     LoadProgram(TEMP_PROGRAM);
@@ -796,7 +809,7 @@ bool Container::fromStream (QDataStream& in)
 bool Container::loadHeaderStream (QDataStream &in)
 {
     //load header
-    qint16 id;
+    quint32 id;
     in >> id;
     savedIndex = id;
 
@@ -844,8 +857,11 @@ bool Container::loadProgramFromStream (QDataStream &in)
     ContainerProgram *prog = new ContainerProgram(myHost,this);
     in >> *prog;
 
-    if(listContainerPrograms.contains(progId))
+    if(listContainerPrograms.contains(progId)) {
+        mutexCurrentProg.lock();
         delete listContainerPrograms.take(progId);
+        mutexCurrentProg.unlock();
+    }
     listContainerPrograms.insert(progId,prog);
 
     return true;
@@ -853,12 +869,16 @@ bool Container::loadProgramFromStream (QDataStream &in)
 
 void Container::ProgramToStream (int progId, QDataStream &out)
 {
+//    LOG("prg to stream"<<progId<<QThread::currentThread())
+
     ContainerProgram *prog = 0;
 
+    mutexCurrentProg.lock();
     if(progId == currentProgId)
-        prog = currentContainerProgram;
-    else
-        prog = listContainerPrograms.value(progId,0);
+        prog = new ContainerProgram(*currentContainerProgram);
+    else if(listContainerPrograms.contains(progId))
+        prog = new ContainerProgram(*listContainerPrograms.value(progId));
+    mutexCurrentProg.unlock();
 
     if(!prog) {
         out << (quint8)0;
@@ -881,6 +901,7 @@ void Container::ProgramToStream (int progId, QDataStream &out)
     }
 
     out << *prog;
+    delete prog;
 }
 
 void Container::ProgramFromStream (int progId, QDataStream &in)
@@ -889,6 +910,8 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
     in >> valid;
     if(valid!=1)
         return;
+
+//    LOG("prg from stream"<<progId<<QThread::currentThread())
 
     if(listProgToRemove.contains(progId)) {
         LOG("cancel deletion"<<progId<<objectName());
@@ -929,8 +952,11 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
     in >> *prog;
 
     if(progId==currentProgId) {
-        if(listContainerPrograms.contains(TEMP_PROGRAM))
+        if(listContainerPrograms.contains(TEMP_PROGRAM)) {
+            mutexCurrentProg.lock();
             delete listContainerPrograms.take(TEMP_PROGRAM);
+            mutexCurrentProg.unlock();
+        }
         listContainerPrograms.insert(TEMP_PROGRAM,prog);
 
         LoadProgram(TEMP_PROGRAM);
@@ -940,8 +966,11 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
 
     } else {
 
-        if(listContainerPrograms.contains(progId))
+        if(listContainerPrograms.contains(progId)) {
+            mutexCurrentProg.lock();
             delete listContainerPrograms.take(progId);
+            mutexCurrentProg.unlock();
+        }
         listContainerPrograms.insert(progId,prog);
 
     }

@@ -26,20 +26,17 @@
 #include "cableview.h"
 #include "bridgeview.h"
 
-class MainHost;
+class SceneModel;
 namespace View {
 
     class MainContainerView : public ObjectView
     {
     Q_OBJECT
     public:
-        explicit MainContainerView(MainHost *myHost, const MetaInfo &info);
+        explicit MainContainerView(const MetaInfo &info, SceneModel *model);
         ~MainContainerView();
-//        void SetModelIndex(const MetaInfo &info);
         void SetParking(QWidget *parking);
         QWidget *GetParking();
-//        QPointF GetDropPos();
-//        void SetDropPos(const QPointF &pt);
         void SetConfig(ViewConfig *config);
 
         BridgeView *bridgeIn;
@@ -47,9 +44,10 @@ namespace View {
         BridgeView *bridgeSend;
         BridgeView *bridgeReturn;
 
-    protected:
+    private:
         ContainerContent *content;
         QList<CableView*>listCables;
+        SceneModel *model;
 
     signals:
         void ParkingChanged(QWidget *parking);

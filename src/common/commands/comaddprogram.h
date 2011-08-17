@@ -1,8 +1,6 @@
 #ifndef COMADDPROGRAM_H
 #define COMADDPROGRAM_H
 
-#include <QUndoCommand>
-
 class ProgramsModel;
 class ComAddProgram : public QUndoCommand
 {

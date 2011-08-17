@@ -1,8 +1,6 @@
 #ifndef VIEWCONFIGDIALOG_H
 #define VIEWCONFIGDIALOG_H
 
-#include <QDialog>
-
 //#include "precomp.h"
 #include "mainhost.h"
 #include "mainwindow.h"

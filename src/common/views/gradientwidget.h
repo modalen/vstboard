@@ -1,9 +1,6 @@
 #ifndef GRADIENTWIDGET_H
 #define GRADIENTWIDGET_H
 
-#include <QtGui/QWidget>
-#include <QtGui/QPen>
-
 namespace View {
 
     class GradientWidget : public QWidget

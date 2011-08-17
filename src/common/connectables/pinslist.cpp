@@ -32,9 +32,9 @@
 using namespace Connectables;
 
 PinsList::PinsList(MainHost *myHost, Object *parent) :
-        QObject(parent),
-        parent(parent),
-        myHost(myHost)
+    QObject(parent),
+    parent(parent),
+    myHost(myHost)
 {
     SetType( MetaTypes::listPin );
     ObjectInfo::SetParent(parent);
@@ -202,7 +202,7 @@ Pin * PinsList::AddPin(int nb)
     if(ContainerId()) {
         newPin->SetContainer(ContainerInfo());
     }
-    newPin->AddToView(myHost);
+    newPin->AddToView();
 
     static_cast<Object*>(parent)->OnProgramDirty();
     return newPin;

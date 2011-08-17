@@ -37,7 +37,7 @@ namespace Connectables {
 
 namespace View {
     class CableView;
-    class PinView : public QGraphicsWidget, public ObjectInfo
+    class PinView : public QGraphicsWidget, public MetaInfo
     {
     Q_OBJECT
 

@@ -26,6 +26,8 @@
 
 namespace Connectables {
 
+
+
     class MidiSender : public Object
     {
     Q_OBJECT

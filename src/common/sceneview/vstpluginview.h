@@ -8,11 +8,11 @@ namespace View {
     {
     Q_OBJECT
     public:
-        VstPluginView(const MetaInfo &info, MainContainerView * parent = 0);
+        VstPluginView(const MetaInfo &info, MainContainerView * parent, SceneModel *model);
         void UpdateModelIndex(const MetaInfo &info);
         void SetConfig(ViewConfig *config);
 
-    protected:
+    private:
         void dragEnterEvent( QGraphicsSceneDragDropEvent *event);
         void dragLeaveEvent( QGraphicsSceneDragDropEvent *event);
 //        void dropEvent( QGraphicsSceneDragDropEvent *event);

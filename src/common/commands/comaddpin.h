@@ -21,7 +21,6 @@
 #ifndef COMADDPIN_H
 #define COMADDPIN_H
 
-#include <QUndoCommand>
 #include "objectinfo.h"
 
 class MainHost;

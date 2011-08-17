@@ -2,7 +2,6 @@
 #define COMCHANGEPROGRAM_H
 
 #include "precomp.h"
-#include <QUndoCommand>
 
 class ProgramsModel;
 class ComChangeProgram : public QUndoCommand

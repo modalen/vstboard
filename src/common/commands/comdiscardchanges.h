@@ -21,8 +21,6 @@
 #ifndef COMDISCARDCHANGES_H
 #define COMDISCARDCHANGES_H
 
-#include <QUndoCommand>
-
 class ProgramsModel;
 class ComDiscardChanges : public QUndoCommand
 {

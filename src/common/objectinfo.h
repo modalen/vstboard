@@ -22,8 +22,9 @@
 #define OBJECTINFO_H
 
 #include "precomp.h"
-#include "globals.h"
-#include "models/hostmodel.h"
+//#include "globals.h"
+//#include "models/scenemodel.h"
+#include "mutexdebug.h"
 
 namespace MetaTypes {
     enum Enum {
@@ -140,21 +141,43 @@ namespace FixedObjIds {
         groupContainerOut,
         groupContainerSend,
         groupContainerReturn,
-        parkingContainer,
-        noContainer=65535
+        parkingContainer
     };
 }
 
 class ObjectInfo;
-typedef QMultiMap < ObjectInfo, ObjectInfo > mapCables;
+class MetaInfo;
 
-class MainHost;
-class ObjectInfo;
+typedef QMultiMap < MetaInfo, MetaInfo > mapCables;
+
+class MetaTransporter
+{
+public:
+    MetaTransporter::MetaTransporter() :
+        autoUpdate(false)
+    {}
+
+//    bool dropMime ( const QMimeData * data, MetaInfo & senderInfo, QPointF &pos, InsertionType::Enum insertType=InsertionType::NoInsertion ) =0;
+    void ValueChanged( const MetaInfo & senderInfo, int type, const QVariant &value);
+    void PostEvent( QEvent * event);
+    void AddListener(QObject *obj) { listeners << obj; }
+    void RemoveListener(QObject *obj) { listeners.removeAll(obj); }
+    void RemoveAllListeners() { listeners.clear(); }
+
+protected:
+    bool autoUpdate;
+
+private:
+    QList<QObject*>listeners;
+};
+
 class MetaInfo
 {
     public:
     MetaInfo();
+    MetaInfo(const MetaInfo &c);
     MetaInfo(const MetaTypes::Enum type);
+    MetaInfo(const QByteArray &b);
 
     inline MetaTypes::Enum Type() const {
         return objType;
@@ -204,26 +227,31 @@ class MetaInfo
         return listInfos.value(inf);
     }
     inline void SetMeta(MetaInfos::Enum inf, const QVariant &val) {
+//            mutexListInfos.lock();
         listInfos[inf]=val;
-        if(model)
-            model->valueChanged(*this,inf,val);
+//        mutexListInfos.unlock();
+        if(transporter)
+            transporter->ValueChanged(*this,inf,val);
     }
     inline void DelMeta(MetaInfos::Enum inf) {
+        mutexListInfos.lock();
         listInfos.remove(inf);
+        mutexListInfos.unlock();
     }
 
-    inline void SetModel(HostModel *m) {
-        model = m;
+    inline MetaTransporter * Transporter() const { return transporter;}
+    inline void SetTransporter(MetaTransporter *m) {
+        transporter = m;
     }
 //    inline HostModel *Model() const {
 //        return model;
 //    }
 
-    bool DropMime(const QMimeData *data, const QPointF &pos, InsertionType::Enum insertType = InsertionType::NoInsertion) {
-        if(!model)
-            return false;
-        return model->dropMime(data,MetaInfo(*this),pos,insertType);
-    }
+//    bool DropMime(const QMimeData *data, QPointF &pos, InsertionType::Enum insertType = InsertionType::NoInsertion) {
+//        if(!transporter)
+//            return false;
+//        return transporter->dropMime(data,MetaInfo(*this),pos,insertType);
+//    }
 
     inline const MetaInfo & info() const {return *this;}
 
@@ -235,6 +263,21 @@ class MetaInfo
     QDataStream & toStream(QDataStream& stream) const;
     QDataStream & fromStream(QDataStream& stream);
 
+    MetaInfo & operator =(const MetaInfo &c) {
+        objType=c.objType;
+        objId=c.objId;
+        parentId=c.parentId;
+        parentObjectId=c.parentObjectId;
+        containerId=c.containerId;
+        objName=c.objName;
+        listInfos=c.listInfos;
+        transporter=c.transporter;
+        return *this;
+    }
+
+protected:
+    MetaTransporter *transporter;
+
 private:
     MetaTypes::Enum objType;
     quint32 objId;
@@ -243,7 +286,7 @@ private:
     quint32 containerId;
     QString objName;
     QMap<MetaInfos::Enum,QVariant>listInfos;
-    HostModel *model;
+    mutable DMutex mutexListInfos;
 };
 
 
@@ -251,15 +294,17 @@ Q_DECLARE_METATYPE(MetaInfo);
 
 QDataStream & operator<< (QDataStream& stream, const MetaInfo& info);
 QDataStream & operator>> (QDataStream& stream, MetaInfo& info);
-
+inline bool operator==(const MetaInfo &c1, const MetaInfo &c2) { return c1.ObjId() == c2.ObjId(); }
+inline bool operator<(const MetaInfo &c1, const MetaInfo &c2) { return c1.ObjId() < c2.ObjId(); }
 
 class ObjectInfo : public MetaInfo
 {
 public:
     ObjectInfo();
+    ObjectInfo(const ObjectInfo &c);
     virtual ~ObjectInfo();
 //    ObjectInfo( MetaTypes::Enum metaType, ObjTypes::Enum objType=ObjTypes::ND, int id=0, QString objName="");
-    ObjectInfo(const MetaInfo &c);
+    ObjectInfo(const MetaInfo &c, MetaTransporter *transporter);
 
     inline ObjectInfo * ParentInfo() const {
         return parentInfo;
@@ -272,9 +317,9 @@ public:
     void SetParent(ObjectInfo *parent);
     virtual void SetContainer(ObjectInfo *container);
 
-    void AddToView(MainHost *myHost);
-    void RemoveFromView(MainHost *myHost);
-    void UpdateView(MainHost *myHost);
+    void AddToView();
+    void RemoveFromView();
+    void UpdateView();
 
 private:
     ObjectInfo* parentInfo;
@@ -282,13 +327,7 @@ private:
     QList<ObjectInfo*>childrenInfo;
 };
 
-inline bool operator==(const ObjectInfo &c1, const ObjectInfo &c2) {
-    return c1.ObjId() == c2.ObjId();
-}
 
-inline bool operator<(const ObjectInfo &c1, const ObjectInfo &c2) {
-    return c1.ObjId() < c2.ObjId();
-}
 
 class ObjectContainerAttribs
 {

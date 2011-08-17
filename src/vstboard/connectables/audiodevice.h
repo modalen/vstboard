@@ -21,8 +21,6 @@
 #ifndef AUDIODEVICE_H
 #define AUDIODEVICE_H
 
-#include <QWaitCondition>
-
 //#include "precomp.h"
 #include "connectables/objects/object.h"
 #include "objectinfo.h"
@@ -100,13 +98,13 @@ namespace Connectables {
         bool opened;
 
         /// mutex protecting open/close
-        QMutex mutexOpenClose;
+        DMutex mutexOpenClose;
 
         /// mutex for input and output device
-        QMutex mutexDevicesInOut;
+        DMutex mutexDevicesInOut;
 
         /// global audio devices mutex
-        static QMutex mutexCountInputDevicesReady;
+        static DMutex mutexCountInputDevicesReady;
 
         /// windows mme stream options
         PaWinMmeStreamInfo wmmeStreamInfo;
