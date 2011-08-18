@@ -22,9 +22,8 @@
 #define OBJECTINFO_H
 
 #include "precomp.h"
-//#include "globals.h"
-//#include "models/scenemodel.h"
 #include "mutexdebug.h"
+#include <QDebug>
 
 namespace MetaTypes {
     enum Enum {
@@ -38,48 +37,76 @@ namespace MetaTypes {
     };
 }
 
+
+
 namespace MetaInfos {
     enum Enum {
         ND,
+
+        INT_BEGIN = 1,
         ObjType,
         Direction,
         Media,
         BridgeMedia,
-        Filename,
         devId,
-        devName,
         apiId,
-        apiName,
         duplicateNamesCounter,
         nbInputs,
         nbOutputs,
-        errorMessage,
         PinNumber,
-        Hidden,
-        Removable,
-        Bridge,
-        Value,
         ValueStep,
-        DefaultValue,
         DefaultValueStep,
+        INT_END,
+
+        FLOAT_BEGIN = 30,
+        Value,
+        DefaultValue,
         StepSize,
-        Dirty,
-        DoublePrecision,
-        Position,
-        bankFile,
-        programFile,
-        displayedText,
-        EditorVisible,
-        EditorSize,
-        EditorPosition,
         EditorVScroll,
         EditorHScroll,
-        LimitEnabled,
         LimitInMin,
         LimitInMax,
         LimitOutMin,
-        LimitOutMax
+        LimitOutMax,
+        FLOAT_END,
+
+        BOOL_BEGIN = 50,
+        Hidden,
+        Removable,
+        Bridge,
+        Dirty,
+        DoublePrecision,
+        EditorVisible,
+        LimitEnabled,
+        BOOL_END,
+
+        STRING_BEGIN = 70,
+        Filename,
+        devName,
+        apiName,
+        errorMessage,
+        bankFile,
+        programFile,
+        displayedText,
+        STRING_END,
+
+        QPOINTF_BEGIN = 90,
+        Position,
+        EditorSize,
+        EditorPosition,
+        QPOINTF_END,
+
+        END
     };
+
+//#ifndef QT_NO_DEBUG
+    const char* INTNames[];
+    const char* FLOATNames[];
+    const char* BOOLNames[];
+    const char* STRINGNames[];
+    const char* QPOINTFNames[];
+//#endif
+
 }
 
 namespace ObjTypes {
@@ -171,11 +198,112 @@ private:
     QList<QObject*>listeners;
 };
 
+class MetaData
+{
+public:
+    MetaData() {}
+    MetaData(const MetaData &c) {
+        *this=c;
+    }
+
+    MetaData& operator=(const MetaData& c);
+
+    ~MetaData() {
+//        qDebug()<<toString();
+
+        qDeleteAll(listInfos);
+
+//        QMap<MetaInfos::Enum, QPair<int, void*> >::const_iterator j = listComplexInfos.constBegin();
+//        while(j!=listComplexInfos.constEnd()) {
+//            delete j.value().second;
+//            ++j;
+//        }
+    }
+
+    template<class T> const T GetMeta(const MetaInfos::Enum type) const {
+        return static_cast<const T>(listInfos.value(type,0));
+    }
+
+    template<class T> T GetMetaData(const MetaInfos::Enum type) const {
+        if(!listInfos.contains(type))
+            return 0;
+        return *static_cast<const T*>(listInfos.value(type));
+    }
+
+    template<class T> void SetMeta(const MetaInfos::Enum type, const T &value) {
+        if(listInfos.contains(type))
+            DelMeta(type);
+        AddMeta(type,value);
+    }
+
+    template<> void SetMeta(const MetaInfos::Enum type, const float &value) {
+        SetMetaFast(type,value);
+    }
+    template<> void SetMeta(const MetaInfos::Enum type, const int &value) {
+        SetMetaFast(type,value);
+    }
+    template<> void SetMeta(const MetaInfos::Enum type, const bool &value) {
+        SetMetaFast(type,value);
+    }
+
+    void DelMeta(const MetaInfos::Enum type) {
+//        if(type<MetaInfos::COMPLEX_START)
+            delete listInfos.take(type);
+//        else {
+//            delete listComplexInfos.take(type).second;
+//        }
+    }
+
+//#ifndef QT_NO_DEBUG
+    QString toString();
+    static QString keyName(const MetaInfos::Enum type);
+//#endif
+
+    QDataStream & toStream(QDataStream& stream) const;
+    QDataStream & fromStream(QDataStream& stream);
+
+    friend bool operator==(const MetaData &c1, const MetaData &c2);
+//    friend bool operator<(const MetaData &c1, const MetaData &c2);
+
+private:
+    template<class T> void SetMetaFast(const MetaInfos::Enum type, const T &value) {
+        if(listInfos.contains(type))
+            ReplaceMeta(type,value);
+        else
+            AddMeta(type,value);
+    }
+
+    template<class T> void ReplaceMeta(const MetaInfos::Enum type, const T &value) {
+        memcpy(listInfos[type],&value,sizeof(T));
+    }
+
+    template<class T> void AddMeta(const MetaInfos::Enum type, const T &value) {
+        T *copy = new T(value);
+//        if(type<MetaInfos::COMPLEX_START)
+            listInfos.insert(type,copy);
+//        else
+//            listComplexInfos.insert(type, QPair<int,void*>(sizeof(value) ,copy) );
+    }
+
+    QMap<MetaInfos::Enum,void*>listInfos;
+//    QMap<MetaInfos::Enum, QPair<int, void*> >listComplexInfos;
+};
+
+
+Q_DECLARE_METATYPE(MetaData);
+
+QDataStream & operator<< (QDataStream& stream, const MetaData& info);
+QDataStream & operator>> (QDataStream& stream, MetaData& info);
+
+
+
 class MetaInfo
 {
     public:
     MetaInfo();
-    MetaInfo(const MetaInfo &c);
+//    MetaInfo(const MetaInfo &c) {
+//        *this=c;
+//    }
     MetaInfo(const MetaTypes::Enum type);
     MetaInfo(const QByteArray &b);
 
@@ -234,9 +362,9 @@ class MetaInfo
             transporter->ValueChanged(*this,inf,val);
     }
     inline void DelMeta(MetaInfos::Enum inf) {
-        mutexListInfos.lock();
+//        mutexListInfos.lock();
         listInfos.remove(inf);
-        mutexListInfos.unlock();
+//        mutexListInfos.unlock();
     }
 
     inline MetaTransporter * Transporter() const { return transporter;}
@@ -286,7 +414,7 @@ private:
     quint32 containerId;
     QString objName;
     QMap<MetaInfos::Enum,QVariant>listInfos;
-    mutable DMutex mutexListInfos;
+//    mutable DMutex *mutexListInfos;
 };
 
 

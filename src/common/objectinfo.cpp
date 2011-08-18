@@ -19,14 +19,254 @@
 **************************************************************************/
 
 #include "objectinfo.h"
-#include "mainhost.h"
 #include "events.h"
+
+//#ifndef QT_NO_DEBUG
+
+#define stringify( name ) # name
+
+const char* MetaInfos::INTNames[] =
+{
+    stringify( ObjType ),
+    stringify( Direction ),
+    stringify( Media ),
+    stringify( BridgeMedia ),
+    stringify( devId ),
+    stringify( apiId ),
+    stringify( duplicateNamesCounter ),
+    stringify( nbInputs ),
+    stringify( nbOutputs ),
+    stringify( PinNumber ),
+    stringify( ValueStep ),
+    stringify( DefaultValueStep )
+};
+
+const char* MetaInfos::FLOATNames[]=
+{
+    stringify( Value ),
+    stringify( DefaultValue ),
+    stringify( StepSize ),
+    stringify( EditorVScroll ),
+    stringify( EditorHScroll )
+};
+const char* MetaInfos::BOOLNames[]=
+{
+    stringify( Hidden ),
+    stringify( Removable ),
+    stringify( Bridge ),
+    stringify( Dirty ),
+    stringify( DoublePrecision ),
+    stringify( EditorVisible ),
+    stringify( LimitEnabled ),
+    stringify( LimitInMin ),
+    stringify( LimitInMax ),
+    stringify( LimitOutMin ),
+    stringify( LimitOutMax ),
+};
+const char* MetaInfos::STRINGNames[]=
+{
+    stringify( Filename ),
+    stringify( devName ),
+    stringify( apiName ),
+    stringify( errorMessage ),
+    stringify( bankFile ),
+    stringify( programFile ),
+    stringify( displayedText ),
+};
+const char* MetaInfos::QPOINTFNames[]=
+{
+    stringify( Position ),
+    stringify( EditorSize ),
+    stringify( EditorPosition ),
+};
+
+//#endif
+
+//#ifndef QT_NO_DEBUG
+QString MetaData::toString() {
+    QString str;
+    qDebug() << this;
+
+    QMap<MetaInfos::Enum,void*>::const_iterator i = listInfos.constBegin();
+    while(i!=listInfos.constEnd()) {
+
+        str += QString("%1(%2)=").arg( i.key() ).arg( keyName(i.key()) );
+
+        if(i.key()<MetaInfos::INT_END) {
+            str += QString::number(*static_cast<int*>(i.value()));
+        } else if(i.key()<MetaInfos::FLOAT_END) {
+            str += QString::number(*static_cast<float*>(i.value()));
+        } else if(i.key()<MetaInfos::BOOL_END) {
+            str.append(*static_cast<bool*>(i.value()));
+        } else if(i.key()<MetaInfos::STRING_END) {
+            str.append(*static_cast<QString*>(i.value()));
+        } else if(i.key()<MetaInfos::QPOINTF_END) {
+            str += QString("%1:%2")
+                .arg(static_cast<QPointF*>(i.value())->x())
+                .arg(static_cast<QPointF*>(i.value())->y());
+        }
+//            str+=" " + QString::number((long)i.value(),16);
+//        str+="\n";
+        str+="|";
+        ++i;
+    }
+
+//        QMap<MetaInfos::Enum, QPair<int, void*> >::const_iterator j = listComplexInfos.constBegin();
+//        while(j!=listComplexInfos.constEnd()) {
+
+//            str += QString("%1 (%2,size:%3) = ")
+//                    .arg(MetaInfos::Names[j.key()])
+//                    .arg(j.key())
+//                    .arg(j.value().first);
+
+//            str+= QString::fromRawData( static_cast<const QChar*>(j.value().second) ,j.value().first);
+//            str+=" " + QString::number((long)j.value().second,16);
+//            str+="\n";
+//            ++j;
+//        }
+    return str;
+}
+//#endif
+
+QString MetaData::keyName(const MetaInfos::Enum type)
+{
+    if(type<MetaInfos::INT_END)
+        return MetaInfos::INTNames[type-MetaInfos::INT_BEGIN-1];
+    if(type<MetaInfos::FLOAT_END)
+        return MetaInfos::FLOATNames[type-MetaInfos::FLOAT_BEGIN-1];
+    if(type<MetaInfos::BOOL_END)
+        return MetaInfos::BOOLNames[type-MetaInfos::BOOL_BEGIN-1];
+    if(type<MetaInfos::STRING_END)
+        return MetaInfos::STRINGNames[type-MetaInfos::STRING_BEGIN-1];
+    if(type<MetaInfos::QPOINTF_END)
+        return MetaInfos::QPOINTFNames[type-MetaInfos::QPOINTF_BEGIN-1];
+    return "nd";
+}
+
+MetaData & MetaData::operator =(const MetaData &c) {
+    if (this == &c)
+        return *this;
+
+    qDeleteAll(listInfos);
+    listInfos.clear();
+
+    QMap<MetaInfos::Enum,void*>::const_iterator i = c.listInfos.constBegin();
+    while(i!=c.listInfos.constEnd()) {
+        if(i.key()<MetaInfos::INT_END)
+            AddMeta(i.key(),*static_cast<int*>(i.value()));
+        else if(i.key()<MetaInfos::FLOAT_END)
+            AddMeta(i.key(),*static_cast<float*>(i.value()));
+        else if(i.key()<MetaInfos::BOOL_END)
+            AddMeta(i.key(),*static_cast<bool*>(i.value()));
+        else if(i.key()<MetaInfos::STRING_END)
+            AddMeta(i.key(),*static_cast<QString*>(i.value()));
+        else if(i.key()<MetaInfos::QPOINTF_END)
+            AddMeta(i.key(),*static_cast<QPointF*>(i.value()));
+        ++i;
+    }
+
+//        QMap<MetaInfos::Enum, QPair<int, void*> >::const_iterator j = listComplexInfos.constBegin();
+//        while(j!=listComplexInfos.constEnd()) {
+//            delete j.value().second;
+//            ++j;
+//        }
+
+//    QMap<MetaInfos::Enum, QPair<int, void*> >::const_iterator j = c.listComplexInfos.constBegin();
+//    while(j!=c.listComplexInfos.constEnd()) {
+//        void* copy = (void*)new char[j.value().first];
+//        memcpy(copy, j.value().second, sizeof(copy));
+//        listComplexInfos.insert(j.key(), QPair<int,void*>(sizeof(copy),copy) );
+//        ++j;
+//    }
+    return *this;
+}
+
+QDataStream & MetaData::toStream(QDataStream& stream) const
+{
+    stream << static_cast<quint16>(listInfos.size());
+
+    QMap<MetaInfos::Enum,void*>::const_iterator i = listInfos.constBegin();
+    while(i!=listInfos.constEnd()) {
+
+        stream << static_cast<quint16>(i.key());
+
+        if(i.key()<MetaInfos::INT_END)
+            stream << *static_cast<int*>(i.value());
+        else if(i.key()<MetaInfos::FLOAT_END)
+            stream << *static_cast<float*>(i.value());
+        else if(i.key()<MetaInfos::BOOL_END)
+            stream << *static_cast<bool*>(i.value());
+        else if(i.key()<MetaInfos::STRING_END)
+            stream << *static_cast<QString*>(i.value());
+        else if(i.key()<MetaInfos::QPOINTF_END)
+            stream << *static_cast<QPointF*>(i.value());
+
+        ++i;
+    }
+    return stream;
+}
+
+QDataStream & MetaData::fromStream(QDataStream& stream)
+{
+    quint16 size;
+    stream >> size;
+    for(int i=0; i<size; ++i) {
+
+        quint16 key;
+        stream >> key;
+
+        if(key<MetaInfos::INT_END) {
+            int i;
+            stream >> i;
+            SetMeta( static_cast<MetaInfos::Enum>(key), i);
+        } else if(key<MetaInfos::FLOAT_END) {
+            float f;
+            stream >> f;
+            SetMeta(static_cast<MetaInfos::Enum>(key), f);
+        } else if(key<MetaInfos::BOOL_END) {
+            bool b;
+            stream >> b;
+            SetMeta(static_cast<MetaInfos::Enum>(key), b);
+        } else if(key<MetaInfos::STRING_END) {
+            QString s;
+            stream >> s;
+            SetMeta(static_cast<MetaInfos::Enum>(key), s);
+        } else if(key<MetaInfos::QPOINTF_END) {
+            QPointF p;
+            stream >> p;
+            SetMeta(static_cast<MetaInfos::Enum>(key), p);
+        }
+    }
+    return stream;
+}
+
+QDataStream & operator<< (QDataStream& s, const MetaData& data) { return data.toStream(s); }
+QDataStream & operator>> (QDataStream& s, MetaData& data) { return data.fromStream(s); }
+
+//only compare ints and bools
+bool operator==(const MetaData &c1, const MetaData &c2)
+{
+    if(c1.listInfos.size()!=c2.listInfos.size())
+        return false;
+
+    QMap<MetaInfos::Enum,void*>::const_iterator i = c1.listInfos.constBegin();
+    while(i!=c1.listInfos.constEnd()) {
+        if(i.key() > MetaInfos::INT_BEGIN && i.key() < MetaInfos::INT_END)
+            if( *(int*)i.value() != *(int*)c2.listInfos.value(i.key()) )
+                return false;
+        if(i.key() > MetaInfos::BOOL_BEGIN && i.key() < MetaInfos::BOOL_END)
+            if( *(bool*)i.value() != *(bool*)c2.listInfos.value(i.key()) )
+                return false;
+        ++i;
+    }
+    return true;
+}
+//bool operator<(const MetaData &c1, const MetaData &c2) { if(c1.listInfos < c2.listInfos; }
 
 void MetaTransporter::ValueChanged( const MetaInfo & senderInfo, int type, const QVariant &value)
 {
     if(!autoUpdate)
         return;
-
     Events::valChanged *e = new Events::valChanged(MetaInfo(senderInfo), (MetaInfos::Enum)type, value);
     PostEvent(e);
 }
@@ -51,11 +291,6 @@ MetaInfo::MetaInfo() :
     parentObjectId(0),
     transporter(0)
 {
-}
-
-MetaInfo::MetaInfo(const MetaInfo &c)
-{
-    *this=c;
 }
 
 MetaInfo::MetaInfo(const MetaTypes::Enum type) :
@@ -150,7 +385,7 @@ void ObjectInfo::UpdateView()
     if(transporter)
         transporter->PostEvent(event);
     else {
-        LOG("transporter not set")
+        LOG("transporter not set");
     }
 }
 
@@ -264,7 +499,7 @@ QDataStream & MetaInfo::toStream(QDataStream& stream) const
     stream << containerId;
     stream << parentObjectId;
 
-    mutexListInfos.lock();
+//    mutexListInfos.lock();
     stream << (quint16)listInfos.size();
     QMap<MetaInfos::Enum,QVariant>::iterator i = listInfos.begin();
     while(i != listInfos.end()) {
@@ -272,7 +507,7 @@ QDataStream & MetaInfo::toStream(QDataStream& stream) const
         stream << i.value();
         ++i;
     }
-    mutexListInfos.unlock();
+//    mutexListInfos.unlock();
 
 //    stream << (quint16)childrenInfo.size();
 //    foreach(ObjectInfo* o, childrenInfo) {
@@ -307,7 +542,7 @@ QDataStream & MetaInfo::fromStream(QDataStream& stream)
     quint16 nb;
     stream >> nb;
 
-    mutexListInfos.lock();
+//    mutexListInfos.lock();
     for(int i=0; i<nb; i++) {
         quint16 id;
         QVariant val;
@@ -315,7 +550,7 @@ QDataStream & MetaInfo::fromStream(QDataStream& stream)
         stream >> val;
         listInfos.insert((MetaInfos::Enum)id,val);
     }
-    mutexListInfos.unlock();
+//    mutexListInfos.unlock();
 
 //    stream >> nb;
 //    for(int i=0; i<nb; i++) {
