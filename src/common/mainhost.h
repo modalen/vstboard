@@ -69,8 +69,6 @@ public:
     void GetTempo(int &tempo, int &sign1, int &sign2);
     void SetTimeInfo(const VstTimeInfo *info);
 
-    void ChangeNbThreads(int nbThreads);
-
 //    QStandardItemModel *GetRendererModel() { return renderer->GetModel(); }
 
     void OptimizeRenderer() { if(renderer) renderer->Optimize(); }
@@ -88,9 +86,9 @@ public:
     }
 
     inline void SetSolverUpdateNeeded() {
-        solverMutex.lock();
+        mutexSolver.lock();
         solverNeedAnUpdate = true;
-        solverMutex.unlock();
+        mutexSolver.unlock();
     }
 
     inline bool undoProgramChanges() {return undoProgramChangesEnabled;}
@@ -160,7 +158,7 @@ private:
     DMutex *mutexListCables;
     Renderer *renderer;
 
-    DMutex solverMutex;
+    DMutex mutexSolver;
 
 //    HostModel *model;
 
@@ -198,6 +196,7 @@ public slots:
     void SaveSetupFile(bool saveAs);
     void SaveProjectFile(bool saveAs);
     void UndoStackPush(QUndoCommand *cmd) {undoStack->push(cmd);}
+    void ChangeNbThreads(int nbThreads);
 
 private slots:
     void UpdateSolver(bool forceUpdate=false);

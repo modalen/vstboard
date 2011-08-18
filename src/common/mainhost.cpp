@@ -36,18 +36,20 @@ EngineThread::EngineThread(QObject *parent) :
     QThread(parent)
 {
     setObjectName("EngineThread");
-//    start(QThread::LowPriority);
-    start(QThread::TimeCriticalPriority);
+    start(QThread::LowPriority);
+//    start(QThread::TimeCriticalPriority);
 }
 
 EngineThread::~EngineThread()
 {
+    LOG("stop thread"<<objectName()<<(int)currentThreadId());
     quit();
     wait(1000);
 }
 
 void EngineThread::run()
 {
+    LOG("start thread"<<objectName()<<(int)currentThreadId());
     exec();
 }
 
@@ -650,10 +652,10 @@ void MainHost::SetupGroupContainer()
 
 bool MainHost::EnableSolverUpdate(bool enable)
 {
-    solverMutex.lock();
+    mutexSolver.lock();
     bool ret = solverUpdateEnabled;
     solverUpdateEnabled = enable;
-    solverMutex.unlock();
+    mutexSolver.unlock();
     return ret;
 }
 
@@ -662,11 +664,11 @@ void MainHost::UpdateSolver(bool forceUpdate)
     if(!renderer)
         return;
 
-    solverMutex.lock();
+    mutexSolver.lock();
 
         //update not forced, not needed or disabled : return
         if( (!solverUpdateEnabled || !solverNeedAnUpdate) && !forceUpdate) {
-            solverMutex.unlock();
+            mutexSolver.unlock();
             return;
         }
 
@@ -677,7 +679,7 @@ void MainHost::UpdateSolver(bool forceUpdate)
         //allow others to ask for a new update while we're updating
         solverNeedAnUpdate = false;
 
-    solverMutex.unlock();
+    mutexSolver.unlock();
 
     //if forced : lock rendering
     if(forceUpdate) {
@@ -705,7 +707,20 @@ void MainHost::ChangeNbThreads(int nbThreads)
 {
     if(!renderer)
         return;
+
+    if(nbThreads<=0) {
+#ifdef _WIN32
+        SYSTEM_INFO info;
+        GetSystemInfo(&info);
+        nbThreads = info.dwNumberOfProcessors;
+#else
+        nbThreads = 1;
+#endif
+    }
+
+    mutexRender.lock();
     renderer->SetNbThreads(nbThreads);
+    mutexRender.unlock();
     SetSolverUpdateNeeded();
 
 }
@@ -713,7 +728,6 @@ void MainHost::ChangeNbThreads(int nbThreads)
 void MainHost::SendMsg(const MetaInfo &senderPin,const PinMessage::Enum msgType,void *data)
 {
     QMutexLocker lock(mutexListCables);
-
 
     mapCables::const_iterator i = workingListOfCables.constFind(senderPin);
     while (i != workingListOfCables.constEnd()  && i.key() == senderPin) {

@@ -35,40 +35,25 @@ RenderThread::RenderThread(Renderer *renderer, int cpu, const QString &name)
 
 RenderThread::~RenderThread()
 {
+    LOG("stop thread"<<objectName()<<(int)currentThreadId());
     ResetSteps();
-    Stop();
-    while(isRunning()) {
-        usleep(100);
-    }
+    stop=true;
+    sem.release();
+    wait(1000);
 }
 
 
 void RenderThread::run()
 {
-    SetThreadIdealProcessor( GetCurrentThread(), currentCpu );
+    LOG("start thread"<<objectName()<<(int)currentThreadId());
+//    SetThreadIdealProcessor( GetCurrentThread(), currentCpu );
 
-    forever {
-
+    while(!stop) {
 //not available on XP
 //        currentCpu = GetCurrentProcessorNumber();
-
         sem.acquire();
-
-        mutex.lockForRead();
-        if(stop)
-            return;
-        mutex.unlock();
-
         RenderStep(step);
     }
-}
-
-void RenderThread::Stop()
-{
-    mutex.lockForWrite();
-    stop=true;
-    mutex.unlock();
-    sem.release();
 }
 
 void RenderThread::RenderStep(int step)

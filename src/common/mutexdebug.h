@@ -21,10 +21,10 @@
 #ifndef MUTEXDEBUG_H
 #define MUTEXDEBUG_H
 
-#include "precomp.h"
+#ifndef QT_NO_DEBUG
 
-//#define DMutex DebugMutex
-#define DMutex QMutex
+#include "precomp.h"
+#define DMutex DebugMutex
 
 class DebugMutex : public QMutex
 {
@@ -37,7 +37,7 @@ public:
 
     ~DebugMutex()
     {
-        LOG("mutex usage : "<<countUsage<<" locks"<<countLocked);
+        LOGSIMPLE("mutex usage : "<<countUsage<<" locks"<<countLocked);
     }
 
     void lock()
@@ -46,7 +46,7 @@ public:
 
         if(!QMutex::tryLock()) {
             ++countLocked;
-            LOG("wait lock");
+            LOGSIMPLE("wait lock");
             QMutex::lock();
         }
     }
@@ -57,7 +57,7 @@ public:
 
         if(!QMutex::tryLock()) {
             ++countLocked;
-            LOG("trylock failed");
+            LOGSIMPLE("trylock failed");
             return false;
         }
         return true;
@@ -69,11 +69,11 @@ public:
 
         if(!QMutex::tryLock()) {
             ++countLocked;
-            LOG("trylock failed");
+            LOGSIMPLE("trylock failed");
         }
 
         if(!QMutex::tryLock(timeout)) {
-            LOG("trylock timeout"<<timeout);
+            LOGSIMPLE("trylock timeout"<<timeout);
             return false;
         }
         return true;
@@ -90,5 +90,9 @@ private:
     int countUsage;
     int countLocked;
 };
+
+#else
+    #define DMutex QMutex
+#endif
 
 #endif // MUTEXDEBUG_H
