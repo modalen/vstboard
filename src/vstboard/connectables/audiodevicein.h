@@ -42,7 +42,9 @@ namespace Connectables {
         void Render();
         Pin* CreatePin(MetaInfo &info);
         void SetParentDevice( AudioDevice *device );
+#ifdef CIRCULAR_BUFFER
         void SetBufferFromRingBuffer(QList<CircularBuffer*>listCircularBuffers);
+#endif
 //        QStandardItem *GetFullItem();
 
     protected:

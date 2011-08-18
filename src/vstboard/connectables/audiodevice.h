@@ -48,14 +48,16 @@ namespace Connectables {
         bool SetObjectOutput(AudioDeviceOut *obj);
         void SetSleep(bool sleeping);
 
-        bool DeviceToRingBuffers( const void *inputBuffer, unsigned long framesPerBuffer);
-        void RingBuffersToPins();
+        int GetNbInputs() const { return devInfo.maxInputChannels; }
+        int GetNbOutputs() const { return devInfo.maxOutputChannels; }
+
+    #ifdef CIRCULAR_BUFFER
         void PinsToRingBuffers();
-        bool RingBuffersToDevice( void *outputBuffer, unsigned long framesPerBuffer);
+    #endif
 
         QString errorMessage;
 
-    protected:
+    private:
         bool Close();
         static int paCallback( const void *inputBuffer, void *outputBuffer,
                                unsigned long framesPerBuffer,
@@ -65,7 +67,18 @@ namespace Connectables {
 
         bool OpenStream(double sampleRate);
 
-        void DeleteCircualBuffers();
+#ifdef CIRCULAR_BUFFER
+        void CreateCircularBuffers();
+        void DeleteCircularBuffers();
+
+        bool DeviceToRingBuffers( const void *inputBuffer, unsigned long framesPerBuffer);
+        void RingBuffersToPins();
+        bool RingBuffersToDevice( void *outputBuffer, unsigned long framesPerBuffer);
+#else
+        //if not using ringbuffers
+        bool DeviceToPinBuffers( const void *inputBuffer, unsigned long framesPerBuffer );
+        bool PinBuffersToDevice( void *outputBuffer, unsigned long framesPerBuffer );
+#endif
 
         /// true if the device is currently closing
         bool isClosing;
@@ -145,9 +158,6 @@ namespace Connectables {
     public slots:
         void SetSampleRate(float rate=44100.0);
         void DeleteIfUnused();
-
-        friend class AudioDeviceIn;
-        friend class AudioDeviceOut;
     };
 }
 

@@ -116,9 +116,11 @@
 
     #ifdef QT_NO_DEBUG
         #define LOG(...);
+        #define LOGSIMPLE(...);
     #else
         #include <QDebug>
         #define LOG(...); {qDebug()<<__VA_ARGS__<<QString("Object::(%1) in %2:%3").arg(__FUNCTION__).arg(__FILE__).arg(__LINE__);}
+        #define LOGSIMPLE(...); {qDebug()<<__VA_ARGS__;}
     #endif
 
 #endif

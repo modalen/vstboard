@@ -81,13 +81,13 @@ bool AudioDeviceOut::Open()
     }
 
     //if no output channels
-    if(parentDevice->devInfo.maxOutputChannels==0) {
+    if(parentDevice->GetNbOutputs()==0) {
         parentDevice=0;
         //should be deleted : return false
         return false;
     }
 
-    listAudioPinIn->ChangeNumberOfPins( parentDevice->devInfo.maxOutputChannels );
+    listAudioPinIn->ChangeNumberOfPins( parentDevice->GetNbOutputs() );
 
     //device already has a child
     if(!parentDevice->SetObjectOutput(this)) {
@@ -100,6 +100,7 @@ bool AudioDeviceOut::Open()
     return true;
 }
 
+#ifdef CIRCULAR_BUFFER
 void AudioDeviceOut::SetRingBufferFromPins(QList<CircularBuffer*>listCircularBuffers) {
     int cpt=0;
     foreach(CircularBuffer *buf, listCircularBuffers) {
@@ -114,7 +115,7 @@ void AudioDeviceOut::SetRingBufferFromPins(QList<CircularBuffer*>listCircularBuf
         pinBuf->ResetStackCounter();
     }
 }
-
+#endif
 //QStandardItem *AudioDeviceOut::GetFullItem()
 //{
 //    QStandardItem *modelNode = Object::GetFullItem();

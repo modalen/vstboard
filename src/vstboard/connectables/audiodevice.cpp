@@ -470,10 +470,9 @@ bool AudioDevice::Open()
         return false;
     }
 
-    for(int i=0; i<devInfo.maxInputChannels; i++ )
-        listCircularBuffersIn << new CircularBuffer();
-    for(int i=0; i<devInfo.maxOutputChannels; i++ )
-        listCircularBuffersOut << new CircularBuffer();
+#ifdef CIRCULAR_BUFFER
+    CreateCircularBuffers();
+#endif
 
     mutexOpenClose.lock();
     opened=true;
@@ -518,15 +517,25 @@ bool AudioDevice::Close()
         Pa_CloseStream(stream);
         stream = 0;
     }
-
-    DeleteCircualBuffers();
+#ifdef CIRCULAR_BUFFER
+    DeleteCircularBuffers();
+#endif
     return true;
+}
+
+#ifdef CIRCULAR_BUFFER
+void AudioDevice::CreateCircularBuffers()
+{
+    for(int i=0; i<devInfo.maxInputChannels; i++ )
+        listCircularBuffersIn << new CircularBuffer();
+    for(int i=0; i<devInfo.maxOutputChannels; i++ )
+        listCircularBuffersOut << new CircularBuffer();
 }
 
 /*!
   Delete ring buffers, used by AudioDevice::CloseStream
   */
-void AudioDevice::DeleteCircualBuffers()
+void AudioDevice::DeleteCircularBuffers()
 {
     foreach(CircularBuffer *buf, listCircularBuffersIn)
         delete buf;
@@ -537,6 +546,7 @@ void AudioDevice::DeleteCircualBuffers()
     listCircularBuffersOut.clear();
 
 }
+#endif
 
 /*!
   Set the sleep state
@@ -567,6 +577,7 @@ float AudioDevice::GetCpuUsage()
    return Pa_GetStreamCpuLoad(stream);
 }
 
+#ifdef CIRCULAR_BUFFER
 bool AudioDevice::DeviceToRingBuffers( const void *inputBuffer, unsigned long framesPerBuffer)
 {
 
@@ -678,7 +689,66 @@ bool AudioDevice::RingBuffersToDevice( void *outputBuffer, unsigned long framesP
 
     return true;
 }
+#else
+bool AudioDevice::DeviceToPinBuffers( const void *inputBuffer, unsigned long framesPerBuffer )
+{
+    unsigned long hostBuffSize = myHost->GetBufferSize();
+    if(framesPerBuffer > hostBuffSize) {
+       myHost->SetBufferSize(framesPerBuffer);
+       hostBuffSize = framesPerBuffer;
+    }
 
+    mutexDevicesInOut.lock();
+    if(!devIn) {
+        mutexDevicesInOut.unlock();
+        return true;
+    }
+
+    if(!devIn)
+        return true;
+    PinsList *lst = devIn->GetPinList(Directions::Output,MediaTypes::Audio);
+    if(!lst)
+        return true;
+
+    for(int cpt=0; cpt<lst->nbPins(); cpt++) {
+        AudioBuffer *pinBuf = lst->GetBuffer(cpt);
+        if(pinBuf->GetSize() < hostBuffSize) {
+            pinBuf->SetSize(hostBuffSize);
+        }
+        pinBuf->SetBufferContent( ((float **) inputBuffer)[cpt], framesPerBuffer);
+    }
+
+    mutexDevicesInOut.unlock();
+
+    return true;
+}
+
+bool AudioDevice::PinBuffersToDevice( void *outputBuffer, unsigned long framesPerBuffer )
+{
+    mutexDevicesInOut.lock();
+    if(devOutClosing) {
+        devOutClosing=false;
+        mutexDevicesInOut.unlock();
+        return true;
+    }
+    mutexDevicesInOut.unlock();
+
+    if(!devOut)
+        return true;
+    PinsList *lst = devOut->GetPinList(Directions::Input,MediaTypes::Audio);
+    if(!lst)
+        return true;
+
+    for(int cpt=0; cpt<lst->nbPins(); cpt++) {
+        AudioBuffer *pinBuf = lst->GetBuffer(cpt);
+        pinBuf->ConsumeStack();
+        pinBuf->DumpToBuffer( ((float **) outputBuffer)[cpt], framesPerBuffer);
+        pinBuf->ResetStackCounter();
+    }
+
+    return true;
+}
+#endif
 /*!
   PortAudio callback
   put the audio provided by PortAudio in ring buffers
@@ -692,6 +762,8 @@ int AudioDevice::paCallback( const void *inputBuffer, void *outputBuffer,
                                  void *userData )
 {
     AudioDevice* device = (AudioDevice*)userData;
+
+#ifdef CIRCULAR_BUFFER
     if(!device->DeviceToRingBuffers(inputBuffer, framesPerBuffer))
         return paComplete;
 
@@ -709,6 +781,21 @@ int AudioDevice::paCallback( const void *inputBuffer, void *outputBuffer,
 
     if(!device->RingBuffersToDevice(outputBuffer, framesPerBuffer))
         return paComplete;
+#else
+    device->mutexOpenClose.lock();
+    if(device->isClosing) {
+        device->mutexOpenClose.unlock();
+        return paComplete;
+    }
+    device->mutexOpenClose.unlock();
 
+    if(!device->DeviceToPinBuffers(inputBuffer,framesPerBuffer))
+        return paComplete;
+
+    device->myHost->Render();
+
+    if(!device->PinBuffersToDevice(outputBuffer,framesPerBuffer))
+        return paComplete;
+#endif
     return paContinue;
 }
