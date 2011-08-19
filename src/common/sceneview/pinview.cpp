@@ -57,7 +57,7 @@ PinView::PinView(const MetaInfo &info, float angle, QGraphicsItem * parent, View
     connect(actDel,SIGNAL(triggered()),
             this,SLOT(RemovePin()));
 
-    if(Meta(MetaInfos::Removable).toBool())
+    if(MetaInfo::data.GetMetaData<bool>(MetaInfos::Removable))
         addAction(actDel);
 
     actUnplug = new QAction(QIcon(":/img16x16/editcut.png"),tr("Unplug"),this);
@@ -90,7 +90,7 @@ void PinView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 void PinView::UpdateCablesPosition()
 {
     foreach (CableView *cable, connectedCables) {
-        cable->UpdatePosition(info(), pinAngle, mapToScene(pinPos()) );
+        cable->UpdatePosition(ObjId(), pinAngle, mapToScene(pinPos()) );
     }
 }
 
@@ -145,7 +145,7 @@ void PinView::mouseMoveEvent ( QGraphicsSceneMouseEvent  * event )
     drag->setMimeData(mime);
 
     if(!currentLine) {
-        currentLine = new CableView(info(),event->pos(),this,config);
+        currentLine = new CableView(ObjId(),event->pos(),this,config);
         AddCable(currentLine);
     }
 
@@ -184,7 +184,7 @@ void PinView::Unplug()
 
 void PinView::RemovePin()
 {
-    if(Meta(MetaInfos::Removable).toBool())
+    if(MetaInfo::data.GetMetaData<bool>(MetaInfos::Removable))
         emit RemovePin(info());
 }
 
@@ -208,7 +208,7 @@ void PinView::dragEnterEvent ( QGraphicsSceneDragDropEvent * event )
         event->acceptProposedAction();
 
         if(currentLine) {
-            currentLine->UpdatePosition(info(),pinAngle,mapToScene(pinPos()));
+            currentLine->UpdatePosition(ObjId(),pinAngle,mapToScene(pinPos()));
             currentLine->setVisible(true);
         }
         if(highlight)
@@ -258,7 +258,7 @@ void PinView::dropEvent ( QGraphicsSceneDragDropEvent  * event )
 const QPointF PinView::pinPos() const
 {
     qreal x = 0;
-    if(Meta(MetaInfos::Direction).toInt()==Directions::Output)
+    if(MetaInfo::data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Output)
         x = geometry().width();
     return QPointF(x,geometry().height()/2);
 }
@@ -269,7 +269,7 @@ const QPointF PinView::pinPos() const
   */
 void PinView::AddCable(CableView *cable)
 {
-    cable->UpdatePosition(info(), pinAngle, mapToScene(pinPos()) );
+    cable->UpdatePosition(ObjId(), pinAngle, mapToScene(pinPos()) );
     connectedCables.append(cable);
     actUnplug->setEnabled(true);
     setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);

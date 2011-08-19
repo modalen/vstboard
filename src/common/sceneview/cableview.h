@@ -36,14 +36,16 @@ namespace View {
     {
     Q_OBJECT
     public:
-        CableView(const MetaInfo &pinOut, const MetaInfo &pinIn, QGraphicsItem *parent, ViewConfig *config);
-        CableView(const MetaInfo &pinOut, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config);
+        CableView(const int pinOutId, const int pinInId, QGraphicsItem *parent, ViewConfig *config);
+        CableView(const int pinOutId, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config);
 
-        void UpdatePosition(const MetaInfo &pinInfo, const float angle, const QPointF &pt);
+        void UpdatePosition(const int pinId, const float angle, const QPointF &pt);
         void UpdatePosition(const QPointF &pt);
 
-        const MetaInfo pinOut;
-        const MetaInfo pinIn;
+//        const MetaInfo pinOut;
+//        const MetaInfo pinIn;
+        const int pinOutId;
+        const int pinInId;
 
     protected:
         QPointF PtOut;

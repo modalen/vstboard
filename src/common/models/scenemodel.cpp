@@ -94,33 +94,33 @@ bool SceneModel::dropFile( const QString &fName, MetaInfo &info, MetaInfo &targe
     //vst plugin ?
     if ( fileType=="dll" ) {
         info.SetType(MetaTypes::object);
-        info.SetMeta(MetaInfos::ObjType, ObjTypes::VstPlugin);
-        info.SetMeta(MetaInfos::Filename, fName);
+        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::VstPlugin);
+        info.data.SetMeta(MetaInfos::Filename, fName);
         return true;
     }
 #endif
 
     //fxb file
     if( fileType == VST_BANK_FILE_EXTENSION ) {
-        if(target.Meta(MetaInfos::ObjType).toInt() != ObjTypes::VstPlugin) {
+        if(target.data.GetMetaData<ObjTypes::Enum>(MetaInfos::ObjType) != ObjTypes::VstPlugin) {
             LOG("fxb bad target");
             return false;
         }
 
 //        if( senderObj->LoadBank(fName) ) {
-            target.SetMeta(MetaInfos::bankFile,fName);
+            target.data.SetMeta(MetaInfos::bankFile,fName);
             return true;
 //        }
     }
 
     if( fileType == VST_PROGRAM_FILE_EXTENSION ) {
-        if(target.Meta(MetaInfos::ObjType).toInt() != ObjTypes::VstPlugin) {
+        if(target.data.GetMetaData<ObjTypes::Enum>(MetaInfos::ObjType) != ObjTypes::VstPlugin) {
             LOG("fxp bad target");
             return false;
         }
 
 //        if( senderObj->LoadProgram(fName) ) {
-            target.SetMeta(MetaInfos::programFile,fName);
+            target.data.SetMeta(MetaInfos::programFile,fName);
             return true;
 //        }
     }
@@ -194,20 +194,20 @@ bool SceneModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, QPoin
 //            stream >> info;
 //            if(info.Meta(MetaInfos::ObjType).toInt() == ObjTypes::AudioInterface) {
 //                if(info.Meta(MetaInfos::nbInputs).toInt()!=0) {
-//                    info.SetMeta(MetaInfos::Direction,Directions::Input);
+//                    info.data.SetMeta(MetaInfos::Direction,Directions::Input);
 //                    listObjInfoToAdd << info;
 //                 }
 
-//                if(info.Meta(MetaInfos::nbOutputs).toInt()!=0) {
+//                if(info.data.Meta(MetaInfos::nbOutputs).toInt()!=0) {
 
 //                    //move the second device
-//                    if(info.Meta(MetaInfos::nbInputs).toInt()!=0) {
+//                    if(info.data.Meta(MetaInfos::nbInputs).toInt()!=0) {
 //                        QPointF pt = info.Meta(MetaInfos::Position).toPointF();
 //                        pt.rx()+=110;
-//                        info.SetMeta(MetaInfos::Position,pt);
+//                        info.data.SetMeta(MetaInfos::Position,pt);
 //                    }
 
-//                    info.SetMeta(MetaInfos::Direction,Directions::Output);
+//                    info.data.SetMeta(MetaInfos::Direction,Directions::Output);
 //                    listObjInfoToAdd << info;
 //                }
 //            }
@@ -223,7 +223,7 @@ bool SceneModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, QPoin
         else
             info.SetContainerId(senderInfo.ContainerId());
 
-        info.SetMeta(MetaInfos::Position,pos);
+        info.data.SetMeta(MetaInfos::Position,pos);
         pos+=QPointF(15,15);
 
         MetaInfo targetInfo;

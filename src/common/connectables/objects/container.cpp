@@ -341,7 +341,6 @@ void Container::UnloadProgram()
 void Container::RemoveProgram(int progId)
 {
     if(progId>0) {
-//        LOG("add prog to remove progId"<<progId<<QThread::currentThread());
         listProgToRemove << progId;
     }
 
@@ -385,7 +384,7 @@ void Container::AddObject(QSharedPointer<Object> objPtr)
     objPtr->UnloadProgram();
 
     //bridges are not stored in program
-    int direction = objPtr->Meta(MetaInfos::Direction).toInt();
+    int direction = objPtr->data.GetMetaData<int>(MetaInfos::Direction);
     if(objPtr->Type() == MetaTypes::bridge) {
         switch(direction) {
         case Directions::Input :
@@ -869,9 +868,7 @@ bool Container::loadProgramFromStream (QDataStream &in)
 
 void Container::ProgramToStream (int progId, QDataStream &out)
 {
-//    LOG("prg to stream"<<progId<<QThread::currentThread())
-
-    ContainerProgram *prog = 0;
+   ContainerProgram *prog = 0;
 
     mutexCurrentProg.lock();
     if(progId == currentProgId)
@@ -910,8 +907,6 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
     in >> valid;
     if(valid!=1)
         return;
-
-//    LOG("prg from stream"<<progId<<QThread::currentThread())
 
     if(listProgToRemove.contains(progId)) {
         LOG("cancel deletion"<<progId<<objectName());

@@ -113,7 +113,7 @@ void AudioDevice::DeleteIfUnused()
 
     if(del) {
         SetSleep(true);
-        myHost->audioDevices->RemoveDevice(objInfo.Meta(MetaInfos::devId).toInt());
+        myHost->audioDevices->RemoveDevice(objInfo.data.GetMetaData<int>(MetaInfos::devId));
     }
 
 }
@@ -212,7 +212,7 @@ void AudioDevice::SetSampleRate(float rate)
   */
 bool AudioDevice::OpenStream(double sampleRate)
 {
-    if(Pa_GetDeviceInfo(objInfo.Meta(MetaInfos::devId).toInt())==0) {
+    if(Pa_GetDeviceInfo(objInfo.data.GetMetaData<int>(MetaInfos::devId))==0) {
         errorMessage=tr("Device not found");
         return false;
     }
@@ -228,10 +228,10 @@ bool AudioDevice::OpenStream(double sampleRate)
         inputParameters = new PaStreamParameters;
         ZeroMemory( inputParameters, sizeof( PaStreamParameters ) );
         inputParameters->channelCount = devInfo.maxInputChannels;
-        inputParameters->device = objInfo.Meta(MetaInfos::devId).toInt();
+        inputParameters->device = objInfo.data.GetMetaData<int>(MetaInfos::devId);
         inputParameters->hostApiSpecificStreamInfo = NULL;
         inputParameters->sampleFormat = paFloat32 | paNonInterleaved;
-        inputParameters->suggestedLatency = Pa_GetDeviceInfo(objInfo.Meta(MetaInfos::devId).toInt())->defaultLowInputLatency;
+        inputParameters->suggestedLatency = Pa_GetDeviceInfo(objInfo.data.GetMetaData<int>(MetaInfos::devId))->defaultLowInputLatency;
 
         switch(Pa_GetHostApiInfo( devInfo.hostApi )->type) {
             case paDirectSound :
@@ -296,10 +296,10 @@ bool AudioDevice::OpenStream(double sampleRate)
         outputParameters = new PaStreamParameters;
         ZeroMemory( outputParameters, sizeof( PaStreamParameters ) );
         outputParameters->channelCount = devInfo.maxOutputChannels;
-        outputParameters->device = objInfo.Meta(MetaInfos::devId).toInt();
+        outputParameters->device = objInfo.data.GetMetaData<int>(MetaInfos::devId);
         outputParameters->hostApiSpecificStreamInfo = NULL;
         outputParameters->sampleFormat = paFloat32 | paNonInterleaved;
-        outputParameters->suggestedLatency = Pa_GetDeviceInfo(objInfo.Meta(MetaInfos::devId).toInt())->defaultLowOutputLatency ;
+        outputParameters->suggestedLatency = Pa_GetDeviceInfo(objInfo.data.GetMetaData<int>(MetaInfos::devId))->defaultLowOutputLatency ;
 
         switch(Pa_GetHostApiInfo( devInfo.hostApi )->type) {
             case paDirectSound :
@@ -407,8 +407,8 @@ bool AudioDevice::OpenStream(double sampleRate)
 //        emit InUseChanged(objInfo.api,objInfo.id,true,inf->inputLatency,inf->outputLatency,inf->sampleRate);
 //    else
 //        emit InUseChanged(objInfo.api,objInfo.id,true);
-    emit InUseChanged(objInfo.Meta(MetaInfos::apiId).toInt(),
-                      objInfo.Meta(MetaInfos::devId).toInt(),
+    emit InUseChanged(objInfo.data.GetMetaData<int>(MetaInfos::apiId),
+                      objInfo.data.GetMetaData<int>(MetaInfos::devId),
                       true,
                       inputParameters?inputParameters->suggestedLatency:0,
                       outputParameters?outputParameters->suggestedLatency:0);
@@ -498,8 +498,8 @@ bool AudioDevice::Close()
 
     inputBufferReady=false;
 
-    emit InUseChanged( objInfo.Meta(MetaInfos::apiId).toInt(),
-                       objInfo.Meta(MetaInfos::devId).toInt(),
+    emit InUseChanged( objInfo.data.GetMetaData<int>(MetaInfos::apiId),
+                       objInfo.data.GetMetaData<int>(MetaInfos::devId),
                        false);
 
     if(stream)

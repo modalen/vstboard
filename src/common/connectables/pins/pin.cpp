@@ -49,7 +49,7 @@ Pin::Pin(Object *parent, MetaInfo &info) :
     SetType(MetaTypes::pin);
     setObjectName(Name());
 
-    if(!Meta(MetaInfos::Hidden).toBool())
+    if(!data.GetMetaData<bool>(MetaInfos::Hidden))
         SetVisible(true);
 }
 
@@ -95,9 +95,9 @@ void Pin::Close()
 void Pin::SetBridge(bool bridge)
 {
     if(bridge)
-        SetMeta(MetaInfos::Bridge, true);
+        data.SetMeta(MetaInfos::Bridge, true);
     else
-        DelMeta(MetaInfos::Bridge);
+        data.DelMeta(MetaInfos::Bridge);
 }
 
 /*!
@@ -112,7 +112,7 @@ void Pin::SetVisible(bool visible)
         return;
 
     if(visible) {
-        DelMeta(MetaInfos::Hidden);
+        data.DelMeta(MetaInfos::Hidden);
         connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
                 this,SLOT(updateView()),
                 Qt::UniqueConnection);
@@ -124,7 +124,7 @@ void Pin::SetVisible(bool visible)
 
     } else {
 
-        SetMeta(MetaInfos::Hidden,true);
+        data.SetMeta(MetaInfos::Hidden,true);
         //remove cables from pin
         if(ContainerInfo()) {
             QSharedPointer<Object> cnt = parent->getHost()->objFactory->GetObjectFromId(ContainerInfo()->ObjId());
@@ -134,7 +134,7 @@ void Pin::SetVisible(bool visible)
         }
 
         //remove pin
-        if(Meta(MetaInfos::Media).toInt()!=MediaTypes::Bridge) {
+        if(data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)!=MediaTypes::Bridge) {
             if(parent->getHost()->updateViewTimer)
                 disconnect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
                     this,SLOT(updateView()));
@@ -157,7 +157,7 @@ void Pin::updateView()
 {
     QMutexLocker l(&objMutex);
 
-    if(closed || Meta(MetaInfos::Hidden).toBool()) {
+    if(closed || data.GetMetaData<bool>(MetaInfos::Hidden)) {
         return;
     }
 
@@ -167,6 +167,6 @@ void Pin::updateView()
 
     valueChanged=false;
 
-    SetMeta(MetaInfos::Value,newVu);
+    data.SetMeta(MetaInfos::Value,newVu);
     UpdateView();
 }

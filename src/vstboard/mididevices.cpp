@@ -81,7 +81,7 @@ bool MidiDevices::Init()
         if(obj.isNull())
             continue;
 
-        if(obj->info().Meta(MetaInfos::ObjType).toInt() == ObjTypes::MidiInterface) {
+        if(obj->info().data.GetMetaData<int>(MetaInfos::ObjType) == ObjTypes::MidiInterface) {
 //            if(!obj->errorMessage.isEmpty())
                 obj->Open();
 //            obj->UpdateModelNode();
@@ -143,13 +143,13 @@ void MidiDevices::BuildModel()
 
         MetaInfo obj(MetaTypes::object);
         obj.SetName(devName);
-        obj.SetMeta(MetaInfos::ObjType, ObjTypes::MidiInterface);
-        obj.SetMeta(MetaInfos::devId, i);
-        obj.SetMeta(MetaInfos::devName, devName);
-        obj.SetMeta(MetaInfos::apiName, QString::fromLocal8Bit(devInfo->interf ));
-        obj.SetMeta(MetaInfos::duplicateNamesCounter, cptDuplicateNames);
-        obj.SetMeta(MetaInfos::nbInputs, devInfo->input);
-        obj.SetMeta(MetaInfos::nbOutputs, devInfo->output);
+        obj.data.SetMeta(MetaInfos::ObjType, ObjTypes::MidiInterface);
+        obj.data.SetMeta(MetaInfos::devId, i);
+        obj.data.SetMeta(MetaInfos::devName, devName);
+        obj.data.SetMeta(MetaInfos::apiName, QString::fromLocal8Bit(devInfo->interf ));
+        obj.data.SetMeta(MetaInfos::duplicateNamesCounter, cptDuplicateNames);
+        obj.data.SetMeta(MetaInfos::nbInputs, devInfo->input);
+        obj.data.SetMeta(MetaInfos::nbOutputs, devInfo->output);
 
         items << new QStandardItem(devName);
         items << new QStandardItem(QString::number(devInfo->input));

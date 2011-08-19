@@ -72,7 +72,7 @@ bool MidiDevice::OpenStream()
     QMutexLocker l(&objMutex);
 
     if(!FindDeviceByName()){
-        SetMeta(MetaInfos::errorMessage, tr("Device not found") );
+        data.SetMeta(MetaInfos::errorMessage, tr("Device not found") );
         return false;
     }
 
@@ -82,8 +82,8 @@ bool MidiDevice::OpenStream()
         return false;
     }
 
-    if(Meta(MetaInfos::nbInputs).toInt()>0) {
-        PmError err = Pm_OpenInput(&stream, (PmDeviceID)Meta(MetaInfos::devId).toInt(), 0, 512, 0, 0);
+    if(data.GetMetaData<int>(MetaInfos::nbInputs)>0) {
+        PmError err = Pm_OpenInput(&stream, (PmDeviceID)data.GetMetaData<int>(MetaInfos::devId), 0, 512, 0, 0);
         if (err!=pmNoError) {
             QString msgTxt;
             if(err==pmHostError) {
@@ -95,7 +95,7 @@ bool MidiDevice::OpenStream()
                 LOG("openInput error"<<Pm_GetErrorText(err));
                 msgTxt=Pm_GetErrorText(err);
             }
-            SetMeta(MetaInfos::errorMessage,tr("Error while opening midi device %1 %2").arg(Name()).arg(msgTxt));
+            data.SetMeta(MetaInfos::errorMessage,tr("Error while opening midi device %1 %2").arg(Name()).arg(msgTxt));
             return false;
         }
 
@@ -112,13 +112,13 @@ bool MidiDevice::OpenStream()
                 msgTxt=Pm_GetErrorText(err);
                 LOG("setFilter error"<<Pm_GetErrorText(err));
             }
-            SetMeta(MetaInfos::errorMessage,tr("Error while opening midi device %1 %2").arg(Name()).arg(msgTxt));
+            data.SetMeta(MetaInfos::errorMessage,tr("Error while opening midi device %1 %2").arg(Name()).arg(msgTxt));
             return false;
         }
     }
 
-    if(Meta(MetaInfos::nbOutputs).toInt()>0) {
-        PmError err = Pm_OpenOutput(&stream, (PmDeviceID)Meta(MetaInfos::devId).toInt(), 0, 512, 0, 0, 0);
+    if(data.GetMetaData<int>(MetaInfos::nbOutputs)>0) {
+        PmError err = Pm_OpenOutput(&stream, (PmDeviceID)data.GetMetaData<int>(MetaInfos::devId), 0, 512, 0, 0, 0);
         if (err!=pmNoError) {
             QString msgTxt;
             if(err==pmHostError) {
@@ -131,7 +131,7 @@ bool MidiDevice::OpenStream()
                 LOG("openInput error"<<Pm_GetErrorText(err));
                 msgTxt=Pm_GetErrorText(err);
             }
-            SetMeta(MetaInfos::errorMessage,tr("Error while opening midi device %1 %2").arg(Name()).arg(msgTxt));
+            data.SetMeta(MetaInfos::errorMessage,tr("Error while opening midi device %1 %2").arg(Name()).arg(msgTxt));
             return false;
         }
     }
@@ -192,17 +192,17 @@ bool MidiDevice::FindDeviceByName()
 
     for(int i=0;i<Pm_CountDevices();i++) {
         const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
-        if( !strcmp(info->interf, Meta(MetaInfos::apiName).toByteArray())
-            && !strcmp(info->name, Meta(MetaInfos::devName).toByteArray())
-            && info->input == Meta(MetaInfos::nbInputs).toInt()
-            && info->output == Meta(MetaInfos::nbOutputs).toInt()
+        if( !strcmp(info->interf, data.GetMetaData<QByteArray>(MetaInfos::apiName))
+            && !strcmp(info->name, data.GetMetaData<QByteArray>(MetaInfos::devName))
+            && info->input == data.GetMetaData<int>(MetaInfos::nbInputs)
+            && info->output == data.GetMetaData<int>(MetaInfos::nbOutputs)
         ) {
             //can be this one, but the interface number can change form a comp to another
             if(cptDuplicateNames==0)
                 canBe=i;
 
             //we found the same number and the same name
-            if(Meta(MetaInfos::duplicateNamesCounter).toInt() == cptDuplicateNames) {
+            if(data.GetMetaData<int>(MetaInfos::duplicateNamesCounter) == cptDuplicateNames) {
                 devInfo = info;
                 deviceNumber = i;
                 break;
@@ -218,24 +218,24 @@ bool MidiDevice::FindDeviceByName()
             deviceNumber=canBe;
             devInfo = Pm_GetDeviceInfo(deviceNumber);
         } else {
-            SetMeta(MetaInfos::errorMessage, tr("Error : device was deleted"));
+            data.SetMeta(MetaInfos::errorMessage, tr("Error : device was deleted"));
             LOG("device not found");
             return false;
         }
     }
 
-    SetMeta(MetaInfos::devId, deviceNumber);
+    data.SetMeta(MetaInfos::devId, deviceNumber);
     return true;
 }
 
 bool MidiDevice::Open()
 {
-    DelMeta(MetaInfos::errorMessage);
+    data.DelMeta(MetaInfos::errorMessage);
     closed=false;
 
     //device not found, create a dummy object
     if(!FindDeviceByName()){
-        SetMeta(MetaInfos::errorMessage, tr("Device not found"));
+        data.SetMeta(MetaInfos::errorMessage, tr("Device not found"));
         return true;
     }
 

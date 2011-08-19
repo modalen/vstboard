@@ -30,7 +30,7 @@ class Test_MetaData : public QObject
 
 public:
 
-    Test_MetaData();
+    Test_MetaData() {}
 
     int iter;
 
@@ -285,9 +285,6 @@ private Q_SLOTS:
 
 };
 
-Test_MetaData::Test_MetaData()
-{}
-
-QTEST_MAIN(Test_MetaData);
+//QTEST_MAIN(Test_MetaData);
 
 #include "test_metadata.moc"

@@ -99,12 +99,12 @@ void VstAutomation::ValueFromHost(int pinNum, float value)
                 QUndoCommand *com = new QUndoCommand(tr("Add pin"));
                 if(!listParameterPinOut->listPins.contains(pinNum)) {
                     MetaInfo info(listParameterPinOut->getMetaForPin(pinNum));
-                    info.SetMeta(MetaInfos::Removable,true);
+                    info.data.SetMeta(MetaInfos::Removable,true);
                     new ComAddPin(myHost,info,com);
                 }
                 if(!listParameterPinIn->listPins.contains(pinNum)) {
                     MetaInfo info(listParameterPinIn->getMetaForPin(pinNum));
-                    info.SetMeta(MetaInfos::Removable,true);
+                    info.data.SetMeta(MetaInfos::Removable,true);
                     new ComAddPin(myHost,info,com);
                 }
                 if(com->childCount())
@@ -122,7 +122,7 @@ void VstAutomation::ValueFromHost(int pinNum, float value)
 void VstAutomation::OnParameterChanged(const MetaInfo &pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
-    if(pinInfo.Meta(MetaInfos::PinNumber).toInt()==FixedPinNumber::numberOfPins) {
+    if(pinInfo.data.GetMetaData<FixedPinNumber::Enum>(MetaInfos::PinNumber)==FixedPinNumber::numberOfPins) {
         int nbPins=static_cast<ParameterPin*>( listParameterPinIn->listPins.value(FixedPinNumber::numberOfPins) )->GetIndex();
 
         QUndoCommand *com = new QUndoCommand(tr("Change number of pins"));
@@ -135,8 +135,8 @@ void VstAutomation::OnParameterChanged(const MetaInfo &pinInfo, float value)
             new ComRemovePin(myHost,listParameterPinOut->listPins.value(i)->info(),com);
         foreach(quint16 i, listAdded) {
             MetaInfo info(listParameterPinOut->info());
-            info.SetMeta(MetaInfos::PinNumber, i);
-            info.SetMeta(MetaInfos::Removable,true);
+            info.data.SetMeta(MetaInfos::PinNumber, i);
+            info.data.SetMeta(MetaInfos::Removable,true);
             new ComAddPin(myHost,info,com);
         }
 
@@ -149,8 +149,8 @@ void VstAutomation::OnParameterChanged(const MetaInfo &pinInfo, float value)
             new ComRemovePin(myHost,listParameterPinIn->listPins.value(i)->info(),com);
         foreach(quint16 i, listAdded) {
             MetaInfo info(listParameterPinIn->info());
-            info.SetMeta(MetaInfos::PinNumber, i);
-            info.SetMeta(MetaInfos::Removable,true);
+            info.data.SetMeta(MetaInfos::PinNumber, i);
+            info.data.SetMeta(MetaInfos::Removable,true);
             new ComAddPin(myHost,info,com);
         }
 
@@ -161,8 +161,8 @@ void VstAutomation::OnParameterChanged(const MetaInfo &pinInfo, float value)
         return;
     }
 
-    if(pinInfo.Meta(MetaInfos::Direction).toInt()==Directions::Input && pinInfo.Meta(MetaInfos::PinNumber).toInt()<200)
-        listChanged.insert(pinInfo.Meta(MetaInfos::PinNumber).toInt(),value);
+    if(pinInfo.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Input && pinInfo.data.GetMetaData<int>(MetaInfos::PinNumber)<200)
+        listChanged.insert(pinInfo.data.GetMetaData<int>(MetaInfos::PinNumber),value);
 }
 
 bool VstAutomation::Close()
@@ -183,12 +183,12 @@ Pin* VstAutomation::CreatePin(MetaInfo &info)
     if(newPin)
         return newPin;
 
-    if(info.Meta(MetaInfos::Media).toInt()!=MediaTypes::Parameter) {
+    if(info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)!=MediaTypes::Parameter) {
         LOG("wrong PinType");
         return 0;
     }
 
-    int pinnumber = info.Meta(MetaInfos::PinNumber).toInt();
+    int pinnumber = info.data.GetMetaData<int>(MetaInfos::PinNumber);
 
     switch(pinnumber) {
 

@@ -207,8 +207,8 @@ void SceneView::DelObj(quint32 objId)
         }
     case MetaTypes::cable :
         {
-            MetaInfo infoOut = info.Meta(MetaInfos::nbOutputs).value<MetaInfo>();
-            MetaInfo infoIn = info.Meta(MetaInfos::nbInputs).value<MetaInfo>();
+            MetaInfo infoOut = info.data.GetMetaData<MetaInfo>(MetaInfos::nbOutputs);
+            MetaInfo infoIn = info.data.GetMetaData<MetaInfo>(MetaInfos::nbInputs);
 
             PinView* pinOut = static_cast<PinView*>(mapViewItems.value( infoOut.ObjId(),0 ));
             PinView* pinIn = static_cast<PinView*>(mapViewItems.value( infoIn.ObjId(),0 ));
@@ -307,7 +307,7 @@ void SceneView::AddObj(MetaInfo &info)
                 return;
             }
 
-            switch(info.Meta(MetaInfos::Direction).toInt()) {
+            switch(info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)) {
                 case Directions::Input :
                     objView = static_cast<MainContainerView*>(parentView)->bridgeIn;
                     break;
@@ -341,7 +341,7 @@ void SceneView::AddObj(MetaInfo &info)
                 return;
             }
 
-            if(info.Meta(MetaInfos::ObjType).toInt() == ObjTypes::VstPlugin) {
+            if(info.data.GetMetaData<ObjTypes::Enum>(MetaInfos::ObjType) == ObjTypes::VstPlugin) {
                 objView = new VstPluginView(info, containerView, model);
             } else {
                 objView = new ConnectableObjectView(info, containerView, model);
@@ -351,9 +351,9 @@ void SceneView::AddObj(MetaInfo &info)
 //                objView->SetModelIndex(info);
 //            QPointF pos = containerView->GetDropPos();
 //            objView->setPos(pos);
-//            info.SetMeta(MetaInfos::Position, pos);
+//            info.data.SetMeta(MetaInfos::Position, pos);
 //            model()->setData(index,pos,UserRoles::position);
-            QPointF pos = info.Meta(MetaInfos::Position).toPointF();
+            QPointF pos = info.data.GetMetaData<QPointF>(MetaInfos::Position);
              objView->setPos(pos);
 
             objView->SetConfig(myHost->mainWindow->viewConfig);
@@ -383,8 +383,8 @@ void SceneView::AddObj(MetaInfo &info)
 
             ListPinsView *v=0;
 
-            int media = info.Meta(MetaInfos::Media).toInt();
-            int direction = info.Meta(MetaInfos::Direction).toInt();
+            int media = info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media);
+            int direction = info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction);
 
             if(media==MediaTypes::Audio) {
                 if(direction==Directions::Input)
@@ -427,11 +427,11 @@ void SceneView::AddObj(MetaInfo &info)
 
             PinView *pinView;
             float angle=.0f;
-            int media = info.Meta(MetaInfos::Media).toInt();
+            int media = info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media);
 
             if(media == MediaTypes::Bridge) {
                 MetaInfo parentInfo = mapMetaInfos.value(info.ParentObjectId());
-                int direction = parentInfo.Meta(MetaInfos::Direction).toInt();
+                int direction = parentInfo.data.GetMetaData<Directions::Enum>(MetaInfos::Direction);
                 if(direction==Directions::Input || direction==Directions::Output)
                     angle=1.570796f; //pi/2
                 if(direction==Directions::Send || direction==Directions::Return)
@@ -440,7 +440,7 @@ void SceneView::AddObj(MetaInfo &info)
                 pinView = static_cast<PinView*>( new BridgePinView(info, angle, parentList, myHost->mainWindow->viewConfig) );
 
             } else {
-                int direction = info.Meta(MetaInfos::Direction).toInt();
+                int direction = info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction);
                 if(direction==Directions::Input)
                     angle=3.141592f;
                 if(direction==Directions::Output)
@@ -466,7 +466,7 @@ void SceneView::AddObj(MetaInfo &info)
             connect(pinView,SIGNAL(destroyed(QObject*)),
                     this,SLOT(graphicObjectRemoved(QObject*)));
 
-            int pinPlace = parentList->GetPinPosition(info.Meta(MetaInfos::PinNumber).toInt());
+            int pinPlace = parentList->GetPinPosition(info.data.GetMetaData<int>(MetaInfos::PinNumber));
             parentList->layout->insertItem(pinPlace, pinView);
 
             parentList->layout->setAlignment(pinView,Qt::AlignTop);
@@ -495,17 +495,17 @@ void SceneView::AddObj(MetaInfo &info)
                 LOG("add cable, container not found"<<info.toStringFull());
                 return;
             }
-            MetaInfo infoOut = info.Meta(MetaInfos::nbOutputs).value<MetaInfo>();
-            MetaInfo infoIn = info.Meta(MetaInfos::nbInputs).value<MetaInfo>();
+            int pinOutId = info.data.GetMetaData<int>(MetaInfos::nbOutputs);
+            int pinInid = info.data.GetMetaData<int>(MetaInfos::nbInputs);
 
-            PinView* pinOut = static_cast<PinView*>(mapViewItems.value( infoOut.ObjId(),0 ));
-            PinView* pinIn = static_cast<PinView*>(mapViewItems.value( infoIn.ObjId(),0 ));
+            PinView* pinOut = static_cast<PinView*>(mapViewItems.value( pinOutId,0 ));
+            PinView* pinIn = static_cast<PinView*>(mapViewItems.value( pinInid,0 ));
 
             if(!pinOut || !pinIn) {
                 LOG("addcable : pin not found"<<info.toStringFull());
                 return;
             }
-            CableView *cable = new CableView(infoOut,infoIn,cnt,myHost->mainWindow->viewConfig);
+            CableView *cable = new CableView(pinOutId,pinInid,cnt,myHost->mainWindow->viewConfig);
             pinOut->AddCable(cable);
             pinIn->AddCable(cable);
             mapViewItems.insert(info.ObjId(), cable);

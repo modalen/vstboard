@@ -135,6 +135,7 @@ int main(int argc, char *argv[])
     w.readSettings();
     w.show();
     w.LoadDefaultFiles();
+    QThread::currentThread()->setPriority(QThread::LowestPriority);
     app.exec();
     delete engine;
     return 0;

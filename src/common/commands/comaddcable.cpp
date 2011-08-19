@@ -20,7 +20,7 @@ ComAddCable::ComAddCable(MainHost *myHost,
     currentGroup = myHost->programsModel->GetCurrentMidiGroup();
     currentProg =  myHost->programsModel->GetCurrentMidiProg();
 
-    if(outInfo.Meta(MetaInfos::Direction).toInt()==Directions::Input) {
+    if(outInfo.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Input) {
         MetaInfo tmp(outInfo);
         this->outInfo=MetaInfo(inInfo);
         this->inInfo=MetaInfo(tmp);

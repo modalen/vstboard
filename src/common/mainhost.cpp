@@ -187,7 +187,7 @@ bool MainHost::event(QEvent *event)
                     QSharedPointer<Connectables::Object>obj = objFactory->GetObjectFromId(e->objInfo.ObjId());
                     if(!obj)
                         return true;
-                    obj->SetMeta(e->type,e->value);
+                    obj->data.SetMeta(e->type,e->value);
                     return true;
                 }
                 case MetaTypes::pin: {
@@ -196,14 +196,14 @@ bool MainHost::event(QEvent *event)
                         return true;
 
                     Connectables::ParameterPin* p = static_cast<Connectables::ParameterPin*>(pin);
-                    p->SetMeta(e->type,e->value);
+                    p->data.SetMeta(e->type,e->value);
                     switch(e->type) {
                         case MetaInfos::Value :
                         case MetaInfos::LimitInMin :
                         case MetaInfos::LimitInMax :
                         case MetaInfos::LimitOutMin :
                         case MetaInfos::LimitOutMax :
-                            p->ChangeValue(p->Meta(MetaInfos::Value).toFloat());
+                            p->ChangeValue(p->data.GetMetaData<float>(MetaInfos::Value));
                     }
                     return true;
                 }
@@ -272,7 +272,7 @@ void MainHost::SetupHostContainer()
     //bridge in
     MetaInfo in(MetaTypes::bridge);
     in.SetName("in");
-    in.SetMeta(MetaInfos::Direction, Directions::Input);
+    in.data.SetMeta(MetaInfos::Direction, Directions::Input);
     in.SetObjId(FixedObjIds::hostContainerIn);
 
     bridge = objFactory->NewObject(in);
@@ -284,7 +284,7 @@ void MainHost::SetupHostContainer()
     //bridge out
     MetaInfo out(MetaTypes::bridge);
     out.SetName("out");
-    out.SetMeta(MetaInfos::Direction, Directions::Output);
+    out.data.SetMeta(MetaInfos::Direction, Directions::Output);
     out.SetObjId(FixedObjIds::hostContainerOut);
 
     bridge = objFactory->NewObject(out);
@@ -302,7 +302,7 @@ void MainHost::SetupHostContainer()
     //send bridge
     MetaInfo send(MetaTypes::bridge);
     send.SetName("send");
-    send.SetMeta(MetaInfos::Direction, Directions::Send);
+    send.data.SetMeta(MetaInfos::Direction, Directions::Send);
     send.SetObjId(FixedObjIds::hostContainerSend);
 
     bridge = objFactory->NewObject(send);
@@ -314,7 +314,7 @@ void MainHost::SetupHostContainer()
     //return bridge
     MetaInfo retrn(MetaTypes::bridge);
     retrn.SetName("return");
-    retrn.SetMeta(MetaInfos::Direction, Directions::Return);
+    retrn.data.SetMeta(MetaInfos::Direction, Directions::Return);
     retrn.SetObjId(FixedObjIds::hostContainerReturn);
 
     bridge = objFactory->NewObject(retrn);
@@ -368,7 +368,7 @@ void MainHost::SetupProjectContainer()
     //bridge in
     MetaInfo in(MetaTypes::bridge);
     in.SetName("in");
-    in.SetMeta(MetaInfos::Direction, Directions::Input);
+    in.data.SetMeta(MetaInfos::Direction, Directions::Input);
     in.SetObjId(FixedObjIds::projectContainerIn);
 
     bridge = objFactory->NewObject(in);
@@ -380,7 +380,7 @@ void MainHost::SetupProjectContainer()
     //bridge out
     MetaInfo out(MetaTypes::bridge);
     out.SetName("out");
-    out.SetMeta(MetaInfos::Direction, Directions::Output);
+    out.data.SetMeta(MetaInfos::Direction, Directions::Output);
     out.SetObjId(FixedObjIds::projectContainerOut);
 
     bridge = objFactory->NewObject(out);
@@ -399,7 +399,7 @@ void MainHost::SetupProjectContainer()
     //bridge send
     MetaInfo send(MetaTypes::bridge);
     send.SetName("send");
-    send.SetMeta(MetaInfos::Direction, Directions::Send);
+    send.data.SetMeta(MetaInfos::Direction, Directions::Send);
     send.SetObjId(FixedObjIds::projectContainerSend);
 
     bridge = objFactory->NewObject(send);
@@ -411,7 +411,7 @@ void MainHost::SetupProjectContainer()
     //bridge return
     MetaInfo retrn(MetaTypes::bridge);
     retrn.SetName("return");
-    retrn.SetMeta(MetaInfos::Direction, Directions::Return);
+    retrn.data.SetMeta(MetaInfos::Direction, Directions::Return);
     retrn.SetObjId(FixedObjIds::projectContainerReturn);
 
     bridge = objFactory->NewObject(retrn);
@@ -471,7 +471,7 @@ void MainHost::SetupProgramContainer()
     //bridge in
     MetaInfo in(MetaTypes::bridge);
     in.SetName("in");
-    in.SetMeta(MetaInfos::Direction, Directions::Input);
+    in.data.SetMeta(MetaInfos::Direction, Directions::Input);
     in.SetObjId(FixedObjIds::programContainerIn);
 
     bridge = objFactory->NewObject(in);
@@ -483,7 +483,7 @@ void MainHost::SetupProgramContainer()
     //bridge out
     MetaInfo out(MetaTypes::bridge);
     out.SetName("out");
-    out.SetMeta(MetaInfos::Direction, Directions::Output);
+    out.data.SetMeta(MetaInfos::Direction, Directions::Output);
     out.SetObjId(FixedObjIds::programContainerOut);
 
     bridge = objFactory->NewObject(out);
@@ -502,7 +502,7 @@ void MainHost::SetupProgramContainer()
     //bridge send
     MetaInfo send(MetaTypes::bridge);
     send.SetName("send");
-    send.SetMeta(MetaInfos::Direction, Directions::Send);
+    send.data.SetMeta(MetaInfos::Direction, Directions::Send);
     send.SetObjId(FixedObjIds::programContainerSend);
 
     bridge = objFactory->NewObject(send);
@@ -514,7 +514,7 @@ void MainHost::SetupProgramContainer()
     //bridge return
     MetaInfo retrn(MetaTypes::bridge);
     retrn.SetName("return");
-    retrn.SetMeta(MetaInfos::Direction, Directions::Return);
+    retrn.data.SetMeta(MetaInfos::Direction, Directions::Return);
     retrn.SetObjId(FixedObjIds::programContainerReturn);
 
     bridge = objFactory->NewObject(retrn);
@@ -574,7 +574,7 @@ void MainHost::SetupGroupContainer()
     //bridge in
     MetaInfo in(MetaTypes::bridge);
     in.SetName("in");
-    in.SetMeta(MetaInfos::Direction, Directions::Input);
+    in.data.SetMeta(MetaInfos::Direction, Directions::Input);
     in.SetObjId(FixedObjIds::groupContainerIn);
 
     bridge = objFactory->NewObject(in);
@@ -586,7 +586,7 @@ void MainHost::SetupGroupContainer()
     //bridge out
     MetaInfo out(MetaTypes::bridge);
     out.SetName("out");
-    out.SetMeta(MetaInfos::Direction, Directions::Output);
+    out.data.SetMeta(MetaInfos::Direction, Directions::Output);
     out.SetObjId(FixedObjIds::groupContainerOut);
 
     bridge = objFactory->NewObject(out);
@@ -604,7 +604,7 @@ void MainHost::SetupGroupContainer()
     //bridge send
     MetaInfo send(MetaTypes::bridge);
     send.SetName("send");
-    send.SetMeta(MetaInfos::Direction, Directions::Send);
+    send.data.SetMeta(MetaInfos::Direction, Directions::Send);
     send.SetObjId(FixedObjIds::groupContainerSend);
 
     bridge = objFactory->NewObject(send);
@@ -616,7 +616,7 @@ void MainHost::SetupGroupContainer()
     //bridge return
     MetaInfo retrn(MetaTypes::bridge);
     retrn.SetName("return");
-    retrn.SetMeta(MetaInfos::Direction, Directions::Return);
+    retrn.data.SetMeta(MetaInfos::Direction, Directions::Return);
     retrn.SetObjId(FixedObjIds::groupContainerReturn);
 
     bridge = objFactory->NewObject(retrn);

@@ -110,7 +110,7 @@ bool AudioDeviceIn::Open()
     //device already has a child
     if(!parentDevice->SetObjectInput(this)) {
         parentDevice=0;
-        SetMeta(MetaInfos::errorMessage, tr("Already in use"));
+        data.SetMeta(MetaInfos::errorMessage, tr("Already in use"));
         return true;
     }
 
@@ -122,17 +122,17 @@ Pin* AudioDeviceIn::CreatePin(MetaInfo &info)
 {
     Pin *newPin = Object::CreatePin(info);
 
-    int pinnumber = Meta(MetaInfos::PinNumber).toInt();
+    int pinnumber = data.GetMetaData<int>(MetaInfos::PinNumber);
 
     if(newPin) {
-        if(info.Meta(MetaInfos::Media).toInt()==MediaTypes::Audio)
-            newPin->SetName(QString("Input %1").arg(info.Meta(MetaInfos::PinNumber).toInt()));
+        if(info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)==MediaTypes::Audio)
+            newPin->SetName(QString("Input %1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)));
         return newPin;
     }
 
 
 
-    switch(info.Meta(MetaInfos::Direction).toInt()) {
+    switch(info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)) {
         case Directions::Output :
             if(pinnumber==0) {
                 info.SetName(tr("cpu%"));

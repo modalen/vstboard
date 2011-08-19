@@ -104,14 +104,14 @@ void VstPluginWindow::LoadAttribs()
     if(!plugin)
         return;
 
-    QSize s = plugin->Meta(MetaInfos::EditorSize).toSize();
+    QSize s = plugin->data.GetMetaData<QSize>(MetaInfos::EditorSize);
     if(s==QSize(-1,-1))
         return;
 
     resize( s );
-    move( plugin->Meta(MetaInfos::EditorPosition).toPoint() );
-    ui->scrollArea->verticalScrollBar()->setValue( plugin->Meta(MetaInfos::EditorVScroll).toInt() );
-    ui->scrollArea->horizontalScrollBar()->setValue( plugin->Meta(MetaInfos::EditorHScroll).toInt() );
+    move( plugin->data.GetMetaData<QPoint>(MetaInfos::EditorPosition) );
+    ui->scrollArea->verticalScrollBar()->setValue( plugin->data.GetMetaData<int>(MetaInfos::EditorVScroll) );
+    ui->scrollArea->horizontalScrollBar()->setValue( plugin->data.GetMetaData<int>(MetaInfos::EditorHScroll) );
     ui->scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
@@ -121,10 +121,10 @@ void VstPluginWindow::SaveAttribs()
     if(!plugin)
         return;
 
-    plugin->SetMeta(MetaInfos::EditorSize, size());
-    plugin->SetMeta(MetaInfos::EditorPosition, pos());
-    plugin->SetMeta(MetaInfos::EditorVScroll, ui->scrollArea->verticalScrollBar()->value());
-    plugin->SetMeta(MetaInfos::EditorHScroll, ui->scrollArea->horizontalScrollBar()->value());
+    plugin->data.SetMeta(MetaInfos::EditorSize, size());
+    plugin->data.SetMeta(MetaInfos::EditorPosition, pos());
+    plugin->data.SetMeta(MetaInfos::EditorVScroll, ui->scrollArea->verticalScrollBar()->value());
+    plugin->data.SetMeta(MetaInfos::EditorHScroll, ui->scrollArea->horizontalScrollBar()->value());
 }
 
 void VstPluginWindow::closeEvent( QCloseEvent * event )

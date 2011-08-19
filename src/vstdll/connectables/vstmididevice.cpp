@@ -77,8 +77,8 @@ bool VstMidiDevice::Close()
 
 bool VstMidiDevice::Open()
 {
-    nbIn = Meta(MetaInfos::nbInputs).toInt();
-    nbOut = Meta(MetaInfos::nbOutputs).toInt();
+    nbIn = data.GetMetaData<int>(MetaInfos::nbInputs);
+    nbOut = data.GetMetaData<int>(MetaInfos::nbOutputs);
 
     if(nbIn>0)
         static_cast<MainHostVst*>(myHost)->myVstPlugin->addMidiIn(this);

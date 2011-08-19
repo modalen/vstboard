@@ -59,7 +59,7 @@ ObjectView::ObjectView(const MetaInfo &info, QGraphicsItem * parent ) :
 
     setAutoFillBackground(true);
 
-    if(Meta(MetaInfos::ObjType).toInt() == ObjTypes::Dummy) {
+    if(MetaInfo::data.GetMetaData<ObjTypes::Enum>(MetaInfos::ObjType) == ObjTypes::Dummy) {
         SetErrorMessage("object not loaded");
     }
 
@@ -158,10 +158,10 @@ void ObjectView::UpdateTitle()
     if(titleText) {
         QString newTitle = Name();
 
-        if(Meta(MetaInfos::Dirty).toBool())
+        if(MetaInfo::data.GetMetaData<bool>(MetaInfos::Dirty))
             newTitle.prepend("*");
 
-        if(Meta(MetaInfos::DoublePrecision).toBool())
+        if(MetaInfo::data.GetMetaData<bool>(MetaInfos::DoublePrecision))
             newTitle.append("(D)");
 
         titleText->setText( newTitle );
@@ -175,11 +175,11 @@ void ObjectView::UpdateModelIndex(const MetaInfo &info)
 {
     *(MetaInfo*)this=info;
 
-    if(Meta(MetaInfos::Position).isValid())
-        setPos( Meta(MetaInfos::Position).toPointF() );
+    if(MetaInfo::data.GetMeta<QPointF*>(MetaInfos::Position)!=0)
+        setPos( MetaInfo::data.GetMetaData<QPointF>(MetaInfos::Position) );
 
-    if(Meta(MetaInfos::errorMessage).isValid())
-        SetErrorMessage( Meta(MetaInfos::errorMessage).toString() );
+    if(MetaInfo::data.GetMeta<QString*>(MetaInfos::errorMessage)!=0)
+        SetErrorMessage( MetaInfo::data.GetMetaData<QString>(MetaInfos::errorMessage) );
 
     UpdateTitle();
 }
@@ -269,7 +269,7 @@ void ObjectView::resizeEvent ( QGraphicsSceneResizeEvent * event )
 void ObjectView::mouseReleaseEvent ( QGraphicsSceneMouseEvent * event )
 {
     QGraphicsWidget::mouseReleaseEvent(event);
-    SetMeta(MetaInfos::Position,pos());
+    MetaInfo::data.SetMeta(MetaInfos::Position,pos());
 //    model->setData(objIndex,pos(),UserRoles::position);
 }
 

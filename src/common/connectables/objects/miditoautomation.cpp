@@ -124,7 +124,7 @@ void MidiToAutomation::ChangeValue(int ctrl, int value) {
             case LearningMode::learn :
                 if(!listParameterPinOut->listPins.contains(ctrl)) {
                     MetaInfo info(listParameterPinOut->getMetaForPin(ctrl));
-                    info.SetMeta(MetaInfos::Removable, true);
+                    info.data.SetMeta(MetaInfos::Removable, true);
                     emit UndoStackPush( new ComAddPin(myHost,info) );
                 }
             case LearningMode::off :
@@ -142,9 +142,9 @@ Pin* MidiToAutomation::CreatePin(MetaInfo &info)
     if(newPin)
         return newPin;
 
-    int pinnumber = info.Meta(MetaInfos::PinNumber).toInt();
+    int pinnumber = info.data.GetMetaData<int>(MetaInfos::PinNumber);
 
-    switch(info.Meta(MetaInfos::Direction).toInt()) {
+    switch(info.data.GetMetaData<int>(MetaInfos::Direction)) {
         case Directions::Input : {
             if(pinnumber == FixedPinNumber::learningMode) {
                 info.SetName(tr("Learn"));
@@ -158,12 +158,12 @@ Pin* MidiToAutomation::CreatePin(MetaInfo &info)
         case Directions::Output : {
 
             if(pinnumber<128) {
-                info.SetName( tr("CC%1").arg(info.Meta(MetaInfos::PinNumber).toInt()) );
-                info.SetMeta(MetaInfos::Removable,true);
+                info.SetName( tr("CC%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)) );
+                info.data.SetMeta(MetaInfos::Removable,true);
 
             } else if(pinnumber>=para_notes) {
-                info.SetName( tr("note%1").arg(info.Meta(MetaInfos::PinNumber).toInt()) );
-                info.SetMeta(MetaInfos::Removable,true);
+                info.SetName( tr("note%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)) );
+                info.data.SetMeta(MetaInfos::Removable,true);
 
             } else switch(pinnumber) {
                 case para_prog:

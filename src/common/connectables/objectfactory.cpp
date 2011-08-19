@@ -154,7 +154,7 @@ QSharedPointer<Object> ObjectFactory::NewObject( MetaInfo &info)
 
             case MetaTypes::object :
 
-                switch(info.Meta(MetaInfos::ObjType).toInt()) {
+                switch(info.data.GetMetaData<int>(MetaInfos::ObjType)) {
 #ifdef SCRIPTENGINE
                     case ObjTypes::Script:
                         obj = new Script(myHost, info);
@@ -179,7 +179,7 @@ QSharedPointer<Object> ObjectFactory::NewObject( MetaInfo &info)
             #endif
 
                     case ObjTypes::Dummy :
-                        info.SetMeta(MetaInfos::errorMessage,"Dummy object");
+                        info.data.SetMeta<QString>(MetaInfos::errorMessage,"Dummy object");
                         obj = new Object(myHost, info);
                         break;
 

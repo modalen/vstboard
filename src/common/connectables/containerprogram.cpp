@@ -89,13 +89,13 @@ void ContainerProgram::Remove(int prgId)
 
 bool ContainerProgram::PinExistAndVisible(const MetaInfo &info)
 {
-    if(info.Meta(MetaInfos::Media).toInt()==MediaTypes::Bridge)
+    if(info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)==MediaTypes::Bridge)
         return true;
 
     Pin* pin=myHost->objFactory->GetPin(info);
     if(!pin)
         return false;
-    if(info.Meta(MetaInfos::Hidden).toBool())
+    if(info.data.GetMetaData<bool>(MetaInfos::Hidden))
         return false;
     return true;
 }
@@ -356,12 +356,12 @@ void ContainerProgram::CreateBridgeOverObj(int objId)
            cab->GetInfoOut().ContainerId()==objId || cab->GetInfoIn().ContainerId()==objId) {
 
             //for all output cables
-            if(cab->GetInfoOut().ParentObjectId()==objId && cab->GetInfoOut().Meta(MetaInfos::Media).toInt()!=MediaTypes::Parameter ) {
+            if(cab->GetInfoOut().ParentObjectId()==objId && cab->GetInfoOut().data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)!=MediaTypes::Parameter ) {
                 int j=listCables.size()-1;
                 while(j>=0) {
                     Cable *otherCab = listCables.at(j);
                     MetaInfo otherPin( cab->GetInfoOut() );
-                    otherPin.SetMeta(MetaInfos::Direction,Directions::Input);
+                    otherPin.data.SetMeta(MetaInfos::Direction,Directions::Input);
 
                     if(myHost->objFactory->UpdatePinInfo(otherPin)) {
                         //find corresponding input cables
@@ -375,12 +375,12 @@ void ContainerProgram::CreateBridgeOverObj(int objId)
             }
 
             //for all input cables
-            if(cab->GetInfoIn().ParentObjectId()==objId && cab->GetInfoIn().Meta(MetaInfos::Media).toInt()!=MediaTypes::Parameter ) {
+            if(cab->GetInfoIn().ParentObjectId()==objId && cab->GetInfoIn().data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)!=MediaTypes::Parameter ) {
                 int j=listCables.size()-1;
                 while(j>=0) {
                     Cable *otherCab = listCables.at(j);
                     MetaInfo otherPin = cab->GetInfoIn();
-                    otherPin.SetMeta(MetaInfos::Direction,Directions::Output);
+                    otherPin.data.SetMeta(MetaInfos::Direction,Directions::Output);
                     myHost->objFactory->UpdatePinInfo(otherPin);
 
                     //find corresponding output cables
@@ -421,7 +421,7 @@ void ContainerProgram::MoveOutputCablesFromObj(int newObjId, int oldObjId)
     while(i>=0) {
         Cable *cab = listCables.at(i);
         if(cab->GetInfoOut().ParentObjectId() == oldObjId
-                && cab->GetInfoOut().Meta(MetaInfos::Media).toInt() != MediaTypes::Parameter) {
+                && cab->GetInfoOut().data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media) != MediaTypes::Parameter) {
             MetaInfo newConnect(cab->GetInfoOut());
             newConnect.SetParentObjectId(newObjId);
             myHost->objFactory->UpdatePinInfo(newConnect);
@@ -439,7 +439,7 @@ void ContainerProgram::MoveInputCablesFromObj(int newObjId, int oldObjId)
     while(i>=0) {
         Cable *cab = listCables.at(i);
         if(cab->GetInfoIn().ParentObjectId()==oldObjId
-                && cab->GetInfoIn().Meta(MetaInfos::Media).toInt() != MediaTypes::Parameter) {
+                && cab->GetInfoIn().data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media) != MediaTypes::Parameter) {
             MetaInfo newConnect(cab->GetInfoIn());
             newConnect.SetParentObjectId(newObjId);
             myHost->objFactory->UpdatePinInfo(newConnect);

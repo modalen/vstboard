@@ -29,7 +29,7 @@ void ComDisconnectPin::undo ()
 
     foreach(MetaInfo info, listConnectedPins) {
         myHost->objFactory->UpdatePinInfo( info );
-        if(pinInfo.Meta(MetaInfos::Direction).toInt()==Directions::Output) {
+        if(pinInfo.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Output) {
             cntPtr->UserAddCable(pinInfo, info);
         } else {
             cntPtr->UserAddCable(info, pinInfo);

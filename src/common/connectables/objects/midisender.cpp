@@ -101,7 +101,7 @@ Pin* MidiSender::CreatePin(MetaInfo &info)
     if(newPin)
         return newPin;
 
-    switch(info.Meta(MetaInfos::PinNumber).toInt()) {
+    switch(info.data.GetMetaData<int>(MetaInfos::PinNumber)) {
         case Param_MsgType:
             info.SetName(tr("MsgType"));
             return new ParameterPin(this,info,"Ctrl",&listMsgType);

@@ -227,7 +227,7 @@ void MainWindow::BuildListTools()
     {
         //script
         MetaInfo info(MetaTypes::object);
-        info.SetMeta(MetaInfos::ObjType, ObjTypes::Script);
+        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::Script);
 
         QStandardItem *item = new QStandardItem(tr("Script"));
         item->setData(QVariant::fromValue(info), UserRoles::metaInfo);
@@ -238,7 +238,7 @@ void MainWindow::BuildListTools()
     {
         //midi parameters
         MetaInfo info(MetaTypes::object);
-        info.SetMeta(MetaInfos::ObjType, ObjTypes::MidiToAutomation);
+        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::MidiToAutomation);
 
         QStandardItem *item = new QStandardItem(tr("Midi to parameter"));
         item->setData(QVariant::fromValue(info), UserRoles::metaInfo);
@@ -248,7 +248,7 @@ void MainWindow::BuildListTools()
     {
         //midi sender
         MetaInfo info(MetaTypes::object);
-        info.SetMeta(MetaInfos::ObjType, ObjTypes::MidiSender);
+        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::MidiSender);
 
         QStandardItem *item = new QStandardItem(tr("Midi sender"));
         item->setData(QVariant::fromValue(info),UserRoles::metaInfo);
@@ -258,7 +258,7 @@ void MainWindow::BuildListTools()
     {
         //host controller
         MetaInfo info(MetaTypes::object);
-        info.SetMeta(MetaInfos::ObjType, ObjTypes::HostController);
+        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::HostController);
 
         QStandardItem *item = new QStandardItem(tr("Host Controller"));
         item->setData(QVariant::fromValue(info),UserRoles::metaInfo);

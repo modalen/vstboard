@@ -22,7 +22,7 @@
 
 using namespace View;
 
-CableView::CableView(const MetaInfo &pinOut, const MetaInfo &pinIn, QGraphicsItem *parent, ViewConfig *config)
+CableView::CableView(const int pinOutId, const int pinInId, QGraphicsItem *parent, ViewConfig *config)
 #ifndef SIMPLE_CABLES
     : QGraphicsPathItem(parent),
 #else
@@ -30,38 +30,39 @@ CableView::CableView(const MetaInfo &pinOut, const MetaInfo &pinIn, QGraphicsIte
 #endif
 
     QObject(),
-    pinOut(pinOut),
-    pinIn(pinIn)
+    pinOutId(pinOutId),
+    pinInId(pinInId)
 {
     setPen( config->GetColor(ColorGroups::Panel,Colors::Lines) );
     connect( config, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
             this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
 }
 
-CableView::CableView(const MetaInfo &pinOut, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config)
+CableView::CableView(const int pinOutId, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config)
 #ifndef SIMPLE_CABLES
     : QGraphicsPathItem(parent),
 #else
     : QGraphicsLineItem(parent),
 #endif
     QObject(),
-    pinOut(pinOut),
+    pinOutId(pinOutId),
+    pinInId(0),
     PtIn(PtIn),
     config(config)
 {
 
 }
 
-void CableView::UpdatePosition(const MetaInfo &pinInfo, const float angle, const QPointF &pt)
+void CableView::UpdatePosition(const int pinId, const float angle, const QPointF &pt)
 {
     //move one end of the cable
-    if(pinInfo == pinOut) {
+    if(pinId == pinOutId) {
         PtOut=mapFromScene(pt);
     } else {
         PtIn=mapFromScene(pt);
     }
 #ifndef SIMPLE_CABLES
-    if(pinInfo == pinOut) {
+    if(pinId == pinOutId) {
         CtrlPtOut = PtOut;
         CtrlPtOut.rx()+=50*qCos(angle);
         CtrlPtOut.ry()+=50*qSin(angle);

@@ -122,7 +122,7 @@ void HostController::Render()
         int step;
         float percent =  myHost->vstHost->GetCurrentBarTic(step);
         pin->ChangeValue( percent );
-        pin->SetMeta(MetaInfos::displayedText, QString("%1:%2").arg(pin->Name()).arg(step) );
+        pin->data.SetMeta(MetaInfos::displayedText, QString("%1:%2").arg(pin->Name()).arg(step) );
     }
 #endif
 }
@@ -131,10 +131,10 @@ void HostController::OnParameterChanged(const MetaInfo &pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
 
-    if(pinInfo.Meta(MetaInfos::Direction).toInt()!=Directions::Input)
+    if(pinInfo.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)!=Directions::Input)
         return;
 
-    switch(pinInfo.Meta(MetaInfos::PinNumber).toInt()) {
+    switch(pinInfo.data.GetMetaData<int>(MetaInfos::PinNumber)) {
         case Param_Tempo :
         case Param_Sign1 :
         case Param_Sign2 :
@@ -195,7 +195,7 @@ Pin* HostController::CreatePin(MetaInfo &info)
     if(newPin)
         return newPin;
 
-    int pinnumber = info.Meta(MetaInfos::PinNumber).toInt();
+    int pinnumber = info.data.GetMetaData<int>(MetaInfos::PinNumber);
     int tempo=120;
     int sign1=4;
     int sign2=4;

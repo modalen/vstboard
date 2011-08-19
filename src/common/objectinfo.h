@@ -25,20 +25,6 @@
 #include "mutexdebug.h"
 #include <QDebug>
 
-namespace MetaTypes {
-    enum Enum {
-        ND,
-        object,
-        container,
-        bridge,
-        listPin,
-        pin,
-        cable
-    };
-}
-
-
-
 namespace MetaInfos {
     enum Enum {
         ND,
@@ -56,14 +42,14 @@ namespace MetaInfos {
         PinNumber,
         ValueStep,
         DefaultValueStep,
+        EditorVScroll,
+        EditorHScroll,
         INT_END,
 
         FLOAT_BEGIN = 30,
         Value,
         DefaultValue,
         StepSize,
-        EditorVScroll,
-        EditorHScroll,
         LimitInMin,
         LimitInMax,
         LimitOutMin,
@@ -90,11 +76,13 @@ namespace MetaInfos {
         displayedText,
         STRING_END,
 
-        QPOINTF_BEGIN = 90,
+        OTHER_BEGIN = 90,
         Position,
         EditorSize,
         EditorPosition,
-        QPOINTF_END,
+        InfoOut,
+        InfoIn,
+        OTHER_END,
 
         END
     };
@@ -104,9 +92,21 @@ namespace MetaInfos {
     const char* FLOATNames[];
     const char* BOOLNames[];
     const char* STRINGNames[];
-    const char* QPOINTFNames[];
+    const char* OTHERNames[];
 //#endif
 
+}
+
+namespace MetaTypes {
+    enum Enum {
+        ND,
+        object,
+        container,
+        bridge,
+        listPin,
+        pin,
+        cable
+    };
 }
 
 namespace ObjTypes {
@@ -226,7 +226,7 @@ public:
 
     template<class T> T GetMetaData(const MetaInfos::Enum type) const {
         if(!listInfos.contains(type))
-            return 0;
+            return T();
         return *static_cast<const T*>(listInfos.value(type));
     }
 
@@ -245,6 +245,18 @@ public:
     template<> void SetMeta(const MetaInfos::Enum type, const bool &value) {
         SetMetaFast(type,value);
     }
+    template<> void SetMeta(const MetaInfos::Enum type, const MetaTypes::Enum &value) {
+        SetMetaFast(type,value);
+    }
+    template<> void SetMeta(const MetaInfos::Enum type, const ObjTypes::Enum &value) {
+        SetMetaFast(type,value);
+    }
+    template<> void SetMeta(const MetaInfos::Enum type, const MediaTypes::Enum &value) {
+        SetMetaFast(type,value);
+    }
+    template<> void SetMeta(const MetaInfos::Enum type, const Directions::Enum &value) {
+        SetMetaFast(type,value);
+    }
 
     void DelMeta(const MetaInfos::Enum type) {
 //        if(type<MetaInfos::COMPLEX_START)
@@ -255,7 +267,7 @@ public:
     }
 
 //#ifndef QT_NO_DEBUG
-    QString toString();
+    QString toString() const;
     static QString keyName(const MetaInfos::Enum type);
 //#endif
 
@@ -351,21 +363,21 @@ class MetaInfo
         return objName;
     }
 
-    inline const QVariant Meta(MetaInfos::Enum inf) const {
-        return listInfos.value(inf);
-    }
-    inline void SetMeta(MetaInfos::Enum inf, const QVariant &val) {
-//            mutexListInfos.lock();
-        listInfos[inf]=val;
-//        mutexListInfos.unlock();
-        if(transporter)
-            transporter->ValueChanged(*this,inf,val);
-    }
-    inline void DelMeta(MetaInfos::Enum inf) {
-//        mutexListInfos.lock();
-        listInfos.remove(inf);
-//        mutexListInfos.unlock();
-    }
+//    inline const QVariant Meta(MetaInfos::Enum inf) const {
+//        return listInfos.value(inf);
+//    }
+//    inline void SetMeta(MetaInfos::Enum inf, const QVariant &val) {
+////            mutexListInfos.lock();
+//        listInfos[inf]=val;
+////        mutexListInfos.unlock();
+//        if(transporter)
+//            transporter->ValueChanged(*this,inf,val);
+//    }
+//    inline void DelMeta(MetaInfos::Enum inf) {
+////        mutexListInfos.lock();
+//        listInfos.remove(inf);
+////        mutexListInfos.unlock();
+//    }
 
     inline MetaTransporter * Transporter() const { return transporter;}
     inline void SetTransporter(MetaTransporter *m) {
@@ -383,6 +395,7 @@ class MetaInfo
 
     inline const MetaInfo & info() const {return *this;}
 
+    bool CanConnectTo_old(const MetaInfo &c) const;
     bool CanConnectTo(const MetaInfo &c) const;
 
     QString toString() const;
@@ -398,10 +411,13 @@ class MetaInfo
         parentObjectId=c.parentObjectId;
         containerId=c.containerId;
         objName=c.objName;
-        listInfos=c.listInfos;
+//        listInfos=c.listInfos;
         transporter=c.transporter;
+        data=c.data;
         return *this;
     }
+
+    MetaData data;
 
 protected:
     MetaTransporter *transporter;

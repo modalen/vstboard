@@ -39,9 +39,9 @@ Object *ObjectFactoryVst::CreateOtherObjects(MetaInfo &info)
     switch(info.Type()) {
         case MetaTypes::object :
 
-            switch(info.Meta(MetaInfos::ObjType).toInt()) {
+            switch(info.data.GetMetaData<int>(MetaInfos::ObjType)) {
                 case ObjTypes::AudioInterface:
-                    switch(info.Meta(MetaInfos::Direction).toInt()) {
+                    switch(info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)) {
                         case Directions::Input :
                             obj = new VstAudioDeviceIn(myHost,info);
                             break;

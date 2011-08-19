@@ -50,8 +50,8 @@ BridgePinView::BridgePinView(const MetaInfo &info, float angle, QGraphicsItem * 
 
     QPolygonF pol;
 
-    if( (Meta(MetaInfos::Direction).toInt()==Directions::Input && pinAngle<0)
-        || (Meta(MetaInfos::Direction).toInt()==Directions::Output && pinAngle>0) ) {
+    if( (MetaInfo::data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Input && pinAngle<0)
+        || (MetaInfo::data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Output && pinAngle>0) ) {
         pol << QPointF(PINSIZE/2,PINSIZE) << QPointF(0,0) << QPointF(PINSIZE,0);
     } else {
         pol << QPointF(PINSIZE/2,0) << QPointF(0,PINSIZE) << QPointF(PINSIZE,PINSIZE);
@@ -107,9 +107,9 @@ void BridgePinView::UpdateModelIndex(const MetaInfo &info)
 {
     *(MetaInfo*)this=info;
 
-    float newVal=Meta(MetaInfos::Value).toFloat();
+    float newVal=MetaInfo::data.GetMetaData<float>(MetaInfos::Value);
     value = std::max(value,newVal);
-//    valueType = (MediaTypes::Enum)Meta(MetaInfos::Media).toInt();
+//    valueType = (MediaTypes::Enum)data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media);
 }
 
 void BridgePinView::updateVu()
@@ -125,7 +125,7 @@ void BridgePinView::updateVu()
     }
 
     QColor c;
-    switch(Meta(MetaInfos::BridgeMedia).toInt()) {
+    switch(MetaInfo::data.GetMetaData<int>(MetaInfos::BridgeMedia)) {
         case MediaTypes::Audio:
             c = config->GetColor(ColorGroups::AudioPin, Colors::Background);
             break;

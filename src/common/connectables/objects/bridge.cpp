@@ -45,8 +45,8 @@ Bridge::Bridge(MainHost *myHost, MetaInfo & info) :
 
     listBridgePinIn = new PinsList(myHost,this);
     listBridgePinIn->SetName("listBridgePinIn");
-    listBridgePinIn->SetMeta(MetaInfos::Media,MediaTypes::Bridge);
-    listBridgePinIn->SetMeta(MetaInfos::Direction,Directions::Input);
+    listBridgePinIn->data.SetMeta(MetaInfos::Media,MediaTypes::Bridge);
+    listBridgePinIn->data.SetMeta(MetaInfos::Direction,Directions::Input);
     listBridgePinIn->SetParent(this);
     listBridgePinIn->SetObjId( myHost->objFactory->GetNewId() );
     listBridgePinIn->SetNbPins(8);
@@ -54,20 +54,20 @@ Bridge::Bridge(MainHost *myHost, MetaInfo & info) :
 
     listBridgePinOut = new PinsList(myHost,this);
     listBridgePinOut->SetName("listBridgePinOut");
-    listBridgePinOut->SetMeta(MetaInfos::Media,MediaTypes::Bridge);
-    listBridgePinOut->SetMeta(MetaInfos::Direction,Directions::Output);
+    listBridgePinOut->data.SetMeta(MetaInfos::Media,MediaTypes::Bridge);
+    listBridgePinOut->data.SetMeta(MetaInfos::Direction,Directions::Output);
     listBridgePinOut->SetParent(this);
     listBridgePinOut->SetObjId( myHost->objFactory->GetNewId() );
     listBridgePinOut->SetNbPins(8);
     pinLists << listBridgePinOut;
 
-    if(Meta(MetaInfos::Direction).toInt()==Directions::Input ||
-            Meta(MetaInfos::Direction).toInt()==Directions::Return) {
+    if(data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Input ||
+            data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Return) {
         listBridgePinIn->SetVisible(false);
         listBridgePinIn->SetBridge(true);
     }
-    if(Meta(MetaInfos::Direction).toInt()==Directions::Output ||
-            Meta(MetaInfos::Direction).toInt()==Directions::Send) {
+    if(data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Output ||
+            data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Send) {
         listBridgePinOut->SetVisible(false);
         listBridgePinOut->SetBridge(true);
     }
@@ -82,12 +82,12 @@ void Bridge::NewRenderLoop()
 
 Pin* Bridge::CreatePin(MetaInfo &info)
 {
-    switch(info.Meta(MetaInfos::Direction).toInt()) {
+    switch(info.data.GetMetaData<int>(MetaInfos::Direction)) {
         case Directions::Input :
-            info.SetName(QString("BridgeIn%1").arg(info.Meta(MetaInfos::PinNumber).toInt()));
+            info.SetName(QString("BridgeIn%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)));
             return new BridgePinIn(this,info);
         case Directions::Output :
-            info.SetName(QString("BridgeOut%1").arg(info.Meta(MetaInfos::PinNumber).toInt()));
+            info.SetName(QString("BridgeOut%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)));
             return new BridgePinOut(this,info);
     }
 

@@ -48,8 +48,10 @@ Cable::Cable( const MetaInfo &pinOut, const MetaInfo &pinIn) :
 {
     SetType(MetaTypes::cable);
     SetName("Cable");
-    SetMeta(MetaInfos::nbOutputs,QVariant::fromValue(pinOut.info()));
-    SetMeta(MetaInfos::nbInputs,QVariant::fromValue(pinIn.info()));
+//    data.SetMeta(MetaInfos::InfoOut,pinOut.info());
+//    data.SetMeta(MetaInfos::InfoIn,pinIn.info());
+    data.SetMeta(MetaInfos::nbOutputs, pinOut.ObjId());
+    data.SetMeta(MetaInfos::nbInputs, pinIn.ObjId());
 }
 
 QDataStream & Cable::toStream (QDataStream& out) const

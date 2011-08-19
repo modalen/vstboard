@@ -32,6 +32,12 @@
 
 namespace Connectables {
 
+//    class PinInfo {
+//        quint32 objId;
+//        Directions::Enum direction;
+//        MediaTypes::Enum mediatype;
+//    };
+
     class Object;
     class Pin : public QObject, public ObjectInfo
     {

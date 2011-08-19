@@ -38,7 +38,9 @@ const char* MetaInfos::INTNames[] =
     stringify( nbOutputs ),
     stringify( PinNumber ),
     stringify( ValueStep ),
-    stringify( DefaultValueStep )
+    stringify( DefaultValueStep ),
+    stringify( EditorVScroll ),
+    stringify( EditorHScroll )
 };
 
 const char* MetaInfos::FLOATNames[]=
@@ -46,8 +48,7 @@ const char* MetaInfos::FLOATNames[]=
     stringify( Value ),
     stringify( DefaultValue ),
     stringify( StepSize ),
-    stringify( EditorVScroll ),
-    stringify( EditorHScroll )
+
 };
 const char* MetaInfos::BOOLNames[]=
 {
@@ -73,17 +74,19 @@ const char* MetaInfos::STRINGNames[]=
     stringify( programFile ),
     stringify( displayedText ),
 };
-const char* MetaInfos::QPOINTFNames[]=
+const char* MetaInfos::OTHERNames[]=
 {
     stringify( Position ),
     stringify( EditorSize ),
     stringify( EditorPosition ),
+    stringify( InfoOut ),
+    stringify( InfoIn )
 };
 
 //#endif
 
 //#ifndef QT_NO_DEBUG
-QString MetaData::toString() {
+QString MetaData::toString() const {
     QString str;
     qDebug() << this;
 
@@ -100,7 +103,7 @@ QString MetaData::toString() {
             str.append(*static_cast<bool*>(i.value()));
         } else if(i.key()<MetaInfos::STRING_END) {
             str.append(*static_cast<QString*>(i.value()));
-        } else if(i.key()<MetaInfos::QPOINTF_END) {
+        } else if(i.key()<MetaInfos::OTHER_END) {
             str += QString("%1:%2")
                 .arg(static_cast<QPointF*>(i.value())->x())
                 .arg(static_cast<QPointF*>(i.value())->y());
@@ -138,8 +141,8 @@ QString MetaData::keyName(const MetaInfos::Enum type)
         return MetaInfos::BOOLNames[type-MetaInfos::BOOL_BEGIN-1];
     if(type<MetaInfos::STRING_END)
         return MetaInfos::STRINGNames[type-MetaInfos::STRING_BEGIN-1];
-    if(type<MetaInfos::QPOINTF_END)
-        return MetaInfos::QPOINTFNames[type-MetaInfos::QPOINTF_BEGIN-1];
+    if(type<MetaInfos::OTHER_END)
+        return MetaInfos::OTHERNames[type-MetaInfos::OTHER_BEGIN-1];
     return "nd";
 }
 
@@ -160,7 +163,7 @@ MetaData & MetaData::operator =(const MetaData &c) {
             AddMeta(i.key(),*static_cast<bool*>(i.value()));
         else if(i.key()<MetaInfos::STRING_END)
             AddMeta(i.key(),*static_cast<QString*>(i.value()));
-        else if(i.key()<MetaInfos::QPOINTF_END)
+        else if(i.key()<MetaInfos::OTHER_END)
             AddMeta(i.key(),*static_cast<QPointF*>(i.value()));
         ++i;
     }
@@ -198,7 +201,7 @@ QDataStream & MetaData::toStream(QDataStream& stream) const
             stream << *static_cast<bool*>(i.value());
         else if(i.key()<MetaInfos::STRING_END)
             stream << *static_cast<QString*>(i.value());
-        else if(i.key()<MetaInfos::QPOINTF_END)
+        else if(i.key()<MetaInfos::OTHER_END)
             stream << *static_cast<QPointF*>(i.value());
 
         ++i;
@@ -231,7 +234,7 @@ QDataStream & MetaData::fromStream(QDataStream& stream)
             QString s;
             stream >> s;
             SetMeta(static_cast<MetaInfos::Enum>(key), s);
-        } else if(key<MetaInfos::QPOINTF_END) {
+        } else if(key<MetaInfos::OTHER_END) {
             QPointF p;
             stream >> p;
             SetMeta(static_cast<MetaInfos::Enum>(key), p);
@@ -348,7 +351,7 @@ void ObjectInfo::AddToView()
     if(!ContainerId())
         return;
 
-    if(Meta(MetaInfos::Hidden).toBool())
+    if(data.GetMetaData<bool>(MetaInfos::Hidden))
         return;
 
     Events::sendObj *event = new Events::sendObj(info(), Events::typeNewObj);
@@ -378,7 +381,7 @@ void ObjectInfo::UpdateView()
     if(!ContainerId())
         return;
 
-    if(Meta(MetaInfos::Hidden).toBool())
+    if(data.GetMetaData<bool>(MetaInfos::Hidden))
         return;
 
     Events::sendObj *event = new Events::sendObj(info(), Events::typeUpdateObj);
@@ -391,7 +394,7 @@ void ObjectInfo::UpdateView()
 
 void ObjectInfo::SetContainer(ObjectInfo *container) {
 
-    if(Meta(MetaInfos::Bridge).toBool())
+    if(data.GetMetaData<bool>(MetaInfos::Bridge))
         container = container->ContainerInfo();
 
     containerInfo = container;
@@ -439,7 +442,6 @@ void ObjectInfo::SetParent(ObjectInfo *parent)
     }
 }
 
-
 bool MetaInfo::CanConnectTo(const MetaInfo &c) const
 {
     //don't connect object to itself
@@ -456,13 +458,13 @@ bool MetaInfo::CanConnectTo(const MetaInfo &c) const
         return false;
 
     //must be opposite directions
-    if(Meta(MetaInfos::Direction) == c.Meta(MetaInfos::Direction))
+    if(data.GetMetaData<int>(MetaInfos::Direction) == c.data.GetMetaData<int>(MetaInfos::Direction))
         return false;
 
     //must be the same type (audio/midi/automation) or a bridge pin
-    if(Meta(MetaInfos::Media)!=MediaTypes::Bridge
-        && c.Meta(MetaInfos::Media)!=MediaTypes::Bridge
-        && Meta(MetaInfos::Media) != c.Meta(MetaInfos::Media))
+    if(data.GetMetaData<int>(MetaInfos::Media) != MediaTypes::Bridge
+        && c.data.GetMetaData<int>(MetaInfos::Media)!=MediaTypes::Bridge
+        && data.GetMetaData<int>(MetaInfos::Media) != c.data.GetMetaData<int>(MetaInfos::Media))
         return false;
 
     return true;
@@ -482,11 +484,12 @@ QString MetaInfo::toString() const
 QString MetaInfo::toStringFull() const
 {
     QString str(toString());
-    QMap<MetaInfos::Enum,QVariant>::iterator i = listInfos.begin();
-    while(i != listInfos.end()) {
-        str.append( QString(" %1:%2").arg(i.key()).arg(i.value().toString()));
-        ++i;
-    }
+    str.append( data.toString() );
+//    QMap<MetaInfos::Enum,QVariant>::iterator i = listInfos.begin();
+//    while(i != listInfos.end()) {
+//        str.append( QString(" %1:%2").arg(i.key()).arg(i.value().toString()));
+//        ++i;
+//    }
     return str;
 }
 
@@ -499,32 +502,16 @@ QDataStream & MetaInfo::toStream(QDataStream& stream) const
     stream << containerId;
     stream << parentObjectId;
 
+    stream << data;
 //    mutexListInfos.lock();
-    stream << (quint16)listInfos.size();
-    QMap<MetaInfos::Enum,QVariant>::iterator i = listInfos.begin();
-    while(i != listInfos.end()) {
-        stream << (quint16)i.key();
-        stream << i.value();
-        ++i;
-    }
-//    mutexListInfos.unlock();
-
-//    stream << (quint16)childrenInfo.size();
-//    foreach(ObjectInfo* o, childrenInfo) {
-//        stream << o->ObjId();
+//    stream << (quint16)listInfos.size();
+//    QMap<MetaInfos::Enum,QVariant>::iterator i = listInfos.begin();
+//    while(i != listInfos.end()) {
+//        stream << (quint16)i.key();
+//        stream << i.value();
+//        ++i;
 //    }
-
-//    stream << (quint8)metaType;
-//    stream << (quint8)objType;
-//    stream << id;
-//    stream << name;
-//    stream << filename;
-//    stream << inputs;
-//    stream << outputs;
-//    stream << duplicateNamesCounter;
-//    stream << apiName;
-//    stream << api;
-//    stream << objId;
+//    mutexListInfos.unlock();
     return stream;
 }
 
@@ -539,36 +526,21 @@ QDataStream & MetaInfo::fromStream(QDataStream& stream)
     stream >> containerId;
     stream >> parentObjectId;
 
-    quint16 nb;
-    stream >> nb;
+    stream >> data;
+
+//    quint16 nb;
+//    stream >> nb;
 
 //    mutexListInfos.lock();
-    for(int i=0; i<nb; i++) {
-        quint16 id;
-        QVariant val;
-        stream >> id;
-        stream >> val;
-        listInfos.insert((MetaInfos::Enum)id,val);
-    }
+//    for(int i=0; i<nb; i++) {
+//        quint16 id;
+//        QVariant val;
+//        stream >> id;
+//        stream >> val;
+//        listInfos.insert((MetaInfos::Enum)id,val);
+//    }
 //    mutexListInfos.unlock();
 
-//    stream >> nb;
-//    for(int i=0; i<nb; i++) {
-//        quint32 id;
-//        stream >> id;
-//    }
-
-//    stream >> (quint8&)metaType;
-//    stream >> (quint8&)objType;
-//    stream >> id;
-//    stream >> name;
-//    stream >> filename;
-//    stream >> inputs;
-//    stream >> outputs;
-//    stream >> duplicateNamesCounter;
-//    stream >> apiName;
-//    stream >> api;
-//    stream >> objId;
     return stream;
 }
 

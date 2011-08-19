@@ -223,19 +223,19 @@ Pin* Script::CreatePin(MetaInfo &info)
     if(newPin)
         return newPin;
 
-    if(info.Meta(MetaInfos::Media).toInt() == MediaTypes::Parameter) {
-        switch(info.Meta(MetaInfos::Direction).toInt()) {
+    if(info.data.GetMetaData<int>(MetaInfos::Media) == MediaTypes::Parameter) {
+        switch(info.data.GetMetaData<int>(MetaInfos::Direction)) {
             case Directions::Input :
-                if(info.Meta(MetaInfos::PinNumber).toInt() == FixedPinNumber::editorVisible) {
+                if(info.data.GetMetaData<int>(MetaInfos::PinNumber) == FixedPinNumber::editorVisible) {
                     info.SetName(tr("Editor"));
                     ParameterPin *newPin = new ParameterPin(this,info,"hide",&listEditorVisible);
                     newPin->SetLimitsEnabled(false);
                     return newPin;
                 }
-                info.SetName( QString("ParamIn%1").arg(info.Meta(MetaInfos::PinNumber).toInt()) );
+                info.SetName( QString("ParamIn%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)) );
                 break;
             case Directions::Output :
-                info.SetName( QString("ParamOut%1").arg(info.Meta(MetaInfos::PinNumber).toInt()) );
+                info.SetName( QString("ParamOut%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)) );
         }
 
         newPin = new ParameterPin(this,info,0);

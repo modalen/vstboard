@@ -68,9 +68,9 @@ void PinsList::ChangeNumberOfPins(int newNb)
 
 void PinsList::SetVisible(bool visible) {
     if(visible)
-        SetMeta(MetaInfos::Hidden,true);
+        data.SetMeta(MetaInfos::Hidden,true);
     else
-        DelMeta(MetaInfos::Hidden);
+        data.DelMeta(MetaInfos::Hidden);
 
     foreach(Pin* pin, listPins) {
         pin->SetVisible(visible);
@@ -79,7 +79,7 @@ void PinsList::SetVisible(bool visible) {
 
 void PinsList::SetBridge(bool bridge)
 {
-    SetMeta(MetaInfos::Hidden,true);
+    data.SetMeta(MetaInfos::Hidden,true);
 
     foreach(Pin* pin, listPins) {
         pin->SetBridge(bridge);
@@ -225,12 +225,12 @@ MetaInfo PinsList::getMetaForPin(int nb)
     MetaInfo info(MetaTypes::pin);
     info.SetName("pin");
     info.SetObjId( myHost->objFactory->GetNewId() );
-    info.SetMeta(MetaInfos::Media, Meta(MetaInfos::Media));
-    info.SetMeta(MetaInfos::Direction, Meta(MetaInfos::Direction));
+    info.data.SetMeta(MetaInfos::Media, data.GetMetaData<int>(MetaInfos::Media));
+    info.data.SetMeta(MetaInfos::Direction, data.GetMetaData<int>(MetaInfos::Direction));
     info.SetParentId(ObjId());
     info.SetContainerId(ContainerId());
     info.SetParentObjectId(ParentObjectId());
-    info.SetMeta(MetaInfos::PinNumber,nb);
+    info.data.SetMeta(MetaInfos::PinNumber,nb);
     info.SetParentId(ObjId());
     return info;
 }
