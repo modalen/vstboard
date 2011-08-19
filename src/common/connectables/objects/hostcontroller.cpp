@@ -199,7 +199,10 @@ Pin* HostController::CreatePin(MetaInfo &info)
     int tempo=120;
     int sign1=4;
     int sign2=4;
+
+#ifdef VSTSDK
     myHost->GetTempo(tempo,sign1,sign2);
+#endif
 
     switch(pinnumber) {
         case Param_Tempo:

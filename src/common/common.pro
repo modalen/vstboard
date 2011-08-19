@@ -28,8 +28,6 @@ vstsdk {
 }
 
 scriptengine {
-    QT += script
-
     SOURCES += connectables/objects/script.cpp \
         views/scripteditor.cpp \
 
@@ -38,8 +36,6 @@ scriptengine {
 
     FORMS += views/scripteditor.ui
 }
-
-PRECOMPILED_HEADER = precomp.h
 
 SOURCES += \
     mainwindow.cpp \
@@ -227,8 +223,6 @@ FORMS += \
     views/aboutdialog.ui \
     views/splash.ui \
     views/viewconfigdialog.ui \
-
-PRECOMPILED_HEADER = precomp.h
 
 TRANSLATIONS = ../resources/translations/common_fr.ts
 

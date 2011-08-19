@@ -21,7 +21,9 @@
 #ifndef MUTEXDEBUG_H
 #define MUTEXDEBUG_H
 
-#ifndef QT_NO_DEBUG
+#ifdef QT_NO_DEBUG
+    #define DMutex QMutex
+#else
 
 #include "precomp.h"
 #define DMutex DebugMutex
@@ -37,7 +39,7 @@ public:
 
     ~DebugMutex()
     {
-        LOGSIMPLE("mutex usage : "<<countUsage<<" locks"<<countLocked);
+//        LOGSIMPLE("mutex usage : "<<countUsage<<" locks"<<countLocked);
     }
 
     void lock()
@@ -91,8 +93,6 @@ private:
     int countLocked;
 };
 
-#else
-    #define DMutex QMutex
 #endif
 
 #endif // MUTEXDEBUG_H

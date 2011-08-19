@@ -88,12 +88,15 @@ const char* MetaInfos::OTHERNames[]=
 //#ifndef QT_NO_DEBUG
 QString MetaData::toString() const {
     QString str;
-    qDebug() << this;
 
     QMap<MetaInfos::Enum,void*>::const_iterator i = listInfos.constBegin();
     while(i!=listInfos.constEnd()) {
 
-        str += QString("%1(%2)=").arg( i.key() ).arg( keyName(i.key()) );
+        QString name = keyName(i.key());
+        if(name.isEmpty())
+            str+= QString("unknownProp(%1):").arg(i.key());
+        else
+            str+= QString("%1:").arg(name);
 
         if(i.key()<MetaInfos::INT_END) {
             str += QString::number(*static_cast<int*>(i.value()));
@@ -110,7 +113,7 @@ QString MetaData::toString() const {
         }
 //            str+=" " + QString::number((long)i.value(),16);
 //        str+="\n";
-        str+="|";
+        str+=" / ";
         ++i;
     }
 
@@ -275,11 +278,11 @@ void MetaTransporter::ValueChanged( const MetaInfo & senderInfo, int type, const
 }
 
 void MetaTransporter::PostEvent( QEvent * event) {
-#ifndef QT_NO_DEBUG
-    if(listeners.isEmpty()) {
-        LOG("no listener")
-    }
-#endif
+//#ifndef QT_NO_DEBUG
+//    if(listeners.isEmpty()) {
+//        LOG("no listener")
+//    }
+//#endif
     foreach(QObject *obj, listeners) {
         qApp->postEvent(obj,event);
     }

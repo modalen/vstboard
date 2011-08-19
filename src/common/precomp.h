@@ -77,6 +77,7 @@
     #include <qmath.h>
     #include <QMenu>
     #include <QMessageBox>
+    #include <QMetaObject>
     #include <QMimeData>
     #include <QMultiHash>
     #include <QMutex>
@@ -112,6 +113,7 @@
 
     #ifdef SCRIPTENGINE
         #include <QtScript>
+        #include <QScriptValue>
     #endif
 
     #ifdef QT_NO_DEBUG

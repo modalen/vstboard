@@ -815,25 +815,22 @@ void MainHost::OnCableRemoved(Connectables::Cable *cab)
     mutexListCables->unlock();
 }
 
+#ifdef VSTSDK
 void MainHost::SetTimeInfo(const VstTimeInfo *info)
 {
-#ifdef VSTSDK
     vstHost->SetTimeInfo(info);
 //    CheckTempo();
-#endif
 }
 
 void MainHost::SetTempo(int tempo, int sign1, int sign2)
 {
-#ifdef VSTSDK
     vstHost->SetTempo(tempo,sign1,sign2);
 //    CheckTempo();
-#endif
+
 }
 
 void MainHost::CheckTempo()
 {
-#ifdef VSTSDK
     int tempo=0;
     int sign1=0;
     int sign2=0;
@@ -848,19 +845,13 @@ void MainHost::CheckTempo()
         currentTimeSig2=sign2;
         emit TempoChanged(currentTempo,currentTimeSig1,currentTimeSig2);
     }
-#endif
 }
 
 void MainHost::GetTempo(int &tempo, int &sign1, int &sign2)
 {
-#ifdef VSTSDK
     vstHost->GetTempo(tempo,sign1,sign2);
-#else
-    tempo=120;
-    sign1=4;
-    sign2=4;
-#endif
 }
+#endif
 
 void MainHost::SetSetting(QString name, QVariant value)
 {

@@ -66,8 +66,7 @@ public:
     bool EnableSolverUpdate(bool enable);
 //    bool IsSolverUpdateEnabled();
 
-    void GetTempo(int &tempo, int &sign1, int &sign2);
-    void SetTimeInfo(const VstTimeInfo *info);
+
 
 //    QStandardItemModel *GetRendererModel() { return renderer->GetModel(); }
 
@@ -110,6 +109,8 @@ public:
     MainWindow *mainWindow;
 
 #ifdef VSTSDK
+    void GetTempo(int &tempo, int &sign1, int &sign2);
+    void SetTimeInfo(const VstTimeInfo *info);
     vst::CVSTHost *vstHost;
     static int vstUsersCounter;
 #endif
@@ -141,13 +142,17 @@ protected:
     QUndoStack *undoStack;
 
 private:
+    Q_DISABLE_COPY(MainHost)
+
     void SetupMainContainer();
     void SetupHostContainer();
     void SetupProjectContainer();
     void SetupProgramContainer();
     void SetupGroupContainer();
 
+#ifdef VSTSDK
     void CheckTempo();
+#endif
 
     bool solverNeedAnUpdate;
     bool solverUpdateEnabled;
@@ -184,7 +189,9 @@ signals:
     void currentFileChanged();
 
 public slots:
+#ifdef VSTSDK
     void SetTempo(int tempo=120, int sign1=4, int sign2=4);
+#endif
     virtual void Render(unsigned long samples=0);
     void LoadFile(const QString &filename);
     void LoadSetupFile(const QString &filename);

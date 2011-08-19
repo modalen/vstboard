@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 
-include(../config.pri)
+include(../../mainconfig.pri)
 
 CONFIG -= qt
 QT -= core gui

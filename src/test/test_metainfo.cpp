@@ -72,6 +72,6 @@ private Q_SLOTS:
 };
 
 
-QTEST_MAIN(Test_MetaInfo);
+//QTEST_MAIN(Test_MetaInfo);
 
 #include "test_metainfo.moc"
