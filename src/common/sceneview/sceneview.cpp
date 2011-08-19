@@ -207,11 +207,11 @@ void SceneView::DelObj(quint32 objId)
         }
     case MetaTypes::cable :
         {
-            MetaInfo infoOut = info.data.GetMetaData<MetaInfo>(MetaInfos::nbOutputs);
-            MetaInfo infoIn = info.data.GetMetaData<MetaInfo>(MetaInfos::nbInputs);
+            int pinOutId = info.data.GetMetaData<int>(MetaInfos::nbOutputs);
+            int pinInid = info.data.GetMetaData<int>(MetaInfos::nbInputs);
 
-            PinView* pinOut = static_cast<PinView*>(mapViewItems.value( infoOut.ObjId(),0 ));
-            PinView* pinIn = static_cast<PinView*>(mapViewItems.value( infoIn.ObjId(),0 ));
+            PinView* pinOut = static_cast<PinView*>(mapViewItems.value( pinOutId,0 ));
+            PinView* pinIn = static_cast<PinView*>(mapViewItems.value( pinInid,0 ));
 
             CableView *cable = static_cast<CableView*>(mapViewItems.value(info.ObjId(),0));
             if(!cable) {
