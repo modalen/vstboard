@@ -28,6 +28,7 @@ namespace View {
         void Hide();
 
     public slots:
+        void UnsetScript();
         void SetScript(const QString &script);
 
     private slots:

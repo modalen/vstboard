@@ -148,11 +148,13 @@ Script::~Script()
 bool Script::Close()
 {
    if(editorWnd) {
-        editorWnd->disconnect();
-        editorWnd->SetObject(0);
-        disconnect(editorWnd);
-        QTimer::singleShot(0,editorWnd,SLOT(close()));
-        editorWnd=0;
+       if(myHost->mainWindow->thread()!=QThread::currentThread()) {
+           QMetaObject::invokeMethod(editorWnd, "UnsetScript", Qt::BlockingQueuedConnection);
+       } else {
+           editorWnd->UnsetScript();
+       }
+       disconnect(editorWnd);
+       editorWnd=0;
     }
     return true;
 }

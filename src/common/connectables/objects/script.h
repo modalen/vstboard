@@ -50,6 +50,8 @@ namespace Connectables {
 
     private slots:
         void DspMsg(const QString &title, const QString &str);
+
+        friend class View::ScriptEditor;
     };
 }
 
