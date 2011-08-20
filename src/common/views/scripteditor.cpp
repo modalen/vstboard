@@ -38,7 +38,18 @@ ScriptEditor::ScriptEditor(QWidget *parent) :
 
 ScriptEditor::~ScriptEditor()
 {
+    if(object)
+        object->editorWnd=0;
     delete ui;
+}
+
+void ScriptEditor::UnsetScript()
+{
+    if(object) {
+        disconnect(object);
+        object = 0;
+    }
+    close();
 }
 
 void ScriptEditor::SetObject(Connectables::Script *script)
