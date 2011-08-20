@@ -28,7 +28,7 @@ namespace Connectables {
     class MidiPinIn : public Pin
     {
     public:
-        MidiPinIn(Object *parent,MetaInfo &info);
+        MidiPinIn(Object *parent,MetaData &info);
         void ReceiveMsg(const PinMessage::Enum msgType,void *data=0);
         float GetValue();
     };

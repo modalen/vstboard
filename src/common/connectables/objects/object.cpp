@@ -37,9 +37,9 @@ using namespace Connectables;
   \param index unique id
   \param info ObjectInfo defining this object
   */
-Object::Object(MainHost *myHost, MetaInfo &info) :
+Object::Object(MainHost *myHost, MetaData &info) :
     QObject(),
-    ObjectInfo(info,myHost),
+    MetaObjEngine(info,myHost),
     parked(false),
     listenProgramChanges(true),
     myHost(myHost),
@@ -49,12 +49,14 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     currentProgId(TEMP_PROGRAM),
     closed(true)
 {
-    SetType(MetaTypes::object);
+
+    SET_MUTEX_NAME(objMutex,"objMutex "+GetMetaData<QString>(metaT::ObjName));
+    SetType(MetaType::object);
 
     connect(this, SIGNAL(UndoStackPush(QUndoCommand*)),
             myHost, SLOT(UndoStackPush(QUndoCommand*)));
 
-    setObjectName(QString("%1.%2").arg( Name() ).arg( ObjId() ));
+    setObjectName(QString("%1.%2").arg( GetMetaData<QString>(metaT::ObjName) ).arg( ObjId() ));
 //    SetName(QString("%1.%2").arg( objInfo.objName ).arg( ObjectInfo::ObjId() ));
     doublePrecision=myHost->doublePrecision;
 
@@ -62,8 +64,8 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     listAudioPinIn = new PinsList(myHost,this);
     listAudioPinIn->setObjectName("listAudioPinIn");
     listAudioPinIn->SetName("listAudioPinIn");
-    listAudioPinIn->data.SetMeta(MetaInfos::Media,MediaTypes::Audio);
-    listAudioPinIn->data.SetMeta(MetaInfos::Direction,Directions::Input);
+    listAudioPinIn->data.SetMeta(metaT::Media,MediaTypes::Audio);
+    listAudioPinIn->data.SetMeta(metaT::Direction,Directions::Input);
     listAudioPinIn->SetParent(this);
     listAudioPinIn->SetObjId( myHost->objFactory->GetNewId() );
     pinLists << listAudioPinIn;
@@ -71,8 +73,8 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     listAudioPinOut = new PinsList(myHost,this);
     listAudioPinOut->setObjectName("listAudioPinOut");
     listAudioPinOut->SetName("listAudioPinOut");
-    listAudioPinOut->data.SetMeta(MetaInfos::Media,MediaTypes::Audio);
-    listAudioPinOut->data.SetMeta(MetaInfos::Direction,Directions::Output);
+    listAudioPinOut->data.SetMeta(metaT::Media,MediaTypes::Audio);
+    listAudioPinOut->data.SetMeta(metaT::Direction,Directions::Output);
     listAudioPinOut->SetParent(this);
     listAudioPinOut->SetObjId( myHost->objFactory->GetNewId() );
     pinLists << listAudioPinOut;
@@ -80,8 +82,8 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     listMidiPinIn = new PinsList(myHost,this);
     listMidiPinIn->setObjectName("listMidiPinIn");
     listMidiPinIn->SetName("listMidiPinIn");
-    listMidiPinIn->data.SetMeta(MetaInfos::Media,MediaTypes::Midi);
-    listMidiPinIn->data.SetMeta(MetaInfos::Direction,Directions::Input);
+    listMidiPinIn->data.SetMeta(metaT::Media,MediaTypes::Midi);
+    listMidiPinIn->data.SetMeta(metaT::Direction,Directions::Input);
     listMidiPinIn->SetParent(this);
     listMidiPinIn->SetObjId( myHost->objFactory->GetNewId() );
     pinLists << listMidiPinIn;
@@ -89,8 +91,8 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     listMidiPinOut = new PinsList(myHost,this);
     listMidiPinOut->setObjectName("listMidiPinOut");
     listMidiPinOut->SetName("listMidiPinOut");
-    listMidiPinOut->data.SetMeta(MetaInfos::Media,MediaTypes::Midi);
-    listMidiPinOut->data.SetMeta(MetaInfos::Direction,Directions::Output);
+    listMidiPinOut->data.SetMeta(metaT::Media,MediaTypes::Midi);
+    listMidiPinOut->data.SetMeta(metaT::Direction,Directions::Output);
     listMidiPinOut->SetParent(this);
     listMidiPinOut->SetObjId( myHost->objFactory->GetNewId() );
     pinLists << listMidiPinOut;
@@ -98,8 +100,8 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     listParameterPinIn = new PinsList(myHost,this);
     listParameterPinIn->setObjectName("listParameterPinIn");
     listParameterPinIn->SetName("listParameterPinIn");
-    listParameterPinIn->data.SetMeta(MetaInfos::Media,MediaTypes::Parameter);
-    listParameterPinIn->data.SetMeta(MetaInfos::Direction,Directions::Input);
+    listParameterPinIn->data.SetMeta(metaT::Media,MediaTypes::Parameter);
+    listParameterPinIn->data.SetMeta(metaT::Direction,Directions::Input);
     listParameterPinIn->SetParent(this);
     listParameterPinIn->SetObjId( myHost->objFactory->GetNewId() );
     pinLists << listParameterPinIn;
@@ -107,8 +109,8 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     listParameterPinOut = new PinsList(myHost,this);
     listParameterPinOut->setObjectName("listParameterPinOut");
     listParameterPinOut->SetName("listParameterPinOut");
-    listParameterPinOut->data.SetMeta(MetaInfos::Media,MediaTypes::Parameter);
-    listParameterPinOut->data.SetMeta(MetaInfos::Direction,Directions::Output);
+    listParameterPinOut->data.SetMeta(metaT::Media,MediaTypes::Parameter);
+    listParameterPinOut->data.SetMeta(metaT::Direction,Directions::Output);
     listParameterPinOut->SetParent(this);
     listParameterPinOut->SetObjId( myHost->objFactory->GetNewId() );
     pinLists << listParameterPinOut;
@@ -116,7 +118,7 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
 
 #ifdef SCRIPTENGINE
     QScriptValue scriptObj = myHost->scriptEngine->newQObject(this);
-    myHost->scriptEngine->globalObject().setProperty(QString("Obj%1").arg(MetaInfo::ObjId()), scriptObj);
+    myHost->scriptEngine->globalObject().setProperty(QString("Obj%1").arg(MetaData::ObjId()), scriptObj);
 #endif
 }
 
@@ -310,23 +312,23 @@ void Object::NewRenderLoop()
   \param pinInfo a ConnectionInfo describing the pin
   \return a pointer to the pin, 0 if not found
   */
-Pin * Object::GetPin(const MetaInfo &pinInfo)
+Pin * Object::GetPin(const MetaData &pinInfo)
 {
     Pin* pin=0;
     bool autoCreate=false;
 
-    if(data.GetMetaData<int>(MetaInfos::ObjType) == ObjTypes::Dummy || data.GetMeta<QString*>(MetaInfos::errorMessage)!=0)
+    if(data.GetMetaData<int>(metaT::ObjType) == ObjTypes::Dummy || data.GetMeta<QString*>(metaT::errorMessage)!=0)
         autoCreate=true;
 
     foreach(PinsList *lst, pinLists) {
-        if(lst->data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media) == pinInfo.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)
-                && lst->data.GetMetaData<Directions::Enum>(MetaInfos::Direction) == pinInfo.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)) {
-            pin=lst->GetPin(pinInfo.data.GetMetaData<int>(MetaInfos::PinNumber),autoCreate);
+        if(lst->data.GetMetaData<MediaTypes::Enum>(metaT::Media) == pininfo.GetMetaData<MediaTypes::Enum>(metaT::Media)
+                && lst->data.GetMetaData<Directions::Enum>(metaT::Direction) == pininfo.GetMetaData<Directions::Enum>(metaT::Direction)) {
+            pin=lst->GetPin(pininfo.GetMetaData<int>(metaT::PinNumber),autoCreate);
             if(pin)
                 return pin;
         }
     }
-//    LOG("pin not found"<<pinInfo.toStringFull());
+//    LOG("pin not found"<<pinInfo.toString());
     return 0;
 }
 
@@ -335,10 +337,10 @@ Pin * Object::GetPin(const MetaInfo &pinInfo)
   \param pinInfo the modified pin
   \param value the new value
   */
-void Object::OnParameterChanged(const MetaInfo &pinInfo, float value)
+void Object::OnParameterChanged(const MetaData &pinInfo, float value)
 {
     //editor pin
-    if(pinInfo.data.GetMetaData<int>(MetaInfos::PinNumber)==FixedPinNumber::editorVisible) {
+    if(pininfo.GetMetaData<int>(metaT::PinNumber)==FixedPinNumber::editorVisible) {
         int val = static_cast<ParameterPin*>(listParameterPinIn->listPins.value(FixedPinNumber::editorVisible))->GetIndex();
         if(val)
             QTimer::singleShot(0, this, SLOT(OnShowEditor()));
@@ -375,14 +377,14 @@ LearningMode::Enum Object::GetLearningMode()
   Set the object view status (position, size, ...) defined by the container
   \param[in] attr an ObjectContainerAttribs
   */
-void Object::SetContainerAttribs(const ObjectContainerAttribs &attr)
+void Object::SetContainerAttribs(const MetaData &attr)
 {
-    data.SetMeta(MetaInfos::Position, attr.position);
-    data.SetMeta(MetaInfos::EditorVisible, attr.editorVisible);
-    data.SetMeta(MetaInfos::EditorSize, attr.editorSize);
-    data.SetMeta(MetaInfos::EditorPosition, attr.editorPosition);
-    data.SetMeta(MetaInfos::EditorVScroll, attr.editorVScroll);
-    data.SetMeta(MetaInfos::EditorHScroll, attr.editorHScroll);
+    data.SetMeta(metaT::Position, attr.GetMetaData<QPointF>(metaT::Position));
+    data.SetMeta(metaT::EditorVisible, attr.GetMetaData<bool>(metaT::EditorVisible));
+    data.SetMeta(metaT::EditorSize, attr.GetMetaData<QSize>(metaT::EditorSize));
+    data.SetMeta(metaT::EditorPosition, attr.GetMetaData<QPoint>(metaT::EditorPosition));
+    data.SetMeta(metaT::EditorVScroll, attr.GetMetaData<int>(metaT::EditorVScroll));
+    data.SetMeta(metaT::EditorHScroll, attr.GetMetaData<int>(metaT::EditorHScroll));
     UpdateView();
 }
 
@@ -390,14 +392,14 @@ void Object::SetContainerAttribs(const ObjectContainerAttribs &attr)
   Get the object view status, the status is saved by the container in a ContainerProgram
   \param[out] attr an ObjectContainerAttribs containing the object status
   */
-void Object::GetContainerAttribs(ObjectContainerAttribs &attr)
+void Object::GetContainerAttribs(MetaData &attr)
 {
-    attr.position = data.GetMetaData<QPointF>(MetaInfos::Position);
-    attr.editorVisible = data.GetMetaData<bool>(MetaInfos::EditorVisible);
-    attr.editorSize = data.GetMetaData<QSize>(MetaInfos::EditorSize);
-    attr.editorPosition = data.GetMetaData<QPoint>(MetaInfos::EditorPosition);
-    attr.editorVScroll = data.GetMetaData<int>(MetaInfos::EditorVScroll);
-    attr.editorVScroll = data.GetMetaData<int>(MetaInfos::EditorHScroll);
+    attr.SetMeta(metaT::Position, data.GetMetaData<QPointF>(metaT::Position));
+    attr.SetMeta(metaT::EditorVisible, data.GetMetaData<bool>(metaT::EditorVisible));
+    attr.SetMeta(metaT::EditorSize, data.GetMetaData<QSize>(metaT::EditorSize));
+    attr.SetMeta(metaT::EditorPosition, data.GetMetaData<QPoint>(metaT::EditorPosition));
+    attr.SetMeta(metaT::EditorVScroll, data.GetMetaData<int>(metaT::EditorVScroll));
+    attr.SetMeta(metaT::EditorHScroll, data.GetMetaData<int>(metaT::EditorHScroll));
 }
 
 /*!
@@ -431,38 +433,38 @@ void Object::SetBufferSize(unsigned long size)
     }
 }
 
-void Object::UserRemovePin(const MetaInfo &info)
+void Object::UserRemovePin(const MetaData &info)
 {
-    if(info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)!=MediaTypes::Parameter)
+    if(info.GetMetaData<MediaTypes::Enum>(metaT::Media)!=MediaTypes::Parameter)
         return;
 
-    if(!info.data.GetMetaData<bool>(MetaInfos::Removable))
+    if(!info.GetMetaData<bool>(metaT::Removable))
         return;
 
-    switch(info.data.GetMetaData<int>(MetaInfos::Direction)) {
+    switch(info.GetMetaData<int>(metaT::Direction)) {
         case Directions::Input :
-            listParameterPinIn->AsyncRemovePin( info.data.GetMetaData<int>(MetaInfos::PinNumber) );
+            listParameterPinIn->AsyncRemovePin( info.GetMetaData<int>(metaT::PinNumber) );
             OnProgramDirty();
             break;
         case Directions::Output :
-            listParameterPinOut->AsyncRemovePin( info.data.GetMetaData<int>(MetaInfos::PinNumber) );
+            listParameterPinOut->AsyncRemovePin( info.GetMetaData<int>(metaT::PinNumber) );
             OnProgramDirty();
             break;
     }
 }
 
-void Object::UserAddPin(const MetaInfo &info)
+void Object::UserAddPin(const MetaData &info)
 {
-    if(info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)!=MediaTypes::Parameter)
+    if(info.GetMetaData<MediaTypes::Enum>(metaT::Media)!=MediaTypes::Parameter)
         return;
 
-    switch(info.data.GetMetaData<int>(MetaInfos::Direction) ) {
+    switch(info.GetMetaData<int>(metaT::Direction) ) {
         case Directions::Input :
-            listParameterPinIn->AsyncAddPin( info.data.GetMetaData<int>(MetaInfos::PinNumber) );
+            listParameterPinIn->AsyncAddPin( info.GetMetaData<int>(metaT::PinNumber) );
             OnProgramDirty();
             break;
         case Directions::Output :
-            listParameterPinOut->AsyncAddPin( info.data.GetMetaData<int>(MetaInfos::PinNumber) );
+            listParameterPinOut->AsyncAddPin( info.GetMetaData<int>(metaT::PinNumber) );
             OnProgramDirty();
             break;
     }
@@ -470,8 +472,8 @@ void Object::UserAddPin(const MetaInfo &info)
 
 PinsList* Object::GetPinList(Directions::Enum dir, MediaTypes::Enum type) const {
     foreach(PinsList *lst, pinLists) {
-        if(lst->data.GetMetaData<Directions::Enum>(MetaInfos::Direction) == dir
-            && lst->data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media) == type)
+        if(lst->data.GetMetaData<Directions::Enum>(metaT::Direction) == dir
+            && lst->data.GetMetaData<MediaTypes::Enum>(metaT::Media) == type)
             return lst;
     }
 
@@ -483,18 +485,18 @@ PinsList* Object::GetPinList(Directions::Enum dir, MediaTypes::Enum type) const 
   \param info ConnectionInfo defining the pin to be created
   \return a pointer to the new pin, 0 if not created
   */
-Pin* Object::CreatePin(MetaInfo &info)
+Pin* Object::CreatePin(MetaData &info)
 {
-    switch(info.data.GetMetaData<int>(MetaInfos::Direction)) {
+    switch(info.GetMetaData<int>(metaT::Direction)) {
         case Directions::Input :
-            switch(info.data.GetMetaData<int>(MetaInfos::Media)) {
+            switch(info.GetMetaData<int>(metaT::Media)) {
                 case MediaTypes::Audio : {
-                    info.SetName(QString("AudioIn%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)));
+                    info.SetName(QString("AudioIn%1").arg(info.GetMetaData<int>(metaT::PinNumber)));
                     return new AudioPin(this,info,myHost->GetBufferSize(),doublePrecision);
                 }
 
                 case MediaTypes::Midi : {
-                    info.SetName(QString("MidiIn%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)));
+                    info.SetName(QString("MidiIn%1").arg(info.GetMetaData<int>(metaT::PinNumber)));
                     return new MidiPinIn(this,info);
                 }
                 default :
@@ -503,14 +505,14 @@ Pin* Object::CreatePin(MetaInfo &info)
             break;
 
         case Directions::Output :
-            switch(info.data.GetMetaData<int>(MetaInfos::Media)) {
+            switch(info.GetMetaData<int>(metaT::Media)) {
                 case MediaTypes::Audio : {
-                    info.SetName(QString("AudioOut%1").arg(data.GetMetaData<int>(MetaInfos::PinNumber)));
+                    info.SetName(QString("AudioOut%1").arg(data.GetMetaData<int>(metaT::PinNumber)));
                     return new AudioPin(this,info,myHost->GetBufferSize(),doublePrecision);
                 }
 
                 case MediaTypes::Midi : {
-                    info.SetName(QString("MidiOut%1").arg(data.GetMetaData<int>(MetaInfos::PinNumber)));
+                    info.SetName(QString("MidiOut%1").arg(data.GetMetaData<int>(metaT::PinNumber)));
                     return new MidiPinOut(this,info);
                 }
                 default :
@@ -532,7 +534,7 @@ Pin* Object::CreatePin(MetaInfo &info)
   */
 QDataStream & Object::toStream(QDataStream & out) const
 {
-    out << (qint16)MetaInfo::ObjId();
+    out << (qint16)MetaData::ObjId();
     out << sleep;
     out << listenProgramChanges;
 

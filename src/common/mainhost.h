@@ -28,7 +28,7 @@
 #include "renderer/pathsolver.h"
 #include "renderer/renderer.h"
 #include "globals.h"
-#include "objectinfo.h"
+#include "meta/metatransporter.h"
 
 #ifdef VSTSDK
     #include "vst/cvsthost.h"
@@ -55,20 +55,31 @@ public:
     Q_INVOKABLE virtual void InitThread();
     virtual void SetMainWindow(MainWindow *win);
 
-    void SendMsg(const MetaInfo &senderPin,const PinMessage::Enum msgType,void *data);
+    void SendMsg(const MetaData &senderPin,const PinMessage::Enum msgType,void *data);
 
-    void SetBufferSizeMs(unsigned int ms);
-    void SetBufferSize(unsigned long size);
-    void SetSampleRate(float rate=44100.0);
-    unsigned long GetBufferSize() {return bufferSize;}
-    float GetSampleRate() {return sampleRate;}
+    inline void SetBufferSizeMs(unsigned int ms) {
+        ulong size = ms*sampleRate/1000;
+        SetBufferSize(size);
+    }
+    inline void SetBufferSize(unsigned long size){
+        qDebug()<<"MainHost::SetBufferSize"<<size;
+        bufferSize = size;
+        emit BufferSizeChanged(bufferSize);
+    }
+    inline void SetSampleRate(float rate=44100.0){
+        if(sampleRate == rate)
+            return;
+
+        sampleRate = rate;
+        emit SampleRateChanged(sampleRate);
+    }
+    inline unsigned long GetBufferSize() {return bufferSize;}
+    inline float GetSampleRate() {return sampleRate;}
 
     bool EnableSolverUpdate(bool enable);
 //    bool IsSolverUpdateEnabled();
 
-
-
-//    QStandardItemModel *GetRendererModel() { return renderer->GetModel(); }
+    QStandardItemModel *GetRendererModel() { return renderer->GetModel(); }
 
     void OptimizeRenderer() { if(renderer) renderer->Optimize(); }
     Renderer * GetRenderer() { return renderer; }
@@ -100,10 +111,6 @@ public:
 
     QTimer *updateViewTimer;
 
-//    HostModel * GetModel() {return model;}
-//    void SetModel(HostModel *m) {
-//        model=m;
-//    }
     ProgramsModel *programsModel;
     Connectables::ObjectFactory *objFactory;
     MainWindow *mainWindow;
@@ -164,8 +171,6 @@ private:
     Renderer *renderer;
 
     DMutex mutexSolver;
-
-//    HostModel *model;
 
     int currentTempo;
     int currentTimeSig1;

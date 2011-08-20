@@ -35,8 +35,8 @@ namespace Connectables {
     Q_PROPERTY(QVariant value READ GetVariantValue WRITE SetVariantValue)
 
     public:
-        ParameterPin(Object *parent, MetaInfo &info, float defaultValue);
-        ParameterPin(Object *parent, MetaInfo &info, const QVariant &defaultVariantValue, QList<QVariant> *listValues);
+        ParameterPin(Object *parent, MetaData &info, float defaultValue);
+        ParameterPin(Object *parent, MetaData &info, const QVariant &defaultVariantValue, QList<QVariant> *listValues);
 
         void ReceiveMsg(const PinMessage::Enum msgType,void *data=0);
 

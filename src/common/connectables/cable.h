@@ -21,38 +21,38 @@
 #ifndef CABLE_H
 #define CABLE_H
 
-#include "objectinfo.h"
+#include "meta/metaobjengine.h"
 
 class MainHost;
 namespace Connectables {
 
-    class Cable : public ObjectInfo
+    class Cable : public MetaObjEngine
     {
     public:
         Cable();
-        Cable(const MetaInfo &pinOut, const MetaInfo &pinIn);
+        Cable(const MetaData &pinOut, const MetaData &pinIn);
 
         /*!
           Get the output pin info
           \return a ConnectionInfo
           */
-        inline const MetaInfo & GetInfoOut() const {return pinOut;}
+        inline const MetaData & GetInfoOut() const {return pinOut;}
 
         /*!
           Get the input pin info
           \return a ConnectionInfo
           */
-        inline const MetaInfo & GetInfoIn() const {return pinIn;}
+        inline const MetaData & GetInfoIn() const {return pinIn;}
 
         QDataStream & toStream (QDataStream &) const;
         QDataStream & fromStream (QDataStream &);
 
     protected:
         /// the output pin (from the sender object)
-        MetaInfo pinOut;
+        MetaData pinOut;
 
         /// the input pin (the receiver object)
-        MetaInfo pinIn;
+        MetaData pinIn;
     };
 }
 

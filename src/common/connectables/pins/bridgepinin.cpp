@@ -26,7 +26,7 @@
 
 using namespace Connectables;
 
-BridgePinIn::BridgePinIn(Object *parent, MetaInfo &info) :
+BridgePinIn::BridgePinIn(Object *parent, MetaData &info) :
     Pin(parent,info),
     valueType(MediaTypes::ND),
     loopCounter(0)
@@ -40,8 +40,8 @@ void BridgePinIn::ReceiveMsg(const PinMessage::Enum msgType,void *data)
         return;
     ++loopCounter;
 
-    MetaInfo i(info());
-    i.data.SetMeta(MetaInfos::Direction,Directions::Output);
+    MetaData i(info());
+    i.data.SetMeta(metaT::Direction,Directions::Output);
     Pin *p = parent->GetPin(i);
     if(p)
         p->SendMsg(msgType,data);
@@ -74,7 +74,7 @@ float BridgePinIn::GetValue()
     if(valueChanged) {
         if(internValue==1.0f) internValue=0.99f;
         else internValue=1.0f;
-        data.SetMeta(MetaInfos::BridgeMedia, valueType);
+        data.SetMeta(metaT::BridgeMedia, valueType);
     }
     return internValue;
 }

@@ -34,7 +34,7 @@ using namespace View;
   \param parent pointer to the parent object view
   \param pinInfo description of the pin
   */
-BridgePinView::BridgePinView(const MetaInfo &info, float angle, QGraphicsItem * parent, ViewConfig *config) :
+BridgePinView::BridgePinView(const MetaData &info, float angle, QGraphicsItem * parent, ViewConfig *config) :
     PinView(info, angle, parent, config),
     value(.0f),
 //    valueType(MediaTypes::ND),
@@ -50,8 +50,8 @@ BridgePinView::BridgePinView(const MetaInfo &info, float angle, QGraphicsItem * 
 
     QPolygonF pol;
 
-    if( (MetaInfo::data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Input && pinAngle<0)
-        || (MetaInfo::data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Output && pinAngle>0) ) {
+    if( (MetaData::data.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Input && pinAngle<0)
+        || (MetaData::data.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Output && pinAngle>0) ) {
         pol << QPointF(PINSIZE/2,PINSIZE) << QPointF(0,0) << QPointF(PINSIZE,0);
     } else {
         pol << QPointF(PINSIZE/2,0) << QPointF(0,PINSIZE) << QPointF(PINSIZE,PINSIZE);
@@ -103,13 +103,13 @@ const QPointF BridgePinView::pinPos() const
     }
 }
 
-void BridgePinView::UpdateModelIndex(const MetaInfo &info)
+void BridgePinView::UpdateModelIndex(const MetaData &info)
 {
-    *(MetaInfo*)this=info;
+    *(MetaData*)this=info;
 
-    float newVal=MetaInfo::data.GetMetaData<float>(MetaInfos::Value);
+    float newVal=MetaData::data.GetMetaData<float>(metaT::Value);
     value = std::max(value,newVal);
-//    valueType = (MediaTypes::Enum)data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media);
+//    valueType = (MediaTypes::Enum)data.GetMetaData<MediaTypes::Enum>(metaT::Media);
 }
 
 void BridgePinView::updateVu()
@@ -125,7 +125,7 @@ void BridgePinView::updateVu()
     }
 
     QColor c;
-    switch(MetaInfo::data.GetMetaData<int>(MetaInfos::BridgeMedia)) {
+    switch(MetaData::data.GetMetaData<int>(metaT::BridgeMedia)) {
         case MediaTypes::Audio:
             c = config->GetColor(ColorGroups::AudioPin, Colors::Background);
             break;

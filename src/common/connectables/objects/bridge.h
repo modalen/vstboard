@@ -30,9 +30,9 @@ namespace Connectables {
         Q_OBJECT
 
     public:
-        Bridge(MainHost *myHost, MetaInfo & info);
+        Bridge(MainHost *myHost, MetaData & info);
         void NewRenderLoop();
-        Pin* CreatePin(MetaInfo &info);
+        Pin* CreatePin(MetaData &info);
     protected:
         PinsList *listBridgePinIn;
         PinsList *listBridgePinOut;

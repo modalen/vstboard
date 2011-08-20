@@ -26,7 +26,7 @@
 
 using namespace Connectables;
 
-VstAudioDeviceIn::VstAudioDeviceIn(MainHost *myHost, MetaInfo &info) :
+VstAudioDeviceIn::VstAudioDeviceIn(MainHost *myHost, MetaData &info) :
     Object(myHost, info)
 {
 }

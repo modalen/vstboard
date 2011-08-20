@@ -22,7 +22,7 @@
 
 using namespace View;
 
-MinMaxPinView::MinMaxPinView(const MetaInfo &info, float angle, QGraphicsItem * parent, ViewConfig *config) :
+MinMaxPinView::MinMaxPinView(const MetaData &info, float angle, QGraphicsItem * parent, ViewConfig *config) :
     ConnectablePinView(info,angle,parent,config),
     cursorCreated(false),
     inMin(0),
@@ -31,7 +31,7 @@ MinMaxPinView::MinMaxPinView(const MetaInfo &info, float angle, QGraphicsItem * 
     outMax(0),
     scaledView(0)
 {
-    if(MetaInfo::data.GetMetaData<bool>(MetaInfos::LimitEnabled))
+    if(MetaData::data.GetMetaData<bool>(metaT::LimitEnabled))
         CreateCursors();
 
     UpdateModelIndex(info);
@@ -42,10 +42,10 @@ void MinMaxPinView::resizeEvent ( QGraphicsSceneResizeEvent * event )
     ConnectablePinView::resizeEvent(event);
 
     if(cursorCreated) {
-        inMin->setPos( MetaInfo::data.GetMetaData<float>(MetaInfos::LimitInMin)*event->newSize().width(), 0 );
-        inMax->setPos( MetaInfo::data.GetMetaData<float>(MetaInfos::LimitInMax)*event->newSize().width(), 0 );
-        outMin->setPos( MetaInfo::data.GetMetaData<float>(MetaInfos::LimitOutMin)*event->newSize().width(), 0 );
-        outMax->setPos( MetaInfo::data.GetMetaData<float>(MetaInfos::LimitOutMax)*event->newSize().width(), 0 );
+        inMin->setPos( MetaData::data.GetMetaData<float>(metaT::LimitInMin)*event->newSize().width(), 0 );
+        inMax->setPos( MetaData::data.GetMetaData<float>(metaT::LimitInMax)*event->newSize().width(), 0 );
+        outMin->setPos( MetaData::data.GetMetaData<float>(metaT::LimitOutMin)*event->newSize().width(), 0 );
+        outMax->setPos( MetaData::data.GetMetaData<float>(metaT::LimitOutMax)*event->newSize().width(), 0 );
         UpdateScaleView();
     }
 }
@@ -57,45 +57,45 @@ void MinMaxPinView::CreateCursors()
     scaledView = new QGraphicsPolygonItem(this);
     scaledView->setBrush(QColor(0,0,0,30));
 
-    inMin=new CursorView(MetaInfos::LimitInMin,this,config);
+    inMin=new CursorView(metaT::LimitInMin,this,config);
     inMin->setPos(rect().topLeft());
-    inMin->SetValue( MetaInfo::data.GetMetaData<float>(MetaInfos::LimitInMin) );
-    connect(inMin, SIGNAL(valChanged(MetaInfos::Enum,float)),
-            this, SLOT(LimitChanged(MetaInfos::Enum,float)));
+    inMin->SetValue( MetaData::data.GetMetaData<float>(metaT::LimitInMin) );
+    connect(inMin, SIGNAL(valChanged(metaT::Enum,float)),
+            this, SLOT(LimitChanged(metaT::Enum,float)));
 
-    inMax=new CursorView(MetaInfos::LimitInMax,this,config);
+    inMax=new CursorView(metaT::LimitInMax,this,config);
     inMax->setPos(rect().topRight());
-    inMax->SetValue( MetaInfo::data.GetMetaData<float>(MetaInfos::LimitInMax) );
-    connect(inMax, SIGNAL(valChanged(MetaInfos::Enum,float)),
-            this, SLOT(LimitChanged(MetaInfos::Enum,float)));
+    inMax->SetValue( MetaData::data.GetMetaData<float>(metaT::LimitInMax) );
+    connect(inMax, SIGNAL(valChanged(metaT::Enum,float)),
+            this, SLOT(LimitChanged(metaT::Enum,float)));
 
-    outMin=new CursorView(MetaInfos::LimitOutMin,this,config);
+    outMin=new CursorView(metaT::LimitOutMin,this,config);
     outMin->setPos(rect().bottomLeft());
-    outMin->SetValue( MetaInfo::data.GetMetaData<float>(MetaInfos::LimitOutMin) );
-    connect(outMin, SIGNAL(valChanged(MetaInfos::Enum,float)),
-            this, SLOT(LimitChanged(MetaInfos::Enum,float)));
+    outMin->SetValue( MetaData::data.GetMetaData<float>(metaT::LimitOutMin) );
+    connect(outMin, SIGNAL(valChanged(metaT::Enum,float)),
+            this, SLOT(LimitChanged(metaT::Enum,float)));
 
-    outMax=new CursorView(MetaInfos::LimitOutMax,this,config);
+    outMax=new CursorView(metaT::LimitOutMax,this,config);
     outMax->setPos(rect().bottomRight());
-    outMax->SetValue( MetaInfo::data.GetMetaData<float>(MetaInfos::LimitOutMax) );
-    connect(outMax, SIGNAL(valChanged(MetaInfos::Enum,float)),
-            this, SLOT(LimitChanged(MetaInfos::Enum,float)));
+    outMax->SetValue( MetaData::data.GetMetaData<float>(metaT::LimitOutMax) );
+    connect(outMax, SIGNAL(valChanged(metaT::Enum,float)),
+            this, SLOT(LimitChanged(metaT::Enum,float)));
 }
 
-void MinMaxPinView::LimitChanged(MetaInfos::Enum type,float val)
+void MinMaxPinView::LimitChanged(metaT::Enum type,float val)
 {
-    MetaInfo::data.SetMeta(type,val);
+    MetaData::data.SetMeta(type,val);
 }
 
-void MinMaxPinView::UpdateModelIndex(const MetaInfo &info)
+void MinMaxPinView::UpdateModelIndex(const MetaData &info)
 {
     ConnectablePinView::UpdateModelIndex(info);
 
     if(cursorCreated) {
-        inMin->SetValue( MetaInfo::data.GetMetaData<float>(MetaInfos::LimitInMin) );
-        inMax->SetValue( MetaInfo::data.GetMetaData<float>(MetaInfos::LimitInMax) );
-        outMin->SetValue( MetaInfo::data.GetMetaData<float>(MetaInfos::LimitOutMin) );
-        outMax->SetValue( MetaInfo::data.GetMetaData<float>(MetaInfos::LimitOutMax) );
+        inMin->SetValue( MetaData::data.GetMetaData<float>(metaT::LimitInMin) );
+        inMax->SetValue( MetaData::data.GetMetaData<float>(metaT::LimitInMax) );
+        outMin->SetValue( MetaData::data.GetMetaData<float>(metaT::LimitOutMin) );
+        outMax->SetValue( MetaData::data.GetMetaData<float>(metaT::LimitOutMax) );
         UpdateScaleView();
     }
 }

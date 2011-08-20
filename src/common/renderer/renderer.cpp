@@ -29,75 +29,56 @@
 Renderer::Renderer(MainHost *myHost)
     : QObject(),
       numberOfThreads(0),
-      numberOfSteps(0),
+      numberOfSteps(-1),
       stop(false),
       newNodes(false),
       needOptimize(false),
       nextOptimize(0),
-//      needBuildModel(false),
       sem(0),
-      myHost(myHost)
+      myHost(myHost),
+      needBuildModel(false)
 {
-    maxNumberOfThreads = ConfigDialog::defaultNumberOfThreads(myHost);
-    InitThreads();
+    SET_MUTEX_NAME(mutexNodes,"mutexNodes renderer");
+    SET_MUTEX_NAME(mutexOptimize,"mutexOptimize renderer");
+    SET_SEMAPHORE_NAME(sem,"sem renderer");
+    SET_READWRITELOCK_NAME(rwlock, "rwlock renderer");
 
-//    connect(&updateViewTimer, SIGNAL(timeout()),
-//            this, SLOT(UpdateView()));
-//    updateViewTimer.start(500);
+    maxNumberOfThreads = ConfigDialog::defaultNumberOfThreads(myHost);
+
+    connect(&updateViewTimer, SIGNAL(timeout()),
+            this, SLOT(UpdateView()));
+    updateViewTimer.start(500);
+
+    InitThreads();
 }
 
 Renderer::~Renderer()
 {
-//    updateViewTimer.stop();
+    updateViewTimer.stop();
     Clear();
 }
 
-//void Renderer::UpdateView()
-//{
-//    if(!mutex.tryLockForRead())
-//        return;
-
-//    if(needBuildModel) {
-//        needBuildModel=false;
-//        optimizer.BuildModel( &model );
-//        optimizer.UpdateView( &model );
-//    }
-
-//    int i = 0;
-//    foreach(RenderThread *th, listOfThreads) {
-//        model.setHorizontalHeaderItem(i, new QStandardItem( QString("%1 (cpu:%2)").arg(i).arg(th->currentCpu) ));
-//        ++i;
-//    }
-//    mutex.unlock();
-//}
-
-//QStandardItemModel * Renderer::GetModel()
-//{
-//    return &model;
-//}
-
 void Renderer::Clear()
 {
-    mutex.lockForWrite();
+    rwlock.lockForWrite();
     stop=true;
     numberOfThreads=0;
     numberOfSteps=0;
     qDeleteAll(listOfThreads);
     listOfThreads.clear();
-    mutex.unlock();
+    rwlock.unlock();
 }
 
 void Renderer::SetNbThreads(int nbThreads)
 {
-//    Clear();
     if(nbThreads<=0) nbThreads = 2;
 
-    mutex.lockForWrite();
+    rwlock.lockForWrite();
     qDeleteAll(listOfThreads);
     listOfThreads.clear();
     maxNumberOfThreads = nbThreads;
     InitThreads();
-    mutex.unlock();
+    rwlock.unlock();
 }
 
 void Renderer::LoadNodes(const QList<RendererNode*> & listNodes)
@@ -155,13 +136,13 @@ void Renderer::OnNewRenderingOrder(const QList<SolverNode*> & listNodes)
 
 void Renderer::StartRender()
 {
-    if(!mutex.tryLockForRead(5)) {
+    if(!rwlock.tryLockForRead(5)) {
         LOG("can't lock renderer");
         return;
     }
 
     if(stop) {
-        mutex.unlock();
+        rwlock.unlock();
         return;
     }
 
@@ -170,7 +151,7 @@ void Renderer::StartRender()
         newNodes=false;
         mutexNodes.unlock();
         GetStepsFromOptimizer();
-//        needBuildModel=true;
+        needBuildModel=true;
     } else {
         mutexNodes.unlock();
     }
@@ -187,50 +168,62 @@ void Renderer::StartRender()
         optimizer.NewListOfNodes( tmpListOfNodes );
         optimizer.Optimize();
         GetStepsFromOptimizer();
-//        needBuildModel=true;
+        needBuildModel=true;
     } else {
         mutexOptimize.unlock();
     }
 
-    if(numberOfThreads<=0) {
-        mutex.unlock();
+    if(numberOfThreads<=0 || numberOfSteps<=0) {
+        rwlock.unlock();
         return;
     }
+
+    int maxRenderingTime = myHost->GetSampleRate()/myHost->GetBufferSize();
+    int renderTimeout = 2000;
 
     if(sem.available()!=0) {
         LOG("semaphore available before rendering !"<<sem.available());
         sem.acquire(sem.available());
     }
+
     sem.release(maxNumberOfThreads);
     for(int currentStep=-1; currentStep<numberOfSteps; currentStep++) {
 
-        if(sem.tryAcquire(maxNumberOfThreads,2)) {
+        if(sem.tryAcquire(maxNumberOfThreads,maxRenderingTime)) {
+            foreach( RenderThread *th, listOfThreads) {
+                th->StartRenderStep( currentStep );
+            }
+        } else if( sem.tryAcquire(maxNumberOfThreads,renderTimeout) ) {
+            LOG("renderer step"<<currentStep-1<<" took more than the total available time ("<<maxRenderingTime<<"ms) , finished threads:"<< sem.available() << "/" << maxNumberOfThreads);
             foreach( RenderThread *th, listOfThreads) {
                 th->StartRenderStep( currentStep );
             }
         } else {
-            LOG("renderer too slow");
-            if( sem.tryAcquire(maxNumberOfThreads,5000) ) {
-                foreach( RenderThread *th, listOfThreads) {
-                    th->StartRenderStep( currentStep );
-                }
-            } else {
-                LOG("StartRender timeout, step:"<< currentStep << sem.available() << "/" << maxNumberOfThreads );
-            }
+            LOG("renderer step"<<currentStep-1<<"timeout, finished threads:"<< sem.available() << "/" << maxNumberOfThreads);
+            sem.acquire(sem.available());
+            rwlock.unlock();
+            return;
         }
-
     }
 
-    if( !sem.tryAcquire(maxNumberOfThreads,5000) ) {
-        sem.acquire( sem.available() );
+    //wait for the last step to finish
+    if(sem.tryAcquire(maxNumberOfThreads,maxRenderingTime)) {
+        rwlock.unlock();
+        return;
+    } else if(sem.tryAcquire(maxNumberOfThreads,renderTimeout) ) {
+        LOG("renderer last step took more than the total available time ("<<maxRenderingTime<<"ms) , finished threads:"<< sem.available() << "/" << maxNumberOfThreads);
+    } else {
+        LOG("renderer last step timeout, finished threads:"<< sem.available() << "/" << maxNumberOfThreads);
+        sem.acquire(sem.available());
     }
+
 
     if(sem.available()!=0) {
         LOG("semaphore available after rendering !"<<sem.available());
         sem.acquire(sem.available());
     }
 
-    mutex.unlock();
+    rwlock.unlock();
 }
 
 void Renderer::Optimize()
@@ -279,9 +272,31 @@ void Renderer::GetStepsFromOptimizer()
 void Renderer::InitThreads()
 {
     for(int i=0; i<maxNumberOfThreads; i++) {
-        RenderThread *th = new RenderThread(this, i, QString("RenderThread %1").arg(i));
+        RenderThread *th = new RenderThread(this, QString("RenderThread %1").arg(i));
         listOfThreads << th;
         th->start(QThread::TimeCriticalPriority);
     }
+    needOptimize=true;
 }
 
+void Renderer::UpdateView()
+{
+    if(!rwlock.tryLockForRead())
+        return;
+
+    if(needBuildModel) {
+        needBuildModel=false;
+        optimizer.BuildModel( &model );
+        optimizer.UpdateView( &model );
+    }
+
+    for(int i=0; i<listOfThreads.size();++i) {
+        model.setHorizontalHeaderItem(i, new QStandardItem( QString("thread %1").arg(i+1) ));
+    }
+    rwlock.unlock();
+}
+
+QStandardItemModel * Renderer::GetModel()
+{
+    return &model;
+}

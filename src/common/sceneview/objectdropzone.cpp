@@ -73,7 +73,7 @@ void ObjectDropZone::dragEnterEvent( QGraphicsSceneDragDropEvent *event)
 
     //accept objects
     if(event->mimeData()->hasFormat(MIMETYPE_METAINFO)) {
-        MetaInfo i(event->mimeData()->data(MIMETYPE_METAINFO));
+        MetaData i(event->mimeData()->data(MIMETYPE_METAINFO));
         if(i.Type()==MetaTypes::object) {
             event->setDropAction(Qt::CopyAction);
             event->accept();

@@ -30,10 +30,10 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        explicit MidiToAutomation(MainHost *myHost, MetaInfo &info);
+        explicit MidiToAutomation(MainHost *myHost, MetaData &info);
         void Render();
         void MidiMsgFromInput(long msg);
-        Pin* CreatePin(MetaInfo &info);
+        Pin* CreatePin(MetaData &info);
     protected:
         void ChangeValue(int ctrl, int value);
         QList<QVariant> listValues;

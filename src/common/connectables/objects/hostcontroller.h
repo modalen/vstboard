@@ -39,10 +39,10 @@ namespace Connectables {
 
     Q_OBJECT
     public:
-        explicit HostController(MainHost *myHost,MetaInfo &info);
+        explicit HostController(MainHost *myHost,MetaData &info);
         void Render();
         void SetContainer(ObjectInfo *container);
-        Pin* CreatePin(MetaInfo &info);
+        Pin* CreatePin(MetaData &info);
 
     protected:
         QList<QVariant> listTempo;
@@ -63,7 +63,7 @@ namespace Connectables {
         void OnHostProgChanged(const QModelIndex &idx);
         void OnHostGroupChanged(const QModelIndex &idx);
         void OnHostTempoChange(int tempo, int sign1, int sign2);
-        void OnParameterChanged(const MetaInfo &pinInfo, float value);
+        void OnParameterChanged(const MetaData &pinInfo, float value);
     };
 
 }

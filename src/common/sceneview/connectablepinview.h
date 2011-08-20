@@ -30,8 +30,8 @@ namespace View {
     {
     Q_OBJECT
     public:
-        ConnectablePinView(const MetaInfo &info, float angle, QGraphicsItem * parent, ViewConfig *config);
-        virtual void UpdateModelIndex(const MetaInfo &info);
+        ConnectablePinView(const MetaData &info, float angle, QGraphicsItem * parent, ViewConfig *config);
+        virtual void UpdateModelIndex(const MetaData &info);
 bool ent;
     protected:
         void resizeEvent ( QGraphicsSceneResizeEvent * event );

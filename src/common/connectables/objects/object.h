@@ -36,7 +36,7 @@
 #include "connectables/pins/bridgepinout.h"
 #include "connectables/objectprogram.h"
 #include "connectables/pinslist.h"
-#include "objectinfo.h"
+#include "meta/metaobjengine.h"
 
 class SolverNode;
 class MainHost;
@@ -59,16 +59,17 @@ namespace LearningMode {
     };
 }
 
+
 namespace Connectables {
 
     typedef QHash<int,ObjectProgram*> hashPrograms;
 
-    class Object : public QObject, public ObjectInfo
+    class Object : public QObject, public MetaObjEngine
     {
     Q_OBJECT
     public:
 
-        Object(MainHost *host, MetaInfo &info);
+        Object(MainHost *host, MetaData &info);
         virtual ~Object();
 
         /*!
@@ -102,15 +103,15 @@ namespace Connectables {
         virtual bool Open();
         virtual bool Close();
         virtual void Hide();
-        virtual Pin * GetPin(const MetaInfo &pinInfo);
+        virtual Pin * GetPin(const MetaData &pinInfo);
         virtual void SetSleep(bool sleeping);
         virtual QDataStream & toStream (QDataStream &) const;
         virtual bool fromStream (QDataStream &);
         virtual void RemoveProgram(int prg);
-        virtual void SetContainerAttribs(const ObjectContainerAttribs &attr);
-        virtual void GetContainerAttribs(ObjectContainerAttribs &attr);
+        virtual void SetContainerAttribs(const MetaData &attr);
+        virtual void GetContainerAttribs(MetaData &attr);
         virtual void CopyStatusTo(QSharedPointer<Object>objPtr);
-        virtual Pin* CreatePin(MetaInfo &info);
+        virtual Pin* CreatePin(MetaData &info);
         virtual bool IsDirty();
 
         /// Render the object, can be called multiple times if the rendering needs multiple passes
@@ -124,7 +125,7 @@ namespace Connectables {
           \param pinInfo
           \return the name
           */
-        virtual QString GetParameterName(const MetaInfo &pinInfo) {return "";}
+        virtual QString GetParameterName(const MetaData &pinInfo) {return "";}
 
         /// the current model index
         QPersistentModelIndex modelIndex;
@@ -211,7 +212,7 @@ namespace Connectables {
         /// set the sampling rate
         virtual void SetSampleRate(float rate=44100.0) {}
 
-        virtual void OnParameterChanged(const MetaInfo &pinInfo, float value);
+        virtual void OnParameterChanged(const MetaData &pinInfo, float value);
 
         void ToggleEditor(bool visible);
 
@@ -221,8 +222,8 @@ namespace Connectables {
         /// to hide the editor window from another thread
         virtual void OnHideEditor() {}
 
-        virtual void UserRemovePin(const MetaInfo &info);
-        virtual void UserAddPin(const MetaInfo &info);
+        virtual void UserRemovePin(const MetaData &info);
+        virtual void UserAddPin(const MetaData &info);
 
         virtual void SetEditorWnd(QWidget *wnd) {}
     };

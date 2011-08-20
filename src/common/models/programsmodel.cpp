@@ -649,6 +649,9 @@ void ProgramsModel::UserChangeGroupAutosave(const Qt::CheckState state)
 
 bool ProgramsModel::userWantsToUnloadGroup()
 {
+    if(!myHost || !myHost->groupContainer || !myHost->mainWindow)
+        return true;
+
     if(openedPrompt)
         return false;
 
@@ -704,6 +707,9 @@ bool ProgramsModel::userWantsToUnloadGroup()
 
 bool ProgramsModel::userWantsToUnloadProgram()
 {
+    if(!myHost || !myHost->programContainer || !myHost->mainWindow)
+        return true;
+
     if(openedPrompt)
         return false;
 
@@ -759,6 +765,9 @@ bool ProgramsModel::userWantsToUnloadProgram()
 
 bool ProgramsModel::userWantsToUnloadProject()
 {
+    if(!myHost || !myHost->mainWindow)
+        return true;
+
     if(openedPrompt)
         return false;
 
@@ -819,6 +828,9 @@ bool ProgramsModel::userWantsToUnloadProject()
 
 bool ProgramsModel::userWantsToUnloadSetup()
 {
+    if(!myHost || !myHost->mainWindow)
+        return true;
+
     if(openedPrompt)
         return false;
 

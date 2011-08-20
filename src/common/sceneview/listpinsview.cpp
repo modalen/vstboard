@@ -44,7 +44,7 @@ void ListPinsView::UpdateCablesPosition()
 int ListPinsView::GetPinPosition(int newPinNumber)
 {
     for(int i=0; i<layout->count(); i++) {
-        if( static_cast<PinView*>(layout->itemAt(i))->MetaInfo::data.GetMetaData<int>(MetaInfos::PinNumber) > newPinNumber) {
+        if( static_cast<PinView*>(layout->itemAt(i))->MetaData::data.GetMetaData<int>(metaT::PinNumber) > newPinNumber) {
             return i;
         }
     }

@@ -31,12 +31,11 @@
 
 using namespace Connectables;
 
-PinsList::PinsList(MainHost *myHost, Object *parent) :
+PinsList::PinsList(MainHost *myHost, MetaData &info) :
     QObject(parent),
-    parent(parent),
+    MetaObjEngine( info, myHost),
     myHost(myHost)
 {
-    SetType( MetaTypes::listPin );
     ObjectInfo::SetParent(parent);
 
     connect(this,SIGNAL(PinAdded(int)),
@@ -59,18 +58,11 @@ void PinsList::ChangeNumberOfPins(int newNb)
     emit SetNbPins(newNb);
 }
 
-//void PinsList::SetInfo(Object *parent,const ConnectionInfo &connInfo, const ObjectInfo &objInfo)
-//{
-//    this->parent=parent;
-//    this->connInfo=connInfo;
-//    this->objInfo=objInfo;
-//}
-
 void PinsList::SetVisible(bool visible) {
     if(visible)
-        data.SetMeta(MetaInfos::Hidden,true);
+        data.SetMeta(metaT::Hidden,true);
     else
-        data.DelMeta(MetaInfos::Hidden);
+        data.DelMeta(metaT::Hidden);
 
     foreach(Pin* pin, listPins) {
         pin->SetVisible(visible);
@@ -79,7 +71,7 @@ void PinsList::SetVisible(bool visible) {
 
 void PinsList::SetBridge(bool bridge)
 {
-    data.SetMeta(MetaInfos::Hidden,true);
+    data.SetMeta(metaT::Hidden,true);
 
     foreach(Pin* pin, listPins) {
         pin->SetBridge(bridge);
@@ -93,7 +85,7 @@ Pin * PinsList::GetPin(int pinNumber, bool autoCreate)
         if(autoCreate) {
             AddPin(pinNumber);
         } else {
-//            LOG("pin not in list"<<pinNumber<<info().toStringFull());
+//            LOG("pin not in list"<<pinNumber<<info().toString());
             return 0;
         }
     }
@@ -116,8 +108,6 @@ AudioBuffer *PinsList::GetBuffer(int pinNumber)
 
 void PinsList::ConnectAllTo(Container* container, const PinsList *other, bool hidden)
 {
-//    QSharedPointer<Object>cntPtr = myHost->objFactory->GetObjectFromId(ContainerId());//myHost->objFactory->GetObj(modelList.parent().parent());
-
     QMap<quint16,Pin*>::Iterator i = listPins.begin();
     while(i!=listPins.end()) {
         Pin *otherPin = other->listPins.value(i.key(),0);
@@ -126,20 +116,6 @@ void PinsList::ConnectAllTo(Container* container, const PinsList *other, bool hi
         ++i;
     }
 }
-
-//void PinsList::UpdateModelNode(QStandardItem *parentNode)
-//{
-//    if(!modelList.isValid() && parentNode) {
-//        QStandardItem *item = new QStandardItem("lstPins");
-//        item->setData( QVariant::fromValue(objInfo) , UserRoles::objInfo);
-//        parentNode->appendRow(item);
-//        modelList=item->index();
-//    }
-
-//    if(!modelList.isValid())
-//        return;
-
-//}
 
 void PinsList::AsyncAddPin(int nb)
 {
@@ -217,27 +193,27 @@ void PinsList::RemovePin(int nb)
     delete listPins.take(nb);
 }
 
-MetaInfo PinsList::getMetaForPin(int nb)
+MetaData PinsList::getMetaForPin(int nb)
 {
     if(listPins.contains(nb))
         return listPins.value(nb)->info();
 
-    MetaInfo info(MetaTypes::pin);
+    MetaData info(MetaType::pin);
     info.SetName("pin");
     info.SetObjId( myHost->objFactory->GetNewId() );
-    info.data.SetMeta(MetaInfos::Media, data.GetMetaData<int>(MetaInfos::Media));
-    info.data.SetMeta(MetaInfos::Direction, data.GetMetaData<int>(MetaInfos::Direction));
+    info.SetMeta(metaT::Media, data.GetMetaData<int>(metaT::Media));
+    info.SetMeta(metaT::Direction, data.GetMetaData<int>(metaT::Direction));
     info.SetParentId(ObjId());
     info.SetContainerId(ContainerId());
     info.SetParentObjectId(ParentObjectId());
-    info.data.SetMeta(MetaInfos::PinNumber,nb);
+    info.SetMeta(metaT::PinNumber,nb);
     info.SetParentId(ObjId());
     return info;
 }
 
 QDataStream & PinsList::toStream(QDataStream & out) const
 {
-    out << *(MetaInfo*)this;
+    out << *(MetaData*)this;
     out << (quint16)listPins.count();
     QMap<quint16,Pin*>::ConstIterator i = listPins.constBegin();
     while(i!=listPins.constEnd()) {
@@ -252,7 +228,7 @@ QDataStream & PinsList::toStream(QDataStream & out) const
 
 QDataStream & PinsList::fromStream(QDataStream & in)
 {
-    in >> *(MetaInfo*)this;
+    in >> *(MetaData*)this;
     quint16 nbPins;
     in >> nbPins;
     for(quint16 i=0; i<nbPins; i++) {

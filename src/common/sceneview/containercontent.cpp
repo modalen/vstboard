@@ -31,9 +31,9 @@
 
 using namespace View;
 
-ContainerContent::ContainerContent(const MetaInfo &info, MainContainerView * parent, SceneModel *model ) :
+ContainerContent::ContainerContent(const MetaData &info, MainContainerView * parent, SceneModel *model ) :
     ObjectDropZone(parent),
-    MetaInfo(info),
+    MetaData(info),
     model(model),
     rectAttachLeft(0),
     rectAttachRight(0),
@@ -58,7 +58,7 @@ void ContainerContent::SetConfig(ViewConfig *conf)
             this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
 }
 
-//void ContainerContent::SetModelIndex(const MetaInfo &info)
+//void ContainerContent::SetModelIndex(const MetaData &info)
 //{
 //    objInfo = info;
 //}
@@ -113,7 +113,7 @@ void ContainerContent::dragLeaveEvent( QGraphicsSceneDragDropEvent *event)
 void ContainerContent::dropEvent( QGraphicsSceneDragDropEvent *event)
 {
     ObjectDropZone::dropEvent(event);
-    model->dropMime(event->mimeData(),MetaInfo(*this),event->scenePos());
+    model->dropMime(event->mimeData(),MetaData(*this),event->scenePos());
 }
 
 void ContainerContent::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)

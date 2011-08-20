@@ -22,17 +22,17 @@
 #include "models/scenemodel.h"
 using namespace View;
 
-MainContainerView::MainContainerView(const MetaInfo &info, SceneModel *model) :
+MainContainerView::MainContainerView(const MetaData &info, SceneModel *model) :
     ObjectView(info),
     model(model)
 {
-    content = new ContainerContent(MetaInfo::info(),this, model);
+    content = new ContainerContent(MetaData::info(),this, model);
     content->setAcceptDrops(true);
 
-    bridgeIn = new BridgeView(MetaInfo(), this);
-    bridgeOut = new BridgeView(MetaInfo(), this);
-    bridgeSend = new BridgeView(MetaInfo(), this);
-    bridgeReturn = new BridgeView(MetaInfo(), this);
+    bridgeIn = new BridgeView(MetaData(), this);
+    bridgeOut = new BridgeView(MetaData(), this);
+    bridgeSend = new BridgeView(MetaData(), this);
+    bridgeReturn = new BridgeView(MetaData(), this);
 
     setGeometry(0,0,0,0);
 

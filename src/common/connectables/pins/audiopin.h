@@ -17,7 +17,7 @@ namespace Connectables {
         Q_PROPERTY(AudioBuffer * buffer READ GetBuffer WRITE SetBuffer)
         Q_PROPERTY(float value READ GetVal)
     public:
-        AudioPin(Object *parent, MetaInfo &info, unsigned long bufferSize, bool doublePrecision=false, bool externalAllocation=false);
+        AudioPin(Object *parent, MetaData &info, unsigned long bufferSize, bool doublePrecision=false, bool externalAllocation=false);
         virtual ~AudioPin();
 
         float GetVal() { return buffer->GetCurrentVu(); }

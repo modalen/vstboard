@@ -26,7 +26,7 @@
 
 using namespace Connectables;
 
-VstAutomation::VstAutomation(MainHost *myHost, MetaInfo &info) :
+VstAutomation::VstAutomation(MainHost *myHost, MetaData &info) :
         Object(myHost,info )
 {
     for(int i=0;i<128;i++) {
@@ -98,13 +98,13 @@ void VstAutomation::ValueFromHost(int pinNum, float value)
             {
                 QUndoCommand *com = new QUndoCommand(tr("Add pin"));
                 if(!listParameterPinOut->listPins.contains(pinNum)) {
-                    MetaInfo info(listParameterPinOut->getMetaForPin(pinNum));
-                    info.data.SetMeta(MetaInfos::Removable,true);
+                    MetaData info(listParameterPinOut->getMetaForPin(pinNum));
+                    info.SetMeta(metaT::Removable,true);
                     new ComAddPin(myHost,info,com);
                 }
                 if(!listParameterPinIn->listPins.contains(pinNum)) {
-                    MetaInfo info(listParameterPinIn->getMetaForPin(pinNum));
-                    info.data.SetMeta(MetaInfos::Removable,true);
+                    MetaData info(listParameterPinIn->getMetaForPin(pinNum));
+                    info.SetMeta(metaT::Removable,true);
                     new ComAddPin(myHost,info,com);
                 }
                 if(com->childCount())
@@ -119,10 +119,10 @@ void VstAutomation::ValueFromHost(int pinNum, float value)
     }
 }
 
-void VstAutomation::OnParameterChanged(const MetaInfo &pinInfo, float value)
+void VstAutomation::OnParameterChanged(const MetaData &pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
-    if(pinInfo.data.GetMetaData<FixedPinNumber::Enum>(MetaInfos::PinNumber)==FixedPinNumber::numberOfPins) {
+    if(pininfo.GetMetaData<FixedPinNumber::Enum>(metaT::PinNumber)==FixedPinNumber::numberOfPins) {
         int nbPins=static_cast<ParameterPin*>( listParameterPinIn->listPins.value(FixedPinNumber::numberOfPins) )->GetIndex();
 
         QUndoCommand *com = new QUndoCommand(tr("Change number of pins"));
@@ -134,9 +134,9 @@ void VstAutomation::OnParameterChanged(const MetaInfo &pinInfo, float value)
         foreach(quint16 i, listRemoved)
             new ComRemovePin(myHost,listParameterPinOut->listPins.value(i)->info(),com);
         foreach(quint16 i, listAdded) {
-            MetaInfo info(listParameterPinOut->info());
-            info.data.SetMeta(MetaInfos::PinNumber, i);
-            info.data.SetMeta(MetaInfos::Removable,true);
+            MetaData info(listParameterPinOut->info());
+            info.SetMeta(metaT::PinNumber, i);
+            info.SetMeta(metaT::Removable,true);
             new ComAddPin(myHost,info,com);
         }
 
@@ -148,9 +148,9 @@ void VstAutomation::OnParameterChanged(const MetaInfo &pinInfo, float value)
         foreach(quint16 i, listRemoved)
             new ComRemovePin(myHost,listParameterPinIn->listPins.value(i)->info(),com);
         foreach(quint16 i, listAdded) {
-            MetaInfo info(listParameterPinIn->info());
-            info.data.SetMeta(MetaInfos::PinNumber, i);
-            info.data.SetMeta(MetaInfos::Removable,true);
+            MetaData info(listParameterPinIn->info());
+            info.SetMeta(metaT::PinNumber, i);
+            info.SetMeta(metaT::Removable,true);
             new ComAddPin(myHost,info,com);
         }
 
@@ -161,8 +161,8 @@ void VstAutomation::OnParameterChanged(const MetaInfo &pinInfo, float value)
         return;
     }
 
-    if(pinInfo.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Input && pinInfo.data.GetMetaData<int>(MetaInfos::PinNumber)<200)
-        listChanged.insert(pinInfo.data.GetMetaData<int>(MetaInfos::PinNumber),value);
+    if(pininfo.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Input && pininfo.GetMetaData<int>(metaT::PinNumber)<200)
+        listChanged.insert(pininfo.GetMetaData<int>(metaT::PinNumber),value);
 }
 
 bool VstAutomation::Close()
@@ -177,18 +177,18 @@ bool VstAutomation::Open()
     return Object::Open();
 }
 
-Pin* VstAutomation::CreatePin(MetaInfo &info)
+Pin* VstAutomation::CreatePin(MetaData &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)
         return newPin;
 
-    if(info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)!=MediaTypes::Parameter) {
+    if(info.GetMetaData<MediaTypes::Enum>(metaT::Media)!=MediaTypes::Parameter) {
         LOG("wrong PinType");
         return 0;
     }
 
-    int pinnumber = info.data.GetMetaData<int>(MetaInfos::PinNumber);
+    int pinnumber = info.GetMetaData<int>(metaT::PinNumber);
 
     switch(pinnumber) {
 

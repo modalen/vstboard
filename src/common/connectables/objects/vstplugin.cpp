@@ -33,7 +33,7 @@ VstPlugin *VstPlugin::pluginLoading = 0;
 QMap<AEffect*,VstPlugin*>VstPlugin::mapPlugins;
 View::VstShellSelect *VstPlugin::shellSelectView=0;
 
-VstPlugin::VstPlugin(MainHost *myHost, MetaInfo & info) :
+VstPlugin::VstPlugin(MainHost *myHost, MetaData & info) :
     Object(myHost, info),
     CEffect(),
     editorWnd(0),
@@ -43,6 +43,7 @@ VstPlugin::VstPlugin(MainHost *myHost, MetaInfo & info) :
     savedChunk(0),
     savedChunkSize(0)
 {
+    SET_MUTEX_NAME(midiEventsMutex,"midiEventsMutex "+GetMetaData(metaT::ObjName));
     SetName("VstPlugin");
 
     for(int i=0;i<128;i++) {
@@ -265,14 +266,13 @@ void VstPlugin::Render()
 
 bool VstPlugin::Open()
 {
-
     {
 //        QMutexLocker lock(&objMutex);
         VstPlugin::pluginLoading = this;
 
-        if(!Load( data.GetMetaData<QString>(MetaInfos::Filename) )) {
+        if(!Load( data.GetMetaData<QString>(metaT::Filename) )) {
             VstPlugin::pluginLoading = 0;
-            data.SetMeta(MetaInfos::errorMessage,tr("Error while loading plugin"));
+            data.SetMeta(metaT::errorMessage,tr("Error while loading plugin"));
             //return true to create a dummy object
             return true;
         }
@@ -281,7 +281,7 @@ bool VstPlugin::Open()
         mapPlugins.insert(pEffect, this);
         VstPlugin::pluginLoading = 0;
 
-        if(EffGetPlugCategory() == kPlugCategShell && !data.GetMeta<int*>(MetaInfos::devId)!=0) {
+        if(EffGetPlugCategory() == kPlugCategShell && !data.GetMeta<int*>(metaT::devId)!=0) {
 
             if(VstPlugin::shellSelectView) {
                 VstPlugin::shellSelectView->raise();
@@ -434,7 +434,7 @@ void VstPlugin::RaiseEditor()
 void VstPlugin::SetEditorWnd(QWidget *wnd)
 {
     if(editorWnd) {
-        LOG("editor already set"<<toStringFull());
+        LOG("editor already set"<<toString());
         return;
     }
 
@@ -477,18 +477,18 @@ void VstPlugin::OnHideEditor()
     emit HideEditorWindow();
 }
 
-void VstPlugin::SetContainerAttribs(const ObjectContainerAttribs &attr)
+void VstPlugin::SetContainerAttribs(const MetaData &attr)
 {
     Object::SetContainerAttribs(attr);
 
     if(editorWnd) {
-        if(attr.editorVisible && !editorWnd->isVisible()) {
+        if(attr.GetMetaData<bool>(metaT::EditorVisible) && !editorWnd->isVisible()) {
             emit ShowEditorWindow();
-        } else if(!attr.editorVisible && editorWnd->isVisible()) {
+        } else if(!attr.GetMetaData<bool>(metaT::EditorVisible) && editorWnd->isVisible()) {
             emit HideEditorWindow();
         }
 
-        if(attr.editorVisible)
+        if(attr.GetMetaData<bool>(metaT::EditorVisible))
             editorWnd->LoadAttribs();
 //        editorWnd->move(attr.editorPosition);
 //        editorWnd->resize(attr.editorSize);
@@ -496,7 +496,7 @@ void VstPlugin::SetContainerAttribs(const ObjectContainerAttribs &attr)
     }
 }
 
-void VstPlugin::GetContainerAttribs(ObjectContainerAttribs &attr)
+void VstPlugin::GetContainerAttribs(MetaData &attr)
 {
     if(editorWnd && editorWnd->isVisible())
         editorWnd->SaveAttribs();
@@ -520,13 +520,13 @@ void VstPlugin::EditIdle()
         EffEditIdle();
 }
 
-QString VstPlugin::GetParameterName(const MetaInfo &pinInfo)
+QString VstPlugin::GetParameterName(const MetaData &pinInfo)
 {
     if(closed)
         return "";
 
 
-    int pinnumber = pinInfo.data.GetMetaData<int>(MetaInfos::PinNumber);
+    int pinnumber = pininfo.GetMetaData<int>(metaT::PinNumber);
     if(pEffect && pinnumber < pEffect->numParams) {
         QString s( EffGetParamName(pinnumber) );
         s.append( EffGetParamDisplay(pinnumber) );
@@ -576,32 +576,32 @@ void VstPlugin::processEvents(VstEvents* events)
     }
 }
 
-void VstPlugin::UserRemovePin(const MetaInfo &info)
+void VstPlugin::UserRemovePin(const MetaData &info)
 {
-    if(info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)!=MediaTypes::Parameter)
+    if(info.GetMetaData<MediaTypes::Enum>(metaT::Media)!=MediaTypes::Parameter)
         return;
 
-    if(info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)!=Directions::Input)
+    if(info.GetMetaData<Directions::Enum>(metaT::Direction)!=Directions::Input)
         return;
 
-    if(!info.data.GetMetaData<bool>(MetaInfos::Removable))
+    if(!info.GetMetaData<bool>(metaT::Removable))
         return;
 
-    if(listParameterPinIn->listPins.contains(info.data.GetMetaData<int>(MetaInfos::PinNumber)))
-        static_cast<ParameterPin*>(listParameterPinIn->listPins.value(info.data.GetMetaData<int>(MetaInfos::PinNumber)))->SetVisible(false);
+    if(listParameterPinIn->listPins.contains(info.GetMetaData<int>(metaT::PinNumber)))
+        static_cast<ParameterPin*>(listParameterPinIn->listPins.value(info.GetMetaData<int>(metaT::PinNumber)))->SetVisible(false);
     OnProgramDirty();
 }
 
-void VstPlugin::UserAddPin(const MetaInfo &info)
+void VstPlugin::UserAddPin(const MetaData &info)
 {
-    if(info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)!=MediaTypes::Parameter)
+    if(info.GetMetaData<MediaTypes::Enum>(metaT::Media)!=MediaTypes::Parameter)
         return;
 
-    if(info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)!=Directions::Input)
+    if(info.GetMetaData<Directions::Enum>(metaT::Direction)!=Directions::Input)
         return;
 
-    if(listParameterPinIn->listPins.contains(info.data.GetMetaData<int>(MetaInfos::PinNumber)))
-        static_cast<ParameterPin*>(listParameterPinIn->listPins.value(info.data.GetMetaData<int>(MetaInfos::PinNumber)))->SetVisible(true);
+    if(listParameterPinIn->listPins.contains(info.GetMetaData<int>(metaT::PinNumber)))
+        static_cast<ParameterPin*>(listParameterPinIn->listPins.value(info.GetMetaData<int>(metaT::PinNumber)))->SetVisible(true);
     OnProgramDirty();
 }
 
@@ -617,12 +617,12 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
 
                 switch(GetLearningMode()) {
                 case LearningMode::unlearn :
-                    if(!pin->data.GetMetaData<bool>(MetaInfos::Hidden))
+                    if(!pin->data.GetMetaData<bool>(metaT::Hidden))
                         emit UndoStackPush( new ComRemovePin(myHost, pin->info()) );
                     break;
 
                 case LearningMode::learn :
-                    if(pin->data.GetMetaData<bool>(MetaInfos::Hidden))
+                    if(pin->data.GetMetaData<bool>(metaT::Hidden))
                         emit UndoStackPush( new ComAddPin(myHost, pin->info()) );
 
                 case LearningMode::off :
@@ -633,7 +633,7 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
             return 1L;
 
         case audioMasterCurrentId : //2
-            return data.GetMetaData<int>(MetaInfos::devId);
+            return data.GetMetaData<int>(metaT::devId);
 
         case audioMasterIdle : //3
             QApplication::processEvents();
@@ -709,15 +709,15 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
     return 0L;
 }
 
-void VstPlugin::OnParameterChanged(const MetaInfo &pinInfo, float value)
+void VstPlugin::OnParameterChanged(const MetaData &pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
 
     if(closed)
         return;
 
-    if(pinInfo.data.GetMetaData<Directions::Enum>(MetaInfos::Direction) == Directions::Input) {
-        int pinnumber = pinInfo.data.GetMetaData<int>(MetaInfos::PinNumber);
+    if(pininfo.GetMetaData<Directions::Enum>(metaT::Direction) == Directions::Input) {
+        int pinnumber = pininfo.GetMetaData<int>(metaT::PinNumber);
         if(pinnumber==FixedPinNumber::vstProgNumber) {
             //program pin
             EffSetProgram( static_cast<ParameterPin*>(listParameterPinIn->listPins.value(FixedPinNumber::vstProgNumber))->GetIndex() );
@@ -802,18 +802,18 @@ void VstPlugin::onVstProgramChanged()
     }
 }
 
-Pin* VstPlugin::CreatePin(MetaInfo &info)
+Pin* VstPlugin::CreatePin(MetaData &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)
         return newPin;
 
-    if(info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media) == MediaTypes::Parameter
-            && info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction) == Directions::Input) {
+    if(info.GetMetaData<MediaTypes::Enum>(metaT::Media) == MediaTypes::Parameter
+            && info.GetMetaData<Directions::Enum>(metaT::Direction) == Directions::Input) {
         //if the plugin has a gui, the pins can be learned and the name can change
         bool hasEditor = (!pEffect || (pEffect->flags & effFlagsHasEditor) == 0)?false:true;
 
-        switch(info.data.GetMetaData<int>(MetaInfos::PinNumber)) {
+        switch(info.GetMetaData<int>(metaT::PinNumber)) {
             case FixedPinNumber::vstProgNumber : {
                 info.SetName(tr("prog"));
                 ParameterPin *newPin = new ParameterPin(this,info,0,&listValues);
@@ -839,11 +839,11 @@ Pin* VstPlugin::CreatePin(MetaInfo &info)
             default : {
                 ParameterPin *pin=0;
                 if(!closed) {
-                    info.SetName(EffGetParamName(info.data.GetMetaData<int>(MetaInfos::PinNumber)));
-                    info.data.SetMeta(MetaInfos::Hidden, hasEditor);
-                    info.data.SetMeta(MetaInfos::Removable, hasEditor);
+                    info.SetName(EffGetParamName(info.GetMetaData<int>(metaT::PinNumber)));
+                    info.SetMeta(metaT::Hidden, hasEditor);
+                    info.SetMeta(metaT::Removable, hasEditor);
                 }
-                pin = new ParameterPin(this,info,EffGetParameter(info.data.GetMetaData<int>(MetaInfos::PinNumber)));
+                pin = new ParameterPin(this,info,EffGetParameter(info.GetMetaData<int>(metaT::PinNumber)));
 //                pin->SetDefaultVisible(!hasEditor);
                 pin->SetNameCanChange(hasEditor);
                 return pin;
@@ -858,7 +858,7 @@ QDataStream & VstPlugin::toStream(QDataStream & out) const
 {
     Object::toStream(out);
 
-    if(data.GetMeta<QString*>(MetaInfos::errorMessage)!=0 && savedChunk) {
+    if(data.GetMeta<QString*>(metaT::errorMessage)!=0 && savedChunk) {
         out << savedChunkSize;
         out.writeRawData(savedChunk, savedChunkSize);
     } else if(pEffect && (pEffect->flags & effFlagsProgramChunks)) {

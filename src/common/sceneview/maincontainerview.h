@@ -33,7 +33,7 @@ namespace View {
     {
     Q_OBJECT
     public:
-        explicit MainContainerView(const MetaInfo &info, SceneModel *model);
+        explicit MainContainerView(const MetaData &info, SceneModel *model);
         ~MainContainerView();
         void SetParking(QWidget *parking);
         QWidget *GetParking();

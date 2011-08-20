@@ -49,7 +49,7 @@ QMimeData  * ListAudioInterfacesModel::mimeData ( const QModelIndexList  & index
             continue;
         if(idx.column()!=0)
             continue;
-        stream << itemFromIndex(idx)->data(UserRoles::metaInfo).value<MetaInfo>();
+        stream << itemFromIndex(idx)->data(UserRoles::metaInfo).value<MetaData>();
     }
 
     data->setData(MIMETYPE_METAINFO,b);

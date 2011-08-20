@@ -22,7 +22,7 @@
 
 using namespace View;
 
-ConnectablePinView::ConnectablePinView(const MetaInfo &info, float angle, QGraphicsItem * parent, ViewConfig *config) :
+ConnectablePinView::ConnectablePinView(const MetaData &info, float angle, QGraphicsItem * parent, ViewConfig *config) :
     PinView(info,angle,parent,config),
     value(0),
     overload(0),
@@ -42,7 +42,7 @@ ConnectablePinView::ConnectablePinView(const MetaInfo &info, float angle, QGraph
     textItem->moveBy(2,1);
     textItem->setZValue(1);
 
-    switch(MetaInfo::data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)) {
+    switch(MetaData::data.GetMetaData<MediaTypes::Enum>(metaT::Media)) {
     case MediaTypes::Audio :
         colorGroupId=ColorGroups::AudioPin;
         break;
@@ -83,7 +83,7 @@ void ConnectablePinView::UpdateColor(ColorGroups::Enum groupId, Colors::Enum col
     }
     if(groupId==colorGroupId && colorId==Colors::VuMeter) {
         vuColor=color;
-        if(MetaInfo::data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media) != MediaTypes::Midi) {
+        if(MetaData::data.GetMetaData<MediaTypes::Enum>(metaT::Media) != MediaTypes::Midi) {
             rectVu->setBrush(color);
         }
         return;
@@ -115,7 +115,7 @@ void ConnectablePinView::resizeEvent ( QGraphicsSceneResizeEvent * event )
     }
     if(rectVu) {
         QRectF r = rectVu->rect();
-        if(MetaInfo::data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media) == MediaTypes::Midi) {
+        if(MetaData::data.GetMetaData<MediaTypes::Enum>(metaT::Media) == MediaTypes::Midi) {
             r.setSize(event->newSize());
             rectVu->setRect(r);
         } else if(value>.0f) {
@@ -134,13 +134,13 @@ void ConnectablePinView::mousePressEvent ( QGraphicsSceneMouseEvent * event )
     PinView::mousePressEvent(event);
 }
 
-void ConnectablePinView::UpdateModelIndex(const MetaInfo &info)
+void ConnectablePinView::UpdateModelIndex(const MetaData &info)
 {
-    *(MetaInfo*)this = info;
+    *(MetaData*)this = info;
 
     QString newName = Name();
-    if(MetaInfo::data.GetMeta<QString*>(MetaInfos::displayedText)!=0)
-        newName = MetaInfo::data.GetMetaData<QString>(MetaInfos::displayedText);
+    if(MetaData::data.GetMeta<QString*>(metaT::displayedText)!=0)
+        newName = MetaData::data.GetMetaData<QString>(metaT::displayedText);
 
     if(newName!=textItem->text()) {
         textItem->setText(newName);
@@ -149,12 +149,12 @@ void ConnectablePinView::UpdateModelIndex(const MetaInfo &info)
             setMinimumWidth( textItem->boundingRect().width()+10 );
     }
 
-    if(MetaInfo::data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media) == MediaTypes::Parameter) {
-        value = MetaInfo::data.GetMetaData<float>(MetaInfos::Value);
+    if(MetaData::data.GetMetaData<MediaTypes::Enum>(metaT::Media) == MediaTypes::Parameter) {
+        value = MetaData::data.GetMetaData<float>(metaT::Value);
         float newVu = size().width() * value;
         rectVu->setRect(0,0, newVu, size().height());
     } else {
-        float newVal = MetaInfo::data.GetMetaData<float>(MetaInfos::Value);
+        float newVal = MetaData::data.GetMetaData<float>(metaT::Value);
         value = std::max(value,newVal);
     }
 }
@@ -170,7 +170,7 @@ void ConnectablePinView::updateVu()
     if(value<.0f)
         return;
 
-    if(MetaInfo::data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)==MediaTypes::Audio) {
+    if(MetaData::data.GetMetaData<MediaTypes::Enum>(metaT::Media)==MediaTypes::Audio) {
         value-=.05f;
 
         if(value>1.0f) {
@@ -202,7 +202,7 @@ void ConnectablePinView::updateVu()
         rectVu->setRect(0,0, newVu, size().height());
     }
 
-    if(MetaInfo::data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)== MediaTypes::Midi) {
+    if(MetaData::data.GetMetaData<MediaTypes::Enum>(metaT::Media)== MediaTypes::Midi) {
         value-=.1f;
         if(value<.0f) {
             value=-1.0f;
@@ -225,13 +225,13 @@ void ConnectablePinView::ValueChanged(float newVal)
     if(newVal>1.0f) newVal=1.0f;
     if(newVal<0.0f) newVal=0.0f;
 
-    MetaInfo::data.SetMeta(MetaInfos::Value,newVal);
+    MetaData::data.SetMeta(metaT::Value,newVal);
 //    model->setData(pinIndex,newVal,UserRoles::value);
 }
 
 void ConnectablePinView::wheelEvent ( QGraphicsSceneWheelEvent * event )
 {
-    if(MetaInfo::data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media) != MediaTypes::Parameter) {
+    if(MetaData::data.GetMetaData<MediaTypes::Enum>(metaT::Media) != MediaTypes::Parameter) {
         QGraphicsWidget::wheelEvent(event);
         return;
     }
@@ -242,18 +242,18 @@ void ConnectablePinView::wheelEvent ( QGraphicsSceneWheelEvent * event )
     if(event->delta()<0)
         increm=-1.0f;
 
-    increm*=MetaInfo::data.GetMetaData<float>(MetaInfos::StepSize);
+    increm*=MetaData::data.GetMetaData<float>(metaT::StepSize);
 
     if(event->modifiers() & Qt::ControlModifier)
         increm/=10.0f;
 
-    ValueChanged( MetaInfo::data.GetMetaData<float>(MetaInfos::Value) + increm);
+    ValueChanged( MetaData::data.GetMetaData<float>(metaT::Value) + increm);
 
 }
 
 void ConnectablePinView::keyPressEvent ( QKeyEvent * event )
 {
-    if(MetaInfo::data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media) != MediaTypes::Parameter) {
+    if(MetaData::data.GetMetaData<MediaTypes::Enum>(metaT::Media) != MediaTypes::Parameter) {
         QGraphicsWidget::keyPressEvent(event);
         return;
     }
@@ -274,10 +274,10 @@ void ConnectablePinView::keyPressEvent ( QKeyEvent * event )
 
     event->accept();
 
-    increm*=MetaInfo::data.GetMetaData<float>(MetaInfos::StepSize);
+    increm*=MetaData::data.GetMetaData<float>(metaT::StepSize);
 
     if(event->modifiers() & Qt::ControlModifier)
         increm/=10.0f;
 
-    ValueChanged( MetaInfo::data.GetMetaData<float>(MetaInfos::Value) + increm);
+    ValueChanged( MetaData::data.GetMetaData<float>(metaT::Value) + increm);
 }

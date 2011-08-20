@@ -31,7 +31,7 @@ namespace View {
     {
         Q_OBJECT
     public:
-        explicit CursorView(MetaInfos::Enum type,QGraphicsItem *parent, ViewConfig *config);
+        explicit CursorView(metaT::Enum type,QGraphicsItem *parent, ViewConfig *config);
         void SetValue(float newVal);
         inline float GetValue() const {return value;}
         void setPos ( const QPointF & pos );
@@ -47,17 +47,17 @@ namespace View {
         void focusOutEvent ( QFocusEvent * event );
 
         QGraphicsPolygonItem *cursor;
-        MetaInfos::Enum type;
+        metaT::Enum type;
 //        bool isMaxi;
 //        bool upsideDown;
         bool drag;
         float value;
-//        MetaInfo objInfo;
+//        MetaData objInfo;
         QPointF offset;
         ViewConfig *config;
 
     signals:
-        void valChanged(MetaInfos::Enum type,float val);
+        void valChanged(metaT::Enum type,float val);
 
     public slots:
         void UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color);

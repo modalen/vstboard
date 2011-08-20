@@ -32,9 +32,9 @@ namespace View {
     {
     Q_OBJECT
     public:
-        BridgePinView(const MetaInfo &info, float angle, QGraphicsItem * parent, ViewConfig *config);
+        BridgePinView(const MetaData &info, float angle, QGraphicsItem * parent, ViewConfig *config);
         const QPointF pinPos() const;
-        void UpdateModelIndex(const MetaInfo &info);
+        void UpdateModelIndex(const MetaData &info);
 
 
     protected:

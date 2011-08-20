@@ -2,7 +2,7 @@
 #define OPTIMIZER_H
 
 #include "optimizerstep.h"
-#include "mutexdebug.h"
+#include "debugmutex.h"
 
 class Optimizer
 {
@@ -16,8 +16,9 @@ public:
     void SetStep(int step, OptimizerStep* s);
     QMap<int, RendererNode* > GetThreadNodes(int thread);
     QList<RendererNode*> GetListOfNodes();
-//    void BuildModel( QStandardItemModel *model);
-//    void UpdateView( QStandardItemModel *model );
+
+    void BuildModel( QStandardItemModel *model);
+    void UpdateView( QStandardItemModel *model );
 
 protected:
     void Clear();

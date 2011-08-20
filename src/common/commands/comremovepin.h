@@ -28,16 +28,16 @@ class ComRemovePin : public QUndoCommand
 {
 public:
     ComRemovePin(MainHost *myHost,
-                 const MetaInfo &pinInfo,
+                 const MetaData &pinInfo,
                  QUndoCommand  *parent=0);
     void undo ();
     void redo ();
 private:
     MainHost *myHost;
-    MetaInfo pinInfo;
+    MetaData pinInfo;
     int currentGroup;
     int currentProg;
-    QList<MetaInfo>listConnectedPins;
+    QList<MetaData>listConnectedPins;
     QVariant value;
 };
 

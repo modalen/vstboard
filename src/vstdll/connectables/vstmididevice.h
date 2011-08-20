@@ -33,7 +33,7 @@ namespace Connectables {
     Q_OBJECT
 
     public:
-        VstMidiDevice(MainHost *myHost, MetaInfo &info);
+        VstMidiDevice(MainHost *myHost, MetaData &info);
         ~VstMidiDevice();
         bool Open();
         bool Close();

@@ -9,25 +9,25 @@ class ComAddObject : public QUndoCommand
 {
 public:
     ComAddObject(MainHost *myHost,
-                 const MetaInfo &objInfo,
-                 const MetaInfo &targetInfo,
+                 const MetaData &objInfo,
+                 const MetaData &targetInfo,
                  InsertionType::Enum insertType = InsertionType::NoInsertion,
                  QUndoCommand  *parent=0);
     void undo ();
     void redo ();
 
-    void ReloadObject(const MetaInfo &info);
+    void ReloadObject(const MetaData &info);
 
 private:
     MainHost *myHost;
 
-    MetaInfo objectInfo;
-    MetaInfo targetInfo;
+    MetaData objectInfo;
+    MetaData targetInfo;
 
     InsertionType::Enum insertType;
 
-    QList< QPair<MetaInfo,MetaInfo> >listAddedCables;
-    QList< QPair<MetaInfo,MetaInfo> >listRemovedCables;
+    QList< QPair<MetaData,MetaData> >listAddedCables;
+    QList< QPair<MetaData,MetaData> >listRemovedCables;
 
     ObjectContainerAttribs attr;
     QByteArray objState;

@@ -23,7 +23,8 @@
 
 #include "precomp.h"
 #include "globals.h"
-#include "objectinfo.h"
+#include "debugmutex.h"
+#include "meta/metaobjengine.h"
 
 #ifdef _MSC_VER
 #pragma warning( push )
@@ -39,11 +40,11 @@ namespace Connectables {
 //    };
 
     class Object;
-    class Pin : public QObject, public ObjectInfo
+    class Pin : public QObject, public MetaObjEngine
     {
     Q_OBJECT
     public:
-        Pin(Object *parent, MetaInfo &info);
+        Pin(Object *parent, MetaData &info);
         virtual ~Pin();
 
         virtual void SendMsg(const PinMessage::Enum msgType,void *data=0);
@@ -92,7 +93,7 @@ namespace Connectables {
         QPersistentModelIndex modelIndex;
 
         /// global pin mutex
-        DMutex objMutex;
+        DMutex pinMutex;
 
         /// true if closed or closing (no send, no receive)
         bool closed;

@@ -33,7 +33,7 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        VstAudioDeviceIn(MainHost *myHost, MetaInfo &info);
+        VstAudioDeviceIn(MainHost *myHost, MetaData &info);
         ~VstAudioDeviceIn();
 
         bool Open();

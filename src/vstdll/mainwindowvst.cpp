@@ -55,9 +55,9 @@ void MainWindowVst::BuildListTools()
 
     {
         //vst audio in
-        MetaInfo info(MetaTypes::object);
-        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::AudioInterface);
-        info.data.SetMeta(MetaInfos::Direction, Directions::Input);
+        MetaData info(MetaType::object);
+        info.SetMeta(metaT::ObjType, ObjTypes::AudioInterface);
+        info.SetMeta(metaT::Direction, Directions::Input);
         info.SetName(tr("Vst audio In"));
 
         QStandardItem *item = new QStandardItem(tr("Vst audio input"));
@@ -67,9 +67,9 @@ void MainWindowVst::BuildListTools()
 
     {
         //vst audio out
-        MetaInfo info(MetaTypes::object);
-        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::AudioInterface);
-        info.data.SetMeta(MetaInfos::Direction, Directions::Output);
+        MetaData info(MetaType::object);
+        info.SetMeta(metaT::ObjType, ObjTypes::AudioInterface);
+        info.SetMeta(metaT::Direction, Directions::Output);
         info.SetName(tr("Vst audio Out"));
 
         QStandardItem *item = new QStandardItem(tr("Vst audio output"));
@@ -82,9 +82,9 @@ void MainWindowVst::BuildListTools()
 
     {
         //vst midi in
-        MetaInfo info(MetaTypes::object);
-        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::MidiInterface);
-        info.data.SetMeta(MetaInfos::nbInputs, 1);
+        MetaData info(MetaType::object);
+        info.SetMeta(metaT::ObjType, ObjTypes::MidiInterface);
+        info.SetMeta(metaT::nbInputs, 1);
         info.SetName(tr("Vst midi In"));
 
         QStandardItem *item = new QStandardItem(tr("Vst midi input"));
@@ -94,9 +94,9 @@ void MainWindowVst::BuildListTools()
 
     {
         //vst midi out
-        MetaInfo info(MetaTypes::object);
-        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::MidiInterface);
-        info.data.SetMeta(MetaInfos::nbOutputs, 1);
+        MetaData info(MetaType::object);
+        info.SetMeta(metaT::ObjType, ObjTypes::MidiInterface);
+        info.SetMeta(metaT::nbOutputs, 1);
         info.SetName(tr("Vst midi Out"));
 
         QStandardItem *item = new QStandardItem(tr("Vst midi output"));
@@ -106,8 +106,8 @@ void MainWindowVst::BuildListTools()
 
     {
         //vst automation
-        MetaInfo info(MetaTypes::object);
-        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::VstAutomation);
+        MetaData info(MetaType::object);
+        info.SetMeta(metaT::ObjType, ObjTypes::VstAutomation);
         info.SetName(tr("Vst Automation"));
 
         QStandardItem *item = new QStandardItem(tr("Vst Automation"));

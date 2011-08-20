@@ -23,7 +23,7 @@
 
 using namespace Connectables;
 
-MidiSender::MidiSender(MainHost *myHost, MetaInfo &info) :
+MidiSender::MidiSender(MainHost *myHost, MetaData &info) :
     Object(myHost, info ),
     midiMsg(0),
     msgChanged(false)
@@ -88,20 +88,20 @@ void MidiSender::Render()
     listMidiPinOut->GetPin(0)->SendMsg(PinMessage::MidiMsg, (void*)&midiMsg);
 }
 
-void MidiSender::OnParameterChanged(const MetaInfo &pinInfo, float value)
+void MidiSender::OnParameterChanged(const MetaData &pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
 
     msgChanged=true;
 }
 
-Pin* MidiSender::CreatePin(MetaInfo &info)
+Pin* MidiSender::CreatePin(MetaData &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)
         return newPin;
 
-    switch(info.data.GetMetaData<int>(MetaInfos::PinNumber)) {
+    switch(info.GetMetaData<int>(metaT::PinNumber)) {
         case Param_MsgType:
             info.SetName(tr("MsgType"));
             return new ParameterPin(this,info,"Ctrl",&listMsgType);

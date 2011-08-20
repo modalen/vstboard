@@ -39,7 +39,7 @@ namespace Connectables {
     {
         Q_OBJECT
     public:
-        AudioDevice(PaDeviceInfo &devInfo, MainHostHost *myHost,const MetaInfo &info, QObject *parent=0);
+        AudioDevice(PaDeviceInfo &devInfo, MainHostHost *myHost,const MetaData &info, QObject *parent=0);
         ~AudioDevice();
 
         bool Open();
@@ -99,7 +99,7 @@ namespace Connectables {
         PaDeviceInfo devInfo;
 
         /// objcet description
-        MetaInfo objInfo;
+        MetaData objInfo;
 
         /// pointer to the AudioDeviceIn, can be null
         AudioDeviceIn *devIn;

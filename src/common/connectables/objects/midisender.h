@@ -39,9 +39,9 @@ namespace Connectables {
         };
 
     public:
-        MidiSender(MainHost *myHost, MetaInfo &info);
+        MidiSender(MainHost *myHost, MetaData &info);
         void Render();
-        Pin* CreatePin(MetaInfo &info);
+        Pin* CreatePin(MetaData &info);
 
     protected:
         long midiMsg;
@@ -52,7 +52,7 @@ namespace Connectables {
         QList<QVariant> listChannels;
 
     public slots:
-        virtual void OnParameterChanged(const MetaInfo &pinInfo, float value);
+        virtual void OnParameterChanged(const MetaData &pinInfo, float value);
     };
 }
 #endif // MIDISENDER_H

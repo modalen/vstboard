@@ -91,10 +91,10 @@ int ObjectFactory::IdFromSavedId(int savedId)
     return -1;
 }
 
-Pin *ObjectFactory::GetPin(const MetaInfo &pinInfo)
+Pin *ObjectFactory::GetPin(const MetaData &pinInfo)
 {
     if(!listObjects.contains(pinInfo.ParentObjectId())) {
-        LOG("obj not found"<<pinInfo.toStringFull());
+        LOG("obj not found"<<pinInfo.toString());
         return 0;
     }
 
@@ -105,10 +105,10 @@ Pin *ObjectFactory::GetPin(const MetaInfo &pinInfo)
     return 0;
 }
 
-bool ObjectFactory::UpdatePinInfo(MetaInfo &pinInfo)
+bool ObjectFactory::UpdatePinInfo(MetaData &pinInfo)
 {
     if(!listObjects.contains(pinInfo.ParentObjectId())) {
-        LOG("obj not found"<<pinInfo.toStringFull());
+        LOG("obj not found"<<pinInfo.toString());
         return false;
     }
 
@@ -118,14 +118,14 @@ bool ObjectFactory::UpdatePinInfo(MetaInfo &pinInfo)
 
     Pin *pin = objPtr->GetPin(pinInfo);
     if(!pin) {
-        pinInfo=MetaInfo();
+        pinInfo=MetaData();
         return false;
     }
     pinInfo = pin->info();
     return true;
 }
 
-QSharedPointer<Object> ObjectFactory::NewObject( MetaInfo &info)
+QSharedPointer<Object> ObjectFactory::NewObject( MetaData &info)
 {
     int forcedObjId = 0;//cptListObjects;
     if(info.ObjId()!=0) {
@@ -144,17 +144,17 @@ QSharedPointer<Object> ObjectFactory::NewObject( MetaInfo &info)
     if(!obj) {
         switch(info.Type()) {
 
-            case MetaTypes::container :
+            case MetaType::container :
                 obj = new Container(myHost, info);
                 break;
 
-            case MetaTypes::bridge :
+            case MetaType::bridge :
                 obj = new Bridge(myHost, info);
                 break;
 
-            case MetaTypes::object :
+            case MetaType::object :
 
-                switch(info.data.GetMetaData<int>(MetaInfos::ObjType)) {
+                switch(info.GetMetaData<int>(metaT::ObjType)) {
 #ifdef SCRIPTENGINE
                     case ObjTypes::Script:
                         obj = new Script(myHost, info);
@@ -179,7 +179,7 @@ QSharedPointer<Object> ObjectFactory::NewObject( MetaInfo &info)
             #endif
 
                     case ObjTypes::Dummy :
-                        info.data.SetMeta<QString>(MetaInfos::errorMessage,"Dummy object");
+                        info.SetMeta<QString>(metaT::errorMessage,"Dummy object");
                         obj = new Object(myHost, info);
                         break;
 

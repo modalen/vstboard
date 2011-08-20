@@ -5,8 +5,8 @@
 #include "models/programsmodel.h"
 
 ComAddObject::ComAddObject(MainHost *myHost,
-                           const MetaInfo &objInfo,
-                           const MetaInfo &targetInfo,
+                           const MetaData &objInfo,
+                           const MetaData &targetInfo,
                            InsertionType::Enum insertType,
                            QUndoCommand  *parent) :
     QUndoCommand(parent),
@@ -67,7 +67,7 @@ void ComAddObject::undo ()
     }
 
     //remove cables added at creation
-    QPair<MetaInfo,MetaInfo>pair;
+    QPair<MetaData,MetaData>pair;
     foreach( pair, listAddedCables) {
         myHost->objFactory->UpdatePinInfo( pair.first );
         myHost->objFactory->UpdatePinInfo( pair.second );
@@ -136,7 +136,7 @@ void ComAddObject::redo ()
     }
 }
 
-void ComAddObject::ReloadObject(const MetaInfo &info)
+void ComAddObject::ReloadObject(const MetaData &info)
 {
     objectInfo = info;
     redo();

@@ -35,9 +35,9 @@ using namespace View;
   \param wFlags window flags
   \todo the model parameter can be removed
   */
-ObjectView::ObjectView(const MetaInfo &info, QGraphicsItem * parent ) :
+ObjectView::ObjectView(const MetaData &info, QGraphicsItem * parent ) :
     QGraphicsWidget(parent),
-    MetaInfo(info),
+    MetaData(info),
     listAudioIn(0),
     listAudioOut(0),
     listMidiIn(0),
@@ -59,11 +59,11 @@ ObjectView::ObjectView(const MetaInfo &info, QGraphicsItem * parent ) :
 
     setAutoFillBackground(true);
 
-    if(MetaInfo::data.GetMetaData<ObjTypes::Enum>(MetaInfos::ObjType) == ObjTypes::Dummy) {
+    if(MetaData::data.GetMetaData<ObjTypes::Enum>(metaT::ObjType) == ObjTypes::Dummy) {
         SetErrorMessage("object not loaded");
     }
 
-    if(MetaInfo::Type() != MetaTypes::bridge) {
+    if(MetaData::Type() != MetaType::bridge) {
         actRemoveBridge = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove"),this);
         actRemoveBridge->setShortcut( Qt::Key_Delete );
         actRemoveBridge->setShortcutContext(Qt::WidgetShortcut);
@@ -146,7 +146,7 @@ void ObjectView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
   Set the model index of this object
   \param index the index
   */
-//void ObjectView::SetModelIndex(const MetaInfo &info)
+//void ObjectView::SetModelIndex(const MetaData &info)
 //{
 //    objInfo=info;
 
@@ -158,10 +158,10 @@ void ObjectView::UpdateTitle()
     if(titleText) {
         QString newTitle = Name();
 
-        if(MetaInfo::data.GetMetaData<bool>(MetaInfos::Dirty))
+        if(MetaData::data.GetMetaData<bool>(metaT::Dirty))
             newTitle.prepend("*");
 
-        if(MetaInfo::data.GetMetaData<bool>(MetaInfos::DoublePrecision))
+        if(MetaData::data.GetMetaData<bool>(metaT::DoublePrecision))
             newTitle.append("(D)");
 
         titleText->setText( newTitle );
@@ -171,15 +171,15 @@ void ObjectView::UpdateTitle()
 /*!
   Update the view, base on the model index
   */
-void ObjectView::UpdateModelIndex(const MetaInfo &info)
+void ObjectView::UpdateModelIndex(const MetaData &info)
 {
-    *(MetaInfo*)this=info;
+    *(MetaData*)this=info;
 
-    if(MetaInfo::data.GetMeta<QPointF*>(MetaInfos::Position)!=0)
-        setPos( MetaInfo::data.GetMetaData<QPointF>(MetaInfos::Position) );
+    if(MetaData::data.GetMeta<QPointF*>(metaT::Position)!=0)
+        setPos( MetaData::data.GetMetaData<QPointF>(metaT::Position) );
 
-    if(MetaInfo::data.GetMeta<QString*>(MetaInfos::errorMessage)!=0)
-        SetErrorMessage( MetaInfo::data.GetMetaData<QString>(MetaInfos::errorMessage) );
+    if(MetaData::data.GetMeta<QString*>(metaT::errorMessage)!=0)
+        SetErrorMessage( MetaData::data.GetMetaData<QString>(metaT::errorMessage) );
 
     UpdateTitle();
 }
@@ -269,7 +269,7 @@ void ObjectView::resizeEvent ( QGraphicsSceneResizeEvent * event )
 void ObjectView::mouseReleaseEvent ( QGraphicsSceneMouseEvent * event )
 {
     QGraphicsWidget::mouseReleaseEvent(event);
-    MetaInfo::data.SetMeta(MetaInfos::Position,pos());
+    MetaData::data.SetMeta(metaT::Position,pos());
 //    model->setData(objIndex,pos(),UserRoles::position);
 }
 

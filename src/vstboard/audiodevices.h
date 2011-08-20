@@ -69,7 +69,7 @@ public:
 private:
     bool Init();
     void BuildModel();
-    void AddDeviceToApiItem(const MetaInfo &info, QStandardItem *apiItem);
+    void AddDeviceToApiItem(const MetaData &info, QStandardItem *apiItem);
 
 
     bool closing;

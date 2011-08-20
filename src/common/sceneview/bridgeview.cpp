@@ -22,7 +22,7 @@
 
 using namespace View;
 
-BridgeView::BridgeView(const MetaInfo &info, QGraphicsItem * parent) :
+BridgeView::BridgeView(const MetaData &info, QGraphicsItem * parent) :
         ObjectView(info,parent),
         lLayout(0)
 {

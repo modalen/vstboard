@@ -25,7 +25,7 @@ using namespace View;
 #define CURS_WIDTH 5.0f
 #define CURD_HEIGHT 7.5f
 
-CursorView::CursorView(MetaInfos::Enum type,QGraphicsItem *parent, ViewConfig *config) :
+CursorView::CursorView(metaT::Enum type,QGraphicsItem *parent, ViewConfig *config) :
     QGraphicsWidget(parent),
     drag(false),
     value(.0f),
@@ -36,20 +36,20 @@ CursorView::CursorView(MetaInfos::Enum type,QGraphicsItem *parent, ViewConfig *c
     QPolygonF pol;
 
     switch(type) {
-        case MetaInfos::LimitOutMax :
+        case metaT::LimitOutMax :
             pol << QPointF(CURS_WIDTH,CURD_HEIGHT) << QPointF(0,CURD_HEIGHT) << QPointF(CURS_WIDTH,0);
             offset.setX(CURS_WIDTH);
             offset.setY(CURD_HEIGHT);
             break;
-        case MetaInfos::LimitOutMin :
+        case metaT::LimitOutMin :
             pol << QPointF(CURS_WIDTH,CURD_HEIGHT) << QPointF(0,CURD_HEIGHT) << QPointF(0,0);
             offset.setY(CURD_HEIGHT);
             break;
-        case MetaInfos::LimitInMax :
+        case metaT::LimitInMax :
             pol << QPointF(0,0) << QPointF(CURS_WIDTH,0) << QPointF(CURS_WIDTH,CURD_HEIGHT);
             offset.setX(CURS_WIDTH);
             break;
-        case MetaInfos::LimitInMin :
+        case metaT::LimitInMin :
             pol << QPointF(0,0) << QPointF(CURS_WIDTH,0) << QPointF(0,CURD_HEIGHT);
     }
     cursor = new QGraphicsPolygonItem(pol,this);
@@ -69,12 +69,12 @@ void CursorView::setPos ( const QPointF & pos )
     QPointF p( pos);
 
     switch(type) {
-        case MetaInfos::LimitInMin :
-        case MetaInfos::LimitInMax :
+        case metaT::LimitInMin :
+        case metaT::LimitInMax :
             p.setY(.0f);
             break;
-        case MetaInfos::LimitOutMin :
-        case MetaInfos::LimitOutMax :
+        case metaT::LimitOutMin :
+        case metaT::LimitOutMax :
             p.setY(parentWidget()->rect().height());
     }
 
@@ -85,12 +85,12 @@ void CursorView::setPos ( const QPointF & pos )
 void CursorView::setPos ( qreal x, qreal y )
 {
     switch(type) {
-        case MetaInfos::LimitInMin :
-        case MetaInfos::LimitInMax :
+        case metaT::LimitInMin :
+        case metaT::LimitInMax :
             y=.0f;
             break;
-        case MetaInfos::LimitOutMin :
-        case MetaInfos::LimitOutMax :
+        case metaT::LimitOutMin :
+        case metaT::LimitOutMax :
             y=parentWidget()->rect().height();
     }
 
@@ -147,12 +147,12 @@ QVariant CursorView::itemChange(GraphicsItemChange change, const QVariant &value
             newPos.setX(parentWidget()->rect().width()-offset.x());
 
         switch(type) {
-            case MetaInfos::LimitInMin :
-            case MetaInfos::LimitInMax :
+            case metaT::LimitInMin :
+            case metaT::LimitInMax :
                 newPos.setY(-offset.y());
                 break;
-            case MetaInfos::LimitOutMin :
-            case MetaInfos::LimitOutMax :
+            case metaT::LimitOutMin :
+            case metaT::LimitOutMax :
                 newPos.setY(parentWidget()->rect().height()-offset.y());
         }
 

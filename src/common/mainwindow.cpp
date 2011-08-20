@@ -102,24 +102,15 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
 
 void MainWindow::Init()
 {
-
-
-
-
     //programs
-//    myHost->programsModel = new ProgramsModel(myHost);
     ui->Programs->SetModel( myHost->programsModel );
     myHost->programsModel->UserChangeProg(0);
 
-
-
-//    mySceneView->setModel(hostModel);
-
-//    ui->solverView->setModel(myHost->GetRendererModel());
-//    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-//            ui->solverView, SLOT(resizeColumnsToContents()));
-//    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-//            ui->solverView, SLOT(resizeRowsToContents()));
+    ui->solverView->setModel(myHost->GetRendererModel());
+    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+            ui->solverView, SLOT(resizeColumnsToContents()));
+    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+            ui->solverView, SLOT(resizeRowsToContents()));
 
     setPalette( viewConfig->GetPaletteFromColorGroup( ColorGroups::Window, palette() ));
     connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
@@ -226,8 +217,8 @@ void MainWindow::BuildListTools()
 #ifdef SCRIPTENGINE
     {
         //script
-        MetaInfo info(MetaTypes::object);
-        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::Script);
+        MetaData info(MetaType::object);
+        info.SetMeta(metaT::ObjType, ObjTypes::Script);
 
         QStandardItem *item = new QStandardItem(tr("Script"));
         item->setData(QVariant::fromValue(info), UserRoles::metaInfo);
@@ -237,8 +228,8 @@ void MainWindow::BuildListTools()
 
     {
         //midi parameters
-        MetaInfo info(MetaTypes::object);
-        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::MidiToAutomation);
+        MetaData info(MetaType::object);
+        info.SetMeta(metaT::ObjType, ObjTypes::MidiToAutomation);
 
         QStandardItem *item = new QStandardItem(tr("Midi to parameter"));
         item->setData(QVariant::fromValue(info), UserRoles::metaInfo);
@@ -247,8 +238,8 @@ void MainWindow::BuildListTools()
 
     {
         //midi sender
-        MetaInfo info(MetaTypes::object);
-        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::MidiSender);
+        MetaData info(MetaType::object);
+        info.SetMeta(metaT::ObjType, ObjTypes::MidiSender);
 
         QStandardItem *item = new QStandardItem(tr("Midi sender"));
         item->setData(QVariant::fromValue(info),UserRoles::metaInfo);
@@ -257,8 +248,8 @@ void MainWindow::BuildListTools()
 
     {
         //host controller
-        MetaInfo info(MetaTypes::object);
-        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::HostController);
+        MetaData info(MetaType::object);
+        info.SetMeta(metaT::ObjType, ObjTypes::HostController);
 
         QStandardItem *item = new QStandardItem(tr("Host Controller"));
         item->setData(QVariant::fromValue(info),UserRoles::metaInfo);

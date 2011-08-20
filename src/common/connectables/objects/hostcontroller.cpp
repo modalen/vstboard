@@ -25,7 +25,7 @@
 
 using namespace Connectables;
 
-HostController::HostController(MainHost *myHost, MetaInfo &info):
+HostController::HostController(MainHost *myHost, MetaData &info):
     Object(myHost, info ),
     tempoChanged(false),
     progChanged(false),
@@ -122,19 +122,19 @@ void HostController::Render()
         int step;
         float percent =  myHost->vstHost->GetCurrentBarTic(step);
         pin->ChangeValue( percent );
-        pin->data.SetMeta(MetaInfos::displayedText, QString("%1:%2").arg(pin->Name()).arg(step) );
+        pin->data.SetMeta(metaT::displayedText, QString("%1:%2").arg(pin->Name()).arg(step) );
     }
 #endif
 }
 
-void HostController::OnParameterChanged(const MetaInfo &pinInfo, float value)
+void HostController::OnParameterChanged(const MetaData &pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
 
-    if(pinInfo.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)!=Directions::Input)
+    if(pininfo.GetMetaData<Directions::Enum>(metaT::Direction)!=Directions::Input)
         return;
 
-    switch(pinInfo.data.GetMetaData<int>(MetaInfos::PinNumber)) {
+    switch(pininfo.GetMetaData<int>(metaT::PinNumber)) {
         case Param_Tempo :
         case Param_Sign1 :
         case Param_Sign2 :
@@ -189,13 +189,13 @@ void HostController::SetContainer(ObjectInfo *container)
     ObjectInfo::SetContainer(container);
 }
 
-Pin* HostController::CreatePin(MetaInfo &info)
+Pin* HostController::CreatePin(MetaData &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)
         return newPin;
 
-    int pinnumber = info.data.GetMetaData<int>(MetaInfos::PinNumber);
+    int pinnumber = info.GetMetaData<int>(metaT::PinNumber);
     int tempo=120;
     int sign1=4;
     int sign2=4;

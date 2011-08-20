@@ -37,13 +37,13 @@ namespace Connectables {
 
 namespace View {
     class CableView;
-    class PinView : public QGraphicsWidget, public MetaInfo
+    class PinView : public QGraphicsWidget, public MetaData
     {
     Q_OBJECT
 
     public:
 
-        explicit PinView(const MetaInfo &info, float angle, QGraphicsItem * parent, ViewConfig *config);
+        explicit PinView(const MetaData &info, float angle, QGraphicsItem * parent, ViewConfig *config);
         void AddCable(CableView *cable);
         void RemoveCable(CableView *cable);
         void UpdateCablesPosition();
@@ -53,13 +53,13 @@ namespace View {
           \param index the model index of the pin
           \todo does the parameter can be removed since the index is stored anyway ?
           */
-        virtual void UpdateModelIndex(const MetaInfo &info) {}
+        virtual void UpdateModelIndex(const MetaData &info) {}
 
         /*!
           Set the model index and update the view
           \param index the new model index
           */
-//        virtual void SetPinModelIndex(const MetaInfo &info) {pinInfo = info; UpdateModelIndex(info);}
+//        virtual void SetPinModelIndex(const MetaData &info) {pinInfo = info; UpdateModelIndex(info);}
 
         virtual const QPointF pinPos() const;
 
@@ -97,20 +97,22 @@ namespace View {
 
         Qt::CursorShape defaultCursor;
 
+        bool CanConnectPins(const MetaData &otherPin);
+
     signals:
         /*!
           emitted when a pin is drag&droped over another one
           \param outputPin
           \param inputPin
           */
-        void ConnectPins(const MetaInfo &outputPin, const MetaInfo &inputPin);
+        void ConnectPins(const MetaData &outputPin, const MetaData &inputPin);
 
         /*!
           emitted on double click to remove all the connected cables
           */
-        void RemoveCablesFromPin(const MetaInfo & pin);
+        void RemoveCablesFromPin(const MetaData & pin);
 
-        void RemovePin(const MetaInfo &pin);
+        void RemovePin(const MetaData &pin);
 
     public slots:
         /// update the vu-meter, called by a timer

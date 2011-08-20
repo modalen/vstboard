@@ -8,15 +8,15 @@ class ComDisconnectPin : public QUndoCommand
 {
 public:
     ComDisconnectPin(MainHost *myHost,
-                     const MetaInfo &pinInfo,
+                     const MetaData &pinInfo,
                      QUndoCommand  *parent=0);
     void undo ();
     void redo ();
 
 private:
     MainHost *myHost;
-    MetaInfo pinInfo;
-    QList<MetaInfo>listConnectedPins;
+    MetaData pinInfo;
+    QList<MetaData>listConnectedPins;
 
     int currentGroup;
     int currentProg;

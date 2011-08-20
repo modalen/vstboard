@@ -8,8 +8,8 @@ namespace View {
     {
     Q_OBJECT
     public:
-        VstPluginView(const MetaInfo &info, MainContainerView * parent, SceneModel *model);
-        void UpdateModelIndex(const MetaInfo &info);
+        VstPluginView(const MetaData &info, MainContainerView * parent, SceneModel *model);
+        void UpdateModelIndex(const MetaData &info);
         void SetConfig(ViewConfig *config);
 
     private:

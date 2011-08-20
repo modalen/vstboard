@@ -73,4 +73,4 @@ win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/rele
 else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/debug/common.lib
 else:unix:!symbian: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
 
-
+PRECOMPILED_HEADER = precomp.h

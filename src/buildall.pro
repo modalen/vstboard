@@ -6,8 +6,7 @@ SUBDIRS     = \
     vstdll \
     vstboard \
     dllLoader \
-    dllLoaderInst \
-    test
+    dllLoaderInst
 
 CONFIG += ordered
 

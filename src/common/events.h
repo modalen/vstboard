@@ -38,13 +38,13 @@ namespace Events {
     class sendObj : public QEvent
     {
     public:
-        sendObj(const MetaInfo &objInfo, Events::type type) :
+        sendObj(const MetaData &objInfo, Events::type type) :
             QEvent((QEvent::Type)type),
             objInfo(objInfo)
         {
         }
 
-        MetaInfo objInfo;
+        MetaData objInfo;
     };
 
     class delObj : public QEvent
@@ -61,15 +61,15 @@ namespace Events {
     class valChanged : public QEvent
     {
     public:
-        valChanged(const MetaInfo &objInfo, const MetaInfos::Enum type, const QVariant &value) :
+        valChanged(const MetaData &objInfo, const metaT::Enum type, const QVariant &value) :
             QEvent((QEvent::Type)typeValChanged),
             objInfo(objInfo),
             type(type),
             value(value)
         {}
 
-        MetaInfo objInfo;
-        MetaInfos::Enum type;
+        MetaData objInfo;
+        metaT::Enum type;
         QVariant value;
 
     };
@@ -88,7 +88,7 @@ namespace Events {
 //    class dropMime : public QEvent
 //    {
 //    public:
-//        dropMime(const QMimeData *data, const MetaInfo &senderInfo, InsertionType::Enum insertType = InsertionType::NoInsertion) :
+//        dropMime(const QMimeData *data, const MetaData &senderInfo, InsertionType::Enum insertType = InsertionType::NoInsertion) :
 //            QEvent((QEvent::Type)typeDropMime),
 //            data(data),
 //            senderInfo(senderInfo),
@@ -96,7 +96,7 @@ namespace Events {
 //        {}
 
 //        const QMimeData *data;
-//        MetaInfo senderInfo;
+//        MetaData senderInfo;
 //        InsertionType::Enum insertType;
 //    };
 }

@@ -30,7 +30,7 @@ namespace Connectables {
     public:
         ObjectFactoryHost(MainHost *myHost);
     protected:
-        Object *CreateOtherObjects(MetaInfo &info);
+        Object *CreateOtherObjects(MetaData &info);
 
     };
 

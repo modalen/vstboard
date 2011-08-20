@@ -4,7 +4,7 @@
 #include "models/programsmodel.h"
 
 ComRemoveObject::ComRemoveObject( MainHost *myHost,
-                                  const MetaInfo &objectInfo,
+                                  const MetaData &objectInfo,
                                   RemoveType::Enum removeType,
                                   QUndoCommand  *parent) :
     QUndoCommand(parent),
@@ -49,7 +49,7 @@ void ComRemoveObject::undo ()
     obj->SetContainerAttribs(attr);
 
     //remove cables added at creation
-    QPair<MetaInfo,MetaInfo>pair;
+    QPair<MetaData,MetaData>pair;
     foreach( pair, listAddedCables) {
         myHost->objFactory->UpdatePinInfo( pair.first );
         myHost->objFactory->UpdatePinInfo( pair.second );

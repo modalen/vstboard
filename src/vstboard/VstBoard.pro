@@ -12,6 +12,14 @@ win32 {
     LIBS += -lole32
     LIBS += -lsetupapi
     LIBS += -ldsound
+
+    vld {
+        CONFIG(debug, debug|release) {
+            DEFINES += VLD_MEM
+            LIBS += -L"VLD_PATH/lib/" -lvld
+            INCLUDEPATH += "VLD_PATH/include/"
+        }
+    }
 }
 
 INCLUDEPATH += $$PORTAUDIO_PATH/include
@@ -19,11 +27,6 @@ INCLUDEPATH += $$PORTMIDI_PATH/porttime
 INCLUDEPATH += $$PORTMIDI_PATH/pm_common
 
 INCLUDEPATH += ../common
-
-CONFIG(debug, debug|release) {
-    LIBS += -L"C:/Program Files (x86)/Visual Leak Detector/lib/" -lvld
-    INCLUDEPATH += "C:/Program Files (x86)/Visual Leak Detector/include/"
-}
 
 SOURCES += \
     main.cpp \
@@ -105,3 +108,5 @@ DEPENDPATH += $$PWD/../portmidi
 win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../portmidi/release/portmidi.lib
 else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../portmidi/debug/portmidi.lib
 else:unix:!symbian: PRE_TARGETDEPS += $$OUT_PWD/../portmidi/libportmidi.a
+
+PRECOMPILED_HEADER = precomp.h

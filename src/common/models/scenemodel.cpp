@@ -57,7 +57,7 @@ bool SceneModel::event(QEvent *event)
         case Events::typeNewObj : {
             Events::sendObj *e = static_cast<Events::sendObj*>(event);
             e->objInfo.SetTransporter(this);
-//            LOG("add" << e->objInfo.toStringFull());
+//            LOG("add" << e->objInfo.toString());
             mySceneView->AddObj(e->objInfo);
             return true;
         }
@@ -70,7 +70,7 @@ bool SceneModel::event(QEvent *event)
         case Events::typeUpdateObj : {
             Events::sendObj *e = static_cast<Events::sendObj*>(event);
             e->objInfo.SetTransporter(this);
-//            LOG("update" << e->objInfo.toStringFull());
+//            LOG("update" << e->objInfo.toString());
             mySceneView->UpdateObj(e->objInfo);
             return true;
         }
@@ -79,7 +79,7 @@ bool SceneModel::event(QEvent *event)
     return QObject::event(event);
 }
 
-bool SceneModel::dropFile( const QString &fName, MetaInfo &info, MetaInfo &target)
+bool SceneModel::dropFile( const QString &fName, MetaData &info, MetaData &target)
 {
     QFileInfo fileInfo;
     fileInfo.setFile( fName );
@@ -93,34 +93,34 @@ bool SceneModel::dropFile( const QString &fName, MetaInfo &info, MetaInfo &targe
 #ifdef VSTSDK
     //vst plugin ?
     if ( fileType=="dll" ) {
-        info.SetType(MetaTypes::object);
-        info.data.SetMeta(MetaInfos::ObjType, ObjTypes::VstPlugin);
-        info.data.SetMeta(MetaInfos::Filename, fName);
+        info.SetType(MetaType::object);
+        info.SetMeta(metaT::ObjType, ObjTypes::VstPlugin);
+        info.SetMeta(metaT::Filename, fName);
         return true;
     }
 #endif
 
     //fxb file
     if( fileType == VST_BANK_FILE_EXTENSION ) {
-        if(target.data.GetMetaData<ObjTypes::Enum>(MetaInfos::ObjType) != ObjTypes::VstPlugin) {
+        if(target.data.GetMetaData<ObjTypes::Enum>(metaT::ObjType) != ObjTypes::VstPlugin) {
             LOG("fxb bad target");
             return false;
         }
 
 //        if( senderObj->LoadBank(fName) ) {
-            target.data.SetMeta(MetaInfos::bankFile,fName);
+            target.data.SetMeta(metaT::bankFile,fName);
             return true;
 //        }
     }
 
     if( fileType == VST_PROGRAM_FILE_EXTENSION ) {
-        if(target.data.GetMetaData<ObjTypes::Enum>(MetaInfos::ObjType) != ObjTypes::VstPlugin) {
+        if(target.data.GetMetaData<ObjTypes::Enum>(metaT::ObjType) != ObjTypes::VstPlugin) {
             LOG("fxp bad target");
             return false;
         }
 
 //        if( senderObj->LoadProgram(fName) ) {
-            target.data.SetMeta(MetaInfos::programFile,fName);
+            target.data.SetMeta(metaT::programFile,fName);
             return true;
 //        }
     }
@@ -148,9 +148,9 @@ bool SceneModel::dropFile( const QString &fName, MetaInfo &info, MetaInfo &targe
     return false;
 }
 
-bool SceneModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, QPointF &pos, InsertionType::Enum insertType )
+bool SceneModel::dropMime ( const QMimeData * data, MetaData & senderInfo, QPointF &pos, InsertionType::Enum insertType )
 {
-    QList<MetaInfo>listObjInfoToAdd;
+    QList<MetaData>listObjInfoToAdd;
 
 
     if(data->hasFormat(MIMETYPE_METAINFO)) {
@@ -158,7 +158,7 @@ bool SceneModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, QPoin
         QDataStream stream(&b,QIODevice::ReadOnly);
 
         while(!stream.atEnd()) {
-            MetaInfo info;
+            MetaData info;
             stream >> info;
             listObjInfoToAdd << info;
         }
@@ -168,7 +168,7 @@ bool SceneModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, QPoin
     if (data->hasUrls()) {
         foreach(QUrl url,data->urls()) {
             QString fName = url.toLocalFile();
-            MetaInfo info;
+            MetaData info;
             if(!dropFile(fName, info, senderInfo)) {
                 QMessageBox msg(QMessageBox::Information,
                             tr("File not accepted"),
@@ -178,7 +178,7 @@ bool SceneModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, QPoin
                 continue;
             }
 
-            if(info.Type()!=MetaTypes::ND)
+            if(info.Type()!=MetaType::ND)
                 listObjInfoToAdd << info;
         }
     }
@@ -190,24 +190,24 @@ bool SceneModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, QPoin
 //        QDataStream stream(&b,QIODevice::ReadOnly);
 
 //        while(!stream.atEnd()) {
-//            MetaInfo info;
+//            MetaData info;
 //            stream >> info;
-//            if(info.Meta(MetaInfos::ObjType).toInt() == ObjTypes::AudioInterface) {
-//                if(info.Meta(MetaInfos::nbInputs).toInt()!=0) {
-//                    info.data.SetMeta(MetaInfos::Direction,Directions::Input);
+//            if(info.Meta(metaT::ObjType).toInt() == ObjTypes::AudioInterface) {
+//                if(info.Meta(metaT::nbInputs).toInt()!=0) {
+//                    info.SetMeta(metaT::Direction,Directions::Input);
 //                    listObjInfoToAdd << info;
 //                 }
 
-//                if(info.data.Meta(MetaInfos::nbOutputs).toInt()!=0) {
+//                if(info.Meta(metaT::nbOutputs).toInt()!=0) {
 
 //                    //move the second device
-//                    if(info.data.Meta(MetaInfos::nbInputs).toInt()!=0) {
-//                        QPointF pt = info.Meta(MetaInfos::Position).toPointF();
+//                    if(info.Meta(metaT::nbInputs).toInt()!=0) {
+//                        QPointF pt = info.Meta(metaT::Position).toPointF();
 //                        pt.rx()+=110;
-//                        info.data.SetMeta(MetaInfos::Position,pt);
+//                        info.SetMeta(metaT::Position,pt);
 //                    }
 
-//                    info.data.SetMeta(MetaInfos::Direction,Directions::Output);
+//                    info.SetMeta(metaT::Direction,Directions::Output);
 //                    listObjInfoToAdd << info;
 //                }
 //            }
@@ -216,18 +216,18 @@ bool SceneModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, QPoin
 
 
 
-    foreach(MetaInfo info, listObjInfoToAdd) {
+    foreach(MetaData info, listObjInfoToAdd) {
 
-        if(senderInfo.Type()==MetaTypes::container)
+        if(senderInfo.Type()==MetaType::container)
             info.SetContainerId(senderInfo.ObjId());
         else
             info.SetContainerId(senderInfo.ContainerId());
 
-        info.data.SetMeta(MetaInfos::Position,pos);
+        info.SetMeta(metaT::Position,pos);
         pos+=QPointF(15,15);
 
-        MetaInfo targetInfo;
-        if(senderInfo.Type()==MetaTypes::object)
+        MetaData targetInfo;
+        if(senderInfo.Type()==MetaType::object)
             targetInfo=senderInfo;
 
         ComAddObject *com = new ComAddObject(myHost, info, targetInfo, insertType);

@@ -5,7 +5,7 @@
 #include "models/programsmodel.h"
 
 ComDisconnectPin::ComDisconnectPin(MainHost *myHost,
-                                   const MetaInfo &pinInfo,
+                                   const MetaData &pinInfo,
                                    QUndoCommand  *parent) :
     QUndoCommand(parent),
     myHost(myHost),
@@ -27,9 +27,9 @@ void ComDisconnectPin::undo ()
     if(!cntPtr)
         return;
 
-    foreach(MetaInfo info, listConnectedPins) {
+    foreach(MetaData info, listConnectedPins) {
         myHost->objFactory->UpdatePinInfo( info );
-        if(pinInfo.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Output) {
+        if(pininfo.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Output) {
             cntPtr->UserAddCable(pinInfo, info);
         } else {
             cntPtr->UserAddCable(info, pinInfo);

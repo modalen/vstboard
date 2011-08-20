@@ -5,8 +5,8 @@
 #include "models/programsmodel.h"
 
 ComAddCable::ComAddCable(MainHost *myHost,
-                         const MetaInfo &outInfo,
-                         const MetaInfo &inInfo,
+                         const MetaData &outInfo,
+                         const MetaData &inInfo,
                          QUndoCommand  *parent) :
     QUndoCommand(parent),
     myHost(myHost),
@@ -20,10 +20,10 @@ ComAddCable::ComAddCable(MainHost *myHost,
     currentGroup = myHost->programsModel->GetCurrentMidiGroup();
     currentProg =  myHost->programsModel->GetCurrentMidiProg();
 
-    if(outInfo.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Input) {
-        MetaInfo tmp(outInfo);
-        this->outInfo=MetaInfo(inInfo);
-        this->inInfo=MetaInfo(tmp);
+    if(outinfo.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Input) {
+        MetaData tmp(outInfo);
+        this->outInfo=MetaData(inInfo);
+        this->inInfo=MetaData(tmp);
     }
 }
 

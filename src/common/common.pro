@@ -90,7 +90,12 @@ SOURCES += \
     commands/comchangeautosave.cpp \
     commands/comremovepin.cpp \
     commands/comaddpin.cpp \
-    models/scenemodel.cpp
+    models/scenemodel.cpp \
+    meta/metadata.cpp \
+    meta/types.cpp \
+    meta/metatransporter.cpp \
+    meta/metaobjengine.cpp \
+    meta/metaobjgui.cpp
 
 SOURCES += \
     views/configdialog.cpp \
@@ -182,7 +187,14 @@ HEADERS += \
     commands/comaddpin.h \
     models/scenemodel.h \
     connectables/mididefines.h \
-    mutexdebug.h
+    debugsemaphore.h \
+    debugmutex.h \
+    debugreadwritelock.h \
+    meta/metadata.h \
+    meta/types.h \
+    meta/metatransporter.h \
+    meta/metaobjengine.h \
+    meta/metaobjgui.h
 
 HEADERS += \
     views/configdialog.h \
@@ -229,32 +241,7 @@ TRANSLATIONS = ../resources/translations/common_fr.ts
 RESOURCES += \
     ../resources/resources.qrc
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+PRECOMPILED_HEADER = precomp.h
 
 
 

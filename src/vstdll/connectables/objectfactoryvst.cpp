@@ -32,16 +32,16 @@ ObjectFactoryVst::ObjectFactoryVst(MainHost *myHost) :
 {
 }
 
-Object *ObjectFactoryVst::CreateOtherObjects(MetaInfo &info)
+Object *ObjectFactoryVst::CreateOtherObjects(MetaData &info)
 {
     Object *obj=0;
 
     switch(info.Type()) {
-        case MetaTypes::object :
+        case MetaType::object :
 
-            switch(info.data.GetMetaData<int>(MetaInfos::ObjType)) {
+            switch(info.GetMetaData<int>(metaT::ObjType)) {
                 case ObjTypes::AudioInterface:
-                    switch(info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)) {
+                    switch(info.GetMetaData<Directions::Enum>(metaT::Direction)) {
                         case Directions::Input :
                             obj = new VstAudioDeviceIn(myHost,info);
                             break;

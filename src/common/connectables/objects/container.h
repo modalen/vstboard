@@ -32,7 +32,7 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        Container(MainHost *myHost, MetaInfo &info);
+        Container(MainHost *myHost, MetaData &info);
         virtual ~Container();
 
         void Hide();
@@ -60,7 +60,7 @@ namespace Connectables {
         void CopyCablesFromObj(QSharedPointer<Object> newObjPtr, QSharedPointer<Object> ObjPtr);
         void MoveOutputCablesFromObj(QSharedPointer<Object> newObjPtr, QSharedPointer<Object> ObjPtr);
         void MoveInputCablesFromObj(QSharedPointer<Object> newObjPtr, QSharedPointer<Object> ObjPtr);
-        void GetListOfConnectedPinsTo(const MetaInfo &pin, QList<MetaInfo> &list);
+        void GetListOfConnectedPinsTo(const MetaData &pin, QList<MetaData> &list);
         bool IsDirty() {
             return currentContainerProgram->IsDirty();
         }
@@ -154,22 +154,22 @@ namespace Connectables {
     public slots:
         void UserAddObject(const QSharedPointer<Object> &objPtr,
                            InsertionType::Enum insertType = InsertionType::NoInsertion,
-                           QList< QPair<MetaInfo,MetaInfo> > *listOfAddedCables=0,
-                           QList< QPair<MetaInfo,MetaInfo> > *listOfRemovedCables=0,
+                           QList< QPair<MetaData,MetaData> > *listOfAddedCables=0,
+                           QList< QPair<MetaData,MetaData> > *listOfRemovedCables=0,
                            const QSharedPointer<Object> &targetPtr=QSharedPointer<Object>());
         void UserParkObject(QSharedPointer<Object> objPtr,
                             RemoveType::Enum removeType = RemoveType::RemoveWithCables,
-                            QList< QPair<MetaInfo,MetaInfo> > *listOfAddedCables=0,
-                            QList< QPair<MetaInfo,MetaInfo> > *listOfRemovedCables=0);
-        void UserAddCable(const MetaInfo &outputPin, const MetaInfo &inputPin);
-        void UserAddCable(const QPair<MetaInfo,MetaInfo>&pair);
-        void UserRemoveCableFromPin(const MetaInfo &pin);
-        void UserRemoveCable(const MetaInfo &outputPin, const MetaInfo &inputPin);
-        void UserRemoveCable(const QPair<MetaInfo,MetaInfo>&pair);
+                            QList< QPair<MetaData,MetaData> > *listOfAddedCables=0,
+                            QList< QPair<MetaData,MetaData> > *listOfRemovedCables=0);
+        void UserAddCable(const MetaData &outputPin, const MetaData &inputPin);
+        void UserAddCable(const QPair<MetaData,MetaData>&pair);
+        void UserRemoveCableFromPin(const MetaData &pin);
+        void UserRemoveCable(const MetaData &outputPin, const MetaData &inputPin);
+        void UserRemoveCable(const QPair<MetaData,MetaData>&pair);
 
-        void AddCable(const MetaInfo &outputPin, const MetaInfo &inputPin, bool hidden=false);
-        void RemoveCableFromPin(const MetaInfo &pin);
-        void RemoveCable(const MetaInfo &outputPin, const MetaInfo &inputPin);
+        void AddCable(const MetaData &outputPin, const MetaData &inputPin, bool hidden=false);
+        void RemoveCableFromPin(const MetaData &pin);
+        void RemoveCable(const MetaData &outputPin, const MetaData &inputPin);
 
         void SaveProgram();
         void UnloadProgram();

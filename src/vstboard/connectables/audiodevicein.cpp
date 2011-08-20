@@ -37,7 +37,7 @@ using namespace Connectables;
   \param index object number
   \param info object description
   */
-AudioDeviceIn::AudioDeviceIn(MainHost *myHost, MetaInfo &info) :
+AudioDeviceIn::AudioDeviceIn(MainHost *myHost, MetaData &info) :
     Object(myHost, info),
     parentDevice(0)
 {
@@ -110,7 +110,7 @@ bool AudioDeviceIn::Open()
     //device already has a child
     if(!parentDevice->SetObjectInput(this)) {
         parentDevice=0;
-        data.SetMeta(MetaInfos::errorMessage, tr("Already in use"));
+        data.SetMeta(metaT::errorMessage, tr("Already in use"));
         return true;
     }
 
@@ -118,21 +118,21 @@ bool AudioDeviceIn::Open()
     return true;
 }
 
-Pin* AudioDeviceIn::CreatePin(MetaInfo &info)
+Pin* AudioDeviceIn::CreatePin(MetaData &info)
 {
     Pin *newPin = Object::CreatePin(info);
 
-    int pinnumber = data.GetMetaData<int>(MetaInfos::PinNumber);
+    int pinnumber = data.GetMetaData<int>(metaT::PinNumber);
 
     if(newPin) {
-        if(info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media)==MediaTypes::Audio)
-            newPin->SetName(QString("Input %1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)));
+        if(info.GetMetaData<MediaTypes::Enum>(metaT::Media)==MediaTypes::Audio)
+            newPin->SetName(QString("Input %1").arg(info.GetMetaData<int>(metaT::PinNumber)));
         return newPin;
     }
 
 
 
-    switch(info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)) {
+    switch(info.GetMetaData<Directions::Enum>(metaT::Direction)) {
         case Directions::Output :
             if(pinnumber==0) {
                 info.SetName(tr("cpu%"));

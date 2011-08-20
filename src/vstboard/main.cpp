@@ -17,9 +17,9 @@
 #    You should have received a copy of the under the terms of the GNU Lesser General Public License
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
-//#ifndef QT_NO_DEBUG
-//    #include "vld.h"
-//#endif
+#ifdef VLD_MEM
+    #include "vld.h"
+#endif
 
 #include "mainhosthost.h"
 #include "mainwindowhost.h"
@@ -82,7 +82,7 @@ public:
 
 int main(int argc, char *argv[])
 {
-    qRegisterMetaType<MetaInfo>("MetaInfo");
+    qRegisterMetaType<MetaData>("MetaData");
     qRegisterMetaType<int>("MediaTypes::Enum");
     qRegisterMetaType<QVariant>("QVariant");
     qRegisterMetaType<AudioBuffer*>("AudioBuffer*");
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QMessageBox::StandardButtons>("QMessageBox::StandardButtons");
     qRegisterMetaType<QMessageBox::StandardButton>("QMessageBox::StandardButton");
     qRegisterMetaType<Qt::Orientation>("Qt::Orientation");
-    qRegisterMetaTypeStreamOperators<MetaInfo>("ObjectInfo");
+    qRegisterMetaTypeStreamOperators<MetaData>("ObjectInfo");
 
 #ifndef QT_NO_DEBUG
     qInstallMsgHandler(myMessageOutput);
@@ -130,12 +130,10 @@ int main(int argc, char *argv[])
     MainWindowHost w(&host);
     host.SetMainWindow(&w);
     w.Init();
-
-
     w.readSettings();
     w.show();
     w.LoadDefaultFiles();
-    QThread::currentThread()->setPriority(QThread::LowestPriority);
+
     app.exec();
     delete engine;
     return 0;

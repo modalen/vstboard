@@ -27,7 +27,7 @@
 using namespace Connectables;
 
 //parameter is a float
-ParameterPin::ParameterPin(Object *parent, MetaInfo &info, float defaultValue) :
+ParameterPin::ParameterPin(Object *parent, MetaData &info, float defaultValue) :
         Pin(parent,info),
         listValues(0),
         internStepIndex(0),
@@ -39,8 +39,8 @@ ParameterPin::ParameterPin(Object *parent, MetaInfo &info, float defaultValue) :
         outValue(.0f)
 {
     stepSize=.1f;
-    data.SetMeta(MetaInfos::StepSize, stepSize );
-    data.SetMeta(MetaInfos::DefaultValue,defaultValue);
+    data.SetMeta(metaT::StepSize, stepSize );
+    data.SetMeta(metaT::DefaultValue,defaultValue);
     SetLimitsEnabled(true);
 
     internValue = defaultValue;
@@ -50,7 +50,7 @@ ParameterPin::ParameterPin(Object *parent, MetaInfo &info, float defaultValue) :
 }
 
 //parameter is a int with a list of possible values
-ParameterPin::ParameterPin(Object *parent, MetaInfo &info, const QVariant &defaultVariantValue, QList<QVariant> *listValues) :
+ParameterPin::ParameterPin(Object *parent, MetaData &info, const QVariant &defaultVariantValue, QList<QVariant> *listValues) :
         Pin(parent,info),
         listValues(listValues),
         defaultValue( .0f ),
@@ -60,13 +60,13 @@ ParameterPin::ParameterPin(Object *parent, MetaInfo &info, const QVariant &defau
         outValue(.0f)
 {
     stepSize=1.0f/(listValues->size()-1);
-    data.SetMeta(MetaInfos::StepSize, stepSize );
+    data.SetMeta(metaT::StepSize, stepSize );
     SetLimitsEnabled(true);
 
     internStepIndex=listValues->indexOf(defaultVariantValue);
     defaultIndex=internStepIndex;
-    data.SetMeta(MetaInfos::ValueStep,internStepIndex);
-    data.SetMeta(MetaInfos::DefaultValueStep,defaultIndex);
+    data.SetMeta(metaT::ValueStep,internStepIndex);
+    data.SetMeta(metaT::DefaultValueStep,defaultIndex);
 
     ChangeValue(internStepIndex*stepSize,true);
     loading=false;
@@ -75,17 +75,17 @@ ParameterPin::ParameterPin(Object *parent, MetaInfo &info, const QVariant &defau
 void ParameterPin::SetLimitsEnabled(bool enable)
 {
     if(enable) {
-        data.SetMeta(MetaInfos::LimitEnabled,true);
-        data.SetMeta(MetaInfos::LimitInMin, .0f);
-        data.SetMeta(MetaInfos::LimitInMax, 1.0f);
-        data.SetMeta(MetaInfos::LimitOutMin, .0f);
-        data.SetMeta(MetaInfos::LimitOutMax, 1.0f);
+        data.SetMeta(metaT::LimitEnabled,true);
+        data.SetMeta(metaT::LimitInMin, .0f);
+        data.SetMeta(metaT::LimitInMax, 1.0f);
+        data.SetMeta(metaT::LimitOutMin, .0f);
+        data.SetMeta(metaT::LimitOutMax, 1.0f);
     } else {
-        data.DelMeta(MetaInfos::LimitEnabled);
-        data.DelMeta(MetaInfos::LimitInMin);
-        data.DelMeta(MetaInfos::LimitInMax);
-        data.DelMeta(MetaInfos::LimitOutMin);
-        data.DelMeta(MetaInfos::LimitOutMax);
+        data.DelMeta(metaT::LimitEnabled);
+        data.DelMeta(metaT::LimitInMin);
+        data.DelMeta(metaT::LimitInMax);
+        data.DelMeta(metaT::LimitOutMin);
+        data.DelMeta(metaT::LimitOutMax);
     }
 }
 
@@ -98,26 +98,26 @@ void ParameterPin::ReceiveMsg(const PinMessage::Enum msgType,void *data)
 
 void ParameterPin::SetRemoveable()
 {
-    data.SetMeta(MetaInfos::Removable,true);
+    data.SetMeta(metaT::Removable,true);
 }
 
 void ParameterPin::GetDefault(ObjectParameter &param)
 {
-    param.index=data.GetMetaData<int>(MetaInfos::DefaultValueStep);//defaultIndex;
-    param.value=data.GetMetaData<float>(MetaInfos::DefaultValue);//defaultValue;
-    param.visible = !data.GetMetaData<bool>(MetaInfos::Hidden);
+    param.index=data.GetMetaData<int>(metaT::DefaultValueStep);//defaultIndex;
+    param.value=data.GetMetaData<float>(metaT::DefaultValue);//defaultValue;
+    param.visible = !data.GetMetaData<bool>(metaT::Hidden);
 //    param.visible=defaultVisible;
 }
 
 void ParameterPin::GetValues(ObjectParameter &param)
 {
-    param.index=data.GetMetaData<float>(MetaInfos::ValueStep);//internStepIndex;
-    param.value=data.GetMetaData<float>(MetaInfos::Value);
-    param.visible=!data.GetMetaData<bool>(MetaInfos::Hidden);
-    param.limitInMin=data.GetMetaData<float>(MetaInfos::LimitInMin);
-    param.limitInMax=data.GetMetaData<float>(MetaInfos::LimitInMax);
-    param.limitOutMin=data.GetMetaData<float>(MetaInfos::LimitOutMin);
-    param.limitOutMax=data.GetMetaData<float>(MetaInfos::LimitOutMax);
+    param.index=data.GetMetaData<float>(metaT::ValueStep);//internStepIndex;
+    param.value=data.GetMetaData<float>(metaT::Value);
+    param.visible=!data.GetMetaData<bool>(metaT::Hidden);
+    param.limitInMin=data.GetMetaData<float>(metaT::LimitInMin);
+    param.limitInMax=data.GetMetaData<float>(metaT::LimitInMax);
+    param.limitOutMin=data.GetMetaData<float>(metaT::LimitOutMin);
+    param.limitOutMax=data.GetMetaData<float>(metaT::LimitOutMax);
 }
 
 //from float
@@ -140,7 +140,7 @@ void ParameterPin::ChangeValue(float val, bool fromObj)
     if(!loading && std::abs(oldVal-outValue)<0.001f)
         return;
 
-    data.SetMeta(MetaInfos::Value,internValue);
+    data.SetMeta(metaT::Value,internValue);
     OnValueChanged();
 
     if(!fromObj)
@@ -163,8 +163,8 @@ void ParameterPin::ChangeValue(int index, bool fromObj)
     if(!loading && oldVal==outStepIndex)
         return;
 
-    data.SetMeta(MetaInfos::ValueStep,internStepIndex);
-    data.SetMeta(MetaInfos::Value,FloatFromInt(index));
+    data.SetMeta(metaT::ValueStep,internStepIndex);
+    data.SetMeta(metaT::Value,FloatFromInt(index));
     OnValueChanged();
 
     if(!fromObj)
@@ -206,10 +206,10 @@ void ParameterPin::Load(const ObjectParameter &param)
 {
     loading = true;
 
-    data.SetMeta(MetaInfos::LimitInMin,param.limitInMin);
-    data.SetMeta(MetaInfos::LimitInMax,param.limitInMax);
-    data.SetMeta(MetaInfos::LimitOutMin,param.limitOutMin);
-    data.SetMeta(MetaInfos::LimitOutMax,param.limitOutMax);
+    data.SetMeta(metaT::LimitInMin,param.limitInMin);
+    data.SetMeta(metaT::LimitInMax,param.limitInMax);
+    data.SetMeta(metaT::LimitOutMin,param.limitOutMin);
+    data.SetMeta(metaT::LimitOutMax,param.limitOutMax);
 
     if(listValues)
         ChangeValue(param.index);
@@ -226,20 +226,20 @@ void ParameterPin::OnValueChanged()
 {
     valueChanged=true;
 
-    if(!loading && !dirty && data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Input) {
+    if(!loading && !dirty && data.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Input) {
         dirty=true;
         parent->OnProgramDirty();
     }
 
-    if(!data.GetMetaData<bool>(MetaInfos::Hidden)) {
+    if(!data.GetMetaData<bool>(metaT::Hidden)) {
         if(nameCanChange)
             SetName(parent->GetParameterName(info()));
 
         if(listValues)
-            data.SetMeta(MetaInfos::displayedText, QString("%1:%2").arg(Name()).arg(listValues->at(outStepIndex).toString()) );
+            data.SetMeta(metaT::displayedText, QString("%1:%2").arg(Name()).arg(listValues->at(outStepIndex).toString()) );
     }
 
-    if(data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Output)
+    if(data.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Output)
         SendMsg(PinMessage::ParameterValue,(void*)&outValue);
 }
 
@@ -256,10 +256,10 @@ int ParameterPin::IntFromFloat(float val)
 float ParameterPin::ScaleValue(float val)
 {
     //scale value
-    float limitInMin = data.GetMetaData<float>(MetaInfos::LimitInMin);
-    float limitInMax = data.GetMetaData<float>(MetaInfos::LimitInMax);
-    float limitOutMin = data.GetMetaData<float>(MetaInfos::LimitOutMin);
-    float limitOutMax = data.GetMetaData<float>(MetaInfos::LimitOutMax);
+    float limitInMin = data.GetMetaData<float>(metaT::LimitInMin);
+    float limitInMax = data.GetMetaData<float>(metaT::LimitInMax);
+    float limitOutMin = data.GetMetaData<float>(metaT::LimitOutMin);
+    float limitOutMax = data.GetMetaData<float>(metaT::LimitOutMax);
 
     if(val>limitInMax)
         val=limitInMax;

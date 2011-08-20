@@ -37,9 +37,9 @@ CableView *PinView::currentLine = 0;
   \param pinInfo description of the pin
   \todo the model parameter can be removed
   */
-PinView::PinView(const MetaInfo &info, float angle, QGraphicsItem * parent, ViewConfig *config) :
+PinView::PinView(const MetaData &info, float angle, QGraphicsItem * parent, ViewConfig *config) :
     QGraphicsWidget(parent),
-    MetaInfo(info),
+    MetaData(info),
     outline(0),
     highlight(0),
     pinAngle(angle),
@@ -57,7 +57,7 @@ PinView::PinView(const MetaInfo &info, float angle, QGraphicsItem * parent, View
     connect(actDel,SIGNAL(triggered()),
             this,SLOT(RemovePin()));
 
-    if(MetaInfo::data.GetMetaData<bool>(MetaInfos::Removable))
+    if(MetaData::data.GetMetaData<bool>(metaT::Removable))
         addAction(actDel);
 
     actUnplug = new QAction(QIcon(":/img16x16/editcut.png"),tr("Unplug"),this);
@@ -184,8 +184,35 @@ void PinView::Unplug()
 
 void PinView::RemovePin()
 {
-    if(MetaInfo::data.GetMetaData<bool>(MetaInfos::Removable))
+    if(MetaData::data.GetMetaData<bool>(metaT::Removable))
         emit RemovePin(info());
+}
+
+bool PinView::CanConnectPins(const MetaData &otherPin)
+{
+
+    //don't connect object to itself
+//    if(objId == other.objId)
+//        return false;
+
+    if(otherPin.Type()!=MetaTypes::pin)
+        return false;
+
+    //must be in the same container
+    if(ContainerId() != otherPin.ContainerId())
+        return false;
+
+    //must be opposite directions
+    if(GetMetaData<int>(metaT::Direction) == otherPin.GetMetaData<int>(metaT::Direction))
+        return false;
+
+    //must be the same type (audio/midi/automation) or a bridge pin
+    if(GetMetaData<int>(metaT::Media) != MediaTypes::Bridge
+        && otherPin.GetMetaData<int>(metaT::Media)!=MediaTypes::Bridge
+        && GetMetaData<int>(metaT::Media) != otherPin.GetMetaData<int>(metaT::Media))
+        return false;
+
+    return true;
 }
 
 /*!
@@ -197,10 +224,10 @@ void PinView::dragEnterEvent ( QGraphicsSceneDragDropEvent * event )
     if(event->mimeData()->hasFormat(MIMETYPE_METAINFO)) {
         QByteArray bytes = event->mimeData()->data(MIMETYPE_METAINFO);
         QDataStream stream(&bytes, QIODevice::ReadOnly);
-        MetaInfo otherInfo;
+        MetaData otherInfo;
         otherInfo.fromStream(stream);
 
-        if(!CanConnectTo(otherInfo)) {
+        if(!CanConnectPins(otherInfo)) {
             event->ignore();
             return;
         }
@@ -246,7 +273,7 @@ void PinView::dropEvent ( QGraphicsSceneDragDropEvent  * event )
         highlight->setVisible(false);
     QByteArray bytes = event->mimeData()->data(MIMETYPE_METAINFO);
     QDataStream stream(&bytes, QIODevice::ReadOnly);
-    MetaInfo otherInfo;
+    MetaData otherInfo;
     otherInfo.fromStream(stream);
     emit ConnectPins(info(), otherInfo);
 }
@@ -258,7 +285,7 @@ void PinView::dropEvent ( QGraphicsSceneDragDropEvent  * event )
 const QPointF PinView::pinPos() const
 {
     qreal x = 0;
-    if(MetaInfo::data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Output)
+    if(MetaData::data.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Output)
         x = geometry().width();
     return QPointF(x,geometry().height()/2);
 }

@@ -30,7 +30,7 @@ namespace View {
     {
     Q_OBJECT
     public:
-        BridgeView(const MetaInfo &info, QGraphicsItem * parent = 0);
+        BridgeView(const MetaData &info, QGraphicsItem * parent = 0);
         void SetConfig(ViewConfig *config);
 
     private:

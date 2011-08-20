@@ -23,7 +23,7 @@
 using namespace View;
 class SceneModel;
 
-VstPluginView::VstPluginView(const MetaInfo &info, MainContainerView * parent, SceneModel *model) :
+VstPluginView::VstPluginView(const MetaData &info, MainContainerView * parent, SceneModel *model) :
     ConnectableObjectView(info,parent,model)
 {
     setObjectName("vstPluginView");
@@ -93,13 +93,13 @@ void VstPluginView::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId,
     ConnectableObjectView::UpdateColor(groupId,colorId,color);
 }
 
-void VstPluginView::UpdateModelIndex(const MetaInfo &info)
+void VstPluginView::UpdateModelIndex(const MetaData &info)
 {
     ConnectableObjectView::UpdateModelIndex(info);
 
-    if(MetaInfo::data.GetMeta<QString*>(MetaInfos::bankFile)!=0 && !MetaInfo::data.GetMetaData<QString>(MetaInfos::bankFile).isEmpty()) {
+    if(MetaData::data.GetMeta<QString*>(metaT::bankFile)!=0 && !MetaData::data.GetMetaData<QString>(metaT::bankFile).isEmpty()) {
         QFileInfo fileInfo;
-        fileInfo.setFile( MetaInfo::data.GetMetaData<QString>(MetaInfos::bankFile) );
+        fileInfo.setFile( MetaData::data.GetMetaData<QString>(metaT::bankFile) );
         actSaveBank->setText( QString(tr("Save Bank (%1)")).arg(fileInfo.fileName()) );
         actSaveBankAs->setEnabled(true);
     } else {
@@ -107,9 +107,9 @@ void VstPluginView::UpdateModelIndex(const MetaInfo &info)
         actSaveBankAs->setEnabled(false);
     }
 
-    if(MetaInfo::data.GetMeta<QString*>(MetaInfos::programFile)!=0 && !MetaInfo::data.GetMetaData<QString>(MetaInfos::programFile).isEmpty()) {
+    if(MetaData::data.GetMeta<QString*>(metaT::programFile)!=0 && !MetaData::data.GetMetaData<QString>(metaT::programFile).isEmpty()) {
         QFileInfo fileInfo;
-        fileInfo.setFile( MetaInfo::data.GetMetaData<QString>(MetaInfos::bankFile) );
+        fileInfo.setFile( MetaData::data.GetMetaData<QString>(metaT::bankFile) );
         actSaveProgram->setText( QString(tr("Save Program (%1)")).arg(fileInfo.fileName()) );
         actSaveProgramAs->setEnabled(true);
     } else {
@@ -130,13 +130,13 @@ void VstPluginView::SaveBankAs()
 //    }
 
 //    myHost->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
-//    data.SetMeta(MetaInfos::bankFile,filename);
+//    data.SetMeta(metaT::bankFile,filename);
 }
 
 void VstPluginView::SaveBank()
 {
-    if(MetaInfo::data.GetMeta<QString*>(MetaInfos::bankFile)!=0 && !MetaInfo::data.GetMetaData<QString>(MetaInfos::bankFile).isEmpty()) {
-        MetaInfo::data.SetMeta(MetaInfos::bankFile, MetaInfo::data.GetMetaData<QString>(MetaInfos::bankFile) );
+    if(MetaData::data.GetMeta<QString*>(metaT::bankFile)!=0 && !MetaData::data.GetMetaData<QString>(metaT::bankFile).isEmpty()) {
+        MetaData::data.SetMeta(metaT::bankFile, MetaData::data.GetMetaData<QString>(metaT::bankFile) );
     } else {
         SaveBankAs();
     }
@@ -154,13 +154,13 @@ void VstPluginView::SaveProgramAs()
 //    }
 
 //    myHost->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
-//    data.SetMeta(MetaInfos::programFile,filename);
+//    data.SetMeta(metaT::programFile,filename);
 }
 
 void VstPluginView::SaveProgram()
 {
-    if(MetaInfo::data.GetMeta<QString*>(MetaInfos::programFile)!=0 && !MetaInfo::data.GetMetaData<QString>(MetaInfos::programFile).isEmpty()) {
-        MetaInfo::data.SetMeta(MetaInfos::programFile, MetaInfo::data.GetMetaData<QString>(MetaInfos::programFile) );
+    if(MetaData::data.GetMeta<QString*>(metaT::programFile)!=0 && !MetaData::data.GetMetaData<QString>(metaT::programFile).isEmpty()) {
+        MetaData::data.SetMeta(metaT::programFile, MetaData::data.GetMetaData<QString>(metaT::programFile) );
     } else {
         SaveProgramAs();
     }

@@ -25,7 +25,7 @@
 
 using namespace Connectables;
 
-VstMidiDevice::VstMidiDevice(MainHost *myHost, MetaInfo &info) :
+VstMidiDevice::VstMidiDevice(MainHost *myHost, MetaData &info) :
     Object(myHost, info),
     nbIn(0),
     nbOut(0)
@@ -77,8 +77,8 @@ bool VstMidiDevice::Close()
 
 bool VstMidiDevice::Open()
 {
-    nbIn = data.GetMetaData<int>(MetaInfos::nbInputs);
-    nbOut = data.GetMetaData<int>(MetaInfos::nbOutputs);
+    nbIn = data.GetMetaData<int>(metaT::nbInputs);
+    nbOut = data.GetMetaData<int>(metaT::nbOutputs);
 
     if(nbIn>0)
         static_cast<MainHostVst*>(myHost)->myVstPlugin->addMidiIn(this);

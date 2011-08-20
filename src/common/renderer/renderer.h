@@ -25,6 +25,8 @@
 #include "connectables/objects/object.h"
 #include "renderthread.h"
 #include "optimizer.h"
+#include "debugsemaphore.h"
+#include "debugreadwritelock.h"
 
 class MainHost;
 class RendererNode;
@@ -38,13 +40,11 @@ public:
     void SetNbThreads(int nbThreads);
     void SetEnabled(bool enabled) {stop=!enabled;}
     void OnNewRenderingOrder(const QList<SolverNode*> & listNodes);
-//    QStandardItemModel * GetModel();
+    QStandardItemModel * GetModel();
     Optimizer * GetOptimizer() { return &optimizer; }
 
     void LoadNodes(const QList<RendererNode*> & listNodes);
     QList<RendererNode*> SaveNodes();
-
-//    QStandardItemModel model;
 
 protected:
     void InitThreads();
@@ -61,19 +61,23 @@ protected:
     DMutex mutexOptimize;
     bool needOptimize;
     int nextOptimize;
-//    bool needBuildModel;
     QList<RenderThread*>listOfThreads;
-    QReadWriteLock mutex;
-    QSemaphore sem;
+    DReadWriteLock rwlock;
+    DSemaphore sem;
     MainHost *myHost;
-//    QTimer updateViewTimer;
     Optimizer optimizer;
 
-public slots:
 
+    bool needBuildModel;
+    QTimer updateViewTimer;
+    QStandardItemModel model;
+
+public slots:
     void StartRender();
-//    void UpdateView();
     void Optimize();
+
+    void UpdateView();
+
 
 friend class RenderThread;
 };

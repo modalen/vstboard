@@ -57,7 +57,7 @@ VstShellSelect::~VstShellSelect()
 
 void View::VstShellSelect::on_buttonOk_clicked()
 {
-    info.data.SetMeta(MetaInfos::devId, ui->listPlugins->currentIndex().data(Qt::UserRole));
+    info.SetMeta(metaT::devId, ui->listPlugins->currentIndex().data(Qt::UserRole));
     command->ReloadObject(info);
     close();
 }

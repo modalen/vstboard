@@ -37,7 +37,7 @@ namespace Connectables {
     Q_OBJECT
 
     public:
-        VstPlugin(MainHost *myHost, MetaInfo & info);
+        VstPlugin(MainHost *myHost, MetaData & info);
         ~VstPlugin();
         bool Open();
         bool Close();
@@ -45,7 +45,7 @@ namespace Connectables {
         VstIntPtr OnMasterCallback(long opcode, long index, long value, void *ptr, float opt, long currentReturnCode);
         void SetSleep(bool sleeping);
         void MidiMsgFromInput(long msg);
-        QString GetParameterName(const MetaInfo &pinInfo);
+        QString GetParameterName(const MetaData &pinInfo);
         inline AEffect* GetPlugin() {return pEffect;}
 
         static QMap<AEffect*,VstPlugin*>mapPlugins;
@@ -53,9 +53,9 @@ namespace Connectables {
 
         static View::VstShellSelect *shellSelectView;
 
-        void SetContainerAttribs(const ObjectContainerAttribs &attr);
-        void GetContainerAttribs(ObjectContainerAttribs &attr);
-        Pin* CreatePin(MetaInfo &info);
+        void SetContainerAttribs(const MetaData &attr);
+        void GetContainerAttribs(MetaData &attr);
+        Pin* CreatePin(MetaData &info);
 
         bool DropFile(const QString &filename);
 
@@ -95,7 +95,7 @@ namespace Connectables {
         void RaiseEditor();
         void EditorDestroyed();
         void EditIdle();
-        void OnParameterChanged(const MetaInfo &pinInfo, float value);
+        void OnParameterChanged(const MetaData &pinInfo, float value);
         void OnShowEditor();
         void OnHideEditor();
         void OnEditorClosed();
@@ -104,8 +104,8 @@ namespace Connectables {
         bool LoadProgram(const QString &filename);
         void SaveProgram(const QString &filename);
 //        void TakeScreenshot();
-        void UserRemovePin(const MetaInfo &info);
-        void UserAddPin(const MetaInfo &info);
+        void UserRemovePin(const MetaData &info);
+        void UserAddPin(const MetaData &info);
 
         void SetEditorWnd(QWidget *wnd);
 

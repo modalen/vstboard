@@ -38,15 +38,15 @@ using namespace Connectables;
   \param index object number
   \param info ObjectInfo description of the object
   */
-Bridge::Bridge(MainHost *myHost, MetaInfo & info) :
+Bridge::Bridge(MainHost *myHost, MetaData & info) :
         Object(myHost, info)
 {
-    SetType(MetaTypes::bridge);
+    SetType(MetaType::bridge);
 
     listBridgePinIn = new PinsList(myHost,this);
     listBridgePinIn->SetName("listBridgePinIn");
-    listBridgePinIn->data.SetMeta(MetaInfos::Media,MediaTypes::Bridge);
-    listBridgePinIn->data.SetMeta(MetaInfos::Direction,Directions::Input);
+    listBridgePinIn->data.SetMeta(metaT::Media,MediaTypes::Bridge);
+    listBridgePinIn->data.SetMeta(metaT::Direction,Directions::Input);
     listBridgePinIn->SetParent(this);
     listBridgePinIn->SetObjId( myHost->objFactory->GetNewId() );
     listBridgePinIn->SetNbPins(8);
@@ -54,20 +54,20 @@ Bridge::Bridge(MainHost *myHost, MetaInfo & info) :
 
     listBridgePinOut = new PinsList(myHost,this);
     listBridgePinOut->SetName("listBridgePinOut");
-    listBridgePinOut->data.SetMeta(MetaInfos::Media,MediaTypes::Bridge);
-    listBridgePinOut->data.SetMeta(MetaInfos::Direction,Directions::Output);
+    listBridgePinOut->data.SetMeta(metaT::Media,MediaTypes::Bridge);
+    listBridgePinOut->data.SetMeta(metaT::Direction,Directions::Output);
     listBridgePinOut->SetParent(this);
     listBridgePinOut->SetObjId( myHost->objFactory->GetNewId() );
     listBridgePinOut->SetNbPins(8);
     pinLists << listBridgePinOut;
 
-    if(data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Input ||
-            data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Return) {
+    if(data.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Input ||
+            data.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Return) {
         listBridgePinIn->SetVisible(false);
         listBridgePinIn->SetBridge(true);
     }
-    if(data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Output ||
-            data.GetMetaData<Directions::Enum>(MetaInfos::Direction)==Directions::Send) {
+    if(data.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Output ||
+            data.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Send) {
         listBridgePinOut->SetVisible(false);
         listBridgePinOut->SetBridge(true);
     }
@@ -80,14 +80,14 @@ void Bridge::NewRenderLoop()
     }
 }
 
-Pin* Bridge::CreatePin(MetaInfo &info)
+Pin* Bridge::CreatePin(MetaData &info)
 {
-    switch(info.data.GetMetaData<int>(MetaInfos::Direction)) {
+    switch(info.GetMetaData<int>(metaT::Direction)) {
         case Directions::Input :
-            info.SetName(QString("BridgeIn%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)));
+            info.SetName(QString("BridgeIn%1").arg(info.GetMetaData<int>(metaT::PinNumber)));
             return new BridgePinIn(this,info);
         case Directions::Output :
-            info.SetName(QString("BridgeOut%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)));
+            info.SetName(QString("BridgeOut%1").arg(info.GetMetaData<int>(metaT::PinNumber)));
             return new BridgePinOut(this,info);
     }
 

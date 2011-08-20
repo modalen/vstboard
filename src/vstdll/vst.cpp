@@ -48,6 +48,9 @@ Vst::Vst (audioMasterCallback audioMaster, bool asInstrument) :
     currentHostProg(0),
     chunkData(0)
 {
+    SET_MUTEX_NAME(mutexDevices,"mutexDevices vst");
+    SET_MUTEX_NAME(mutexParam,"mutexParam vst");
+
     setNumInputs (DEFAULT_INPUTS*2);
     setNumOutputs (DEFAULT_OUTPUTS*2);
 
@@ -61,7 +64,7 @@ Vst::Vst (audioMasterCallback audioMaster, bool asInstrument) :
     programsAreChunks(true);
     vst_strncpy (programName, "Default", kVstMaxProgNameLen);	// default program name
 
-    qRegisterMetaType<MetaInfo>("MetaInfo");
+    qRegisterMetaType<MetaData>("MetaData");
     qRegisterMetaType<int>("MediaTypes::Enum");
     qRegisterMetaType<QVariant>("QVariant");
     qRegisterMetaType<AudioBuffer*>("AudioBuffer*");
@@ -72,7 +75,7 @@ Vst::Vst (audioMasterCallback audioMaster, bool asInstrument) :
     qRegisterMetaType<QMessageBox::StandardButtons>("QMessageBox::StandardButtons");
     qRegisterMetaType<QMessageBox::StandardButton>("QMessageBox::StandardButton");
     qRegisterMetaType<Qt::Orientation>("Qt::Orientation");
-    qRegisterMetaTypeStreamOperators<MetaInfo>("ObjectInfo");
+    qRegisterMetaTypeStreamOperators<MetaData>("ObjectInfo");
 
     QCoreApplication::setOrganizationName("CtrlBrk");
     QCoreApplication::setApplicationName("VstBoard");

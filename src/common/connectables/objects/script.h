@@ -11,12 +11,12 @@ namespace Connectables {
     Q_OBJECT
 
     public:
-        Script(MainHost *host, MetaInfo &info);
+        Script(MainHost *host, MetaData &info);
         virtual ~Script();
         bool Open();
         bool Close();
         void Render();
-        Pin* CreatePin(MetaInfo &info);
+        Pin* CreatePin(MetaData &info);
 
     protected:
         /// list of values used by the editor pin (0 and 1)

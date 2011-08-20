@@ -33,7 +33,7 @@ namespace View {
     {
     Q_OBJECT
     public:
-        ConnectableObjectView(const MetaInfo &info,MainContainerView * parent, SceneModel *model );
+        ConnectableObjectView(const MetaData &info,MainContainerView * parent, SceneModel *model );
         virtual void SetConfig(ViewConfig *config);
 
     protected:

@@ -28,6 +28,7 @@ PathSolver::PathSolver(MainHost *parent) :
     QObject(parent),
     myHost(parent)
 {
+    SET_MUTEX_NAME(mutex,"pathsolver");
 }
 
 PathSolver::~PathSolver()
@@ -49,10 +50,6 @@ void PathSolver::Clear()
 void PathSolver::Resolve(mapCables cables, Renderer *renderer)
 {
     Clear();
-
-    if(cables.size()==0) {
-        return;
-    }
 
     mutex.lock();
 
@@ -81,7 +78,7 @@ void PathSolver::CreateNodes()
         //don't add parked objects
         if(!objPtr.isNull() && !objPtr->parked) {
 //            if(objPtr->info().nodeType!=MetaTypes::bridge && objPtr->info().nodeType!=MetaTypes::container) {
-            if( objPtr->Type()!=MetaTypes::container) {
+            if( objPtr->Type()!=MetaType::container) {
                 SolverNode *node = new SolverNode();
                 listNodes << node;
                 node->listOfObj << objPtr;
@@ -144,7 +141,7 @@ void PathSolver::RemoveUnusedNodes()
     foreach(SolverNode *node, listNodes) {
         bool onlyBridges=true;
         foreach(QSharedPointer<Connectables::Object>objPtr,node->listOfObj) {
-            if(objPtr->Type()!=MetaTypes::bridge) {
+            if(objPtr->Type()!=MetaType::bridge) {
                 onlyBridges=false;
                 break;
             }
@@ -346,15 +343,17 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListParents( QShared
 
     mapCables::iterator i = listCables.begin();
     while (i != listCables.end()) {
-        QSharedPointer<Connectables::Object> parentPtr = myHost->objFactory->GetObjectFromId(i.key().ObjId());
+        QSharedPointer<Connectables::Object> parentPtr = myHost->objFactory->GetObjectFromId(i.key().ParentObjectId());
         if(!parentPtr.isNull()) {
-            if(i.value().ObjId() == objPtr->ObjId()) {
+            if(i.value().ParentObjectId() == objPtr->ObjId()) {
                 if(!listParents.contains(parentPtr)) {
                     listParents << parentPtr;
 //                    if(parentPtr->info().nodeType == MetaTypes::bridge)
 //                        GetListParentsOfBridgePin(i.key(),listParents);
                 }
             }
+        } else {
+            LOG("null parent");
         }
         ++i;
     }
@@ -387,9 +386,9 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListChildren( QShare
 
     mapCables::iterator i = listCables.begin();
     while (i != listCables.end()) {
-        QSharedPointer<Connectables::Object> childPtr = myHost->objFactory->GetObjectFromId(i.value().ObjId());
+        QSharedPointer<Connectables::Object> childPtr = myHost->objFactory->GetObjectFromId(i.value().ParentObjectId());
         if(!childPtr.isNull()) {
-            if(i.key().ObjId() == objPtr->ObjId()) {
+            if(i.key().ParentObjectId() == objPtr->ObjId()) {
                 if(!listChildren.contains(childPtr)) {
                     listChildren << childPtr;
 //                    if(childPtr->info().nodeType == MetaTypes::bridge)

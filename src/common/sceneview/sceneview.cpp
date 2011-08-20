@@ -107,30 +107,30 @@ void SceneView::SetParkings(QWidget *progPark, QWidget *groupPark)
 }
 
 
-void SceneView::UpdateObj(const MetaInfo &info)
+void SceneView::UpdateObj(const MetaData &info)
 {
-//    if( !mapMetaInfos.contains(info.ObjId()) ) {
+//    if( !mapMetaDatas.contains(info.ObjId()) ) {
 //        AddObj(info);
 //        return;
 //    }
 
     switch( info.Type() ) {
-        case MetaTypes::object :
-        case MetaTypes::container :
+        case MetaType::object :
+        case MetaType::container :
         {
             ObjectView *view = static_cast<ObjectView*>(mapViewItems.value(info.ObjId(),0));
             if(!view) {
-                LOG("object not found"<<info.toStringFull());
+                LOG("object not found"<<info.toString());
                 return;
             }
             view->UpdateModelIndex(info);
             break;
         }
-        case MetaTypes::pin :
+        case MetaType::pin :
         {
             PinView *view = static_cast<PinView*>(mapViewItems.value(info.ObjId(),0));
             if(!view) {
-                LOG("pin not found"<<info.toStringFull());
+                LOG("pin not found"<<info.toString());
                 return;
             }
             view->UpdateModelIndex(info);
@@ -140,7 +140,7 @@ void SceneView::UpdateObj(const MetaInfo &info)
 //        {
 //            PinView *view = static_cast<PinView*>(mapViewItems.value(info.ParentId(),0));
 //            if(!view) {
-//                LOG("pin not found"<<info.toStringFull());
+//                LOG("pin not found"<<info.toString());
 //                return;
 //            }
 //            static_cast<MinMaxPinView*>(view)->SetLimitModelIndex(info);
@@ -153,17 +153,17 @@ void SceneView::UpdateObj(const MetaInfo &info)
 
 void SceneView::DelObj(quint32 objId)
 {
-    if(!mapMetaInfos.contains(objId))
+    if(!mapMetaDatas.contains(objId))
         return;
 
-    const MetaInfo info = mapMetaInfos.value(objId);
+    const MetaData info = mapMetaDatas.value(objId);
 
     switch(info.Type()) {
-    case MetaTypes::object :
+    case MetaType::object :
         {
             ObjectView *obj = static_cast<ObjectView*>(mapViewItems.value(objId,0));
             if(!obj) {
-                LOG("obj not found"<<info.toStringFull());
+                LOG("obj not found"<<info.toString());
                 return;
             }
             obj->hide();
@@ -171,11 +171,11 @@ void SceneView::DelObj(quint32 objId)
             obj->deleteLater();
             break;
         }
-    case MetaTypes::container :
+    case MetaType::container :
         {
             QGraphicsWidget *obj = static_cast<QGraphicsWidget*>( mapViewItems.value(info.ObjId(),0) );
             if(!obj) {
-                LOG("container not found"<<info.toStringFull());
+                LOG("container not found"<<info.toString());
                 return;
             }
             obj->hide();
@@ -183,11 +183,11 @@ void SceneView::DelObj(quint32 objId)
             delete obj;
             break;
         }
-    case MetaTypes::pin :
+    case MetaType::pin :
         {
             PinView *pin = static_cast<PinView*>(mapViewItems.value(info.ObjId(),0));
             if(!pin) {
-                LOG("pin not found"<<info.toStringFull());
+                LOG("pin not found"<<info.toString());
                 return;
             }
 
@@ -205,17 +205,17 @@ void SceneView::DelObj(quint32 objId)
 //                mapConnectionInfo.remove(pin->GetObjectInfo());
             break;
         }
-    case MetaTypes::cable :
+    case MetaType::cable :
         {
-            int pinOutId = info.data.GetMetaData<int>(MetaInfos::nbOutputs);
-            int pinInid = info.data.GetMetaData<int>(MetaInfos::nbInputs);
+            int pinOutId = info.GetMetaData<int>(metaT::ObjIdOut);
+            int pinInid = info.GetMetaData<int>(metaT::ObjIdIn);
 
             PinView* pinOut = static_cast<PinView*>(mapViewItems.value( pinOutId,0 ));
             PinView* pinIn = static_cast<PinView*>(mapViewItems.value( pinInid,0 ));
 
             CableView *cable = static_cast<CableView*>(mapViewItems.value(info.ObjId(),0));
             if(!cable) {
-                LOG("cable not found"<<info.toStringFull());
+                LOG("cable not found"<<info.toString());
                 return;
             }
 
@@ -230,16 +230,16 @@ void SceneView::DelObj(quint32 objId)
             break;
         }
     default:
-        LOG("nodetype not found"<<info.toStringFull());
+        LOG("nodetype not found"<<info.toString());
         return;
     }
     mapViewItems.remove(info.ObjId());
-    mapMetaInfos.remove(info.ObjId());
+    mapMetaDatas.remove(info.ObjId());
 }
 
-void SceneView::AddObj(MetaInfo &info)
+void SceneView::AddObj(MetaData &info)
 {
-    if( mapMetaInfos.contains(info.ObjId()) ) {
+    if( mapMetaDatas.contains(info.ObjId()) ) {
         UpdateObj(info);
         return;
     }
@@ -247,7 +247,7 @@ void SceneView::AddObj(MetaInfo &info)
     ObjectView *objView = 0;
 
     switch(info.Type()) {
-        case MetaTypes::container :
+        case MetaType::container :
         {
             if(info.ObjId() == FixedObjIds::hostContainer) {
                 hostContainerView = new MainContainerView(info,model);
@@ -292,22 +292,22 @@ void SceneView::AddObj(MetaInfo &info)
             }
             objView->SetConfig(myHost->mainWindow->viewConfig);
             mapViewItems.insert( info.ObjId() , objView);
-            mapMetaInfos.insert( info.ObjId(), MetaInfo(info));
+            mapMetaDatas.insert( info.ObjId(), MetaData(info));
             objView->setProperty("objId",info.ObjId());
             connect(objView,SIGNAL(destroyed(QObject*)),
                     this,SLOT(graphicObjectRemoved(QObject*)));
             break;
         }
-        case MetaTypes::bridge :
+        case MetaType::bridge :
         {
 
             ObjectView *parentView = static_cast<ObjectView*>(mapViewItems.value(info.ParentId(),0));
             if(!parentView) {
-                LOG("parent not found"<<info.toStringFull());
+                LOG("parent not found"<<info.toString());
                 return;
             }
 
-            switch(info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction)) {
+            switch(info.GetMetaData<Directions::Enum>(metaT::Direction)) {
                 case Directions::Input :
                     objView = static_cast<MainContainerView*>(parentView)->bridgeIn;
                     break;
@@ -321,39 +321,39 @@ void SceneView::AddObj(MetaInfo &info)
                     objView = static_cast<MainContainerView*>(parentView)->bridgeReturn;
                     break;
                 default:
-                    LOG("unknown listpin"<<info.toStringFull());
+                    LOG("unknown listpin"<<info.toString());
                     return;
             }
 
 
             mapViewItems.insert( info.ObjId() , objView);
-            mapMetaInfos.insert( info.ObjId(), MetaInfo(info));
+            mapMetaDatas.insert( info.ObjId(), MetaData(info));
             objView->setProperty("objId",info.ObjId());
             connect(objView,SIGNAL(destroyed(QObject*)),
                     this,SLOT(graphicObjectRemoved(QObject*)));
             break;
         }
-        case MetaTypes::object :
+        case MetaType::object :
         {
             MainContainerView *containerView = static_cast<MainContainerView*>(mapViewItems.value(info.ContainerId(),0));
             if(!containerView) {
-                LOG("object container not found"<<info.toStringFull());
+                LOG("object container not found"<<info.toString());
                 return;
             }
 
-            if(info.data.GetMetaData<ObjTypes::Enum>(MetaInfos::ObjType) == ObjTypes::VstPlugin) {
+            if(info.GetMetaData<ObjTypes::Enum>(metaT::ObjType) == ObjTypes::VstPlugin) {
                 objView = new VstPluginView(info, containerView, model);
             } else {
                 objView = new ConnectableObjectView(info, containerView, model);
             }
             mapViewItems.insert( info.ObjId() , objView);
-            mapMetaInfos.insert( info.ObjId(), MetaInfo(info));
+            mapMetaDatas.insert( info.ObjId(), MetaData(info));
 //                objView->SetModelIndex(info);
 //            QPointF pos = containerView->GetDropPos();
 //            objView->setPos(pos);
-//            info.data.SetMeta(MetaInfos::Position, pos);
+//            info.SetMeta(metaT::Position, pos);
 //            model()->setData(index,pos,UserRoles::position);
-            QPointF pos = info.data.GetMetaData<QPointF>(MetaInfos::Position);
+            QPointF pos = info.GetMetaData<QPointF>(metaT::Position);
              objView->setPos(pos);
 
             objView->SetConfig(myHost->mainWindow->viewConfig);
@@ -366,25 +366,25 @@ void SceneView::AddObj(MetaInfo &info)
 
             connect(objView,SIGNAL(destroyed(QObject*)),
                     this,SLOT(graphicObjectRemoved(QObject*)));
-            connect(objView,SIGNAL(RemoveKeepCables(MetaInfo)),
-                    this, SLOT(RemoveObjKeepCables(MetaInfo)));
-            connect(objView,SIGNAL(RemoveWithCables(MetaInfo)),
-                    this, SLOT(RemoveObjWithCables(MetaInfo)));
+            connect(objView,SIGNAL(RemoveKeepCables(MetaData)),
+                    this, SLOT(RemoveObjKeepCables(MetaData)));
+            connect(objView,SIGNAL(RemoveWithCables(MetaData)),
+                    this, SLOT(RemoveObjWithCables(MetaData)));
             break;
         }
-        case MetaTypes::listPin :
+        case MetaType::listPin :
         {
 //                ObjectInfo infoParent = parent.data(UserRoles::objInfo).value<ObjectInfo>();
             ObjectView *objView = static_cast<ObjectView*>(mapViewItems.value(info.ParentId(),0));
             if(!objView) {
-                LOG("listPin parent not found" << info.toStringFull());
+                LOG("listPin parent not found" << info.toString());
                 return;
             }
 
             ListPinsView *v=0;
 
-            int media = info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media);
-            int direction = info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction);
+            int media = info.GetMetaData<MediaTypes::Enum>(metaT::Media);
+            int direction = info.GetMetaData<Directions::Enum>(metaT::Direction);
 
             if(media==MediaTypes::Audio) {
                 if(direction==Directions::Input)
@@ -406,32 +406,32 @@ void SceneView::AddObj(MetaInfo &info)
             }
 
             if(!v) {
-//                LOG("unknown listpin type" << info.toStringFull());
+//                LOG("unknown listpin type" << info.toString());
                 return;
             }
 
             mapViewItems.insert(info.ObjId(), v);
-            mapMetaInfos.insert( info.ObjId(), MetaInfo(info));
+            mapMetaDatas.insert( info.ObjId(), MetaData(info));
             v->setProperty("objId",info.ObjId());
             connect(v,SIGNAL(destroyed(QObject*)),
                     this,SLOT(graphicObjectRemoved(QObject*)));
             break;
         }
-        case MetaTypes::pin :
+        case MetaType::pin :
         {
             ListPinsView *parentList = static_cast<ListPinsView*>(mapViewItems.value(info.ParentId(),0));
             if(!parentList) {
-                LOG("MetaTypes::pin list not found"<<info.toStringFull());
+                LOG("MetaTypes::pin list not found"<<info.toString());
                 return;
             }
 
             PinView *pinView;
             float angle=.0f;
-            int media = info.data.GetMetaData<MediaTypes::Enum>(MetaInfos::Media);
+            int media = info.GetMetaData<MediaTypes::Enum>(metaT::Media);
 
             if(media == MediaTypes::Bridge) {
-                MetaInfo parentInfo = mapMetaInfos.value(info.ParentObjectId());
-                int direction = parentInfo.data.GetMetaData<Directions::Enum>(MetaInfos::Direction);
+                MetaData parentInfo = mapMetaDatas.value(info.ParentObjectId());
+                int direction = parentinfo.GetMetaData<Directions::Enum>(metaT::Direction);
                 if(direction==Directions::Input || direction==Directions::Output)
                     angle=1.570796f; //pi/2
                 if(direction==Directions::Send || direction==Directions::Return)
@@ -440,7 +440,7 @@ void SceneView::AddObj(MetaInfo &info)
                 pinView = static_cast<PinView*>( new BridgePinView(info, angle, parentList, myHost->mainWindow->viewConfig) );
 
             } else {
-                int direction = info.data.GetMetaData<Directions::Enum>(MetaInfos::Direction);
+                int direction = info.GetMetaData<Directions::Enum>(metaT::Direction);
                 if(direction==Directions::Input)
                     angle=3.141592f;
                 if(direction==Directions::Output)
@@ -454,69 +454,69 @@ void SceneView::AddObj(MetaInfo &info)
             }
 
 #ifndef QT_NO_DEBUG
-            pinView->setToolTip(info.toStringFull());
+            pinView->setToolTip(info.toString());
 #endif
 
             connect(timerFalloff,SIGNAL(timeout()),
                     pinView,SLOT(updateVu()));
 
             mapViewItems.insert(info.ObjId(), pinView);
-            mapMetaInfos.insert( info.ObjId(), MetaInfo(info));
+            mapMetaDatas.insert( info.ObjId(), MetaData(info));
             pinView->setProperty("objId",info.ObjId());
             connect(pinView,SIGNAL(destroyed(QObject*)),
                     this,SLOT(graphicObjectRemoved(QObject*)));
 
-            int pinPlace = parentList->GetPinPosition(info.data.GetMetaData<int>(MetaInfos::PinNumber));
+            int pinPlace = parentList->GetPinPosition(info.GetMetaData<int>(metaT::PinNumber));
             parentList->layout->insertItem(pinPlace, pinView);
 
             parentList->layout->setAlignment(pinView,Qt::AlignTop);
-            connect(pinView, SIGNAL(ConnectPins(MetaInfo,MetaInfo)),
-                    this, SLOT(ConnectPins(MetaInfo,MetaInfo)));
-            connect(pinView,SIGNAL(RemoveCablesFromPin(MetaInfo)),
-                    this,SLOT(RemoveCablesFromPin(MetaInfo)));
-            connect(pinView,SIGNAL(RemovePin(MetaInfo)),
-                    this,SLOT(RemovePin(MetaInfo)));
+            connect(pinView, SIGNAL(ConnectPins(MetaData,MetaData)),
+                    this, SLOT(ConnectPins(MetaData,MetaData)));
+            connect(pinView,SIGNAL(RemoveCablesFromPin(MetaData)),
+                    this,SLOT(RemoveCablesFromPin(MetaData)));
+            connect(pinView,SIGNAL(RemovePin(MetaData)),
+                    this,SLOT(RemovePin(MetaData)));
             break;
         }
 //        case MetaTypes::cursor :
 //        {
 //            MinMaxPinView* pin = static_cast<MinMaxPinView*>(mapViewItems.value( info.ParentId(),0 ));
 //            if(!pin) {
-//                LOG("add pinLimit, pin not found"<<info.toStringFull());
+//                LOG("add pinLimit, pin not found"<<info.toString());
 //                return;
 //            }
 //            pin->SetLimitModelIndex(info);
 //            break;
 //        }
-        case MetaTypes::cable :
+        case MetaType::cable :
         {
             MainContainerView *cnt = static_cast<MainContainerView*>(mapViewItems.value(info.ContainerId(),0));
             if(!cnt) {
-                LOG("add cable, container not found"<<info.toStringFull());
+                LOG("add cable, container not found"<<info.toString());
                 return;
             }
-            int pinOutId = info.data.GetMetaData<int>(MetaInfos::nbOutputs);
-            int pinInid = info.data.GetMetaData<int>(MetaInfos::nbInputs);
+            int pinOutId = info.GetMetaData<int>(metaT::nbOutputs);
+            int pinInid = info.GetMetaData<int>(metaT::nbInputs);
 
             PinView* pinOut = static_cast<PinView*>(mapViewItems.value( pinOutId,0 ));
             PinView* pinIn = static_cast<PinView*>(mapViewItems.value( pinInid,0 ));
 
             if(!pinOut || !pinIn) {
-                LOG("addcable : pin not found"<<info.toStringFull());
+                LOG("addcable : pin not found"<<info.toString());
                 return;
             }
             CableView *cable = new CableView(pinOutId,pinInid,cnt,myHost->mainWindow->viewConfig);
             pinOut->AddCable(cable);
             pinIn->AddCable(cable);
             mapViewItems.insert(info.ObjId(), cable);
-            mapMetaInfos.insert( info.ObjId(), MetaInfo(info));
+            mapMetaDatas.insert( info.ObjId(), MetaData(info));
             cable->setProperty("objId",info.ObjId());
             connect(cable,SIGNAL(destroyed(QObject*)),
                     this,SLOT(graphicObjectRemoved(QObject*)));
             break;
         }
         default:
-            LOG("unknown obj type"<<info.toStringFull());
+            LOG("unknown obj type"<<info.toString());
             break;
 
     }
@@ -526,34 +526,34 @@ void SceneView::graphicObjectRemoved ( QObject* obj )
 {
     int id = obj->property("objId").toInt();
     mapViewItems.remove(id);
-    mapMetaInfos.remove(id);
+    mapMetaDatas.remove(id);
 }
 
-void SceneView::ConnectPins(const MetaInfo &pinOut, const MetaInfo &pinIn)
+void SceneView::ConnectPins(const MetaData &pinOut, const MetaData &pinIn)
 {
     Events::command *e = new Events::command(new ComAddCable(myHost,pinOut,pinIn));
     model->PostEvent(e);
 }
 
-void SceneView::RemoveCablesFromPin(const MetaInfo &pin)
+void SceneView::RemoveCablesFromPin(const MetaData &pin)
 {
     Events::command *e = new Events::command(new ComDisconnectPin(myHost,pin));
     model->PostEvent(e);
 }
 
-void SceneView::RemovePin(const MetaInfo &pin)
+void SceneView::RemovePin(const MetaData &pin)
 {
     Events::command *e = new Events::command(new ComRemovePin(myHost,pin));
     model->PostEvent(e);
 }
 
-void SceneView::RemoveObjWithCables(const MetaInfo &obj)
+void SceneView::RemoveObjWithCables(const MetaData &obj)
 {
     Events::command *e = new Events::command(new ComRemoveObject(myHost, obj, RemoveType::RemoveWithCables));
     model->PostEvent(e);
 }
 
-void SceneView::RemoveObjKeepCables(const MetaInfo &obj)
+void SceneView::RemoveObjKeepCables(const MetaData &obj)
 {
     Events::command *e = new Events::command( new ComRemoveObject(myHost, obj, RemoveType::BridgeCables) );
     model->PostEvent(e);

@@ -37,7 +37,7 @@ using namespace Connectables;
   \param index object number
   \param info object description
   */
-AudioDeviceOut::AudioDeviceOut(MainHost *myHost, MetaInfo &info) :
+AudioDeviceOut::AudioDeviceOut(MainHost *myHost, MetaData &info) :
     Object(myHost, info),
     parentDevice(0)
 {
@@ -92,7 +92,7 @@ bool AudioDeviceOut::Open()
     //device already has a child
     if(!parentDevice->SetObjectOutput(this)) {
         parentDevice=0;
-        data.SetMeta(MetaInfos::errorMessage,tr("Already in use"));
+        data.SetMeta(metaT::errorMessage,tr("Already in use"));
         return true;
     }
 

@@ -33,15 +33,15 @@ namespace View {
 
     class ConnectableView;
     class PinView;
-    class ObjectView : public QGraphicsWidget, public MetaInfo
+    class ObjectView : public QGraphicsWidget, public MetaData
     {
     Q_OBJECT
     public:
-        explicit ObjectView(const MetaInfo &info, QGraphicsItem * parent = 0);
+        explicit ObjectView(const MetaData &info, QGraphicsItem * parent = 0);
         virtual ~ObjectView();
 
         virtual void SetConfig(ViewConfig *config);
-        virtual void UpdateModelIndex(const MetaInfo &info);
+        virtual void UpdateModelIndex(const MetaData &info);
         void Shrink();
 
         /// list of audio inputs
@@ -104,8 +104,8 @@ namespace View {
         bool highlighted;
 
     signals:
-        void RemoveWithCables(const MetaInfo &info);
-        void RemoveKeepCables(const MetaInfo &info);
+        void RemoveWithCables(const MetaData &info);
+        void RemoveKeepCables(const MetaData &info);
 
     public slots:
         void ShrinkNow();

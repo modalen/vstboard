@@ -30,9 +30,8 @@ using namespace Connectables;
   */
 
 Cable::Cable() :
-    ObjectInfo()
+    MetaObjEngine(MetaType::cable)
 {
-    SetType(MetaTypes::cable);
     SetName("Cable");
 }
 
@@ -41,22 +40,21 @@ Cable::Cable() :
   \param pinOut the output pin (the one sending the messages)
   \param pinIn the input pin (the receiver)
   */
-Cable::Cable( const MetaInfo &pinOut, const MetaInfo &pinIn) :
+Cable::Cable( const MetaData &pinOut, const MetaData &pinIn) :
     ObjectInfo(),
     pinOut(pinOut),
     pinIn(pinIn)
 {
-    SetType(MetaTypes::cable);
+    SetType(MetaType::cable);
     SetName("Cable");
-//    data.SetMeta(MetaInfos::InfoOut,pinOut.info());
-//    data.SetMeta(MetaInfos::InfoIn,pinIn.info());
-    data.SetMeta(MetaInfos::nbOutputs, pinOut.ObjId());
-    data.SetMeta(MetaInfos::nbInputs, pinIn.ObjId());
+
+    SetMeta(metaT::ObjIdOut, pinOut.ObjId());
+    SetMeta(metaT::ObjIdIn, pinIn.ObjId());
 }
 
 QDataStream & Cable::toStream (QDataStream& out) const
 {
-    out << *(MetaInfo*)this;
+    out << *(MetaData*)this;
     out << pinOut;
     out << pinIn;
     return out;
@@ -64,7 +62,7 @@ QDataStream & Cable::toStream (QDataStream& out) const
 
 QDataStream & Cable::fromStream (QDataStream& in)
 {
-    in >> *(MetaInfo*)this;
+    in >> *(MetaData*)this;
     in >> pinOut;
     in >> pinIn;
     return in;

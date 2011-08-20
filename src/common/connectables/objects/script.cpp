@@ -27,10 +27,12 @@ using namespace Connectables;
 
 DMutex Script::mutexScript;
 
-Script::Script(MainHost *host, MetaInfo &info) :
+Script::Script(MainHost *host, MetaData &info) :
     Object(host,info),
     editorWnd(0)
 {
+    SET_MUTEX_NAME(Script::mutexScript,"mutexScript");
+
     SetName("Script");
     setObjectName( QString("objScript%1").arg(ObjId()) );
     objScriptName = objectName();
@@ -55,7 +57,7 @@ Script::Script(MainHost *host, MetaInfo &info) :
 void Script::SetEditorWnd(QWidget *wnd)
 {
     if(editorWnd) {
-        LOG("editor already set"<<toStringFull());
+        LOG("editor already set"<<toString());
         return;
     }
 
@@ -219,25 +221,25 @@ void Script::ReplaceScript(const QString &str)
     Open();
 }
 
-Pin* Script::CreatePin(MetaInfo &info)
+Pin* Script::CreatePin(MetaData &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)
         return newPin;
 
-    if(info.data.GetMetaData<int>(MetaInfos::Media) == MediaTypes::Parameter) {
-        switch(info.data.GetMetaData<int>(MetaInfos::Direction)) {
+    if(info.GetMetaData<int>(metaT::Media) == MediaTypes::Parameter) {
+        switch(info.GetMetaData<int>(metaT::Direction)) {
             case Directions::Input :
-                if(info.data.GetMetaData<int>(MetaInfos::PinNumber) == FixedPinNumber::editorVisible) {
-                    info.SetName(tr("Editor"));
+                if(info.GetMetaData<int>(metaT::PinNumber) == FixedPinNumber::editorVisible) {
+                    info.SetMeta(metaT::ObjName,tr("Editor"));
                     ParameterPin *newPin = new ParameterPin(this,info,"hide",&listEditorVisible);
                     newPin->SetLimitsEnabled(false);
                     return newPin;
                 }
-                info.SetName( QString("ParamIn%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)) );
+                info.SetMeta(metaT::ObjName, tr("ParamIn%1").arg(info.GetMetaData<int>(metaT::PinNumber)) );
                 break;
             case Directions::Output :
-                info.SetName( QString("ParamOut%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)) );
+                info.SetMeta(metaT::ObjName, tr("ParamOut%1").arg(info.GetMetaData<int>(metaT::PinNumber)) );
         }
 
         newPin = new ParameterPin(this,info,0);

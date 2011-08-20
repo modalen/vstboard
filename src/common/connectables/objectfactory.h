@@ -39,35 +39,36 @@ namespace Connectables {
         ObjectFactory(MainHost *myHost);
         ~ObjectFactory();
 
-        QSharedPointer<Object> NewObject( MetaInfo &info);
+        QSharedPointer<Object> NewObject( MetaData &info);
         inline void RemoveObject(int id) {
             listObjects.remove(id);
         }
 
         inline QSharedPointer<Object> GetObjectFromId(int id) {
-            if(id==0)
+            if(id==0) {
+//                LOG("obj id 0"); //normal : used by addObjCommand to know if the object qhould be created
                 return QSharedPointer<Object>();
+            }
 
-            if(!listObjects.contains(id))
+            if(!listObjects.contains(id)) {
+                LOG("obj not in list"<<id<<listObjects.keys());
                 return QSharedPointer<Object>();
+            }
 
             return listObjects.value(id);
         }
 
         int IdFromSavedId(int savedId);
         void ResetSavedId();
-        Pin *GetPin(const MetaInfo &pinInfo);
-        bool UpdatePinInfo(MetaInfo &pinInfo);
-//        inline Pin *GetPin(const QModelIndex & index) {
-//            return GetPin( index.data(UserRoles::objInfo).value<ConnectionInfo>() );
-//        }
+        Pin *GetPin(const MetaData &pinInfo);
+        bool UpdatePinInfo(MetaData &pinInfo);
 
         const hashObjects &GetListObjects() {return listObjects;}
 
         int GetNewId() {return cptListObjects++;}
 
     protected:
-        virtual Object *CreateOtherObjects(MetaInfo &info)=0;
+        virtual Object *CreateOtherObjects(MetaData &info)=0;
 
         hashObjects listObjects;
         int cptListObjects;

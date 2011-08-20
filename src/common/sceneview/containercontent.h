@@ -28,12 +28,12 @@
 class SceneModel;
 namespace View {
     class MainContainerView;
-    class ContainerContent : public ObjectDropZone, public MetaInfo
+    class ContainerContent : public ObjectDropZone, public MetaData
     {
     Q_OBJECT
     public:
-        explicit ContainerContent(const MetaInfo &info, MainContainerView * parent, SceneModel *model );
-//        void SetModelIndex(const MetaInfo &info);
+        explicit ContainerContent(const MetaData &info, MainContainerView * parent, SceneModel *model );
+//        void SetModelIndex(const MetaData &info);
 //        QPointF GetDropPos();
 //        void SetDropPos(const QPointF &pt);
         void SetConfig(ViewConfig *config);

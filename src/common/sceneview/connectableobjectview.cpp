@@ -24,7 +24,7 @@
 
 using namespace View;
 
-ConnectableObjectView::ConnectableObjectView(const MetaInfo &info, MainContainerView * parent, SceneModel *model ) :
+ConnectableObjectView::ConnectableObjectView(const MetaData &info, MainContainerView * parent, SceneModel *model ) :
     ObjectView(info,parent),
     model(model),
     dropReplace(0),
@@ -146,7 +146,7 @@ void ConnectableObjectView::ObjectDropped(QGraphicsSceneDragDropEvent *event)
 //    MainContainerView *cnt = static_cast<MainContainerView*>(parentItem());
 //    if(cnt)
 //        cnt->SetDropPos( mapToScene(dropPos) );
-    model->dropMime(event->mimeData(), MetaInfo(*this), mapToScene(dropPos), insertType);
+    model->dropMime(event->mimeData(), MetaData(*this), mapToScene(dropPos), insertType);
 //    DropMime(event->mimeData(), mapToScene(dropPos), insertType);
 }
 

@@ -41,7 +41,7 @@ namespace View {
         static ComAddObject* command;
 
     private:
-        MetaInfo info;
+        MetaData info;
         Ui::VstShellSelect *ui;
         MainHost *myHost;
 

@@ -25,6 +25,7 @@
 #include "globals.h"
 #include "objectinfo.h"
 #include "audiobuffer.h"
+#include "meta/metaobjengine.h"
 
 class MainHost;
 namespace Connectables {
@@ -33,7 +34,7 @@ namespace Connectables {
     class Object;
     class Container;
 
-    class PinsList : public QObject, public ObjectInfo
+    class PinsList : public QObject, public MetaObjEngine
     {
         Q_OBJECT
         Q_PROPERTY(int nbPins READ nbPins WRITE SetNbPins)
@@ -56,14 +57,12 @@ namespace Connectables {
         AudioBuffer *GetBuffer(int pinNumber);
 
         QMap<quint16,Pin*> listPins;
-        MetaInfo getMetaForPin(int nb);
+        MetaData getMetaForPin(int nb);
 
         virtual QDataStream & toStream (QDataStream &) const;
         virtual QDataStream & fromStream (QDataStream &);
 
     protected:
-        QPersistentModelIndex modelList;
-        Object *parent;
         MainHost *myHost;
 
     signals :

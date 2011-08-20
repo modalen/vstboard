@@ -27,7 +27,7 @@
 
 using namespace Connectables;
 
-MidiToAutomation::MidiToAutomation(MainHost *myHost, MetaInfo &info) :
+MidiToAutomation::MidiToAutomation(MainHost *myHost, MetaData &info) :
         Object(myHost,info)
 {
     SetName("MidiToAutomation");
@@ -117,14 +117,14 @@ void MidiToAutomation::ChangeValue(int ctrl, int value) {
         switch(GetLearningMode()) {
             case LearningMode::unlearn :
                 if(listParameterPinOut->listPins.contains(ctrl)) {
-                    MetaInfo info(listParameterPinOut->getMetaForPin(ctrl));
+                    MetaData info(listParameterPinOut->getMetaForPin(ctrl));
                     emit UndoStackPush( new ComRemovePin(myHost, info) );
                 }
                 break;
             case LearningMode::learn :
                 if(!listParameterPinOut->listPins.contains(ctrl)) {
-                    MetaInfo info(listParameterPinOut->getMetaForPin(ctrl));
-                    info.data.SetMeta(MetaInfos::Removable, true);
+                    MetaData info(listParameterPinOut->getMetaForPin(ctrl));
+                    info.SetMeta(metaT::Removable, true);
                     emit UndoStackPush( new ComAddPin(myHost,info) );
                 }
             case LearningMode::off :
@@ -136,15 +136,15 @@ void MidiToAutomation::ChangeValue(int ctrl, int value) {
     }
 }
 
-Pin* MidiToAutomation::CreatePin(MetaInfo &info)
+Pin* MidiToAutomation::CreatePin(MetaData &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)
         return newPin;
 
-    int pinnumber = info.data.GetMetaData<int>(MetaInfos::PinNumber);
+    int pinnumber = info.GetMetaData<int>(metaT::PinNumber);
 
-    switch(info.data.GetMetaData<int>(MetaInfos::Direction)) {
+    switch(info.GetMetaData<int>(metaT::Direction)) {
         case Directions::Input : {
             if(pinnumber == FixedPinNumber::learningMode) {
                 info.SetName(tr("Learn"));
@@ -158,12 +158,12 @@ Pin* MidiToAutomation::CreatePin(MetaInfo &info)
         case Directions::Output : {
 
             if(pinnumber<128) {
-                info.SetName( tr("CC%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)) );
-                info.data.SetMeta(MetaInfos::Removable,true);
+                info.SetName( tr("CC%1").arg(info.GetMetaData<int>(metaT::PinNumber)) );
+                info.SetMeta(metaT::Removable,true);
 
             } else if(pinnumber>=para_notes) {
-                info.SetName( tr("note%1").arg(info.data.GetMetaData<int>(MetaInfos::PinNumber)) );
-                info.data.SetMeta(MetaInfos::Removable,true);
+                info.SetName( tr("note%1").arg(info.GetMetaData<int>(metaT::PinNumber)) );
+                info.SetMeta(metaT::Removable,true);
 
             } else switch(pinnumber) {
                 case para_prog:

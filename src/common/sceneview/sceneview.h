@@ -32,7 +32,7 @@
 
 class MainHost;
 class SceneModel;
-class MetaInfo;
+class MetaData;
 namespace View {
     class MainContainerView;
 
@@ -45,9 +45,9 @@ namespace View {
         void SetParkings(QWidget *progPark, QWidget *groupPark);
         void SetModel(SceneModel *m) {model=m;}
 
-        void AddObj(MetaInfo &info);
+        void AddObj(MetaData &info);
         void DelObj(quint32 objId);
-        void UpdateObj(const MetaInfo &info);
+        void UpdateObj(const MetaData &info);
 
         MainGraphicsView *viewHost;
         MainGraphicsView *viewProject;
@@ -63,7 +63,7 @@ namespace View {
         QGraphicsRectItem *rootObjInsert;
 
         QMap<quint32,QObject*>mapViewItems;
-        QMap<quint32,MetaInfo>mapMetaInfos;
+        QMap<quint32,MetaData>mapMetaDatas;
 
         QGraphicsScene *sceneHost;
         QGraphicsScene *sceneProject;
@@ -83,11 +83,11 @@ namespace View {
         SceneModel *model;
 
     public slots:
-        void ConnectPins(const MetaInfo &pinOut, const MetaInfo &pinIn);
-        void RemoveCablesFromPin(const MetaInfo &pin);
-        void RemovePin(const MetaInfo &pin);
-        void RemoveObjWithCables(const MetaInfo &obj);
-        void RemoveObjKeepCables(const MetaInfo &obj);
+        void ConnectPins(const MetaData &pinOut, const MetaData &pinIn);
+        void RemoveCablesFromPin(const MetaData &pin);
+        void RemovePin(const MetaData &pin);
+        void RemoveObjWithCables(const MetaData &obj);
+        void RemoveObjKeepCables(const MetaData &obj);
 
         void ToggleHostView(bool show);
         void ToggleProjectView(bool show);

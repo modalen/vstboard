@@ -42,8 +42,8 @@ namespace View {
         void UpdatePosition(const int pinId, const float angle, const QPointF &pt);
         void UpdatePosition(const QPointF &pt);
 
-//        const MetaInfo pinOut;
-//        const MetaInfo pinIn;
+//        const MetaData pinOut;
+//        const MetaData pinIn;
         const int pinOutId;
         const int pinInId;
 

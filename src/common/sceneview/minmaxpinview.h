@@ -29,8 +29,8 @@ namespace View {
     {
         Q_OBJECT
     public:
-        MinMaxPinView(const MetaInfo &info, float angle, QGraphicsItem * parent, ViewConfig *config);
-        void UpdateModelIndex(const MetaInfo &info);
+        MinMaxPinView(const MetaData &info, float angle, QGraphicsItem * parent, ViewConfig *config);
+        void UpdateModelIndex(const MetaData &info);
 
     protected:
         void resizeEvent ( QGraphicsSceneResizeEvent * event );
@@ -43,7 +43,7 @@ namespace View {
         QGraphicsPolygonItem *scaledView;
         bool cursorCreated;
     public slots:
-        void LimitChanged(MetaInfos::Enum type,float val);
+        void LimitChanged(metaT::Enum type,float val);
     };
 }
 #endif // MINMAXPINVIEW_H

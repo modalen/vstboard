@@ -24,7 +24,7 @@
 #include "mainhost.h"
 using namespace Connectables;
 
-BridgePinOut::BridgePinOut(Object *parent, MetaInfo &info)
+BridgePinOut::BridgePinOut(Object *parent, MetaData &info)
     :Pin(parent,info),
     valueType(MediaTypes::ND)
 {
@@ -58,7 +58,7 @@ float BridgePinOut::GetValue()
     if(valueChanged) {
         if(internValue==1.0f) internValue=0.99f;
         else internValue=1.0f;
-        data.SetMeta(MetaInfos::BridgeMedia, valueType);
+        data.SetMeta(metaT::BridgeMedia, valueType);
     }
     return internValue;
 }

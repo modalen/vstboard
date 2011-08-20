@@ -52,7 +52,7 @@ int AudioDevice::countInputDevices=0;
   /param info ObjectInfo describing the device
   /param parent a parent QObject (unused ?)
   */
-AudioDevice::AudioDevice(PaDeviceInfo &devInfo,MainHostHost *myHost,const MetaInfo &info, QObject *parent) :
+AudioDevice::AudioDevice(PaDeviceInfo &devInfo,MainHostHost *myHost,const MetaData &info, QObject *parent) :
     QObject(parent),
     sampleRate(44100.0f),
     bufferSize(4096),
@@ -67,6 +67,10 @@ AudioDevice::AudioDevice(PaDeviceInfo &devInfo,MainHostHost *myHost,const MetaIn
 {
     devOutClosing=false;
     setObjectName(objInfo.Name());
+
+    SET_MUTEX_NAME(AudioDevice::mutexCountInputDevicesReady,"mutexCountInputDevicesReady AudioDevice");
+    SET_MUTEX_NAME(mutexOpenClose,"mutexOpenClose "+objectName());
+    SET_MUTEX_NAME(mutexDevicesInOut,"mutexOpenClose "+objectName());
 
     connect(myHost,SIGNAL(SampleRateChanged(float)),
             this,SLOT(SetSampleRate(float)));
@@ -113,7 +117,7 @@ void AudioDevice::DeleteIfUnused()
 
     if(del) {
         SetSleep(true);
-        myHost->audioDevices->RemoveDevice(objInfo.data.GetMetaData<int>(MetaInfos::devId));
+        myHost->audioDevices->RemoveDevice(objinfo.GetMetaData<int>(metaT::devId));
     }
 
 }
@@ -212,7 +216,7 @@ void AudioDevice::SetSampleRate(float rate)
   */
 bool AudioDevice::OpenStream(double sampleRate)
 {
-    if(Pa_GetDeviceInfo(objInfo.data.GetMetaData<int>(MetaInfos::devId))==0) {
+    if(Pa_GetDeviceInfo(objinfo.GetMetaData<int>(metaT::devId))==0) {
         errorMessage=tr("Device not found");
         return false;
     }
@@ -228,10 +232,10 @@ bool AudioDevice::OpenStream(double sampleRate)
         inputParameters = new PaStreamParameters;
         ZeroMemory( inputParameters, sizeof( PaStreamParameters ) );
         inputParameters->channelCount = devInfo.maxInputChannels;
-        inputParameters->device = objInfo.data.GetMetaData<int>(MetaInfos::devId);
+        inputParameters->device = objinfo.GetMetaData<int>(metaT::devId);
         inputParameters->hostApiSpecificStreamInfo = NULL;
         inputParameters->sampleFormat = paFloat32 | paNonInterleaved;
-        inputParameters->suggestedLatency = Pa_GetDeviceInfo(objInfo.data.GetMetaData<int>(MetaInfos::devId))->defaultLowInputLatency;
+        inputParameters->suggestedLatency = Pa_GetDeviceInfo(objinfo.GetMetaData<int>(metaT::devId))->defaultLowInputLatency;
 
         switch(Pa_GetHostApiInfo( devInfo.hostApi )->type) {
             case paDirectSound :
@@ -296,10 +300,10 @@ bool AudioDevice::OpenStream(double sampleRate)
         outputParameters = new PaStreamParameters;
         ZeroMemory( outputParameters, sizeof( PaStreamParameters ) );
         outputParameters->channelCount = devInfo.maxOutputChannels;
-        outputParameters->device = objInfo.data.GetMetaData<int>(MetaInfos::devId);
+        outputParameters->device = objinfo.GetMetaData<int>(metaT::devId);
         outputParameters->hostApiSpecificStreamInfo = NULL;
         outputParameters->sampleFormat = paFloat32 | paNonInterleaved;
-        outputParameters->suggestedLatency = Pa_GetDeviceInfo(objInfo.data.GetMetaData<int>(MetaInfos::devId))->defaultLowOutputLatency ;
+        outputParameters->suggestedLatency = Pa_GetDeviceInfo(objinfo.GetMetaData<int>(metaT::devId))->defaultLowOutputLatency ;
 
         switch(Pa_GetHostApiInfo( devInfo.hostApi )->type) {
             case paDirectSound :
@@ -407,8 +411,8 @@ bool AudioDevice::OpenStream(double sampleRate)
 //        emit InUseChanged(objInfo.api,objInfo.id,true,inf->inputLatency,inf->outputLatency,inf->sampleRate);
 //    else
 //        emit InUseChanged(objInfo.api,objInfo.id,true);
-    emit InUseChanged(objInfo.data.GetMetaData<int>(MetaInfos::apiId),
-                      objInfo.data.GetMetaData<int>(MetaInfos::devId),
+    emit InUseChanged(objinfo.GetMetaData<int>(metaT::apiId),
+                      objinfo.GetMetaData<int>(metaT::devId),
                       true,
                       inputParameters?inputParameters->suggestedLatency:0,
                       outputParameters?outputParameters->suggestedLatency:0);
@@ -498,8 +502,8 @@ bool AudioDevice::Close()
 
     inputBufferReady=false;
 
-    emit InUseChanged( objInfo.data.GetMetaData<int>(MetaInfos::apiId),
-                       objInfo.data.GetMetaData<int>(MetaInfos::devId),
+    emit InUseChanged( objinfo.GetMetaData<int>(metaT::apiId),
+                       objinfo.GetMetaData<int>(metaT::devId),
                        false);
 
     if(stream)
@@ -692,6 +696,13 @@ bool AudioDevice::RingBuffersToDevice( void *outputBuffer, unsigned long framesP
 #else
 bool AudioDevice::DeviceToPinBuffers( const void *inputBuffer, unsigned long framesPerBuffer )
 {
+    mutexOpenClose.lock();
+    if(isClosing) {
+        mutexOpenClose.unlock();
+        return false;
+    }
+    mutexOpenClose.unlock();
+
     unsigned long hostBuffSize = myHost->GetBufferSize();
     if(framesPerBuffer > hostBuffSize) {
        myHost->SetBufferSize(framesPerBuffer);
@@ -704,11 +715,11 @@ bool AudioDevice::DeviceToPinBuffers( const void *inputBuffer, unsigned long fra
         return true;
     }
 
-    if(!devIn)
-        return true;
     PinsList *lst = devIn->GetPinList(Directions::Output,MediaTypes::Audio);
-    if(!lst)
+    if(!lst){
+        mutexDevicesInOut.unlock();
         return true;
+    }
 
     for(int cpt=0; cpt<lst->nbPins(); cpt++) {
         AudioBuffer *pinBuf = lst->GetBuffer(cpt);
@@ -725,19 +736,37 @@ bool AudioDevice::DeviceToPinBuffers( const void *inputBuffer, unsigned long fra
 
 bool AudioDevice::PinBuffersToDevice( void *outputBuffer, unsigned long framesPerBuffer )
 {
+    mutexOpenClose.lock();
+    if(isClosing) {
+        mutexOpenClose.unlock();
+        return false;
+    }
+    mutexOpenClose.unlock();
+
     mutexDevicesInOut.lock();
     if(devOutClosing) {
         devOutClosing=false;
         mutexDevicesInOut.unlock();
+
+        for(int i=0; i<devInfo.maxOutputChannels; ++i) {
+            //send a blank buffer to the device
+            ZeroMemory( ((float **) outputBuffer)[i], sizeof(float)*framesPerBuffer );
+        }
+        //send a blank buffer to the device
+//        ZeroMemory((float *) outputBuffer, sizeof(float)*framesPerBuffer*devInfo.maxOutputChannels );
         return true;
     }
-    mutexDevicesInOut.unlock();
 
-    if(!devOut)
+    if(!devOut) {
+        mutexDevicesInOut.unlock();
         return true;
+    }
+
     PinsList *lst = devOut->GetPinList(Directions::Input,MediaTypes::Audio);
-    if(!lst)
+    if(!lst) {
+        mutexDevicesInOut.unlock();
         return true;
+    }
 
     for(int cpt=0; cpt<lst->nbPins(); cpt++) {
         AudioBuffer *pinBuf = lst->GetBuffer(cpt);
@@ -745,7 +774,7 @@ bool AudioDevice::PinBuffersToDevice( void *outputBuffer, unsigned long framesPe
         pinBuf->DumpToBuffer( ((float **) outputBuffer)[cpt], framesPerBuffer);
         pinBuf->ResetStackCounter();
     }
-
+    mutexDevicesInOut.unlock();
     return true;
 }
 #endif

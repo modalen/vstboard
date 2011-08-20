@@ -30,18 +30,18 @@ namespace View {
 }
 
 class MainHost;
-class MetaInfo;
+class MetaData;
 class SceneModel : public QObject, public MetaTransporter
 {
     Q_OBJECT
 public:
     SceneModel(MainHost *myHost, View::SceneView *view, QObject *parent=0);
-    bool dropMime ( const QMimeData * data, MetaInfo & senderInfo, QPointF &pos, InsertionType::Enum insertType=InsertionType::NoInsertion );
-    void valueChanged( const MetaInfo & senderInfo, int type, const QVariant &value);
+    bool dropMime ( const QMimeData * data, MetaData & senderInfo, QPointF &pos, InsertionType::Enum insertType=InsertionType::NoInsertion );
+    void valueChanged( const MetaData & senderInfo, int type, const QVariant &value);
     bool event(QEvent *event);
 
 protected:
-    bool dropFile( const QString &fName, MetaInfo &info, MetaInfo &senderInfo);
+    bool dropFile( const QString &fName, MetaData &info, MetaData &senderInfo);
 
     MainHost *myHost;
     QTimer *delayedAction;
