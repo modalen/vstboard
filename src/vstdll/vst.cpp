@@ -120,7 +120,7 @@ void Vst::open()
 
      //reaper returns false :-/
      char str[64];
-     effect->getHostProductString(str);
+     getHostProductString(str);
      if(!strcmp(str,"REAPER")) {
         hostAcceptIOChanges = true;
      }
