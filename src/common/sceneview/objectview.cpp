@@ -20,6 +20,7 @@
 
 #include "objectview.h"
 #include "pinview.h"
+#include "connectablepinview.h"
 
 using namespace View;
 
@@ -56,8 +57,8 @@ ObjectView::ObjectView(const MetaInfo &info, QGraphicsItem * parent ) :
     actLearnSwitch(0),
     shrinkAsked(false),
     highlighted(false),
-    config(myHost->mainWindow->viewConfig),
-    config(0)
+    config(0),
+    editorPin(0),
     learnPin(0)
 {
     setObjectName("objView");
@@ -151,45 +152,51 @@ void ObjectView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
   Set the model index of this object
   \param index the index
   */
-//void ObjectView::SetModelIndex(const MetaInfo &info)
-//{
-//    objInfo=info;
+void ObjectView::SetModelIndex(const MetaInfo &info)
+{
 
-    if(info.nodeType != NodeType::bridge) {
-        actRemoveBridge = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove"),this);
-        actRemoveBridge->setShortcut( Qt::Key_Delete );
-        actRemoveBridge->setShortcutContext(Qt::WidgetShortcut);
-        connect(actRemoveBridge,SIGNAL(triggered()),
-                this,SLOT(RemoveWithBridge()));
-        addAction(actRemoveBridge);
+    if(info.Type() != MetaTypes::bridge) {
+        if(!actRemoveBridge) {
+            actRemoveBridge = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove"),this);
+            actRemoveBridge->setShortcut( Qt::Key_Delete );
+            actRemoveBridge->setShortcutContext(Qt::WidgetShortcut);
+            connect(actRemoveBridge,SIGNAL(triggered()),
+                    this,SLOT(RemoveWithBridge()));
+            addAction(actRemoveBridge);
+        }
 
-        actRemove = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove with cables"),this);
-        actRemove->setShortcut( Qt::CTRL + Qt::Key_Delete );
-        actRemove->setShortcutContext(Qt::WidgetShortcut);
-        connect(actRemove,SIGNAL(triggered()),
-                this,SLOT(close()));
-        addAction(actRemove);
+        if(!actRemove) {
+            actRemove = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove with cables"),this);
+            actRemove->setShortcut( Qt::CTRL + Qt::Key_Delete );
+            actRemove->setShortcutContext(Qt::WidgetShortcut);
+            connect(actRemove,SIGNAL(triggered()),
+                    this,SLOT(close()));
+            addAction(actRemove);
+        }
 
-        actShowEditor = new QAction(tr("Show Editor"),this);
-        actShowEditor->setShortcut( Qt::Key_E );
-        actShowEditor->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-        actShowEditor->setEnabled(false);
-        actShowEditor->setCheckable(true);
-        connect(actShowEditor,SIGNAL(toggled(bool)),
-                this,SLOT(SwitchEditor(bool)));
-        addAction(actShowEditor);
+        if(!actShowEditor) {
+            actShowEditor = new QAction(tr("Show Editor"),this);
+            actShowEditor->setShortcut( Qt::Key_E );
+            actShowEditor->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+            actShowEditor->setEnabled(false);
+            actShowEditor->setCheckable(true);
+            connect(actShowEditor,SIGNAL(toggled(bool)),
+                    this,SLOT(SwitchEditor(bool)));
+            addAction(actShowEditor);
+        }
 
-        actLearnSwitch = new QAction(tr("Learn Mode"),this);
-        actLearnSwitch->setShortcut( Qt::Key_L );
-        actLearnSwitch->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-        actLearnSwitch->setEnabled(false);
-        actLearnSwitch->setCheckable(true);
-        connect(actLearnSwitch,SIGNAL(toggled(bool)),
-                this,SLOT(SwitchLearnMode(bool)));
-        addAction(actLearnSwitch);
+        if(!actLearnSwitch) {
+            actLearnSwitch = new QAction(tr("Learn Mode"),this);
+            actLearnSwitch->setShortcut( Qt::Key_L );
+            actLearnSwitch->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+            actLearnSwitch->setEnabled(false);
+            actLearnSwitch->setCheckable(true);
+            connect(actLearnSwitch,SIGNAL(toggled(bool)),
+                    this,SLOT(SwitchLearnMode(bool)));
+            addAction(actLearnSwitch);
+        }
     }
 
-    objIndex = index;
     UpdateTitle();
 }
 
@@ -337,6 +344,17 @@ void ObjectView::ShrinkNow()
 void ObjectView::SetEditorPin(ConnectablePinView *pin, float value)
 {
     editorPin = pin;
+
+    if(!actShowEditor) {
+        actShowEditor = new QAction(tr("Show Editor"),this);
+        actShowEditor->setShortcut( Qt::Key_E );
+        actShowEditor->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+        actShowEditor->setEnabled(false);
+        actShowEditor->setCheckable(true);
+        connect(actShowEditor,SIGNAL(toggled(bool)),
+                this,SLOT(SwitchEditor(bool)));
+        addAction(actShowEditor);
+    }
     actShowEditor->setEnabled(editorPin);
     actShowEditor->setChecked(value>.5f);
 }
@@ -344,6 +362,17 @@ void ObjectView::SetEditorPin(ConnectablePinView *pin, float value)
 void ObjectView::SetLearnPin(ConnectablePinView *pin, float value)
 {
     learnPin = pin;
+
+    if(!actLearnSwitch) {
+        actLearnSwitch = new QAction(tr("Learn Mode"),this);
+        actLearnSwitch->setShortcut( Qt::Key_L );
+        actLearnSwitch->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+        actLearnSwitch->setEnabled(false);
+        actLearnSwitch->setCheckable(true);
+        connect(actLearnSwitch,SIGNAL(toggled(bool)),
+                this,SLOT(SwitchLearnMode(bool)));
+        addAction(actLearnSwitch);
+    }
     actLearnSwitch->setEnabled(learnPin);
     actLearnSwitch->setChecked(value>.33f);
 }

@@ -34,6 +34,9 @@ namespace View {
 
     protected:
         void resizeEvent ( QGraphicsSceneResizeEvent * event );
+        void mousePressEvent(QGraphicsSceneMouseEvent *event);
+        void mouseMoveEvent ( QGraphicsSceneMouseEvent  * event );
+        void mouseReleaseEvent ( QGraphicsSceneMouseEvent  * event );
         void CreateCursors();
         void UpdateScaleView();
         CursorView *inMin;
@@ -42,6 +45,8 @@ namespace View {
         CursorView *outMax;
         QGraphicsPolygonItem *scaledView;
         bool cursorCreated;
+        bool changingValue;
+        QPoint startDragPos;
     public slots:
         void LimitChanged(MetaInfos::Enum type,float val);
     };

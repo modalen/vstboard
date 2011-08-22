@@ -149,11 +149,7 @@ void ConnectablePinView::UpdateModelIndex(const MetaInfo &info)
             setMinimumWidth( textItem->boundingRect().width()+10 );
     }
 
-    if(Meta(MetaInfos::Media).toInt() == MediaTypes::Parameter) {
-        value = Meta(MetaInfos::Value).toFloat();
-        float newVu = size().width() * value;
-        rectVu->setRect(0,0, newVu, size().height());
-    } else {
+    if(Meta(MetaInfos::Media).toInt() != MediaTypes::Parameter) {
         float newVal = Meta(MetaInfos::Value).toFloat();
         value = std::max(value,newVal);
     }

@@ -115,6 +115,8 @@ private slots:
 
     void on_solverView_clicked(const QModelIndex &index);
     void on_actionAppearance_toggled(bool arg1);
+    void on_actionCable_toggled(bool arg1);
+    void on_actionValue_toggled(bool arg1);
 
     friend class View::SceneView;
 };

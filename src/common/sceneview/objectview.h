@@ -41,6 +41,7 @@ namespace View {
         virtual ~ObjectView();
 
         virtual void SetConfig(ViewConfig *config);
+        virtual void SetModelIndex(const MetaInfo &info);
         virtual void UpdateModelIndex(const MetaInfo &info);
         void Shrink();
 

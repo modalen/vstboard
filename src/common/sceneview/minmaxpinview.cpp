@@ -19,6 +19,7 @@
 **************************************************************************/
 #include "minmaxpinview.h"
 #include "objectinfo.h"
+#include "objectview.h"
 
 using namespace View;
 
@@ -29,7 +30,8 @@ MinMaxPinView::MinMaxPinView(const MetaInfo &info, float angle, QGraphicsItem * 
     inMax(0),
     outMin(0),
     outMax(0),
-    scaledView(0)
+    scaledView(0),
+    changingValue(false)
 {
     if(Meta(MetaInfos::LimitEnabled).isValid())
         CreateCursors();
@@ -91,12 +93,29 @@ void MinMaxPinView::UpdateModelIndex(const MetaInfo &info)
 {
     ConnectablePinView::UpdateModelIndex(info);
 
+    //avoid "jumps"
+    if(!changingValue)
+        value = info.Meta(MetaInfos::Value).toFloat();
+
+    float newVu = geometry().width() * value;
+    rectVu->setRect(0,0, newVu, geometry().height());
+
     if(cursorCreated) {
         inMin->SetValue( Meta(MetaInfos::LimitInMin).toFloat() );
         inMax->SetValue( Meta(MetaInfos::LimitInMax).toFloat() );
         outMin->SetValue( Meta(MetaInfos::LimitOutMin).toFloat() );
         outMax->SetValue( Meta(MetaInfos::LimitOutMax).toFloat() );
         UpdateScaleView();
+    }
+
+    ObjectView *parentObj = static_cast<ObjectView*>(parentWidget()->parentWidget());
+    if(parentObj) {
+        if(info.Meta(MetaInfos::PinNumber).toInt() == FixedPinNumber::editorVisible) {
+            parentObj->SetEditorPin(this, value);
+        }
+        if(info.Meta(MetaInfos::PinNumber).toInt() == FixedPinNumber::learningMode) {
+            parentObj->SetLearnPin(this, value);
+        }
     }
 }
 
@@ -122,4 +141,54 @@ void MinMaxPinView::UpdateScaleView()
     QPolygonF pol;
     pol << QPointF(limitVal,0) << QPointF(inMin->GetValue(),0)  << QPointF(outMin->GetValue(),rect().height()) << QPointF(outVal,rect().height());
     scaledView->setPolygon(pol);
+}
+
+void MinMaxPinView::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    if(config->EditMode()!=EditMode::Value) {
+        ConnectablePinView::mousePressEvent(event);
+        return;
+    }
+
+    changingValue=true;
+    startDragPos=event->screenPos();
+    grabMouse();
+}
+
+void MinMaxPinView::mouseMoveEvent ( QGraphicsSceneMouseEvent  * event )
+{
+    if(changingValue) {
+        float mouseSensibility = 1.0f/size().width();
+        if(event->modifiers() & Qt::ControlModifier)
+            mouseSensibility /= 10;
+        if(event->modifiers() & Qt::ShiftModifier)
+            mouseSensibility /= 10;
+        if(event->modifiers() & Qt::AltModifier)
+            mouseSensibility /= 10;
+
+        int increm = event->screenPos().x() - startDragPos.x();
+        startDragPos=event->screenPos();
+
+        if(increm==0)
+            return;
+
+        value += mouseSensibility*increm;
+        value = std::max(.0f,value);
+        value = std::min(1.0f,value);
+
+        float newVu = geometry().width() * value;
+        rectVu->setRect(0,0, newVu, geometry().height());
+        SetMeta(MetaInfos::Value,value);
+    } else {
+        ConnectablePinView::mouseMoveEvent(event);
+    }
+}
+
+void MinMaxPinView::mouseReleaseEvent ( QGraphicsSceneMouseEvent  * event )
+{
+    if(changingValue) {
+        ungrabMouse();
+        changingValue=false;
+    }
+    ConnectablePinView::mouseReleaseEvent(event);
 }
