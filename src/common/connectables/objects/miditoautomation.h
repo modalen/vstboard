@@ -33,7 +33,7 @@ namespace Connectables {
         explicit MidiToAutomation(MainHost *myHost, MetaData &info);
         void Render();
         void MidiMsgFromInput(long msg);
-        Pin* CreatePin(MetaData &info);
+        Pin* CreatePin(MetaPin &info);
     protected:
         void ChangeValue(int ctrl, int value);
         QList<QVariant> listValues;

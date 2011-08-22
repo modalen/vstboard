@@ -41,7 +41,7 @@ using namespace Connectables;
   \param doublePrecision true if the buffer should be a double precision buffer
   \param externalAllocation true if the audio buffer is not owned by the pin and shouldn't be deleted
   */
-AudioPin::AudioPin(Object *parent, MetaData &info, unsigned long bufferSize, bool doublePrecision, bool externalAllocation) :
+AudioPin::AudioPin(Object *parent, MetaPin &info, unsigned long bufferSize, bool doublePrecision, bool externalAllocation) :
     Pin(parent,info),
     doublePrecision(doublePrecision),
     buffer(0)
@@ -76,9 +76,9 @@ bool AudioPin::SetDoublePrecision(bool dblp)
         return true;
 
     if(doublePrecision) {
-        SetMeta(metaT::displayedText, QString(Name()+"=D=") );
+        SetMeta(metaT::displayedText, QString(ObjName()+"=D=") );
     } else {
-        SetMeta(metaT::displayedText, QString(Name()+"=S=") );
+        SetMeta(metaT::displayedText, QString(ObjName()+"=S=") );
     }
     valueChanged=true;
 

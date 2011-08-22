@@ -491,7 +491,7 @@ PinsList* Object::GetPinList(Directions::Enum dir, MediaTypes::Enum type) const 
   \param info ConnectionInfo defining the pin to be created
   \return a pointer to the new pin, 0 if not created
   */
-Pin* Object::CreatePin(MetaData &info)
+Pin* Object::CreatePin(MetaPin &info)
 {
     switch(info.GetMetaData<int>(metaT::Direction)) {
         case Directions::Input :

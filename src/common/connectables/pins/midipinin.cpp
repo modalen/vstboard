@@ -25,7 +25,7 @@
 
 using namespace Connectables;
 
-MidiPinIn::MidiPinIn(Object *parent, MetaData &info) :
+MidiPinIn::MidiPinIn(Object *parent, MetaPin &info) :
     Pin(parent,info)
 {
 }

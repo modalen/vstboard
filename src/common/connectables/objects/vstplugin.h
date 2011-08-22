@@ -55,7 +55,7 @@ namespace Connectables {
 
         void SetContainerAttribs(const MetaObjViewAttrib &attr);
         void GetContainerAttribs(MetaObjViewAttrib &attr);
-        Pin* CreatePin(MetaData &info);
+        Pin* CreatePin(MetaPin &info);
 
         bool DropFile(const QString &filename);
 

@@ -95,7 +95,7 @@ bool MidiDevice::OpenStream()
                 LOG("openInput error"<<Pm_GetErrorText(err));
                 msgTxt=Pm_GetErrorText(err);
             }
-            SetMeta(metaT::errorMessage,tr("Error while opening midi device %1 %2").arg(Name()).arg(msgTxt));
+            SetMeta(metaT::errorMessage,tr("Error while opening midi device %1 %2").arg(ObjName()).arg(msgTxt));
             return false;
         }
 
@@ -112,7 +112,7 @@ bool MidiDevice::OpenStream()
                 msgTxt=Pm_GetErrorText(err);
                 LOG("setFilter error"<<Pm_GetErrorText(err));
             }
-            SetMeta(metaT::errorMessage,tr("Error while opening midi device %1 %2").arg(Name()).arg(msgTxt));
+            SetMeta(metaT::errorMessage,tr("Error while opening midi device %1 %2").arg(ObjName()).arg(msgTxt));
             return false;
         }
     }
@@ -131,7 +131,7 @@ bool MidiDevice::OpenStream()
                 LOG("openInput error"<<Pm_GetErrorText(err));
                 msgTxt=Pm_GetErrorText(err);
             }
-            SetMeta(metaT::errorMessage,tr("Error while opening midi device %1 %2").arg(Name()).arg(msgTxt));
+            SetMeta(metaT::errorMessage,tr("Error while opening midi device %1 %2").arg(ObjName()).arg(msgTxt));
             return false;
         }
     }

@@ -16,7 +16,7 @@ namespace Connectables {
         bool Open();
         bool Close();
         void Render();
-        Pin* CreatePin(MetaData &info);
+        Pin* CreatePin(MetaPin &info);
 
     protected:
         /// list of values used by the editor pin (0 and 1)

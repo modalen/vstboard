@@ -19,14 +19,14 @@
 **************************************************************************/
 
 #include "metatransporter.h"
+#include "metaobjengine.h"
+#include "events.h"
 
-
-
-void MetaTransporter::ValueChanged( const MetaData & senderInfo, int type, const QVariant &value)
+void MetaTransporter::ValueChanged( const MetaObjEngine & senderInfo, int type, const QVariant &value)
 {
     if(!autoUpdate)
         return;
-    Events::valChanged *e = new Events::valChanged(MetaData(senderInfo), (metaT::Enum)type, value);
+    Events::valChanged *e = new Events::valChanged(senderInfo, (metaT::Enum)type, value);
     PostEvent(e);
 }
 

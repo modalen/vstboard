@@ -31,6 +31,7 @@
 #pragma warning( disable : 4100 )
 #endif
 
+class MainHost;
 namespace Connectables {
 
 //    class PinInfo {
@@ -44,7 +45,7 @@ namespace Connectables {
     {
     Q_OBJECT
     public:
-        Pin(Object *parent, MetaData &info);
+        Pin(Object *parent, MetaPin &info);
         virtual ~Pin();
 
         virtual void SendMsg(const PinMessage::Enum msgType,void *data=0);
@@ -102,6 +103,8 @@ namespace Connectables {
         bool valueChanged;
 
         bool nameCanChange;
+
+        MainHost *myHost;
 
     public slots:
         virtual void updateView();

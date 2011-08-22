@@ -1,22 +1,22 @@
 #ifndef COMDISCONNECTPIN_H
 #define COMDISCONNECTPIN_H
 
-#include "objectinfo.h"
+#include "meta/metapin.h"
 
 class MainHost;
 class ComDisconnectPin : public QUndoCommand
 {
 public:
     ComDisconnectPin(MainHost *myHost,
-                     const MetaData &pinInfo,
+                     const MetaPin &pinInfo,
                      QUndoCommand  *parent=0);
     void undo ();
     void redo ();
 
 private:
     MainHost *myHost;
-    MetaData pinInfo;
-    QList<MetaData>listConnectedPins;
+    MetaPin pinInfo;
+    QList<MetaPin>listConnectedPins;
 
     int currentGroup;
     int currentProg;

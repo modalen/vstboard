@@ -21,23 +21,23 @@
 #ifndef COMADDPIN_H
 #define COMADDPIN_H
 
-#include "objectinfo.h"
+#include "meta/metapin.h"
 
 class MainHost;
 class ComAddPin : public QUndoCommand
 {
 public:
     ComAddPin(MainHost *myHost,
-              const MetaData &pinInfo,
+              const MetaPin &pinInfo,
               QUndoCommand  *parent=0);
     void undo ();
     void redo ();
 private:
     MainHost *myHost;
-    MetaData pinInfo;
+    MetaPin pinInfo;
     int currentGroup;
     int currentProg;
-    QList<MetaData>listConnectedPins;
+    QList<MetaPin>listConnectedPins;
     QVariant value;
 };
 

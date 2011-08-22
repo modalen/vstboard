@@ -4,7 +4,7 @@
 #include "models/programsmodel.h"
 
 ComRemoveObject::ComRemoveObject( MainHost *myHost,
-                                  const MetaData &objectInfo,
+                                  const MetaObjEngine &objectInfo,
                                   RemoveType::Enum removeType,
                                   QUndoCommand  *parent) :
     QUndoCommand(parent),
@@ -14,7 +14,7 @@ ComRemoveObject::ComRemoveObject( MainHost *myHost,
     currentGroup(0),
     currentProg(0)
 {
-    setText(QObject::tr("Remove %1").arg(objectInfo.Name()));
+    setText(QObject::tr("Remove %1").arg(objectInfo.ObjName()));
 
     currentGroup = myHost->programsModel->GetCurrentMidiGroup();
     currentProg =  myHost->programsModel->GetCurrentMidiProg();
@@ -33,7 +33,7 @@ void ComRemoveObject::undo ()
     if(!obj)
         return;
 
-    objectInfo = obj->info();
+    objectInfo = obj->Meta();
 
     //get the container
     QSharedPointer<Connectables::Container> container = myHost->objFactory->GetObjectFromId( objectInfo.ContainerId() ).staticCast<Connectables::Container>();
@@ -49,7 +49,7 @@ void ComRemoveObject::undo ()
     obj->SetContainerAttribs(attr);
 
     //remove cables added at creation
-    QPair<MetaData,MetaData>pair;
+    QPair<MetaPin,MetaPin>pair;
     foreach( pair, listAddedCables) {
         myHost->objFactory->UpdatePinInfo( pair.first );
         myHost->objFactory->UpdatePinInfo( pair.second );

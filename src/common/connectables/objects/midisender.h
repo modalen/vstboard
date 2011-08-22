@@ -41,7 +41,7 @@ namespace Connectables {
     public:
         MidiSender(MainHost *myHost, MetaData &info);
         void Render();
-        Pin* CreatePin(MetaData &info);
+        Pin* CreatePin(MetaPin &info);
 
     protected:
         long midiMsg;

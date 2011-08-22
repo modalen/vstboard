@@ -9,7 +9,7 @@ class ComRemoveObject : public QUndoCommand
 {
 public:
     ComRemoveObject( MainHost *myHost,
-                     const MetaData &objectInfo,
+                     const MetaObjEngine &objectInfo,
                      RemoveType::Enum removeType,
                      QUndoCommand  *parent=0);
     void undo ();
@@ -18,12 +18,12 @@ public:
 private:
     MainHost *myHost;
 
-    MetaData objectInfo;
+    MetaObjEngine objectInfo;
     RemoveType::Enum removeType;
-    ObjectContainerAttribs attr;
+    MetaObjViewAttrib attr;
 
-    QList< QPair<MetaData,MetaData> >listAddedCables;
-    QList< QPair<MetaData,MetaData> >listRemovedCables;
+    QList< QPair<MetaPin,MetaPin> >listAddedCables;
+    QList< QPair<MetaPin,MetaPin> >listRemovedCables;
 
     QByteArray objState;
 

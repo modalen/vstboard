@@ -25,10 +25,10 @@
 #include "models/programsmodel.h"
 #include "connectables/objects/vstplugin.h"
 #include "commands/comaddobject.h"
-#include "objectinfo.h"
 #include "events.h"
 #include "mainwindow.h"
 #include "sceneview/sceneview.h"
+#include "meta/metaobjengine.h"
 
 SceneModel::SceneModel(MainHost *myHost, View::SceneView *view, QObject *parent) :
     QObject(parent),
@@ -79,7 +79,7 @@ bool SceneModel::event(QEvent *event)
     return QObject::event(event);
 }
 
-bool SceneModel::dropFile( const QString &fName, MetaData &info, MetaData &target)
+bool SceneModel::dropFile( const QString &fName, MetaObjEngine &info, MetaObjEngine &target)
 {
     QFileInfo fileInfo;
     fileInfo.setFile( fName );
@@ -94,7 +94,7 @@ bool SceneModel::dropFile( const QString &fName, MetaData &info, MetaData &targe
     //vst plugin ?
     if ( fileType=="dll" ) {
         info.SetType(MetaType::object);
-        info.SetMeta(metaT::ObjType, ObjTypes::VstPlugin);
+        info.SetObjType(ObjTypes::VstPlugin);
         info.SetMeta(metaT::Filename, fName);
         return true;
     }
@@ -148,7 +148,7 @@ bool SceneModel::dropFile( const QString &fName, MetaData &info, MetaData &targe
     return false;
 }
 
-bool SceneModel::dropMime ( const QMimeData * data, MetaData & senderInfo, QPointF &pos, InsertionType::Enum insertType )
+bool SceneModel::dropMime ( const QMimeData * data, MetaObjEngine & senderInfo, QPointF &pos, InsertionType::Enum insertType )
 {
     QList<MetaData>listObjInfoToAdd;
 
@@ -168,11 +168,11 @@ bool SceneModel::dropMime ( const QMimeData * data, MetaData & senderInfo, QPoin
     if (data->hasUrls()) {
         foreach(QUrl url,data->urls()) {
             QString fName = url.toLocalFile();
-            MetaData info;
+            MetaObjEngine info;
             if(!dropFile(fName, info, senderInfo)) {
                 QMessageBox msg(QMessageBox::Information,
                             tr("File not accepted"),
-                            tr("The object %1 cannot load %2").arg(senderInfo.Name().arg(fName))
+                            tr("The object %1 cannot load %2").arg(senderInfo.ObjName()).arg(fName)
                             );
                 msg.exec();
                 continue;
@@ -216,7 +216,7 @@ bool SceneModel::dropMime ( const QMimeData * data, MetaData & senderInfo, QPoin
 
 
 
-    foreach(MetaData info, listObjInfoToAdd) {
+    foreach(MetaObjEngine info, listObjInfoToAdd) {
 
         if(senderInfo.Type()==MetaType::container)
             info.SetContainerId(senderInfo.ObjId());

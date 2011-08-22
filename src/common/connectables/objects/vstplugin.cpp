@@ -619,12 +619,12 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
                 switch(GetLearningMode()) {
                 case LearningMode::unlearn :
                     if(!pin->GetMetaData<bool>(metaT::Hidden))
-                        emit UndoStackPush( new ComRemovePin(myHost, *(MetaData*)pin) );
+                        emit UndoStackPush( new ComRemovePin(myHost, pin->Meta()) );
                     break;
 
                 case LearningMode::learn :
                     if(pin->GetMetaData<bool>(metaT::Hidden))
-                        emit UndoStackPush( new ComAddPin(myHost, *(MetaData*)pin) );
+                        emit UndoStackPush( new ComAddPin(myHost, pin->Meta()) );
 
                 case LearningMode::off :
                     pin->ChangeValue(opt,true);
@@ -803,7 +803,7 @@ void VstPlugin::onVstProgramChanged()
     }
 }
 
-Pin* VstPlugin::CreatePin(MetaData &info)
+Pin* VstPlugin::CreatePin(MetaPin &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)

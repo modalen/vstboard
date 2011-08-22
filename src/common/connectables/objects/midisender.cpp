@@ -95,7 +95,7 @@ void MidiSender::OnParameterChanged(const MetaData &pinInfo, float value)
     msgChanged=true;
 }
 
-Pin* MidiSender::CreatePin(MetaData &info)
+Pin* MidiSender::CreatePin(MetaPin &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)

@@ -41,7 +41,7 @@ QString MetaData::keyName(const metaT::Enum type)
 QString MetaData::toString() const {
     QString str;
 
-    QMap<MetaInfos::Enum,void*>::const_iterator i = listInfos.constBegin();
+    QMap<metaT::Enum,void*>::const_iterator i = listInfos.constBegin();
     while(i!=listInfos.constEnd()) {
 
         QString name = keyName(i.key());
@@ -50,15 +50,15 @@ QString MetaData::toString() const {
         else
             str+= QString("%1:").arg(name);
 
-        if(i.key()<MetaInfos::INT_END) {
+        if(i.key()<metaT::INT_END) {
             str += QString::number(*static_cast<int*>(i.value()));
-        } else if(i.key()<MetaInfos::FLOAT_END) {
+        } else if(i.key()<metaT::FLOAT_END) {
             str += QString::number(*static_cast<float*>(i.value()));
-        } else if(i.key()<MetaInfos::BOOL_END) {
+        } else if(i.key()<metaT::BOOL_END) {
             str.append(*static_cast<bool*>(i.value()));
-        } else if(i.key()<MetaInfos::STRING_END) {
+        } else if(i.key()<metaT::STRING_END) {
             str.append(*static_cast<QString*>(i.value()));
-        } else if(i.key()<MetaInfos::OTHER_END) {
+        } else if(i.key()<metaT::OTHER_END) {
             str += QString("%1:%2")
                 .arg(static_cast<QPointF*>(i.value())->x())
                 .arg(static_cast<QPointF*>(i.value())->y());
@@ -189,4 +189,4 @@ bool operator==(const MetaData &c1, const MetaData &c2)
     return true;
 }
 
-bool operator<(const MetaData &c1, const MetaData &c2) { if(c1.metaId < c2.metaId; }
+bool operator<(const MetaData &c1, const MetaData &c2) { return(c1.metaId < c2.metaId); }

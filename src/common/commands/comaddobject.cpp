@@ -5,8 +5,8 @@
 #include "models/programsmodel.h"
 
 ComAddObject::ComAddObject(MainHost *myHost,
-                           const MetaData &objInfo,
-                           const MetaData &targetInfo,
+                           const MetaObjEngine &objInfo,
+                           const MetaObjEngine &targetInfo,
                            InsertionType::Enum insertType,
                            QUndoCommand  *parent) :
     QUndoCommand(parent),
@@ -60,14 +60,14 @@ void ComAddObject::undo ()
             }
 
             container->UserAddObject(target);
-            if(targetAttr.position!=QPointF(0.0f,0.0f)) {
+            if(targetAttr.Position()!=QPointF(0.0f,0.0f)) {
                 target->SetContainerAttribs(targetAttr);
             }
         }
     }
 
     //remove cables added at creation
-    QPair<MetaData,MetaData>pair;
+    QPair<MetaPin,MetaPin>pair;
     foreach( pair, listAddedCables) {
         myHost->objFactory->UpdatePinInfo( pair.first );
         myHost->objFactory->UpdatePinInfo( pair.second );
@@ -96,7 +96,7 @@ void ComAddObject::redo ()
             objectInfo.SetObjId(myHost->objFactory->GetNewId());
 
         //add a temporary object on the view
-        ObjectInfo tmpMeta(objectInfo,myHost);
+        MetaObjEngine tmpMeta(objectInfo.data(),myHost);
         tmpMeta.AddToView();
 
         obj = myHost->objFactory->NewObject( objectInfo );
@@ -105,7 +105,7 @@ void ComAddObject::redo ()
         return;
 
     setText(QObject::tr("Add %1").arg(obj->objectName()));
-    objectInfo = obj->info();
+    objectInfo = obj->Meta();
 
     //get the container
     QSharedPointer<Connectables::Container> container = myHost->objFactory->GetObjectFromId( objectInfo.ContainerId() ).staticCast<Connectables::Container>();
@@ -115,7 +115,7 @@ void ComAddObject::redo ()
     //get the target
     QSharedPointer<Connectables::Object> target = myHost->objFactory->GetObjectFromId( targetInfo.ObjId() );
     if(target) {
-        targetInfo = target->info();
+        targetInfo = target->Meta();
         QDataStream stream(&targetState, QIODevice::ReadWrite);
         target->SaveProgram();
         target->toStream( stream );
@@ -131,7 +131,7 @@ void ComAddObject::redo ()
     //add the object to the container
     container->UserAddObject( obj, insertType, &listAddedCables, &listRemovedCables, target );
 
-    if(attr.position!=QPointF(0.0f,0.0f)) {
+    if(attr.Position()!=QPointF(0.0f,0.0f)) {
         obj->SetContainerAttribs(attr);
     }
 }

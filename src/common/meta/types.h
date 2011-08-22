@@ -26,6 +26,7 @@ namespace metaT {
         ND,
 
         INT_BEGIN = 1,
+        Type,
         ObjType,
         ObjId,
         ObjName,

@@ -221,7 +221,7 @@ void Script::ReplaceScript(const QString &str)
     Open();
 }
 
-Pin* Script::CreatePin(MetaData &info)
+Pin* Script::CreatePin(MetaPin &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)

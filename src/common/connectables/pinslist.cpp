@@ -111,7 +111,7 @@ void PinsList::ConnectAllTo(Container* container, const PinsList *other, bool hi
     while(i!=listPins.end()) {
         Pin *otherPin = other->listPins.value(i.key(),0);
         if(otherPin)
-            container->AddCable( *static_cast<MetaPin*>(i.value()), *static_cast<MetaPin*>(otherPin), hidden);
+            container->AddCable( i.value()->Meta(), otherPin->Meta(), hidden);
         ++i;
     }
 }
@@ -192,19 +192,19 @@ void PinsList::RemovePin(int nb)
     delete listPins.take(nb);
 }
 
-MetaData PinsList::getMetaForPin(int nb)
+MetaPin PinsList::getMetaForPin(int nb)
 {
     if(listPins.contains(nb))
-        return *static_cast<MetaData*>(listPins.value(nb));
+        return listPins.value(nb)->Meta();
 
-    MetaData info(MetaType::pin, MetaData::GetNewId());
-    info.SetMeta<QString>(metaT::ObjName,"pin");
-    info.SetMeta(metaT::Media, GetMetaData<int>(metaT::Media));
-    info.SetMeta(metaT::Direction, GetMetaData<int>(metaT::Direction));
-//    info.SetParentId(ObjId());
-//    info.SetContainerId(ContainerId());
-//    info.SetParentObjectId(ParentObjectId());
-    info.SetMeta(metaT::PinNumber,nb);
+    MetaPin info(Transporter());
+    info.SetName("pin");
+    info.SetMedia(Media());
+    info.SetDirection(Direction());
+    info.SetParentId(ObjId());
+    info.SetContainerId(ContainerId());
+    info.SetParentObjectId(ParentObjectId());
+    info.SetPinNumber(nb);
     return info;
 }
 

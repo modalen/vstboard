@@ -117,13 +117,13 @@ void MidiToAutomation::ChangeValue(int ctrl, int value) {
         switch(GetLearningMode()) {
             case LearningMode::unlearn :
                 if(listParameterPinOut->listPins.contains(ctrl)) {
-                    MetaData info(listParameterPinOut->getMetaForPin(ctrl));
+                    MetaPin info(listParameterPinOut->getMetaForPin(ctrl));
                     emit UndoStackPush( new ComRemovePin(myHost, info) );
                 }
                 break;
             case LearningMode::learn :
                 if(!listParameterPinOut->listPins.contains(ctrl)) {
-                    MetaData info(listParameterPinOut->getMetaForPin(ctrl));
+                    MetaPin info(listParameterPinOut->getMetaForPin(ctrl));
                     info.SetMeta(metaT::Removable, true);
                     emit UndoStackPush( new ComAddPin(myHost,info) );
                 }
@@ -136,7 +136,7 @@ void MidiToAutomation::ChangeValue(int ctrl, int value) {
     }
 }
 
-Pin* MidiToAutomation::CreatePin(MetaData &info)
+Pin* MidiToAutomation::CreatePin(MetaPin &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)

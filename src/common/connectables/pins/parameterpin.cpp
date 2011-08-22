@@ -27,7 +27,7 @@
 using namespace Connectables;
 
 //parameter is a float
-ParameterPin::ParameterPin(Object *parent, MetaData &info, float defaultValue) :
+ParameterPin::ParameterPin(Object *parent, MetaPin &info, float defaultValue) :
         Pin(parent,info),
         listValues(0),
         internStepIndex(0),
@@ -50,7 +50,7 @@ ParameterPin::ParameterPin(Object *parent, MetaData &info, float defaultValue) :
 }
 
 //parameter is a int with a list of possible values
-ParameterPin::ParameterPin(Object *parent, MetaData &info, const QVariant &defaultVariantValue, QList<QVariant> *listValues) :
+ParameterPin::ParameterPin(Object *parent, MetaPin &info, const QVariant &defaultVariantValue, QList<QVariant> *listValues) :
         Pin(parent,info),
         listValues(listValues),
         defaultValue( .0f ),
@@ -81,11 +81,11 @@ void ParameterPin::SetLimitsEnabled(bool enable)
         SetMeta(metaT::LimitOutMin, .0f);
         SetMeta(metaT::LimitOutMax, 1.0f);
     } else {
-        data.DelMeta(metaT::LimitEnabled);
-        data.DelMeta(metaT::LimitInMin);
-        data.DelMeta(metaT::LimitInMax);
-        data.DelMeta(metaT::LimitOutMin);
-        data.DelMeta(metaT::LimitOutMax);
+        DelMeta(metaT::LimitEnabled);
+        DelMeta(metaT::LimitInMin);
+        DelMeta(metaT::LimitInMax);
+        DelMeta(metaT::LimitOutMin);
+        DelMeta(metaT::LimitOutMax);
     }
 }
 
@@ -144,7 +144,7 @@ void ParameterPin::ChangeValue(float val, bool fromObj)
     OnValueChanged();
 
     if(!fromObj)
-        parent->OnParameterChanged(info(),outValue);
+        parent->OnParameterChanged( Meta(),outValue);
 }
 
 //from int
@@ -168,7 +168,7 @@ void ParameterPin::ChangeValue(int index, bool fromObj)
     OnValueChanged();
 
     if(!fromObj)
-        parent->OnParameterChanged(info(),outValue);
+        parent->OnParameterChanged(Meta(),outValue);
 }
 
 //from variant
@@ -233,10 +233,10 @@ void ParameterPin::OnValueChanged()
 
     if(!GetMetaData<bool>(metaT::Hidden)) {
         if(nameCanChange)
-            SetName(parent->GetParameterName(info()));
+            SetName(parent->GetParameterName(Meta()));
 
         if(listValues)
-            SetMeta(metaT::displayedText, QString("%1:%2").arg(Name()).arg(listValues->at(outStepIndex).toString()) );
+            SetMeta(metaT::displayedText, QString("%1:%2").arg(ObjName()).arg(listValues->at(outStepIndex).toString()) );
     }
 
     if(GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Output)

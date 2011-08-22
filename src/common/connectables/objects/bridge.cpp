@@ -82,14 +82,14 @@ void Bridge::NewRenderLoop()
     }
 }
 
-Pin* Bridge::CreatePin(MetaData &info)
+Pin* Bridge::CreatePin(MetaPin &info)
 {
     switch(info.GetMetaData<int>(metaT::Direction)) {
         case Directions::Input :
-            info.SetMeta(metaT::ObjName, QString("BridgeIn%1").arg(info.GetMetaData<int>(metaT::PinNumber)));
+            info.SetName(QString("BridgeIn%1").arg(info.PinNumber()));
             return new BridgePinIn(this,info);
         case Directions::Output :
-            info.SetMeta(metaT::ObjName, QString("BridgeOut%1").arg(info.GetMetaData<int>(metaT::PinNumber)));
+            info.SetName(QString("BridgeOut%1").arg(info.PinNumber()));
             return new BridgePinOut(this,info);
     }
 

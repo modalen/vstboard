@@ -22,7 +22,7 @@
 #define HOSTMODEL_H
 
 #include "precomp.h"
-#include "objectinfo.h"
+#include "meta/metatransporter.h"
 #include "globals.h"
 
 namespace View {
@@ -30,18 +30,18 @@ namespace View {
 }
 
 class MainHost;
-class MetaData;
+class MetaObjEngine;
 class SceneModel : public QObject, public MetaTransporter
 {
     Q_OBJECT
 public:
     SceneModel(MainHost *myHost, View::SceneView *view, QObject *parent=0);
-    bool dropMime ( const QMimeData * data, MetaData & senderInfo, QPointF &pos, InsertionType::Enum insertType=InsertionType::NoInsertion );
-    void valueChanged( const MetaData & senderInfo, int type, const QVariant &value);
+    bool dropMime ( const QMimeData * data, MetaObjEngine & senderInfo, QPointF &pos, InsertionType::Enum insertType=InsertionType::NoInsertion );
+    void valueChanged( const MetaObjEngine & senderInfo, int type, const QVariant &value);
     bool event(QEvent *event);
 
 protected:
-    bool dropFile( const QString &fName, MetaData &info, MetaData &senderInfo);
+    bool dropFile( const QString &fName, MetaObjEngine &info, MetaObjEngine &senderInfo);
 
     MainHost *myHost;
     QTimer *delayedAction;

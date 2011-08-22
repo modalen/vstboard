@@ -21,6 +21,7 @@
 #ifndef METATRANSPORTER_H
 #define METATRANSPORTER_H
 
+class MetaObjEngine;
 class MetaTransporter
 {
 public:
@@ -29,7 +30,7 @@ public:
     {}
 
 //    bool dropMime ( const QMimeData * data, MetaData & senderInfo, QPointF &pos, InsertionType::Enum insertType=InsertionType::NoInsertion ) =0;
-    void ValueChanged( const MetaData & senderInfo, int type, const QVariant &value);
+    void ValueChanged( const MetaObjEngine & senderInfo, int type, const QVariant &value);
     void PostEvent( QEvent * event);
     void AddListener(QObject *obj) { listeners << obj; }
     void RemoveListener(QObject *obj) { listeners.removeAll(obj); }

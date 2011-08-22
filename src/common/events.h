@@ -22,7 +22,7 @@
 #define MYEVENTS_H
 
 #include "precomp.h"
-#include "meta/metadata.h"
+#include "meta/metaobjengine.h"
 
 namespace Events {
 
@@ -38,13 +38,13 @@ namespace Events {
     class sendObj : public QEvent
     {
     public:
-        sendObj(const MetaData &objInfo, Events::type type) :
+        sendObj(const MetaObjEngine &objInfo, Events::type type) :
             QEvent((QEvent::Type)type),
             objInfo(objInfo)
         {
         }
 
-        MetaData objInfo;
+        MetaObjEngine objInfo;
     };
 
     class delObj : public QEvent
@@ -61,14 +61,14 @@ namespace Events {
     class valChanged : public QEvent
     {
     public:
-        valChanged(const MetaData &objInfo, const metaT::Enum type, const QVariant &value) :
+        valChanged(const MetaObjEngine &objInfo, const metaT::Enum type, const QVariant &value) :
             QEvent((QEvent::Type)typeValChanged),
             objInfo(objInfo),
             type(type),
             value(value)
         {}
 
-        MetaData objInfo;
+        MetaObjEngine objInfo;
         metaT::Enum type;
         QVariant value;
 

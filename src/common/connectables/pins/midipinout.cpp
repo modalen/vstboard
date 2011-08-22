@@ -24,7 +24,7 @@
 
 using namespace Connectables;
 
-MidiPinOut::MidiPinOut(Object *parent, MetaData &info)
+MidiPinOut::MidiPinOut(Object *parent, MetaPin &info)
     :Pin(parent,info)
 {
 }

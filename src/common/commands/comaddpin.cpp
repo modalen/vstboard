@@ -23,7 +23,7 @@
 #include "models/programsmodel.h"
 
 ComAddPin::ComAddPin(MainHost *myHost,
-                     const MetaData &pinInfo,
+                     const MetaPin &pinInfo,
                      QUndoCommand  *parent) :
     QUndoCommand(parent),
     myHost(myHost),
@@ -72,9 +72,9 @@ void ComAddPin::redo ()
 
     objPtr->UserAddPin(pinInfo);
 
-    foreach( MetaData info, listConnectedPins) {
+    foreach( MetaPin info, listConnectedPins) {
         myHost->objFactory->UpdatePinInfo( info );
-        if(pininfo.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Output)
+        if(pinInfo.Direction()==Directions::Output)
             cntPtr->UserAddCable(pinInfo,info);
         else
             cntPtr->UserAddCable(info,pinInfo);

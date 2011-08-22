@@ -37,18 +37,19 @@ using namespace Connectables;
   \param number pin number in the list
   \param bridge true if this pin is a bridge
   */
-Pin::Pin(Object *parent, MetaData &info) :
+Pin::Pin(Object *parent, MetaPin &info) :
     QObject(parent),
-    MetaObjEngine(info,parent->getHost()),
+    MetaPin(parent->getHost()),
     parent(parent),
     closed(false),
     valueChanged(false),
     nameCanChange(false),
-    internValue(.0f)
+    internValue(.0f),
+    myHost(parent->getHost())
 {
     SET_MUTEX_NAME(pinMutex,"pinMutex");
     SetType(MetaType::pin);
-    setObjectName(Name());
+    setObjectName(ObjName());
 
     if(!GetMetaData<bool>(metaT::Hidden))
         SetVisible(true);
@@ -71,7 +72,7 @@ Pin::~Pin()
   */
 void Pin::SendMsg(const PinMessage::Enum msgType,void *data)
 {
-    parent->getHost()->SendMsg(info(),(PinMessage::Enum)msgType,data);
+     myHost->SendMsg(Meta(),(PinMessage::Enum)msgType,data);
 }
 
 /*!
@@ -81,8 +82,8 @@ void Pin::SendMsg(const PinMessage::Enum msgType,void *data)
 void Pin::Close()
 {
     QMutexLocker l(&pinMutex);
-    if(parent && parent->getHost() && parent->getHost()->updateViewTimer )
-        disconnect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
+    if(myHost && myHost->updateViewTimer )
+        disconnect(myHost->updateViewTimer,SIGNAL(timeout()),
             this,SLOT(updateView()));
     parentIndex=QModelIndex();
     modelIndex=QModelIndex();
@@ -98,7 +99,7 @@ void Pin::SetBridge(bool bridge)
     if(bridge)
         SetMeta(metaT::Bridge, true);
     else
-        data.DelMeta(metaT::Bridge);
+        DelMeta(metaT::Bridge);
 }
 
 /*!
@@ -113,7 +114,7 @@ void Pin::SetVisible(bool visible)
         return;
 
     if(visible) {
-        data.DelMeta(metaT::Hidden);
+        DelMeta(metaT::Hidden);
         connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
                 this,SLOT(updateView()),
                 Qt::UniqueConnection);
@@ -128,9 +129,9 @@ void Pin::SetVisible(bool visible)
         SetMeta(metaT::Hidden,true);
         //remove cables from pin
         if(ContainerInfo()) {
-            QSharedPointer<Object> cnt = parent->getHost()->objFactory->GetObjectFromId(ContainerInfo()->ObjId());
+            QSharedPointer<Container> cnt = myHost->objFactory->GetObjectFromId( ContainerId() ).staticCast<Container>();
             if(!cnt.isNull()) {
-                static_cast<Container*>(cnt.data())->UserRemoveCableFromPin(info());
+                cnt->UserRemoveCableFromPin( Meta() );
             }
         }
 

@@ -3,15 +3,15 @@
 
 #include "precomp.h"
 #include "connectables/objects/container.h"
-#include "meta/metadata.h"
+#include "meta/metaobjengine.h"
 
 class MainHost;
 class ComAddObject : public QUndoCommand
 {
 public:
     ComAddObject(MainHost *myHost,
-                 const MetaData &objInfo,
-                 const MetaData &targetInfo,
+                 const MetaObjEngine &objInfo,
+                 const MetaObjEngine &targetInfo,
                  InsertionType::Enum insertType = InsertionType::NoInsertion,
                  QUndoCommand  *parent=0);
     void undo ();
@@ -22,18 +22,18 @@ public:
 private:
     MainHost *myHost;
 
-    MetaData objectInfo;
-    MetaData targetInfo;
+    MetaObjEngine objectInfo;
+    MetaObjEngine targetInfo;
 
     InsertionType::Enum insertType;
 
-    QList< QPair<MetaData,MetaData> >listAddedCables;
-    QList< QPair<MetaData,MetaData> >listRemovedCables;
+    QList< QPair<MetaPin,MetaPin> >listAddedCables;
+    QList< QPair<MetaPin,MetaPin> >listRemovedCables;
 
-    MetaData attr;
+    MetaObjViewAttrib attr;
     QByteArray objState;
 
-    MetaData targetAttr;
+    MetaObjViewAttrib targetAttr;
     QByteArray targetState;
 
     int currentGroup;

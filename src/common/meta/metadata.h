@@ -127,6 +127,7 @@ private:
 //            listComplexInfos.insert(type, QPair<int,void*>(sizeof(value) ,copy) );
     }
 
+
     QMap<metaT::Enum,void*>listInfos;
 //    QMap<metaT::Enum, QPair<int, void*> >listComplexInfos;
     quint32 metaId;

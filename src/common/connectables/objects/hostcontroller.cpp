@@ -122,7 +122,7 @@ void HostController::Render()
         int step;
         float percent =  myHost->vstHost->GetCurrentBarTic(step);
         pin->ChangeValue( percent );
-        pin->SetMeta(metaT::displayedText, QString("%1:%2").arg(pin->Name()).arg(step) );
+        pin->SetMeta(metaT::displayedText, QString("%1:%2").arg(pin->ObjName()).arg(step) );
     }
 #endif
 }
@@ -168,7 +168,7 @@ void HostController::OnHostTempoChange(int tempo, int sign1, int sign2)
     static_cast<ParameterPin*>(listParameterPinOut->listPins.value(Param_Sign2))->SetVariantValue( sign2 );
 }
 
-void HostController::SetContainer(MetaData *container)
+void HostController::SetContainer(MetaObjEngine *container)
 {
     switch(container->ObjId()) {
         case FixedObjIds::programContainer :
@@ -186,10 +186,10 @@ void HostController::SetContainer(MetaData *container)
                    this,SLOT(OnHostGroupChanged(QModelIndex)));
     }
 
-    ObjectInfo::SetContainer(container);
+    MetaObjEngine::SetContainer(container);
 }
 
-Pin* HostController::CreatePin(MetaData &info)
+Pin* HostController::CreatePin(MetaPin &info)
 {
     Pin *newPin = Object::CreatePin(info);
     if(newPin)

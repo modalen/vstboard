@@ -26,9 +26,11 @@
 class MetaPin : public MetaObjEngine
 {
 public:
-    MetaPin(MetaTransporter *transport=0, quint32 objid=0) :
+    MetaPin(MetaTransporter *transport=0, const quint32 objid=0) :
         MetaObjEngine(MetaType::pin,transport,objid)
     {}
+
+    MetaPin &Meta() {return *this;}
 
     void SetMedia(MediaTypes::Enum type) {SetMeta(metaT::Media, type);}
     MediaTypes::Enum Media() const {return GetMetaData<MediaTypes::Enum>(metaT::Media);}

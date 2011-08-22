@@ -22,7 +22,7 @@
 #include "metatransporter.h"
 #include "events.h"
 
-MetaObjEngine::MetaObjEngine(const MetaType::Enum type, MetaTransporter *transport, quint32 objid=0) :
+MetaObjEngine::MetaObjEngine(const MetaType::Enum type, MetaTransporter *transport, const quint32 objid) :
     MetaData(),
     type(type),
     objId(objid),
@@ -46,7 +46,7 @@ MetaObjEngine::MetaObjEngine(const MetaData &data, MetaTransporter *transport) :
     parentInfo(0),
     containerInfo(0)
 {
-    type = GetMetaData<MetaTypes::Enum>(metaT::ObjType);
+    type = GetMetaData<metaT::Enum>(metaT::ObjType);
     objId = GetMetaData<quint32>(metaT::ObjId);
     ObjName = GetMetaData<QString>(metaT::ObjName);
     parentId = GetMetaData<quint32>(metaT::ParentId);

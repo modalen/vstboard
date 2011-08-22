@@ -111,7 +111,7 @@ namespace Connectables {
         virtual void SetContainerAttribs(const MetaObjViewAttrib &attr);
         virtual void GetContainerAttribs(MetaObjViewAttrib &attr);
         virtual void CopyStatusTo(QSharedPointer<Object>objPtr);
-        virtual Pin* CreatePin(MetaData &info);
+        virtual Pin* CreatePin(MetaPin &info);
         virtual bool IsDirty();
 
         /// Render the object, can be called multiple times if the rendering needs multiple passes

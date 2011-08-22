@@ -25,6 +25,7 @@
 
 const char* metaTINTNames[] =
 {
+    stringify( Type ),
     stringify( ObjType ),
     stringify( ObjId ),
     stringify( ObjName ),

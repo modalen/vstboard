@@ -24,7 +24,7 @@
 #include "mainhost.h"
 using namespace Connectables;
 
-BridgePinOut::BridgePinOut(Object *parent, MetaData &info)
+BridgePinOut::BridgePinOut(Object *parent, MetaPin &info)
     :Pin(parent,info),
     valueType(MediaTypes::ND)
 {

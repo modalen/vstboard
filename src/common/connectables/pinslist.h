@@ -26,6 +26,7 @@
 #include "objectinfo.h"
 #include "audiobuffer.h"
 #include "meta/metapinslist.h"
+#include "meta/metapin.h"
 
 class MainHost;
 namespace Connectables {
@@ -57,7 +58,7 @@ namespace Connectables {
         AudioBuffer *GetBuffer(int pinNumber);
 
         QMap<quint16,Pin*> listPins;
-        MetaData getMetaForPin(int nb);
+        MetaPin getMetaForPin(int nb);
 
         virtual QDataStream & toStream (QDataStream &) const;
         virtual QDataStream & fromStream (QDataStream &);

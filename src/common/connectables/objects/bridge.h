@@ -32,7 +32,7 @@ namespace Connectables {
     public:
         Bridge(MainHost *myHost, MetaData & info);
         void NewRenderLoop();
-        Pin* CreatePin(MetaData &info);
+        Pin* CreatePin(MetaPin &info);
     protected:
         PinsList *listBridgePinIn;
         PinsList *listBridgePinOut;

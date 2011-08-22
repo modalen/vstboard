@@ -41,8 +41,8 @@ namespace Connectables {
     public:
         explicit HostController(MainHost *myHost,MetaData &info);
         void Render();
-        void SetContainer(MetaData *container);
-        Pin* CreatePin(MetaData &info);
+        void SetContainer(MetaObjEngine *container);
+        Pin* CreatePin(MetaPin &info);
 
     protected:
         QList<QVariant> listTempo;
