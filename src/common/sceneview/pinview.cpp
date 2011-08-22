@@ -69,6 +69,7 @@ PinView::PinView(const MetaInfo &info, float angle, QGraphicsItem * parent, View
     addAction(actUnplug);
 
 
+    setFocusPolicy(Qt::WheelFocus);
 }
 
 /*!
@@ -119,7 +120,6 @@ void PinView::mousePressEvent ( QGraphicsSceneMouseEvent * event )
         event->ignore();
         return;
     }
-
     setCursor(Qt::ClosedHandCursor);
 }
 
@@ -166,15 +166,6 @@ void PinView::mouseMoveEvent ( QGraphicsSceneMouseEvent  * event )
 void PinView::mouseReleaseEvent ( QGraphicsSceneMouseEvent  * /*event*/ )
 {
     setCursor(defaultCursor);
-}
-
-/*!
-  Reimplements QGraphicsWidget::mouseDoubleClickEvent \n
-  remove all connected cables
-  */
-void PinView::mouseDoubleClickEvent ( QGraphicsSceneMouseEvent * /*event*/ )
-{
-    Unplug();
 }
 
 void PinView::Unplug()

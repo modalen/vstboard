@@ -31,7 +31,7 @@
 class MainHost;
 namespace View {
 
-    class ConnectableView;
+    class ConnectablePinView;
     class PinView;
     class ObjectView : public QGraphicsWidget, public MetaInfo
     {
@@ -67,6 +67,9 @@ namespace View {
 
         ViewConfig *config;
 
+        void SetEditorPin(ConnectablePinView *pin, float value);
+        void SetLearnPin(ConnectablePinView *pin, float value);
+
     protected:
         virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
         void resizeEvent ( QGraphicsSceneResizeEvent * event );
@@ -74,6 +77,7 @@ namespace View {
         virtual void focusInEvent ( QFocusEvent * event );
         virtual void focusOutEvent ( QFocusEvent * event );
         void mouseReleaseEvent ( QGraphicsSceneMouseEvent * event );
+        void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 
         void SetErrorMessage(const QString & msg);
         void UpdateTitle();
@@ -97,15 +101,25 @@ namespace View {
         QAction *actRemove;
         /// the remove+bridge action
         QAction *actRemoveBridge;
+        /// show editor
+        QAction *actShowEditor;
+        //switch learn mode
+        QAction *actLearnSwitch;
 
         /// true if a shrink is already in progress
         bool shrinkAsked;
 
         bool highlighted;
 
+        ConnectablePinView *editorPin;
+        ConnectablePinView *learnPin;
+
     signals:
         void RemoveWithCables(const MetaInfo &info);
         void RemoveKeepCables(const MetaInfo &info);
+    private slots:
+        void SwitchEditor(bool show);
+        void SwitchLearnMode(bool on);
 
     public slots:
         void ShrinkNow();
@@ -113,6 +127,7 @@ namespace View {
         virtual void HighlightStart() {}
         virtual void HighlightStop() {}
         void RemoveWithBridge();
+        void ToggleEditor();
 
     friend class PinView;
     };
