@@ -92,7 +92,7 @@ bool AudioDeviceOut::Open()
     //device already has a child
     if(!parentDevice->SetObjectOutput(this)) {
         parentDevice=0;
-        data.SetMeta(metaT::errorMessage,tr("Already in use"));
+        SetMeta(metaT::errorMessage,tr("Already in use"));
         return true;
     }
 

@@ -103,16 +103,16 @@ Pin* MidiSender::CreatePin(MetaData &info)
 
     switch(info.GetMetaData<int>(metaT::PinNumber)) {
         case Param_MsgType:
-            info.SetName(tr("MsgType"));
+            info.SetMeta(metaT::ObjName, tr("MsgType"));
             return new ParameterPin(this,info,"Ctrl",&listMsgType);
         case Param_Value1:
-            info.SetName(tr("Value1"));
+            info.SetMeta(metaT::ObjName, tr("Value1"));
             return new ParameterPin(this,info,0,&listValues);
         case Param_Value2:
-            info.SetName(tr("Value2"));
+            info.SetMeta(metaT::ObjName, tr("Value2"));
             return new ParameterPin(this,info,0,&listValues);
         case Param_Channel:
-            info.SetName(tr("Channel"));
+            info.SetMeta(metaT::ObjName, tr("Channel"));
             return new ParameterPin(this,info,1,&listChannels);
     }
 

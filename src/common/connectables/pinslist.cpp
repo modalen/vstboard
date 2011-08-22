@@ -18,7 +18,6 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-
 #include "pinslist.h"
 #include "pins/pin.h"
 #include "audiobuffer.h"
@@ -31,12 +30,12 @@
 
 using namespace Connectables;
 
-PinsList::PinsList(MainHost *myHost, MetaData &info) :
-    QObject(parent),
-    MetaObjEngine( info, myHost),
-    myHost(myHost)
+PinsList::PinsList(const MetaPinsList &info, Object *parentObj) :
+    QObject(parentObj),
+    parentObj(parentObj),
+    MetaPinsList( info )
 {
-    ObjectInfo::SetParent(parent);
+    MetaObjEngine::SetParent(parentObj);
 
     connect(this,SIGNAL(PinAdded(int)),
             this,SLOT(AddPin(int)));
@@ -60,9 +59,9 @@ void PinsList::ChangeNumberOfPins(int newNb)
 
 void PinsList::SetVisible(bool visible) {
     if(visible)
-        data.SetMeta(metaT::Hidden,true);
+        SetMeta(metaT::Hidden,true);
     else
-        data.DelMeta(metaT::Hidden);
+        DelMeta(metaT::Hidden);
 
     foreach(Pin* pin, listPins) {
         pin->SetVisible(visible);
@@ -71,7 +70,7 @@ void PinsList::SetVisible(bool visible) {
 
 void PinsList::SetBridge(bool bridge)
 {
-    data.SetMeta(metaT::Hidden,true);
+    SetMeta(metaT::Hidden,true);
 
     foreach(Pin* pin, listPins) {
         pin->SetBridge(bridge);
@@ -112,7 +111,7 @@ void PinsList::ConnectAllTo(Container* container, const PinsList *other, bool hi
     while(i!=listPins.end()) {
         Pin *otherPin = other->listPins.value(i.key(),0);
         if(otherPin)
-            container->AddCable(i.value()->info(),otherPin->info(),hidden);
+            container->AddCable( *static_cast<MetaPin*>(i.value()), *static_cast<MetaPin*>(otherPin), hidden);
         ++i;
     }
 }
@@ -168,7 +167,7 @@ Pin * PinsList::AddPin(int nb)
     if(listPins.contains(nb))
         return listPins.value(nb);
 
-    Pin *newPin = static_cast<Object*>(parent)->CreatePin( getMetaForPin(nb) );
+    Pin *newPin = parentObj->CreatePin( getMetaForPin(nb) );
     if(!newPin) {
         LOG("pin not created"<<nb);
         return 0;
@@ -180,7 +179,7 @@ Pin * PinsList::AddPin(int nb)
     }
     newPin->AddToView();
 
-    static_cast<Object*>(parent)->OnProgramDirty();
+    parentObj->OnProgramDirty();
     return newPin;
 }
 
@@ -189,25 +188,23 @@ void PinsList::RemovePin(int nb)
     if(!listPins.contains(nb))
         return;
 
-    static_cast<Object*>(parent)->OnProgramDirty();
+    parentObj->OnProgramDirty();
     delete listPins.take(nb);
 }
 
 MetaData PinsList::getMetaForPin(int nb)
 {
     if(listPins.contains(nb))
-        return listPins.value(nb)->info();
+        return *static_cast<MetaData*>(listPins.value(nb));
 
-    MetaData info(MetaType::pin);
-    info.SetName("pin");
-    info.SetObjId( myHost->objFactory->GetNewId() );
-    info.SetMeta(metaT::Media, data.GetMetaData<int>(metaT::Media));
-    info.SetMeta(metaT::Direction, data.GetMetaData<int>(metaT::Direction));
-    info.SetParentId(ObjId());
-    info.SetContainerId(ContainerId());
-    info.SetParentObjectId(ParentObjectId());
+    MetaData info(MetaType::pin, MetaData::GetNewId());
+    info.SetMeta<QString>(metaT::ObjName,"pin");
+    info.SetMeta(metaT::Media, GetMetaData<int>(metaT::Media));
+    info.SetMeta(metaT::Direction, GetMetaData<int>(metaT::Direction));
+//    info.SetParentId(ObjId());
+//    info.SetContainerId(ContainerId());
+//    info.SetParentObjectId(ParentObjectId());
     info.SetMeta(metaT::PinNumber,nb);
-    info.SetParentId(ObjId());
     return info;
 }
 
@@ -237,7 +234,7 @@ QDataStream & PinsList::fromStream(QDataStream & in)
         QVariant value;
         in >> value;
 
-        Pin *newPin = parent->CreatePin( getMetaForPin(id) );
+        Pin *newPin = parentObj->CreatePin( getMetaForPin(id) );
         if(!newPin)
             return in;
         listPins.insert(id,newPin);

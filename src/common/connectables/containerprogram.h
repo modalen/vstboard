@@ -23,11 +23,12 @@
 
 //#include "precomp.h"
 #include "cable.h"
-#include "objectinfo.h"
+#include "meta/metaobjviewattrib.h"
 
 class MainHost;
 
 class RendererNode;
+class MetaPin;
 namespace Connectables {
 
     class Object;
@@ -48,17 +49,17 @@ namespace Connectables {
         void RemoveObject(QSharedPointer<Object> objPtr);
         void ReplaceObject(QSharedPointer<Object> newObjPtr, QSharedPointer<Object> replacedObjPtr);
 
-        bool AddCable(const MetaData &outputPin, const MetaData &inputPin, bool hidden=false);
+        bool AddCable(const MetaPin &outputPin, const MetaPin &inputPin, bool hidden=false);
         void RemoveCable(Cable *cab);
 //        void RemoveCable(const QModelIndex & index);
-        void RemoveCable(const MetaData &outputPin, const MetaData &inputPin);
-        void RemoveCableFromPin(const MetaData &pin);
+        void RemoveCable(const MetaPin &outputPin, const MetaPin &inputPin);
+        void RemoveCableFromPin(const MetaPin &pin);
         void RemoveCableFromObj(int objId);
         void CreateBridgeOverObj(int objId);
         void CopyCablesFromObj(int newObjId, int oldObjId);
         void MoveOutputCablesFromObj(int newObjId, int oldObjId);
         void MoveInputCablesFromObj(int newObjId, int oldObjId);
-        void GetListOfConnectedPinsTo(const MetaData &pin, QList<MetaData> &list);
+        void GetListOfConnectedPinsTo(const MetaPin &pin, QList<MetaPin> &list);
 
         bool IsDirty();
         inline void SetDirty() {
@@ -68,8 +69,8 @@ namespace Connectables {
         void SaveRendererState();
         void LoadRendererState();
 
-        void CollectCableUpdates(QList< QPair<MetaData,MetaData> > *addedCables=0,
-                                QList< QPair<MetaData,MetaData> > *removedCables=0) {
+        void CollectCableUpdates(QList< QPair<MetaPin,MetaPin> > *addedCables=0,
+                                QList< QPair<MetaPin,MetaPin> > *removedCables=0) {
             collectedListOfAddedCables=addedCables;
             collectedListOfRemovedCables=removedCables;
         }
@@ -83,11 +84,10 @@ namespace Connectables {
         static QTime unsavedTime;
 
     private:
-        bool CanConnectPins(const MetaData &out, const MetaData &in);
         inline void ResetDirty() { dirty=false; }
 
-        bool CableExists(const MetaData &outputPin, const MetaData &inputPin);
-        bool PinExistAndVisible(const MetaData &info);
+        bool CableExists(const MetaPin &outputPin, const MetaPin &inputPin);
+        bool PinExistAndVisible(const MetaPin &info);
 
         Container *container;
         bool dirty;
@@ -96,10 +96,10 @@ namespace Connectables {
         QList< QSharedPointer<Object> >listObjects;
         QList<Cable*>listCables;
 
-        QMap<int,MetaData>mapObjAttribs;
+        QMap<int,MetaObjViewAttrib>mapObjAttribs;
 
-        QList< QPair<MetaData,MetaData> > *collectedListOfAddedCables;
-        QList< QPair<MetaData,MetaData> > *collectedListOfRemovedCables;
+        QList< QPair<MetaPin,MetaPin> > *collectedListOfAddedCables;
+        QList< QPair<MetaPin,MetaPin> > *collectedListOfRemovedCables;
 
         friend class Container;
         friend class ParkingContainer;

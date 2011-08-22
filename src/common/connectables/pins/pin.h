@@ -24,7 +24,7 @@
 #include "precomp.h"
 #include "globals.h"
 #include "debugmutex.h"
-#include "meta/metaobjengine.h"
+#include "meta/metapin.h"
 
 #ifdef _MSC_VER
 #pragma warning( push )
@@ -40,7 +40,7 @@ namespace Connectables {
 //    };
 
     class Object;
-    class Pin : public QObject, public MetaObjEngine
+    class Pin : public QObject, public MetaPin
     {
     Q_OBJECT
     public:

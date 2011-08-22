@@ -40,16 +40,16 @@ Cable::Cable() :
   \param pinOut the output pin (the one sending the messages)
   \param pinIn the input pin (the receiver)
   */
-Cable::Cable( const MetaData &pinOut, const MetaData &pinIn) :
-    ObjectInfo(),
+Cable::Cable( const MetaPin &pinOut, const MetaPin &pinIn) :
+    MetaObjEngine(MetaType::cable),
     pinOut(pinOut),
     pinIn(pinIn)
 {
     SetType(MetaType::cable);
     SetName("Cable");
 
-    SetMeta(metaT::ObjIdOut, pinOut.ObjId());
-    SetMeta(metaT::ObjIdIn, pinIn.ObjId());
+    SetMeta(metaT::ObjIdOut, pinOut.MetaId());
+    SetMeta(metaT::ObjIdIn, pinIn.MetaId());
 }
 
 QDataStream & Cable::toStream (QDataStream& out) const

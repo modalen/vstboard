@@ -110,7 +110,7 @@ bool AudioDeviceIn::Open()
     //device already has a child
     if(!parentDevice->SetObjectInput(this)) {
         parentDevice=0;
-        data.SetMeta(metaT::errorMessage, tr("Already in use"));
+        SetMeta(metaT::errorMessage, tr("Already in use"));
         return true;
     }
 
@@ -122,7 +122,7 @@ Pin* AudioDeviceIn::CreatePin(MetaData &info)
 {
     Pin *newPin = Object::CreatePin(info);
 
-    int pinnumber = data.GetMetaData<int>(metaT::PinNumber);
+    int pinnumber = GetMetaData<int>(metaT::PinNumber);
 
     if(newPin) {
         if(info.GetMetaData<MediaTypes::Enum>(metaT::Media)==MediaTypes::Audio)

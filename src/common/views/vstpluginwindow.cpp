@@ -121,10 +121,10 @@ void VstPluginWindow::SaveAttribs()
     if(!plugin)
         return;
 
-    plugin->data.SetMeta(metaT::EditorSize, size());
-    plugin->data.SetMeta(metaT::EditorPosition, pos());
-    plugin->data.SetMeta(metaT::EditorVScroll, ui->scrollArea->verticalScrollBar()->value());
-    plugin->data.SetMeta(metaT::EditorHScroll, ui->scrollArea->horizontalScrollBar()->value());
+    plugin->SetMeta(metaT::EditorSize, size());
+    plugin->SetMeta(metaT::EditorPosition, pos());
+    plugin->SetMeta(metaT::EditorVScroll, ui->scrollArea->verticalScrollBar()->value());
+    plugin->SetMeta(metaT::EditorHScroll, ui->scrollArea->horizontalScrollBar()->value());
 }
 
 void VstPluginWindow::closeEvent( QCloseEvent * event )

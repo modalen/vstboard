@@ -147,7 +147,7 @@ Pin* MidiToAutomation::CreatePin(MetaData &info)
     switch(info.GetMetaData<int>(metaT::Direction)) {
         case Directions::Input : {
             if(pinnumber == FixedPinNumber::learningMode) {
-                info.SetName(tr("Learn"));
+                info.SetMeta(metaT::ObjName,tr("Learn"));
                 ParameterPin *newPin = new ParameterPin(this,info,"off",&listIsLearning);
                 newPin->SetLimitsEnabled(false);
                 return newPin;
@@ -158,31 +158,31 @@ Pin* MidiToAutomation::CreatePin(MetaData &info)
         case Directions::Output : {
 
             if(pinnumber<128) {
-                info.SetName( tr("CC%1").arg(info.GetMetaData<int>(metaT::PinNumber)) );
+                info.SetMeta(metaT::ObjName, tr("CC%1").arg(info.GetMetaData<int>(metaT::PinNumber)) );
                 info.SetMeta(metaT::Removable,true);
 
             } else if(pinnumber>=para_notes) {
-                info.SetName( tr("note%1").arg(info.GetMetaData<int>(metaT::PinNumber)) );
+                info.SetMeta(metaT::ObjName, tr("note%1").arg(info.GetMetaData<int>(metaT::PinNumber)) );
                 info.SetMeta(metaT::Removable,true);
 
             } else switch(pinnumber) {
                 case para_prog:
-                    info.SetName( tr("prog") );
+                    info.SetMeta(metaT::ObjName, tr("prog") );
                     break;
                 case para_velocity:
-                    info.SetName( tr("vel") );
+                    info.SetMeta(metaT::ObjName, tr("vel") );
                     break;
                 case para_notepitch:
-                    info.SetName( tr("note") );
+                    info.SetMeta(metaT::ObjName, tr("note") );
                     break;
                 case para_pitchbend:
-                    info.SetName( tr("p.bend") );
+                    info.SetMeta(metaT::ObjName, tr("p.bend") );
                     break;
                 case para_chanpress:
-                    info.SetName( tr("pressr") );
+                    info.SetMeta(metaT::ObjName, tr("pressr") );
                     break;
                 case para_aftertouch:
-                    info.SetName( tr("aftr.t") );
+                    info.SetMeta(metaT::ObjName, tr("aftr.t") );
                     break;
                 default :
                     LOG("pin not created");

@@ -25,12 +25,12 @@
 
 const char* metaTINTNames[] =
 {
+    stringify( ObjType ),
     stringify( ObjId ),
     stringify( ObjName ),
     stringify( ParentId ),
     stringify( ParentObjectId ),
     stringify( ContainerId ),
-    stringify( ObjType ),
     stringify( Direction ),
     stringify( Media ),
     stringify( BridgeMedia ),

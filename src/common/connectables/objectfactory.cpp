@@ -93,12 +93,12 @@ int ObjectFactory::IdFromSavedId(int savedId)
 
 Pin *ObjectFactory::GetPin(const MetaData &pinInfo)
 {
-    if(!listObjects.contains(pinInfo.ParentObjectId())) {
+    if(!listObjects.contains(pinInfo.GetMetaData<quint32>(metaT::ParentObjId))) {
         LOG("obj not found"<<pinInfo.toString());
         return 0;
     }
 
-    QSharedPointer<Object> objPtr = listObjects.value(pinInfo.ParentObjectId()).toStrongRef();
+    QSharedPointer<Object> objPtr = listObjects.value( pinInfo.GetMetaData<quint32>(metaT::ParentObjId) ).toStrongRef();
     if(objPtr)
         return objPtr->GetPin(pinInfo);
 
@@ -107,12 +107,12 @@ Pin *ObjectFactory::GetPin(const MetaData &pinInfo)
 
 bool ObjectFactory::UpdatePinInfo(MetaData &pinInfo)
 {
-    if(!listObjects.contains(pinInfo.ParentObjectId())) {
+    if(!listObjects.contains(pinInfo.GetMetaData<quint32>(metaT::ParentObjId))) {
         LOG("obj not found"<<pinInfo.toString());
         return false;
     }
 
-    QSharedPointer<Object> objPtr = listObjects.value(pinInfo.ParentObjectId()).toStrongRef();
+    QSharedPointer<Object> objPtr = listObjects.value( pinInfo.GetMetaData<quint32>(metaT::ParentObjId) ).toStrongRef();
     if(!objPtr)
         return false;
 
@@ -121,20 +121,20 @@ bool ObjectFactory::UpdatePinInfo(MetaData &pinInfo)
         pinInfo=MetaData();
         return false;
     }
-    pinInfo = pin->info();
+    pinInfo = *static_cast<MetaData*>(pin);
     return true;
 }
 
 QSharedPointer<Object> ObjectFactory::NewObject( MetaData &info)
 {
     int forcedObjId = 0;//cptListObjects;
-    if(info.ObjId()!=0) {
-        forcedObjId = info.ObjId();
+    if(info.MetaId()!=0) {
+        forcedObjId = info.MetaId();
         if(listObjects.contains(forcedObjId)) {
             LOG("forcedId already exists"<<forcedObjId);
         }
     } else {
-        info.SetObjId( GetNewId() );
+        info.SetMetaId( GetNewId() );
     }
 
     Object *obj=0;
@@ -197,10 +197,10 @@ QSharedPointer<Object> ObjectFactory::NewObject( MetaData &info)
     }
 
     QSharedPointer<Object> sharedObj(obj);
-    listObjects.insert(info.ObjId(),sharedObj.toWeakRef());
+    listObjects.insert(info.MetaId(),sharedObj.toWeakRef());
 
     if(!obj->Open()) {
-        listObjects.remove(info.ObjId());
+        listObjects.remove(info.MetaId());
         sharedObj.clear();
         return QSharedPointer<Object>();
     }

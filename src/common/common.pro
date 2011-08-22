@@ -194,7 +194,10 @@ HEADERS += \
     meta/types.h \
     meta/metatransporter.h \
     meta/metaobjengine.h \
-    meta/metaobjgui.h
+    meta/metaobjgui.h \
+    meta/metapinslist.h \
+    meta/metaobjviewattrib.h \
+    meta/metapin.h
 
 HEADERS += \
     views/configdialog.h \
@@ -242,6 +245,11 @@ RESOURCES += \
     ../resources/resources.qrc
 
 PRECOMPILED_HEADER = precomp.h
+
+
+
+
+
 
 
 

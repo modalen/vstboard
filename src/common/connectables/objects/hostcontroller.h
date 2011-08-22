@@ -41,7 +41,7 @@ namespace Connectables {
     public:
         explicit HostController(MainHost *myHost,MetaData &info);
         void Render();
-        void SetContainer(ObjectInfo *container);
+        void SetContainer(MetaData *container);
         Pin* CreatePin(MetaData &info);
 
     protected:

@@ -59,7 +59,7 @@ namespace LearningMode {
     };
 }
 
-
+class MetaObjViewAttrib;
 namespace Connectables {
 
     typedef QHash<int,ObjectProgram*> hashPrograms;
@@ -108,8 +108,8 @@ namespace Connectables {
         virtual QDataStream & toStream (QDataStream &) const;
         virtual bool fromStream (QDataStream &);
         virtual void RemoveProgram(int prg);
-        virtual void SetContainerAttribs(const MetaData &attr);
-        virtual void GetContainerAttribs(MetaData &attr);
+        virtual void SetContainerAttribs(const MetaObjViewAttrib &attr);
+        virtual void GetContainerAttribs(MetaObjViewAttrib &attr);
         virtual void CopyStatusTo(QSharedPointer<Object>objPtr);
         virtual Pin* CreatePin(MetaData &info);
         virtual bool IsDirty();

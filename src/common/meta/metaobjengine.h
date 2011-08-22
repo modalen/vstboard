@@ -27,9 +27,11 @@ class MetaTransporter;
 class MetaObjEngine : public MetaData
 {
 public:
-    MetaObjEngine(const MetaType::Enum type=MetaType::ND, MetaTransporter *transport=0);
+    MetaObjEngine(const MetaType::Enum type=MetaType::ND, MetaTransporter *transport=0, quint32 objid=0);
     MetaObjEngine(const MetaData &data, MetaTransporter *transport=0);
     ~MetaObjEngine();
+
+    MetaData data() {return *static_cast<MetaData*>(this); }
 
     MetaType::Enum Type() const {return objType;}
     void SetType(const MetaType::Enum type) {
@@ -39,7 +41,7 @@ public:
 
     void SetObjId(const quint32 id) {
         objId = id;
-        SetMeta<quint32>(metaT::ObjId, id);
+        SetMetaId(id);
     }
     const quint32 ObjId() const {return objId;}
 
@@ -67,6 +69,7 @@ public:
         objName = name;
         SetMeta<QString>(metaT::ObjName, name);
     }
+    const QString Name() const {return GetMetaData<QString>(metaT::ObjName);}
 
     void SetTransporter(MetaTransporter *m) {transporter = m;}
     const MetaTransporter * Transporter() const { return transporter;}
@@ -75,7 +78,7 @@ public:
     const MetaObjEngine * ParentInfo() const {return parentInfo;}
 
     void SetContainer(MetaObjEngine *container);
-    const MetaObjEngine * ContainerInfo() const {return containerInfo;}
+    MetaObjEngine * ContainerInfo() {return containerInfo;}
 
     void AddToView();
     void RemoveFromView();

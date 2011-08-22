@@ -97,9 +97,9 @@ void VstPluginView::UpdateModelIndex(const MetaData &info)
 {
     ConnectableObjectView::UpdateModelIndex(info);
 
-    if(MetaData::data.GetMeta<QString*>(metaT::bankFile)!=0 && !MetaData::data.GetMetaData<QString>(metaT::bankFile).isEmpty()) {
+    if(MetaData::data.GetMeta<QString*>(metaT::bankFile)!=0 && !MetaData::GetMetaData<QString>(metaT::bankFile).isEmpty()) {
         QFileInfo fileInfo;
-        fileInfo.setFile( MetaData::data.GetMetaData<QString>(metaT::bankFile) );
+        fileInfo.setFile( MetaData::GetMetaData<QString>(metaT::bankFile) );
         actSaveBank->setText( QString(tr("Save Bank (%1)")).arg(fileInfo.fileName()) );
         actSaveBankAs->setEnabled(true);
     } else {
@@ -107,9 +107,9 @@ void VstPluginView::UpdateModelIndex(const MetaData &info)
         actSaveBankAs->setEnabled(false);
     }
 
-    if(MetaData::data.GetMeta<QString*>(metaT::programFile)!=0 && !MetaData::data.GetMetaData<QString>(metaT::programFile).isEmpty()) {
+    if(MetaData::data.GetMeta<QString*>(metaT::programFile)!=0 && !MetaData::GetMetaData<QString>(metaT::programFile).isEmpty()) {
         QFileInfo fileInfo;
-        fileInfo.setFile( MetaData::data.GetMetaData<QString>(metaT::bankFile) );
+        fileInfo.setFile( MetaData::GetMetaData<QString>(metaT::bankFile) );
         actSaveProgram->setText( QString(tr("Save Program (%1)")).arg(fileInfo.fileName()) );
         actSaveProgramAs->setEnabled(true);
     } else {
@@ -130,13 +130,13 @@ void VstPluginView::SaveBankAs()
 //    }
 
 //    myHost->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
-//    data.SetMeta(metaT::bankFile,filename);
+//    SetMeta(metaT::bankFile,filename);
 }
 
 void VstPluginView::SaveBank()
 {
-    if(MetaData::data.GetMeta<QString*>(metaT::bankFile)!=0 && !MetaData::data.GetMetaData<QString>(metaT::bankFile).isEmpty()) {
-        MetaData::data.SetMeta(metaT::bankFile, MetaData::data.GetMetaData<QString>(metaT::bankFile) );
+    if(MetaData::data.GetMeta<QString*>(metaT::bankFile)!=0 && !MetaData::GetMetaData<QString>(metaT::bankFile).isEmpty()) {
+        MetaData::SetMeta(metaT::bankFile, MetaData::GetMetaData<QString>(metaT::bankFile) );
     } else {
         SaveBankAs();
     }
@@ -154,13 +154,13 @@ void VstPluginView::SaveProgramAs()
 //    }
 
 //    myHost->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
-//    data.SetMeta(metaT::programFile,filename);
+//    SetMeta(metaT::programFile,filename);
 }
 
 void VstPluginView::SaveProgram()
 {
-    if(MetaData::data.GetMeta<QString*>(metaT::programFile)!=0 && !MetaData::data.GetMetaData<QString>(metaT::programFile).isEmpty()) {
-        MetaData::data.SetMeta(metaT::programFile, MetaData::data.GetMetaData<QString>(metaT::programFile) );
+    if(MetaData::data.GetMeta<QString*>(metaT::programFile)!=0 && !MetaData::GetMetaData<QString>(metaT::programFile).isEmpty()) {
+        MetaData::SetMeta(metaT::programFile, MetaData::GetMetaData<QString>(metaT::programFile) );
     } else {
         SaveProgramAs();
     }

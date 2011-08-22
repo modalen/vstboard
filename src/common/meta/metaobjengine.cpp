@@ -22,10 +22,10 @@
 #include "metatransporter.h"
 #include "events.h"
 
-MetaObjEngine::MetaObjEngine(const MetaType::Enum type, MetaTransporter *transport) :
+MetaObjEngine::MetaObjEngine(const MetaType::Enum type, MetaTransporter *transport, quint32 objid=0) :
     MetaData(),
     type(type),
-    objId(0),
+    objId(objid),
     objName("nd"),
     parentId(0),
     containerId(0),
@@ -34,6 +34,9 @@ MetaObjEngine::MetaObjEngine(const MetaType::Enum type, MetaTransporter *transpo
     parentInfo(0),
     containerInfo(0)
 {
+    if(objId==0)
+        SetObjId( MetaData::GetNewId() );
+
     SetMeta<MetaType::Enum>(metaT::ObjType, type);
 }
 
@@ -43,12 +46,12 @@ MetaObjEngine::MetaObjEngine(const MetaData &data, MetaTransporter *transport) :
     parentInfo(0),
     containerInfo(0)
 {
-    type = data.GetMetaData<MetaTypes::Enum>(metaT::ObjType);
-    objId = data.GetMetaData<quint32>(metaT::ObjId);
-    ObjName = data.GetMetaData<QString>(metaT::ObjName);
-    parentId = data.GetMetaData<quint32>(metaT::ParentId);
-    containerId = data.GetMetaData<quint32>(metaT::ContainerId);
-    parentObjectId = data.GetMetaData<quint32>(metaT::ParentObjId);
+    type = GetMetaData<MetaTypes::Enum>(metaT::ObjType);
+    objId = GetMetaData<quint32>(metaT::ObjId);
+    ObjName = GetMetaData<QString>(metaT::ObjName);
+    parentId = GetMetaData<quint32>(metaT::ParentId);
+    containerId = GetMetaData<quint32>(metaT::ContainerId);
+    parentObjectId = GetMetaData<quint32>(metaT::ParentObjId);
 }
 
 MetaObjEngine::~MetaObjEngine()
@@ -159,7 +162,7 @@ void MetaObjEngine::UpdateView()
     if(!ContainerId())
         return;
 
-    if(data.GetMetaData<bool>(metaT::Hidden))
+    if(GetMetaData<bool>(metaT::Hidden))
         return;
 
     Events::sendObj *event = new Events::sendObj(this, Events::typeUpdateObj);

@@ -1,5 +1,5 @@
 /**************************************************************************
-#    Copyright 2010-2011 Raphaël François
+#    Copyright 2010-2011 RaphaÃ«l FranÃ§ois
 #    Contact : ctrlbrk76@gmail.com
 #
 #    This file is part of VstBoard.
@@ -18,27 +18,24 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-#include "listtoolsmodel.h"
-#include "meta/metadata.h"
-#include "globals.h"
+#ifndef METAPINSLIST_H
+#define METAPINSLIST_H
 
-ListToolsModel::ListToolsModel(QObject *parent) :
-        QStandardItemModel(parent)
+#include "metaobjengine.h"
+
+class MetaPinsList : public MetaObjEngine
 {
-}
+public:
+    MetaPinsList(quint32 objId=0, MetaTransporter *transport=0) :
+        MetaObjEngine(MetaType::listPin,transport,objId)
+    {}
 
-QMimeData  * ListToolsModel::mimeData ( const QModelIndexList  & indexes ) const
-{
-    QMimeData  *data = new QMimeData();
-    QByteArray b;
-    QDataStream stream(&b,QIODevice::WriteOnly);
+    void SetMedia(MediaTypes::Enum type) {SetMeta(metaT::Media, type);}
+    MediaTypes::Enum Media() const {return GetMetaData<MediaTypes::Enum>(metaT::Media);}
 
-    foreach(QModelIndex idx, indexes) {
-        if(idx.column()!=0)
-            continue;
-        stream << itemFromIndex(idx)->data(UserRoles::metaInfo).value<MetaData>();
-    }
+    void SetDirection(Directions::Enum dir) {SetMeta(metaT::Direction, dir);}
+    Directions::Enum Direction() const {return GetMetaData<Directions::Enum>(metaT::Direction);}
 
-    data->setData(MIMETYPE_METAINFO,b);
-    return data;
-}
+};
+
+#endif // METAPINSLIST_H

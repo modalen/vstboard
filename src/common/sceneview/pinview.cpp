@@ -57,7 +57,7 @@ PinView::PinView(const MetaData &info, float angle, QGraphicsItem * parent, View
     connect(actDel,SIGNAL(triggered()),
             this,SLOT(RemovePin()));
 
-    if(MetaData::data.GetMetaData<bool>(metaT::Removable))
+    if(MetaData::GetMetaData<bool>(metaT::Removable))
         addAction(actDel);
 
     actUnplug = new QAction(QIcon(":/img16x16/editcut.png"),tr("Unplug"),this);
@@ -184,7 +184,7 @@ void PinView::Unplug()
 
 void PinView::RemovePin()
 {
-    if(MetaData::data.GetMetaData<bool>(metaT::Removable))
+    if(MetaData::GetMetaData<bool>(metaT::Removable))
         emit RemovePin(info());
 }
 
@@ -285,7 +285,7 @@ void PinView::dropEvent ( QGraphicsSceneDragDropEvent  * event )
 const QPointF PinView::pinPos() const
 {
     qreal x = 0;
-    if(MetaData::data.GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Output)
+    if(MetaData::GetMetaData<Directions::Enum>(metaT::Direction)==Directions::Output)
         x = geometry().width();
     return QPointF(x,geometry().height()/2);
 }

@@ -26,12 +26,12 @@ namespace metaT {
         ND,
 
         INT_BEGIN = 1,
+        ObjType,
         ObjId,
         ObjName,
         ParentId,
         ParentObjId,
         ContainerId,
-        ObjType,
         Direction,
         Media,
         BridgeMedia,
@@ -106,7 +106,8 @@ namespace MetaType {
         bridge,
         listPin,
         pin,
-        cable
+        cable,
+        objViewAttrib
     };
 }
 

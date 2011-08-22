@@ -25,7 +25,7 @@
 #include "globals.h"
 #include "objectinfo.h"
 #include "audiobuffer.h"
-#include "meta/metaobjengine.h"
+#include "meta/metapinslist.h"
 
 class MainHost;
 namespace Connectables {
@@ -34,13 +34,13 @@ namespace Connectables {
     class Object;
     class Container;
 
-    class PinsList : public QObject, public MetaObjEngine
+    class PinsList : public QObject, public MetaPinsList
     {
         Q_OBJECT
         Q_PROPERTY(int nbPins READ nbPins WRITE SetNbPins)
 
     public:
-        PinsList(MainHost *myHost, Object *parent);
+        PinsList(const MetaPinsList &info, Object *parentObj);
         void Hide();
         void SetVisible(bool visible);
         void ChangeNumberOfPins(int newNbIn);
@@ -63,7 +63,7 @@ namespace Connectables {
         virtual QDataStream & fromStream (QDataStream &);
 
     protected:
-        MainHost *myHost;
+        Object *parentObj;
 
     signals :
         void PinAdded(int nb);

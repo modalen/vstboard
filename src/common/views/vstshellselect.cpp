@@ -23,6 +23,7 @@
 #include "mainhost.h"
 #include "connectables/objects/vstplugin.h"
 #include "commands/comaddobject.h"
+
 using namespace View;
 
 ComAddObject* VstShellSelect::command=0;
@@ -45,8 +46,8 @@ VstShellSelect::VstShellSelect(MainHost *myHost, Connectables::VstPlugin *plugin
         item->setData(Qt::UserRole,(int)id);
     }
 
-    info = plugin->info();
-    info.SetObjId(0);
+    info = *static_cast<MetaData*>(plugin);
+    info.SetMeta(metaT::ObjId,0);
 }
 
 VstShellSelect::~VstShellSelect()

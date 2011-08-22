@@ -58,7 +58,7 @@ float BridgePinOut::GetValue()
     if(valueChanged) {
         if(internValue==1.0f) internValue=0.99f;
         else internValue=1.0f;
-        data.SetMeta(metaT::BridgeMedia, valueType);
+        SetMeta(metaT::BridgeMedia, valueType);
     }
     return internValue;
 }

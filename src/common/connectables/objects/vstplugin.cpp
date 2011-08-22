@@ -26,6 +26,7 @@
 #include "views/vstpluginwindow.h"
 #include "commands/comaddpin.h"
 #include "commands/comremovepin.h"
+#include "meta/metaobjviewattrib.h"
 
 using namespace Connectables;
 
@@ -43,7 +44,7 @@ VstPlugin::VstPlugin(MainHost *myHost, MetaData & info) :
     savedChunk(0),
     savedChunkSize(0)
 {
-    SET_MUTEX_NAME(midiEventsMutex,"midiEventsMutex "+GetMetaData(metaT::ObjName));
+    SET_MUTEX_NAME(midiEventsMutex,"midiEventsMutex "+GetMetaData<QString>(metaT::ObjName));
     SetName("VstPlugin");
 
     for(int i=0;i<128;i++) {
@@ -270,9 +271,9 @@ bool VstPlugin::Open()
 //        QMutexLocker lock(&objMutex);
         VstPlugin::pluginLoading = this;
 
-        if(!Load( data.GetMetaData<QString>(metaT::Filename) )) {
+        if(!Load( GetMetaData<QString>(metaT::Filename) )) {
             VstPlugin::pluginLoading = 0;
-            data.SetMeta(metaT::errorMessage,tr("Error while loading plugin"));
+            SetMeta(metaT::errorMessage,tr("Error while loading plugin"));
             //return true to create a dummy object
             return true;
         }
@@ -281,7 +282,7 @@ bool VstPlugin::Open()
         mapPlugins.insert(pEffect, this);
         VstPlugin::pluginLoading = 0;
 
-        if(EffGetPlugCategory() == kPlugCategShell && !data.GetMeta<int*>(metaT::devId)!=0) {
+        if(EffGetPlugCategory() == kPlugCategShell && !GetMetaPtr<int*>(metaT::devId)!=0) {
 
             if(VstPlugin::shellSelectView) {
                 VstPlugin::shellSelectView->raise();
@@ -477,18 +478,18 @@ void VstPlugin::OnHideEditor()
     emit HideEditorWindow();
 }
 
-void VstPlugin::SetContainerAttribs(const MetaData &attr)
+void VstPlugin::SetContainerAttribs(const MetaObjViewAttrib &attr)
 {
     Object::SetContainerAttribs(attr);
 
     if(editorWnd) {
-        if(attr.GetMetaData<bool>(metaT::EditorVisible) && !editorWnd->isVisible()) {
+        if(attr.EditorVisible() && !editorWnd->isVisible()) {
             emit ShowEditorWindow();
-        } else if(!attr.GetMetaData<bool>(metaT::EditorVisible) && editorWnd->isVisible()) {
+        } else if(!attr.EditorVisible() && editorWnd->isVisible()) {
             emit HideEditorWindow();
         }
 
-        if(attr.GetMetaData<bool>(metaT::EditorVisible))
+        if(attr.EditorVisible())
             editorWnd->LoadAttribs();
 //        editorWnd->move(attr.editorPosition);
 //        editorWnd->resize(attr.editorSize);
@@ -496,7 +497,7 @@ void VstPlugin::SetContainerAttribs(const MetaData &attr)
     }
 }
 
-void VstPlugin::GetContainerAttribs(MetaData &attr)
+void VstPlugin::GetContainerAttribs(MetaObjViewAttrib &attr)
 {
     if(editorWnd && editorWnd->isVisible())
         editorWnd->SaveAttribs();
@@ -504,7 +505,7 @@ void VstPlugin::GetContainerAttribs(MetaData &attr)
     Object::GetContainerAttribs(attr);
 
     if(editorWnd)
-        attr.editorVisible=editorWnd->isVisible();
+        attr.SetEditorVisible(editorWnd->isVisible());
 }
 
 void VstPlugin::EditorDestroyed()
@@ -526,7 +527,7 @@ QString VstPlugin::GetParameterName(const MetaData &pinInfo)
         return "";
 
 
-    int pinnumber = pininfo.GetMetaData<int>(metaT::PinNumber);
+    int pinnumber = pinInfo.GetMetaData<int>(metaT::PinNumber);
     if(pEffect && pinnumber < pEffect->numParams) {
         QString s( EffGetParamName(pinnumber) );
         s.append( EffGetParamDisplay(pinnumber) );
@@ -617,13 +618,13 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
 
                 switch(GetLearningMode()) {
                 case LearningMode::unlearn :
-                    if(!pin->data.GetMetaData<bool>(metaT::Hidden))
-                        emit UndoStackPush( new ComRemovePin(myHost, pin->info()) );
+                    if(!pin->GetMetaData<bool>(metaT::Hidden))
+                        emit UndoStackPush( new ComRemovePin(myHost, *(MetaData*)pin) );
                     break;
 
                 case LearningMode::learn :
-                    if(pin->data.GetMetaData<bool>(metaT::Hidden))
-                        emit UndoStackPush( new ComAddPin(myHost, pin->info()) );
+                    if(pin->GetMetaData<bool>(metaT::Hidden))
+                        emit UndoStackPush( new ComAddPin(myHost, *(MetaData*)pin) );
 
                 case LearningMode::off :
                     pin->ChangeValue(opt,true);
@@ -633,7 +634,7 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
             return 1L;
 
         case audioMasterCurrentId : //2
-            return data.GetMetaData<int>(metaT::devId);
+            return GetMetaData<int>(metaT::devId);
 
         case audioMasterIdle : //3
             QApplication::processEvents();
@@ -716,8 +717,8 @@ void VstPlugin::OnParameterChanged(const MetaData &pinInfo, float value)
     if(closed)
         return;
 
-    if(pininfo.GetMetaData<Directions::Enum>(metaT::Direction) == Directions::Input) {
-        int pinnumber = pininfo.GetMetaData<int>(metaT::PinNumber);
+    if(pinInfo.GetMetaData<Directions::Enum>(metaT::Direction) == Directions::Input) {
+        int pinnumber = pinInfo.GetMetaData<int>(metaT::PinNumber);
         if(pinnumber==FixedPinNumber::vstProgNumber) {
             //program pin
             EffSetProgram( static_cast<ParameterPin*>(listParameterPinIn->listPins.value(FixedPinNumber::vstProgNumber))->GetIndex() );
@@ -815,7 +816,7 @@ Pin* VstPlugin::CreatePin(MetaData &info)
 
         switch(info.GetMetaData<int>(metaT::PinNumber)) {
             case FixedPinNumber::vstProgNumber : {
-                info.SetName(tr("prog"));
+                info.SetMeta(metaT::ObjName,tr("prog"));
                 ParameterPin *newPin = new ParameterPin(this,info,0,&listValues);
                 newPin->SetLimitsEnabled(false);
                 return newPin;
@@ -823,7 +824,7 @@ Pin* VstPlugin::CreatePin(MetaData &info)
             case FixedPinNumber::editorVisible : {
                 if(!hasEditor)
                     return 0;
-                info.SetName(tr("Editor"));
+                info.SetMeta(metaT::ObjName,tr("Editor"));
                 ParameterPin *newPin = new ParameterPin(this,info,"hide",&listEditorVisible);
                 newPin->SetLimitsEnabled(false);
                 return newPin;
@@ -831,7 +832,7 @@ Pin* VstPlugin::CreatePin(MetaData &info)
             case FixedPinNumber::learningMode : {
                 if(!hasEditor)
                     return 0;
-                info.SetName(tr("Learn"));
+                info.SetMeta(metaT::ObjName,tr("Learn"));
                 ParameterPin *newPin = new ParameterPin(this,info,"off",&listIsLearning);
                 newPin->SetLimitsEnabled(false);
                 return newPin;
@@ -839,7 +840,7 @@ Pin* VstPlugin::CreatePin(MetaData &info)
             default : {
                 ParameterPin *pin=0;
                 if(!closed) {
-                    info.SetName(EffGetParamName(info.GetMetaData<int>(metaT::PinNumber)));
+                    info.SetMeta(metaT::ObjName, EffGetParamName(info.GetMetaData<int>(metaT::PinNumber)));
                     info.SetMeta(metaT::Hidden, hasEditor);
                     info.SetMeta(metaT::Removable, hasEditor);
                 }
@@ -858,7 +859,7 @@ QDataStream & VstPlugin::toStream(QDataStream & out) const
 {
     Object::toStream(out);
 
-    if(data.GetMeta<QString*>(metaT::errorMessage)!=0 && savedChunk) {
+    if(GetMetaPtr<QString*>(metaT::errorMessage)!=0 && savedChunk) {
         out << savedChunkSize;
         out.writeRawData(savedChunk, savedChunkSize);
     } else if(pEffect && (pEffect->flags & effFlagsProgramChunks)) {

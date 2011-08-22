@@ -102,25 +102,25 @@ bool SceneModel::dropFile( const QString &fName, MetaData &info, MetaData &targe
 
     //fxb file
     if( fileType == VST_BANK_FILE_EXTENSION ) {
-        if(target.data.GetMetaData<ObjTypes::Enum>(metaT::ObjType) != ObjTypes::VstPlugin) {
+        if(target.GetMetaData<ObjTypes::Enum>(metaT::ObjType) != ObjTypes::VstPlugin) {
             LOG("fxb bad target");
             return false;
         }
 
 //        if( senderObj->LoadBank(fName) ) {
-            target.data.SetMeta(metaT::bankFile,fName);
+            target.SetMeta(metaT::bankFile,fName);
             return true;
 //        }
     }
 
     if( fileType == VST_PROGRAM_FILE_EXTENSION ) {
-        if(target.data.GetMetaData<ObjTypes::Enum>(metaT::ObjType) != ObjTypes::VstPlugin) {
+        if(target.GetMetaData<ObjTypes::Enum>(metaT::ObjType) != ObjTypes::VstPlugin) {
             LOG("fxp bad target");
             return false;
         }
 
 //        if( senderObj->LoadProgram(fName) ) {
-            target.data.SetMeta(metaT::programFile,fName);
+            target.SetMeta(metaT::programFile,fName);
             return true;
 //        }
     }

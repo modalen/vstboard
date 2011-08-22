@@ -343,9 +343,9 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListParents( QShared
 
     mapCables::iterator i = listCables.begin();
     while (i != listCables.end()) {
-        QSharedPointer<Connectables::Object> parentPtr = myHost->objFactory->GetObjectFromId(i.key().ParentObjectId());
+        QSharedPointer<Connectables::Object> parentPtr = myHost->objFactory->GetObjectFromId( i.key().GetMetaData<quint32>(metaT::ParentObjId) );
         if(!parentPtr.isNull()) {
-            if(i.value().ParentObjectId() == objPtr->ObjId()) {
+            if(i.value().GetMetaData<quint32>(metaT::ParentObjId) == objPtr->ObjId()) {
                 if(!listParents.contains(parentPtr)) {
                     listParents << parentPtr;
 //                    if(parentPtr->info().nodeType == MetaTypes::bridge)
@@ -386,9 +386,9 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListChildren( QShare
 
     mapCables::iterator i = listCables.begin();
     while (i != listCables.end()) {
-        QSharedPointer<Connectables::Object> childPtr = myHost->objFactory->GetObjectFromId(i.value().ParentObjectId());
+        QSharedPointer<Connectables::Object> childPtr = myHost->objFactory->GetObjectFromId(i.value().GetMetaData<quint32>(metaT::ParentObjId));
         if(!childPtr.isNull()) {
-            if(i.key().ParentObjectId() == objPtr->ObjId()) {
+            if(i.key().GetMetaData<quint32>(metaT::ParentObjId) == objPtr->ObjId()) {
                 if(!listChildren.contains(childPtr)) {
                     listChildren << childPtr;
 //                    if(childPtr->info().nodeType == MetaTypes::bridge)

@@ -41,7 +41,7 @@ void BridgePinIn::ReceiveMsg(const PinMessage::Enum msgType,void *data)
     ++loopCounter;
 
     MetaData i(info());
-    i.data.SetMeta(metaT::Direction,Directions::Output);
+    i.SetMeta(metaT::Direction,Directions::Output);
     Pin *p = parent->GetPin(i);
     if(p)
         p->SendMsg(msgType,data);
@@ -74,7 +74,7 @@ float BridgePinIn::GetValue()
     if(valueChanged) {
         if(internValue==1.0f) internValue=0.99f;
         else internValue=1.0f;
-        data.SetMeta(metaT::BridgeMedia, valueType);
+        SetMeta(metaT::BridgeMedia, valueType);
     }
     return internValue;
 }

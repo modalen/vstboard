@@ -76,9 +76,9 @@ bool AudioPin::SetDoublePrecision(bool dblp)
         return true;
 
     if(doublePrecision) {
-        data.SetMeta(metaT::displayedText, QString(Name()+"=D=") );
+        SetMeta(metaT::displayedText, QString(Name()+"=D=") );
     } else {
-        data.SetMeta(metaT::displayedText, QString(Name()+"=S=") );
+        SetMeta(metaT::displayedText, QString(Name()+"=S=") );
     }
     valueChanged=true;
 

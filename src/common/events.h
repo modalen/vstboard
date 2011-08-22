@@ -22,7 +22,7 @@
 #define MYEVENTS_H
 
 #include "precomp.h"
-#include "objectinfo.h"
+#include "meta/metadata.h"
 
 namespace Events {
 

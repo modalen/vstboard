@@ -30,7 +30,11 @@ typedef QMultiMap < MetaData, MetaData > mapCables;
 class MetaData
 {
 public:
-    MetaData() {}
+    MetaData(MetaType::Enum metaType=MetaType::ND, quint32 metaId=0) :
+        metaType(metaType),
+        metaId(metaId)
+    {}
+
     MetaData(const MetaData &c) {
         *this=c;
     }
@@ -40,6 +44,15 @@ public:
     ~MetaData() {
         qDeleteAll(listInfos);
     }
+
+    static quint32 GetNewId() {
+        return nextId++;
+    }
+
+    void SetMetaId(const quint32 id) {metaId=id;}
+    const quint32 MetaId() const {return metaId;}
+
+    const MetaType::Enum Type() const {return metaType;}
 
     template<class T> const T GetMetaPtr(const metaT::Enum type) const {
         return static_cast<const T>(listInfos.value(type,0));
@@ -92,7 +105,7 @@ public:
     QDataStream & fromStream(QDataStream& stream);
 
     friend bool operator==(const MetaData &c1, const MetaData &c2);
-//    friend bool operator<(const MetaData &c1, const MetaData &c2);
+    friend bool operator<(const MetaData &c1, const MetaData &c2);
 
 private:
     template<class T> void SetMetaFast(const metaT::Enum type, const T &value) {
@@ -116,6 +129,10 @@ private:
 
     QMap<metaT::Enum,void*>listInfos;
 //    QMap<metaT::Enum, QPair<int, void*> >listComplexInfos;
+    quint32 metaId;
+    MetaType::Enum metaType;
+
+    static quint32 nextId;
 };
 
 

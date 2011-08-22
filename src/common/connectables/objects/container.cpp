@@ -46,7 +46,7 @@ Container::Container(MainHost *myHost, MetaData &info) :
     progToSet(-1),
     loadingMode(false)
 {
-    SET_MUTEX_NAME(mutexCurrentProg,"mutexCurrentProg "+GetMetaData(metaT::ObjName));
+    SET_MUTEX_NAME(mutexCurrentProg,"mutexCurrentProg "+GetMetaData<QString>(metaT::ObjName));
     SetType(MetaType::container);
 
     parkModel.setObjectName("parkModel"%objectName());
@@ -385,7 +385,7 @@ void Container::AddObject(QSharedPointer<Object> objPtr)
     objPtr->UnloadProgram();
 
     //bridges are not stored in program
-    int direction = objPtr->data.GetMetaData<int>(metaT::Direction);
+    int direction = objPtr->GetMetaData<int>(metaT::Direction);
     if(objPtr->Type() == MetaType::bridge) {
         switch(direction) {
         case Directions::Input :
@@ -429,8 +429,8 @@ void Container::AddParkedObject(QSharedPointer<Object> objPtr)
 
 void Container::UserAddObject(const QSharedPointer<Object> &objPtr,
                               InsertionType::Enum insertType,
-                              QList< QPair<MetaData,MetaData> > *listOfAddedCables,
-                              QList< QPair<MetaData,MetaData> > *listOfRemovedCables,
+                              QList< QPair<MetaPin,MetaPin> > *listOfAddedCables,
+                              QList< QPair<MetaPin,MetaPin> > *listOfRemovedCables,
                               const QSharedPointer<Object> &targetPtr)
 {
     AddObject(objPtr);
@@ -472,8 +472,8 @@ void Container::UserAddObject(const QSharedPointer<Object> &objPtr,
 
 void Container::UserParkObject(QSharedPointer<Object> objPtr,
                                RemoveType::Enum removeType,
-                               QList< QPair<MetaData,MetaData> > *listOfAddedCables,
-                               QList< QPair<MetaData,MetaData> > *listOfRemovedCables)
+                               QList< QPair<MetaPin,MetaPin> > *listOfAddedCables,
+                               QList< QPair<MetaPin,MetaPin> > *listOfRemovedCables)
 {
     currentContainerProgram->CollectCableUpdates( listOfAddedCables, listOfRemovedCables );
 
@@ -546,7 +546,7 @@ void Container::MoveInputCablesFromObj(QSharedPointer<Object> newObjPtr, QShared
     currentContainerProgram->MoveInputCablesFromObj( newObjPtr->ObjId(), ObjPtr->ObjId() );
 }
 
-void Container::GetListOfConnectedPinsTo(const MetaData &pin, QList<MetaData> &list)
+void Container::GetListOfConnectedPinsTo(const MetaPin &pin, QList<MetaPin> &list)
 {
     if(!currentContainerProgram)
         return;
@@ -629,7 +629,7 @@ void Container::OnChildDeleted(Object *obj)
 //    }
 }
 
-void Container::UserAddCable(const MetaData &outputPin, const MetaData &inputPin)
+void Container::UserAddCable(const MetaPin &outputPin, const MetaPin &inputPin)
 {
     AddCable(outputPin,inputPin,false);
 
@@ -639,12 +639,12 @@ void Container::UserAddCable(const MetaData &outputPin, const MetaData &inputPin
     }
 }
 
-void Container::UserAddCable(const QPair<MetaData,MetaData>&pair)
+void Container::UserAddCable(const QPair<MetaPin,MetaPin>&pair)
 {
     UserAddCable(pair.first,pair.second);
 }
 
-void Container::UserRemoveCableFromPin(const MetaData &pin)
+void Container::UserRemoveCableFromPin(const MetaPin &pin)
 {
     RemoveCableFromPin(pin);
 
@@ -654,7 +654,7 @@ void Container::UserRemoveCableFromPin(const MetaData &pin)
     }
 }
 
-void  Container::UserRemoveCable(const MetaData &outputPin, const MetaData &inputPin)
+void  Container::UserRemoveCable(const MetaPin &outputPin, const MetaPin &inputPin)
 {
     RemoveCable(outputPin,inputPin);
 
@@ -664,7 +664,7 @@ void  Container::UserRemoveCable(const MetaData &outputPin, const MetaData &inpu
     }
 }
 
-void Container::UserRemoveCable(const QPair<MetaData,MetaData>&pair)
+void Container::UserRemoveCable(const QPair<MetaPin,MetaPin>&pair)
 {
     UserRemoveCable(pair.first,pair.second);
 }
@@ -675,7 +675,7 @@ void Container::UserRemoveCable(const QPair<MetaData,MetaData>&pair)
   \param inputPin the input pin (messages receiver)
   \param hidden true if the cable is hidden (the cables between containers are hidden)
   */
-void Container::AddCable(const MetaData &outputPin, const MetaData &inputPin, bool hidden)
+void Container::AddCable(const MetaPin &outputPin, const MetaPin &inputPin, bool hidden)
 {
     if(!currentContainerProgram)
         return;
@@ -687,7 +687,7 @@ void Container::AddCable(const MetaData &outputPin, const MetaData &inputPin, bo
   \param outputPin the output pin (messages sender)
   \param inputPin the input pin (messages receiver)
   */
-void Container::RemoveCable(const MetaData &outputPin, const MetaData &inputPin)
+void Container::RemoveCable(const MetaPin &outputPin, const MetaPin &inputPin)
 {
     if(!currentContainerProgram)
         return;
@@ -698,7 +698,7 @@ void Container::RemoveCable(const MetaData &outputPin, const MetaData &inputPin)
   Remove all cables from a Pin
   \param pin the pin to disconnect
   */
-void Container::RemoveCableFromPin(const MetaData &pin)
+void Container::RemoveCableFromPin(const MetaPin &pin)
 {
     if(!currentContainerProgram)
         return;
@@ -716,7 +716,7 @@ QDataStream & Container::toStream (QDataStream& out) const
         QDataStream tmpStream( &tmpBa, QIODevice::ReadWrite);
 
         //save container header
-        tmpStream << (qint16)MetaData::ObjId();
+        tmpStream << (qint16)ObjId();
         tmpStream << objectName();
         tmpStream << sleep;
         ProjectFile::SaveChunk( "CntHead", tmpBa, out);
@@ -726,7 +726,7 @@ QDataStream & Container::toStream (QDataStream& out) const
     foreach(Object* obj, listLoadedObjects) {
         QByteArray tmpBa;
         QDataStream tmpStream( &tmpBa, QIODevice::ReadWrite);
-        tmpStream << obj->info();
+        tmpStream << *static_cast<MetaData*>(obj);
         obj->toStream( tmpStream );
         ProjectFile::SaveChunk( "CntObj", tmpBa, out);
     }
@@ -826,7 +826,7 @@ bool Container::loadObjectFromStream (QDataStream &in)
 {
     MetaData info;
     in >> info;
-    info.SetObjId(0);
+    SetObjId(0);
 
     QSharedPointer<Object> objPtr = myHost->objFactory->NewObject(info);
 
@@ -892,7 +892,7 @@ void Container::ProgramToStream (int progId, QDataStream &out)
         QByteArray tmpBa;
         QDataStream tmpStream( &tmpBa , QIODevice::ReadWrite);
         if(obj) {
-            tmpStream << obj->info();
+            tmpStream << *static_cast<MetaData*>(obj.data());
             obj->ProgramToStream( progId, tmpStream );
         }
         out << tmpBa;
@@ -927,14 +927,14 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
         in >> tmpBa;
         MetaData info;
         tmpStream >> info;
-        QSharedPointer<Object>obj = myHost->objFactory->GetObjectFromId( info.ObjId() );
+        QSharedPointer<Object>obj = myHost->objFactory->GetObjectFromId( info.GetMetaData<quint32>(metaT::ObjId) );
         if(!obj) {
             obj = myHost->objFactory->NewObject(info);
             AddParkedObject(obj);
             tmpListObj << obj;
         } else {
             obj->SetContainer(this);
-            obj->ResetSavedIndex(info.ObjId());
+            obj->ResetSavedIndex(info.GetMetaData<quint32>(metaT::ObjId));
         }
         if(!obj) {
             LOG("can't create obj");

@@ -3,6 +3,7 @@
 
 #include "precomp.h"
 #include "connectables/objects/container.h"
+#include "meta/metadata.h"
 
 class MainHost;
 class ComAddObject : public QUndoCommand
@@ -29,10 +30,10 @@ private:
     QList< QPair<MetaData,MetaData> >listAddedCables;
     QList< QPair<MetaData,MetaData> >listRemovedCables;
 
-    ObjectContainerAttribs attr;
+    MetaData attr;
     QByteArray objState;
 
-    ObjectContainerAttribs targetAttr;
+    MetaData targetAttr;
     QByteArray targetState;
 
     int currentGroup;

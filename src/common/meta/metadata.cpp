@@ -20,6 +20,8 @@
 
 #include "metadata.h"
 
+quint32 MetaData::nextId=1;
+
 QString MetaData::keyName(const metaT::Enum type)
 {
     if(type<metaT::INT_END)
@@ -186,4 +188,5 @@ bool operator==(const MetaData &c1, const MetaData &c2)
     }
     return true;
 }
-//bool operator<(const MetaData &c1, const MetaData &c2) { if(c1.listInfos < c2.listInfos; }
+
+bool operator<(const MetaData &c1, const MetaData &c2) { if(c1.metaId < c2.metaId; }

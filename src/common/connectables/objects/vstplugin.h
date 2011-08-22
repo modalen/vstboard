@@ -29,7 +29,7 @@ namespace View {
     class VstPluginWindow;
 }
 
-
+class MetaObjViewAttrib;
 namespace Connectables {
 
     class VstPlugin : public Object , public vst::CEffect
@@ -53,8 +53,8 @@ namespace Connectables {
 
         static View::VstShellSelect *shellSelectView;
 
-        void SetContainerAttribs(const MetaData &attr);
-        void GetContainerAttribs(MetaData &attr);
+        void SetContainerAttribs(const MetaObjViewAttrib &attr);
+        void GetContainerAttribs(MetaObjViewAttrib &attr);
         Pin* CreatePin(MetaData &info);
 
         bool DropFile(const QString &filename);

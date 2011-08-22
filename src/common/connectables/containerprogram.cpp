@@ -18,7 +18,6 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-
 #include "containerprogram.h"
 #include "mainhost.h"
 #include "objects/container.h"
@@ -53,7 +52,7 @@ ContainerProgram::ContainerProgram(const ContainerProgram& c) :
         listCables << new Cable(*cab);
     }
 
-    QMap<int,ObjectContainerAttribs>::ConstIterator i = c.mapObjAttribs.constBegin();
+    QMap<int,MetaObjViewAttrib>::ConstIterator i = c.mapObjAttribs.constBegin();
     while(i!=c.mapObjAttribs.constEnd()) {
         mapObjAttribs.insert(i.key(),i.value());
         ++i;
@@ -87,7 +86,7 @@ void ContainerProgram::Remove(int prgId)
     }
 }
 
-bool ContainerProgram::PinExistAndVisible(const MetaData &info)
+bool ContainerProgram::PinExistAndVisible(const MetaPin &info)
 {
     if(info.GetMetaData<MediaTypes::Enum>(metaT::Media)==MediaTypes::Bridge)
         return true;
@@ -124,7 +123,7 @@ void ContainerProgram::Load(int progId)
         }
     }
 
-    QMap<int,ObjectContainerAttribs>::Iterator i = mapObjAttribs.begin();
+    QMap<int,MetaObjViewAttrib>::Iterator i = mapObjAttribs.begin();
     while(i!=mapObjAttribs.end()) {
         QSharedPointer<Object> obj = myHost->objFactory->GetObjectFromId(i.key());
         if(!obj.isNull()) {
@@ -193,7 +192,7 @@ bool ContainerProgram::IsDirty()
             if(obj->IsDirty())
                 return true;
 
-            ObjectContainerAttribs attr;
+            MetaObjViewAttrib attr;
             obj->GetContainerAttribs(attr);
             if(attr != mapObjAttribs.value( obj->ObjId() ))
                 return true;
@@ -214,7 +213,7 @@ void ContainerProgram::Save(bool saveChildPrograms)
     mapObjAttribs.clear();
     foreach(QSharedPointer<Object> obj, listObjects) {
         if(!obj.isNull()) {
-            ObjectContainerAttribs attr;
+            MetaObjViewAttrib attr;
             obj->GetContainerAttribs(attr);
             mapObjAttribs.insert(obj->ObjId(),attr);
         }
@@ -227,7 +226,7 @@ void ContainerProgram::Save(bool saveChildPrograms)
                 continue;
             }
 
-            ObjectContainerAttribs attr;
+            MetaObjViewAttrib attr;
             obj->GetContainerAttribs(attr);
             mapObjAttribs.insert(obj->ObjId(),attr);
         }
@@ -258,41 +257,12 @@ void ContainerProgram::ReplaceObject(QSharedPointer<Object> newObjPtr, QSharedPo
     //RemoveObject(replacedObjPtr);
 }
 
-bool ContainerProgram::CanConnectPins(const MetaData &out, const MetaData &in)
-{
-
-    //don't connect object to itself
-//    if(out.objId == c.objId)
-//        return false;
-
-    if(out.Type()!=MetaType::pin)
-        return false;
-    if(in.Type()!=MetaType::pin)
-        return false;
-
-    //must be in the same container
-    if(out.ContainerId() != in.ContainerId())
-        return false;
-
-    //must be opposite directions
-    if(out.GetMetaData<int>(metaT::Direction) == in.GetMetaData<int>(metaT::Direction))
-        return false;
-
-    //must be the same type (audio/midi/automation) or a bridge pin
-    if(out.GetMetaData<int>(metaT::Media) != MediaTypes::Bridge
-        && in.GetMetaData<int>(metaT::Media)!=MediaTypes::Bridge
-        && out.GetMetaData<int>(metaT::Media) != in.GetMetaData<int>(metaT::Media))
-        return false;
-
-    return true;
-}
-
-bool ContainerProgram::AddCable(const MetaData &outputPin, const MetaData &inputPin, bool hidden)
+bool ContainerProgram::AddCable(const MetaPin &outputPin, const MetaPin &inputPin, bool hidden)
 {
     if(CableExists(outputPin,inputPin))
         return true;
 
-    if(!CanConnectPins(outputPin,inputPin))
+    if(!outputPin.CanConnectPins(inputPin))
         return false;
 
     //check if the pin exists,
@@ -307,7 +277,7 @@ bool ContainerProgram::AddCable(const MetaData &outputPin, const MetaData &input
     listCables << cab;
 
     if(collectedListOfAddedCables)
-        *collectedListOfAddedCables << QPair<MetaData,MetaData>(outputPin,inputPin);
+        *collectedListOfAddedCables << QPair<MetaPin,MetaPin>(outputPin,inputPin);
 
     if(!hidden && container) {
 //        cab->AddToParentNode(container->GetCablesIndex());
@@ -322,7 +292,7 @@ bool ContainerProgram::AddCable(const MetaData &outputPin, const MetaData &input
 void ContainerProgram::RemoveCable(Cable *cab)
 {
     if(collectedListOfRemovedCables)
-        *collectedListOfRemovedCables << QPair<MetaData,MetaData>(cab->GetInfoOut(),cab->GetInfoIn());
+        *collectedListOfRemovedCables << QPair<MetaPin,MetaPin>(cab->GetInfoOut(),cab->GetInfoIn());
 
     listCables.removeAll(cab);
 //    cab->RemoveFromParentNode(container->GetCablesIndex());
@@ -338,7 +308,7 @@ void ContainerProgram::RemoveCable(Cable *cab)
 //                index.data(UserRoles::objInfo).value<ConnectionInfo>());
 //}
 
-void ContainerProgram::RemoveCable(const MetaData &outputPin, const MetaData &inputPin)
+void ContainerProgram::RemoveCable(const MetaPin &outputPin, const MetaPin &inputPin)
 {
     int i=listCables.size()-1;
     while(i>=0) {
@@ -351,7 +321,7 @@ void ContainerProgram::RemoveCable(const MetaData &outputPin, const MetaData &in
     }
 }
 
-void ContainerProgram::RemoveCableFromPin(const MetaData &pin)
+void ContainerProgram::RemoveCableFromPin(const MetaPin &pin)
 {
     int i=listCables.size()-1;
     while(i>=0) {
@@ -385,12 +355,12 @@ void ContainerProgram::CreateBridgeOverObj(int objId)
            cab->GetInfoOut().ContainerId()==objId || cab->GetInfoIn().ContainerId()==objId) {
 
             //for all output cables
-            if(cab->GetInfoOut().ParentObjectId()==objId && cab->GetInfoOut().data.GetMetaData<MediaTypes::Enum>(metaT::Media)!=MediaTypes::Parameter ) {
+            if(cab->GetInfoOut().ParentObjectId()==objId && cab->GetInfoOut().GetMetaData<MediaTypes::Enum>(metaT::Media)!=MediaTypes::Parameter ) {
                 int j=listCables.size()-1;
                 while(j>=0) {
                     Cable *otherCab = listCables.at(j);
-                    MetaData otherPin( cab->GetInfoOut() );
-                    otherPin.data.SetMeta(metaT::Direction,Directions::Input);
+                    MetaPin otherPin( cab->GetInfoOut() );
+                    otherPin.SetMeta(metaT::Direction,Directions::Input);
 
                     if(myHost->objFactory->UpdatePinInfo(otherPin)) {
                         //find corresponding input cables
@@ -404,12 +374,12 @@ void ContainerProgram::CreateBridgeOverObj(int objId)
             }
 
             //for all input cables
-            if(cab->GetInfoIn().ParentObjectId()==objId && cab->GetInfoIn().data.GetMetaData<MediaTypes::Enum>(metaT::Media)!=MediaTypes::Parameter ) {
+            if(cab->GetInfoIn().ParentObjectId()==objId && cab->GetInfoIn().GetMetaData<MediaTypes::Enum>(metaT::Media)!=MediaTypes::Parameter ) {
                 int j=listCables.size()-1;
                 while(j>=0) {
                     Cable *otherCab = listCables.at(j);
-                    MetaData otherPin = cab->GetInfoIn();
-                    otherPin.data.SetMeta(metaT::Direction,Directions::Output);
+                    MetaPin otherPin = cab->GetInfoIn();
+                    otherPin.SetMeta(metaT::Direction,Directions::Output);
                     myHost->objFactory->UpdatePinInfo(otherPin);
 
                     //find corresponding output cables
@@ -431,12 +401,12 @@ void ContainerProgram::CopyCablesFromObj(int newObjId, int oldObjId)
     while(i>=0) {
         Cable *cab = listCables.at(i);
         if(cab->GetInfoOut().ParentObjectId()==oldObjId) {
-            MetaData newConnect = cab->GetInfoOut();
+            MetaPin newConnect = cab->GetInfoOut();
             newConnect.SetObjId(newObjId);
             AddCable(newConnect, cab->GetInfoIn());
         }
         if(cab->GetInfoIn().ParentObjectId()==oldObjId) {
-            MetaData newConnect = cab->GetInfoIn();
+            MetaPin newConnect = cab->GetInfoIn();
             newConnect.SetObjId(newObjId);
             AddCable(cab->GetInfoOut(), newConnect);
         }
@@ -450,8 +420,8 @@ void ContainerProgram::MoveOutputCablesFromObj(int newObjId, int oldObjId)
     while(i>=0) {
         Cable *cab = listCables.at(i);
         if(cab->GetInfoOut().ParentObjectId() == oldObjId
-                && cab->GetInfoOut().data.GetMetaData<MediaTypes::Enum>(metaT::Media) != MediaTypes::Parameter) {
-            MetaData newConnect(cab->GetInfoOut());
+                && cab->GetInfoOut().GetMetaData<MediaTypes::Enum>(metaT::Media) != MediaTypes::Parameter) {
+            MetaPin newConnect(cab->GetInfoOut());
             newConnect.SetParentObjectId(newObjId);
             myHost->objFactory->UpdatePinInfo(newConnect);
             if( AddCable(newConnect, cab->GetInfoIn()) ) {
@@ -468,8 +438,8 @@ void ContainerProgram::MoveInputCablesFromObj(int newObjId, int oldObjId)
     while(i>=0) {
         Cable *cab = listCables.at(i);
         if(cab->GetInfoIn().ParentObjectId()==oldObjId
-                && cab->GetInfoIn().data.GetMetaData<MediaTypes::Enum>(metaT::Media) != MediaTypes::Parameter) {
-            MetaData newConnect(cab->GetInfoIn());
+                && cab->GetInfoIn().GetMetaData<MediaTypes::Enum>(metaT::Media) != MediaTypes::Parameter) {
+            MetaPin newConnect(cab->GetInfoIn());
             newConnect.SetParentObjectId(newObjId);
             myHost->objFactory->UpdatePinInfo(newConnect);
             if( AddCable(cab->GetInfoOut(), newConnect) ) {
@@ -480,7 +450,7 @@ void ContainerProgram::MoveInputCablesFromObj(int newObjId, int oldObjId)
     }
 }
 
-void ContainerProgram::GetListOfConnectedPinsTo(const MetaData &pin, QList<MetaData> &list)
+void ContainerProgram::GetListOfConnectedPinsTo(const MetaPin &pin, QList<MetaPin> &list)
 {
     int i=listCables.size()-1;
     while(i>=0) {
@@ -493,7 +463,7 @@ void ContainerProgram::GetListOfConnectedPinsTo(const MetaData &pin, QList<MetaD
     }
 }
 
-bool ContainerProgram::CableExists(const MetaData &outputPin, const MetaData &inputPin)
+bool ContainerProgram::CableExists(const MetaPin &outputPin, const MetaPin &inputPin)
 {
     foreach(Cable *c, listCables) {
         if(c->GetInfoOut().ObjId()==outputPin.ObjId() && c->GetInfoIn().ObjId()==inputPin.ObjId())
@@ -516,7 +486,7 @@ QDataStream & ContainerProgram::toStream (QDataStream& out) const
     }
 
     out << (quint16)mapObjAttribs.size();
-    QMap<int,ObjectContainerAttribs>::ConstIterator i = mapObjAttribs.constBegin();
+    QMap<int,MetaObjViewAttrib>::ConstIterator i = mapObjAttribs.constBegin();
     while(i!=mapObjAttribs.constEnd()) {
         out << i.key();
         out << i.value();
@@ -553,7 +523,7 @@ QDataStream & ContainerProgram::fromStream (QDataStream& in)
     in >> nbPos;
     for(quint16 i=0; i<nbPos; i++) {
         int objId;
-        ObjectContainerAttribs attr;
+        MetaObjViewAttrib attr;
         in >> objId;
         in >> attr;
         objId=myHost->objFactory->IdFromSavedId(objId);
