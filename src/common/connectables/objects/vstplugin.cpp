@@ -35,7 +35,7 @@ View::VstShellSelect *VstPlugin::shellSelectView=0;
 
 VstPlugin::VstPlugin(MainHost *myHost, MetaInfo & info) :
     Object(myHost, info),
-    CEffect(),
+    CEffect(myHost),
     editorWnd(0),
     sampleRate(44100.0),
     bufferSize(1024),

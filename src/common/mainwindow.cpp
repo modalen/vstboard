@@ -128,17 +128,6 @@ void MainWindow::Init()
              this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)));
 }
 
-void MainWindow::DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton)
-{
-    QMessageBox msgBox;
-    msgBox.setIcon(icon);
-    msgBox.setText(text);
-    msgBox.setInformativeText(info);
-    msgBox.setStandardButtons(buttons);
-    msgBox.setDefaultButton(defaultButton);
-    lastMessageResult=msgBox.exec();
-}
-
 void MainWindow::CreateNewPluginWindow(QObject* obj)
 {
     View::VstPluginWindow *editorWnd = new View::VstPluginWindow(this);
@@ -611,4 +600,72 @@ void MainWindow::on_actionValue_toggled(bool arg1)
     ui->actionCable->setChecked(!arg1);
     if(arg1)
         viewConfig->SetEditMode(EditMode::Value);
+}
+
+void MainWindow::DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton)
+{
+    if(thread()!=QThread::currentThread()) {
+        QMetaObject::invokeMethod(this,"DisplayMessageAsync",
+            Qt::BlockingQueuedConnection,
+            Q_ARG(QMessageBox::Icon, icon),
+            Q_ARG(QString, text),
+            Q_ARG(QString, info),
+            Q_ARG(QMessageBox::StandardButtons, buttons),
+            Q_ARG(QMessageBox::StandardButton, defaultButton)
+        );
+    } else {
+        DisplayMessage(icon,text,info,buttons,defaultButton);
+    }
+}
+
+void MainWindow::DisplayMessageAsync(QMessageBox::Icon icon,const QString &text, const QString &info, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton)
+{
+    QMessageBox msgBox;
+    msgBox.setIcon(icon);
+    msgBox.setText(text);
+    if(!info.isEmpty())
+        msgBox.setInformativeText(info);
+    if(buttons!=QMessageBox::NoButton)
+        msgBox.setStandardButtons(buttons);
+    if(defaultButton!=QMessageBox::NoButton)
+        msgBox.setDefaultButton(defaultButton);
+    lastMessageResult=msgBox.exec();
+}
+
+void MainWindow::SaveFileDialog(const QString title, const QString dir, const QString fType)
+{
+    if(thread()!=QThread::currentThread()) {
+        QMetaObject::invokeMethod(this, "SaveFileDialogAsync",
+              Qt::BlockingQueuedConnection,
+              Q_ARG(QString, title),
+              Q_ARG(QString, dir),
+              Q_ARG(QString, fType)
+            );
+    } else {
+        SaveFileDialogAsync(title,dir,fType);
+    }
+}
+
+void MainWindow::OpenFileDialog(const QString title, const QString dir, const QString fType)
+{
+    if(thread()!=QThread::currentThread()) {
+        QMetaObject::invokeMethod(this, "OpenFileDialogAsync",
+              Qt::BlockingQueuedConnection,
+              Q_ARG(QString, title),
+              Q_ARG(QString, dir),
+              Q_ARG(QString, fType)
+            );
+    } else {
+        OpenFileDialogAsync(title,dir,fType);
+    }
+}
+
+void MainWindow::SaveFileDialogAsync(const QString title, const QString dir, const QString fType)
+{
+    lastFileSelected = QFileDialog::getSaveFileName(this, title, dir, fType);
+}
+
+void MainWindow::OpenFileDialogAsync(const QString title, const QString dir, const QString fType)
+{
+    lastFileSelected = QFileDialog::getOpenFileName(this, title, dir, fType);
 }

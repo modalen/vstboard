@@ -50,11 +50,14 @@ public:
     View::SceneView *mySceneView;
     View::ViewConfig *viewConfig;
 
-    inline int GetLastMessageResult() {return lastMessageResult;}
+    int GetLastMessageResult() {return lastMessageResult;}
+    const QString &GetLastSelectedFile() {return lastFileSelected;}
 
     Q_INVOKABLE void CreateNewPluginWindow(QObject* obj);
     Q_INVOKABLE void CreateNewScriptEditor(QObject* obj);
-    Q_INVOKABLE void DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info, QMessageBox::StandardButtons buttons, QMessageBox::StandardButton defaultButton);
+    void DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info="", QMessageBox::StandardButtons buttons=QMessageBox::NoButton, QMessageBox::StandardButton defaultButton=QMessageBox::NoButton);
+    void SaveFileDialog(const QString title, const QString dir, const QString fType);
+    void OpenFileDialog(const QString title, const QString dir, const QString fType);
 
 protected:
     void changeEvent(QEvent *e);
@@ -76,8 +79,14 @@ protected:
     MainHost *myHost;
     View::ViewConfigDialog *viewConfigDlg;
     int lastMessageResult;
+    QString lastFileSelected;
     QList<QObject*>eventsListeners;
     SceneModel *sceneModel;
+
+private:
+    Q_INVOKABLE void DisplayMessageAsync(QMessageBox::Icon icon,const QString &text, const QString &info="", QMessageBox::StandardButtons buttons=QMessageBox::NoButton, QMessageBox::StandardButton defaultButton=QMessageBox::NoButton);
+    Q_INVOKABLE void SaveFileDialogAsync(const QString title, const QString dir, const QString fType);
+    Q_INVOKABLE void OpenFileDialogAsync(const QString title, const QString dir, const QString fType);
 
 signals:
     void askLoadSetup(const QString &file);

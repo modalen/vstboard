@@ -20,6 +20,7 @@
 #include "mididevices.h"
 #include "objectinfo.h"
 #include "mainhost.h"
+#include "mainwindow.h"
 
 MidiDevices::MidiDevices(MainHost *myHost) :
         QObject(myHost),
@@ -59,19 +60,13 @@ bool MidiDevices::Init()
 
     PmError pmRet = Pm_Initialize();
     if(pmRet!=pmNoError) {
-        QMessageBox msgBox;
-        msgBox.setText(tr("Unable to initialize midi engine : %1").arg( Pm_GetErrorText(pmRet) ));
-        msgBox.setIcon(QMessageBox::Critical);
-        msgBox.exec();
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical, tr("Unable to initialize midi engine : %1").arg( Pm_GetErrorText(pmRet) ));
         return false;
     }
 
     PtError ptRet = Pt_Start(1, MidiDevices::MidiReceive_poll,this);
     if(ptRet!=ptNoError) {
-        QMessageBox msgBox;
-        msgBox.setText(tr("Unable to start midi engine"));
-        msgBox.setIcon(QMessageBox::Critical);
-        msgBox.exec();
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical, tr("Unable to start midi engine"));
         return false;
     }
 

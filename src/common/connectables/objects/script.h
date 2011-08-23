@@ -34,7 +34,6 @@ namespace Connectables {
         QScriptValue renderScript;
 
     signals :
-        void _dspMsg(const QString &title, const QString &str);
         void ScriptChanged(const QString &txt);
 
     public slots:
@@ -47,9 +46,6 @@ namespace Connectables {
         void OnEditorClosed();
         void EditorDestroyed();
         void SetEditorWnd(QWidget *wnd);
-
-    private slots:
-        void DspMsg(const QString &title, const QString &str);
 
         friend class View::ScriptEditor;
     };

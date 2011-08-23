@@ -36,7 +36,7 @@ namespace vst
     class CEffect
     {
     public:
-        CEffect();
+        CEffect(MainHost *mainHost);
         virtual ~CEffect();
 
     public:
@@ -186,6 +186,7 @@ namespace vst
 
     private:
         QLibrary *pluginLib;
+        MainHost *mainHost;
     };
 }
 

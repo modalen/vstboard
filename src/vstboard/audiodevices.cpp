@@ -27,6 +27,7 @@
 #include "views/wasapiconfigdialog.h"
 #include "connectables/audiodevicein.h"
 #include "connectables/audiodeviceout.h"
+#include "mainwindow.h"
 
 FakeTimer::FakeTimer(MainHostHost *myHost) :
     QThread(myHost),
@@ -142,10 +143,7 @@ bool AudioDevices::Init()
 
     PaError paRet =Pa_Initialize();
     if(paRet!=paNoError) {
-        QMessageBox msgBox;
-        msgBox.setText(tr("Unable to initialize audio engine : %1").arg( Pa_GetErrorText(paRet) ));
-        msgBox.setIcon(QMessageBox::Critical);
-        msgBox.exec();
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical, tr("Unable to initialize audio engine : %1").arg( Pa_GetErrorText(paRet) ));
         return false;
     }
     BuildModel();
@@ -537,13 +535,8 @@ void AudioDevices::ConfigDevice(const QModelIndex &index)
             err = PaAsio_ShowControlPanel( devId, (void*)0 );
 #endif
 
-            if( err != paNoError ) {
-                QMessageBox msg(QMessageBox::Warning,
-                                tr("Error"),
-                                Pa_GetErrorText( err ),
-                                QMessageBox::Ok);
-                msg.exec();
-            }
+            if( err != paNoError )
+                myHost->mainWindow->DisplayMessage(QMessageBox::Warning, Pa_GetErrorText( err ));
             return;
         }
 
@@ -563,9 +556,5 @@ void AudioDevices::ConfigDevice(const QModelIndex &index)
             break;
     }
 
-    QMessageBox msg(QMessageBox::Information,
-        tr("No config"),
-        tr("No config dialog for this device"),
-        QMessageBox::Ok);
-    msg.exec();
+    myHost->mainWindow->DisplayMessage(QMessageBox::Information, tr("There's no config dialog for this device"));
 }

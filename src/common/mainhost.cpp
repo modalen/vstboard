@@ -36,7 +36,7 @@ EngineThread::EngineThread(QObject *parent) :
     QThread(parent)
 {
     setObjectName("EngineThread");
-    start(QThread::LowPriority);
+    start(QThread::HighPriority);
 //    start(QThread::TimeCriticalPriority);
 }
 
@@ -900,8 +900,8 @@ void MainHost::LoadSetupFile(const QString &filename)
     QString name = filename;
 
     if(name.isEmpty()) {
-        QString lastDir = GetSetting("lastSetupDir").toString();
-        name = QFileDialog::getOpenFileName(mainWindow, tr("Open a Setup file"), lastDir, tr("Setup Files (*.%1)").arg(SETUP_FILE_EXTENSION));
+        mainWindow->OpenFileDialog(tr("Open a Setup file"),GetSetting("lastSetupDir").toString(),tr("Setup Files (*.%1)").arg(SETUP_FILE_EXTENSION));
+        name = mainWindow->GetLastSelectedFile();
     }
 
     if(name.isEmpty())
@@ -927,8 +927,8 @@ void MainHost::LoadProjectFile(const QString &filename)
     QString name = filename;
 
     if(name.isEmpty()) {
-        QString lastDir = GetSetting("lastProjectDir").toString();
-        name = QFileDialog::getOpenFileName(mainWindow, tr("Open a Project file"), lastDir, tr("Project Files (*.%1)").arg(PROJECT_FILE_EXTENSION));
+        mainWindow->OpenFileDialog(tr("Open a Project file"),GetSetting("lastProjectDir").toString(),tr("Project Files (*.%1)").arg(PROJECT_FILE_EXTENSION));
+        name = mainWindow->GetLastSelectedFile();
     }
 
     if(name.isEmpty())
@@ -1009,8 +1009,11 @@ void MainHost::SaveSetupFile(bool saveAs)
     QString filename;
 
     if(currentSetupFile.isEmpty() || saveAs) {
-        QString lastDir = GetSetting("lastSetupDir").toString();
-        filename = QFileDialog::getSaveFileName(mainWindow, tr("Save Setup"), lastDir, tr("Setup Files (*.%1)").arg(SETUP_FILE_EXTENSION));
+        if(!mainWindow)
+            return;
+
+        mainWindow->SaveFileDialog(tr("Save Setup"),GetSetting("lastSetupDir").toString(),tr("Setup Files (*.%1)").arg(SETUP_FILE_EXTENSION));
+        filename = mainWindow->GetLastSelectedFile();
 
         if(filename.isEmpty())
             return;
@@ -1036,8 +1039,11 @@ void MainHost::SaveProjectFile(bool saveAs)
     QString filename;
 
     if(currentProjectFile.isEmpty() || saveAs) {
-        QString lastDir = GetSetting("lastProjectDir").toString();
-        filename = QFileDialog::getSaveFileName(mainWindow, tr("Save Project"), lastDir, tr("Project Files (*.%1)").arg(PROJECT_FILE_EXTENSION));
+        if(!mainWindow)
+            return;
+
+        mainWindow->SaveFileDialog(tr("Save Project"),GetSetting("lastProjectDir").toString(),tr("Project Files (*.%1)").arg(PROJECT_FILE_EXTENSION));
+        filename = mainWindow->GetLastSelectedFile();
 
         if(filename.isEmpty())
             return;

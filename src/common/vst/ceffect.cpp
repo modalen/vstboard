@@ -23,7 +23,7 @@
 #include "mainhost.h"
 #include "vstbank.h"
 #include "vstprogram.h"
-
+#include "mainwindow.h"
 
 using namespace vst;
 
@@ -35,7 +35,7 @@ using namespace vst;
 /* CEffect : constructor                                                     */
 /*****************************************************************************/
 
-CEffect::CEffect() :
+CEffect::CEffect(MainHost *mainHost) :
     pEffect(0),
     bEditOpen(false),
     bNeedIdle(false),
@@ -43,7 +43,8 @@ CEffect::CEffect() :
     bWantMidi(false),
     bInSetProgram(false),
     pMasterEffect(0),
-    pluginLib(0)
+    pluginLib(0),
+    mainHost(mainHost)
     {
     sName.clear();
 }
@@ -144,11 +145,10 @@ bool CEffect::LoadBank(std::string *name)
 
         if (pEffect->uniqueID != bank.GetFxID()) {
             LOG("LoadBank ID doesn't match");
-            QMessageBox msgBox;
-            msgBox.setText( QObject::tr("Wrong plugin ID.") );
-            msgBox.setInformativeText( QObject::tr("Bank file not designed for that plugin") );
-            msgBox.setIcon(QMessageBox::Critical);
-            msgBox.exec();
+            mainHost->mainWindow->DisplayMessage(QMessageBox::Critical,
+                                               QObject::tr("Wrong plugin ID."),
+                                               QObject::tr("Bank file not designed for that plugin")
+                                               );
             return false;
           }
 
@@ -238,11 +238,10 @@ bool CEffect::LoadProgram(std::string *name)
 
         if (pEffect->uniqueID != progFile.GetFxID()) {
             LOG("LoadPreset ID doesn't match");
-            QMessageBox msgBox;
-            msgBox.setText( QObject::tr("Wrong plugin ID.") );
-            msgBox.setInformativeText( QObject::tr("Program file not designed for that plugin") );
-            msgBox.setIcon(QMessageBox::Critical);
-            msgBox.exec();
+            mainHost->mainWindow->DisplayMessage(QMessageBox::Critical,
+                                               QObject::tr("Wrong plugin ID."),
+                                               QObject::tr("Program file not designed for that plugin")
+                                               );
             return false;
         }
 

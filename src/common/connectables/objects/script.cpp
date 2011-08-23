@@ -46,10 +46,6 @@ Script::Script(MainHost *host, MetaInfo &info) :
     listEditorVisible << "show";
     listParameterPinIn->AddPin(FixedPinNumber::editorVisible);
 
-    connect(this, SIGNAL(_dspMsg(QString,QString)),
-            this, SLOT(DspMsg(QString,QString)),
-            Qt::QueuedConnection);
-
     QMetaObject::invokeMethod(myHost->mainWindow,"CreateNewScriptEditor",
                                Qt::BlockingQueuedConnection,
                                Q_ARG(QObject*, this));
@@ -107,8 +103,7 @@ render: function(obj) {\n\
     QScriptSyntaxCheckResult chk = myHost->scriptEngine->checkSyntax(scriptText);
     if(chk.state()!=QScriptSyntaxCheckResult::Valid) {
         comiledScript="";
-        DspMsg(tr("Script syntax error"),
-               tr("line %1\n%2").arg(chk.errorLineNumber()).arg(chk.errorMessage()));
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("Script syntax error"), tr("line %1\n%2").arg(chk.errorLineNumber()).arg(chk.errorMessage()));
         return true;
     }
 
@@ -121,8 +116,7 @@ render: function(obj) {\n\
     if(myHost->scriptEngine->hasUncaughtException()) {
         comiledScript="";
         int line = myHost->scriptEngine->uncaughtExceptionLineNumber();
-        DspMsg(tr("Script exception"),
-               tr("line %1\n%2").arg(line).arg(objScript.toString()));
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("Script exception"), tr("line %1\n%2").arg(line).arg(objScript.toString()));
         return true;
     }
 
@@ -133,8 +127,7 @@ render: function(obj) {\n\
     if(myHost->scriptEngine->hasUncaughtException()) {
         comiledScript="";
         int line = myHost->scriptEngine->uncaughtExceptionLineNumber();
-        DspMsg(tr("Script exception"),
-               tr("line %1\n%2").arg(line).arg(result.toString()));
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("Script exception"), tr("line %1\n%2").arg(line).arg(result.toString()));
         return true;
     }
 
@@ -182,10 +175,7 @@ void Script::Render()
             comiledScript="";
 
             int line = myHost->scriptEngine->uncaughtExceptionLineNumber();
-            emit _dspMsg(
-                tr("Script exception"),
-                tr("line %1\n%2").arg(line).arg(result.toString())
-            );
+            myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("Script exception"), tr("line %1\n%2").arg(line).arg(result.toString()));
         }
     }
 
@@ -199,19 +189,7 @@ void Script::Render()
 
 void Script::alert(const QString &str)
 {
-    emit _dspMsg(objectName(),str);
-}
-
-void Script::DspMsg(const QString &title, const QString &str)
-{
-    QMetaObject::invokeMethod(myHost->mainWindow,"DisplayMessage",
-            Qt::BlockingQueuedConnection,
-            Q_ARG(QMessageBox::Icon, QMessageBox::Critical),
-            Q_ARG(QString, title),
-            Q_ARG(QString, str),
-            Q_ARG(QMessageBox::StandardButtons, QMessageBox::Ok),
-            Q_ARG(QMessageBox::StandardButton, QMessageBox::Ok)
-        );
+    myHost->mainWindow->DisplayMessage(QMessageBox::Critical,objectName(),str);
 }
 
 void Script::ReplaceScript(const QString &str)

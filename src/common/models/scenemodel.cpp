@@ -170,11 +170,11 @@ bool SceneModel::dropMime ( const QMimeData * data, MetaInfo & senderInfo, QPoin
             QString fName = url.toLocalFile();
             MetaInfo info;
             if(!dropFile(fName, info, senderInfo)) {
-                QMessageBox msg(QMessageBox::Information,
+                myHost->mainWindow->DisplayMessage(
+                            QMessageBox::Information,
                             tr("File not accepted"),
                             tr("The object %1 cannot load %2").arg(senderInfo.Name().arg(fName))
                             );
-                msg.exec();
                 continue;
             }
 

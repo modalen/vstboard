@@ -28,8 +28,7 @@ bool ProjectFile::SaveToProjectFile(MainHost *myHost,QString filePath)
 {
     QFile file(filePath);
     if(!file.open(QIODevice::WriteOnly)) {
-        QMessageBox msgBox(QMessageBox::Critical, "", tr("Unable to open %1").arg(filePath) );
-        msgBox.exec();
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("Unable to open %1").arg(filePath));
         return false;
     }
     QDataStream out(&file);
@@ -40,8 +39,7 @@ bool ProjectFile::SaveToSetupFile(MainHost *myHost,QString filePath)
 {
     QFile file(filePath);
     if(!file.open(QIODevice::WriteOnly)) {
-        QMessageBox msgBox(QMessageBox::Critical, "", tr("Unable to open %1").arg(filePath) );
-        msgBox.exec();
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("Unable to open %1").arg(filePath));
         return false;
     }
     QDataStream out(&file);
@@ -52,8 +50,7 @@ bool ProjectFile::LoadFromFile(MainHost *myHost,QString filePath)
 {
     QFile file(filePath);
     if(!file.open(QIODevice::ReadOnly)) {
-        QMessageBox msgBox(QMessageBox::Critical, "",tr("Unable to open %1").arg(filePath));
-        msgBox.exec();
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("Unable to open %1").arg(filePath));
         return false;
     }
 
@@ -164,15 +161,13 @@ bool ProjectFile::FromStream(MainHost *myHost,QDataStream &in)
     quint32 magic;
     in >> magic;
     if(magic != PROJECT_FILE_KEY && magic != SETUP_FILE_KEY && magic != SETUPANDPROJECT_FILE_KEY) {
-        QMessageBox msgBox(QMessageBox::Critical, "", tr("Unknown file format. This file can't be loaded"));
-        msgBox.exec();
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical,"",tr("Unknown file format. This file can't be loaded"));
         return false;
     }
 
     in >> MainHost::currentFileVersion;
     if(MainHost::currentFileVersion != PROJECT_AND_SETUP_FILE_VERSION) {
-        QMessageBox msgBox(QMessageBox::Critical, "", tr("File format v%1 can't be converted to the current file format v%2").arg(MainHost::currentFileVersion).arg(PROJECT_AND_SETUP_FILE_VERSION) );
-        msgBox.exec();
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical,"",tr("File format v%1 can't be converted to the current file format v%2").arg(MainHost::currentFileVersion).arg(PROJECT_AND_SETUP_FILE_VERSION));
         return false;
     }
 
@@ -263,8 +258,7 @@ bool ProjectFile::FromStream(MainHost *myHost,QDataStream &in)
             myHost->objFactory->ResetSavedId();
             myHost->renderer->SetEnabled(true);
             myHost->EnableSolverUpdate(true);
-            QMessageBox msg(QMessageBox::Warning, "", tr("The file is corrupted and cannot be loaded"), QMessageBox::Ok );
-            msg.exec();
+            myHost->mainWindow->DisplayMessage(QMessageBox::Critical,"",tr("The file is corrupted and cannot be loaded"));
             return false;
         }
     }
@@ -273,10 +267,8 @@ bool ProjectFile::FromStream(MainHost *myHost,QDataStream &in)
     myHost->renderer->SetEnabled(true);
     myHost->EnableSolverUpdate(true);
 
-    if(in.status()!=QDataStream::Ok) {
-        QMessageBox msg(QMessageBox::Warning, "", tr("The file is corrupted and cannot be fully loaded"), QMessageBox::Ok );
-        msg.exec();
-    }
+    if(in.status()!=QDataStream::Ok)
+        myHost->mainWindow->DisplayMessage(QMessageBox::Warning,tr("The file is corrupted and cannot be fully loaded"));
 
     return true;
 }
