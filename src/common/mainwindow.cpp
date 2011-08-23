@@ -102,30 +102,42 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
 
 void MainWindow::Init()
 {
-
-
-
-
     //programs
-//    myHost->programsModel = new ProgramsModel(myHost);
     ui->Programs->SetModel( myHost->programsModel );
     myHost->programsModel->UserChangeProg(0);
 
+    //solver model
+    connect(ui->solverView,SIGNAL(clicked(QModelIndex)),
+            myHost->GetRenderer(),SLOT(Optimize()));
 
+    QStandardItemModel *m = new QStandardItemModel(this);
+    ui->solverView->setModel(m);
+    myHost->GetRenderer()->SetModel(m);
 
-//    mySceneView->setModel(hostModel);
+    connect(myHost->GetRenderer(), SIGNAL(ModelUpdated()),
+            this, SLOT(UpdateRenderModel()));
 
-//    ui->solverView->setModel(myHost->GetRendererModel());
-//    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-//            ui->solverView, SLOT(resizeColumnsToContents()));
-//    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-//            ui->solverView, SLOT(resizeRowsToContents()));
+//    QTimer *solverModelTimer = new QTimer(this);
+//    connect(solverModelTimer, SIGNAL(timeout()),
+//            myHost->GetRenderer(), SLOT(UpdateView()));
+//    updateViewTimer.start(500);
 
+    connect(m, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+            ui->solverView, SLOT(resizeColumnsToContents()));
+    connect(m, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+            ui->solverView, SLOT(resizeRowsToContents()));
+
+    //colors
     setPalette( viewConfig->GetPaletteFromColorGroup( ColorGroups::Window, palette() ));
     connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
              myHost->programsModel, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
     connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
              this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)));
+}
+
+void MainWindow::UpdateRenderModel()
+{
+    myHost->GetRenderer()->UpdateView();
 }
 
 void MainWindow::SetupBrowsersModels(const QString &vstPath, const QString &browserPath)
@@ -546,11 +558,6 @@ void MainWindow::groupParkingModelChanges(QStandardItemModel *model)
 void MainWindow::on_actionRestore_default_layout_triggered()
 {
     resetSettings();
-}
-
-void MainWindow::on_solverView_clicked(const QModelIndex &index)
-{
-    myHost->OptimizeRenderer();
 }
 
 void MainWindow::on_actionAppearance_toggled(bool arg1)

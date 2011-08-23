@@ -7,9 +7,9 @@ class OptimizeStepThread
 public:
     OptimizeStepThread();
     OptimizeStepThread(const OptimizeStepThread &th);
-    bool GetMergedNode(RendererNode **node);
-//    void AddToModel(QStandardItemModel *model, int row, int col);
-//    void UpdateView( QStandardItemModel *model );
+    bool GetMergedNode(RendererNode **node) const;
+    void AddToModel(QStandardItemModel *model, int row, int col) const;
+    void UpdateView( QStandardItemModel *model ) const;
 
     QList<RendererNode*>listOfNodes;
     long cpuTime;

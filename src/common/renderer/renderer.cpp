@@ -36,7 +36,8 @@ Renderer::Renderer(MainHost *myHost)
       nextOptimize(0),
 //      needBuildModel(false),
       sem(0),
-      myHost(myHost)
+      myHost(myHost),
+      model(0)
 {
     SET_MUTEX_NAME(mutexNodes,"mutexNodes renderer");
     SET_MUTEX_NAME(mutexOptimize,"mutexOptimize renderer");
@@ -45,41 +46,31 @@ Renderer::Renderer(MainHost *myHost)
 
     maxNumberOfThreads = ConfigDialog::defaultNumberOfThreads(myHost);
     InitThreads();
-
-//    connect(&updateViewTimer, SIGNAL(timeout()),
-//            this, SLOT(UpdateView()));
-//    updateViewTimer.start(500);
 }
 
 Renderer::~Renderer()
 {
-//    updateViewTimer.stop();
     Clear();
 }
 
-//void Renderer::UpdateView()
-//{
-//    if(!mutex.tryLockForRead())
-//        return;
+void Renderer::UpdateView()
+{
+    if(!model)
+        return;
 
-//    if(needBuildModel) {
-//        needBuildModel=false;
-//        optimizer.BuildModel( &model );
-//        optimizer.UpdateView( &model );
-//    }
+    if(!rwlock.tryLockForRead())
+        return;
 
-//    int i = 0;
-//    foreach(RenderThread *th, listOfThreads) {
-//        model.setHorizontalHeaderItem(i, new QStandardItem( QString("%1 (cpu:%2)").arg(i).arg(th->currentCpu) ));
-//        ++i;
-//    }
-//    mutex.unlock();
-//}
+    optimizer.BuildModel( model );
+    optimizer.UpdateView( model );
 
-//QStandardItemModel * Renderer::GetModel()
-//{
-//    return &model;
-//}
+    int i = 0;
+    foreach(RenderThread *th, listOfThreads) {
+        model->setHorizontalHeaderItem(i, new QStandardItem( QString("%1 (cpu:%2)").arg(i).arg(th->currentCpu) ));
+        ++i;
+    }
+    rwlock.unlock();
+}
 
 void Renderer::Clear()
 {
@@ -94,7 +85,6 @@ void Renderer::Clear()
 
 void Renderer::SetNbThreads(int nbThreads)
 {
-//    Clear();
     if(nbThreads<=0) nbThreads = 2;
 
     rwlock.lockForWrite();
@@ -128,7 +118,7 @@ void Renderer::LoadNodes(const QList<RendererNode*> & listNodes)
     mutexOptimize.unlock();
 }
 
-QList<RendererNode*> Renderer::SaveNodes()
+const QList<RendererNode*> Renderer::SaveNodes() const
 {
     QMutexLocker l(&mutexNodes);
     return optimizer.GetListOfNodes();
@@ -175,7 +165,6 @@ void Renderer::StartRender()
         newNodes=false;
         mutexNodes.unlock();
         GetStepsFromOptimizer();
-//        needBuildModel=true;
     } else {
         mutexNodes.unlock();
     }
@@ -192,7 +181,6 @@ void Renderer::StartRender()
         optimizer.NewListOfNodes( tmpListOfNodes );
         optimizer.Optimize();
         GetStepsFromOptimizer();
-//        needBuildModel=true;
     } else {
         mutexOptimize.unlock();
     }
@@ -279,7 +267,7 @@ void Renderer::GetStepsFromOptimizer()
     numberOfThreads = maxNumberOfThreads;
 
     for(int th=0; th<maxNumberOfThreads; th++) {
-        QMap<int, RendererNode* >lst = optimizer.GetThreadNodes(th);
+        const QMap<int, RendererNode* >lst = optimizer.GetThreadNodes(th);
 
         RenderThread *thread = listOfThreads.value(th);
         thread->SetListOfSteps( lst );
@@ -291,6 +279,8 @@ void Renderer::GetStepsFromOptimizer()
             }
         }
     }
+
+    emit ModelUpdated();
 }
 
 void Renderer::InitThreads()

@@ -12,18 +12,19 @@ public:
     void SetNbThreads(int nb);
     void NewListOfNodes(const QList<RendererNode*> & listNodes);
     void Optimize();
-    OptimizerStep* GetStep(int step);
+    const OptimizerStep* GetStep(int step) const;
     void SetStep(int step, OptimizerStep* s);
-    QMap<int, RendererNode* > GetThreadNodes(int thread);
-    QList<RendererNode*> GetListOfNodes();
-//    void BuildModel( QStandardItemModel *model);
-//    void UpdateView( QStandardItemModel *model );
+    const QMap<int, RendererNode* > GetThreadNodes(int thread) const;
+    const QList<RendererNode*> GetListOfNodes() const;
+
+    void BuildModel( QStandardItemModel *model );
+    void UpdateView( QStandardItemModel *model );
 
 protected:
     void Clear();
     QMap<int,OptimizerStep*>listOfSteps;
     int nbThreads;
-    DMutex mutex;
+    mutable DMutex mutex;
 };
 
 #endif // OPTIMIZER_H

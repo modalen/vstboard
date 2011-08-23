@@ -40,13 +40,11 @@ public:
     void SetNbThreads(int nbThreads);
     void SetEnabled(bool enabled) {stop=!enabled;}
     void OnNewRenderingOrder(const QList<SolverNode*> & listNodes);
-//    QStandardItemModel * GetModel();
-    Optimizer * GetOptimizer() { return &optimizer; }
 
+    QStandardItemModel * GetModel() const {return model;}
+    void SetModel(QStandardItemModel *m) {model=m;}
     void LoadNodes(const QList<RendererNode*> & listNodes);
-    QList<RendererNode*> SaveNodes();
-
-//    QStandardItemModel model;
+    const QList<RendererNode*> SaveNodes() const;
 
 protected:
     void InitThreads();
@@ -57,24 +55,27 @@ protected:
     int numberOfThreads;
     int numberOfSteps;
     bool stop;
-
-    DMutex mutexNodes;
     bool newNodes;
-    DMutex mutexOptimize;
     bool needOptimize;
     int nextOptimize;
-//    bool needBuildModel;
     QList<RenderThread*>listOfThreads;
-    DReadWriteLock rwlock;
-    DSemaphore sem;
     MainHost *myHost;
-//    QTimer updateViewTimer;
     Optimizer optimizer;
+
+    mutable DReadWriteLock rwlock;
+    mutable DSemaphore sem;
+    mutable DMutex mutexNodes;
+    mutable DMutex mutexOptimize;
+
+    QStandardItemModel *model;
+
+signals:
+    void ModelUpdated();
 
 public slots:
 
     void StartRender();
-//    void UpdateView();
+    void UpdateView();
     void Optimize();
 
 friend class RenderThread;

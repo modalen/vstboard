@@ -132,7 +132,7 @@ void RendererNode::UpdateModel(QStandardItemModel *model)
     if(!modelNeedUpdate || !modelIndex.isValid())
         return;
 
-    modelNeedUpdate=false;
+//    modelNeedUpdate=false;
 
     QString str = QString("[%1:%2][%3:%4](%5)")
                     .arg(minRenderOrder)

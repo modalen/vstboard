@@ -76,7 +76,7 @@ void Optimizer::NewListOfNodes(const QList<RendererNode*> & listNodes)
     mutex.unlock();
 }
 
-OptimizerStep* Optimizer::GetStep(int step)
+const OptimizerStep* Optimizer::GetStep(int step) const
 {
     return listOfSteps.value(step,0);
 }
@@ -103,13 +103,13 @@ void Optimizer::Optimize()
     mutex.unlock();
 }
 
-QMap<int, RendererNode* > Optimizer::GetThreadNodes(int thread)
+const QMap<int, RendererNode* > Optimizer::GetThreadNodes(int thread) const
 {
     mutex.lock();
     QMap<int, RendererNode* >lstSteps;
 
-    QMap<int,OptimizerStep*>::iterator i = listOfSteps.begin();
-    while(i!=listOfSteps.end()) {
+    QMap<int,OptimizerStep*>::const_iterator i = listOfSteps.constBegin();
+    while(i!=listOfSteps.constEnd()) {
         OptimizerStep* step = i.value();
         RendererNode *node=0;
         if( step->GetMergedNode(thread, &node) )
@@ -120,12 +120,12 @@ QMap<int, RendererNode* > Optimizer::GetThreadNodes(int thread)
     return lstSteps;
 }
 
-QList<RendererNode*> Optimizer::GetListOfNodes()
+const QList<RendererNode*> Optimizer::GetListOfNodes() const
 {
     mutex.lock();
     QList<RendererNode*>newList;
-    QMap<int,OptimizerStep*>::iterator i = listOfSteps.begin();
-    while(i!=listOfSteps.end()) {
+    QMap<int,OptimizerStep*>::const_iterator i = listOfSteps.constBegin();
+    while(i!=listOfSteps.constEnd()) {
         OptimizerStep* step = i.value();
         newList << step->GetListOfNodes();
         ++i;
@@ -134,29 +134,29 @@ QList<RendererNode*> Optimizer::GetListOfNodes()
     return newList;
 }
 
-//void Optimizer::BuildModel( QStandardItemModel *model )
-//{
-//    mutex.lock();
-//    model->clear();
+void Optimizer::BuildModel( QStandardItemModel *model )
+{
+    mutex.lock();
+    model->clear();
 
-//    QMap<int,OptimizerStep*>::iterator i = listOfSteps.begin();
-//    while(i!=listOfSteps.end()) {
-//        OptimizerStep* s = i.value();
-//        s->AddToModel( model );
-//        ++i;
-//    }
-//    mutex.unlock();
-//}
+    QMap<int,OptimizerStep*>::iterator i = listOfSteps.begin();
+    while(i!=listOfSteps.end()) {
+        OptimizerStep* s = i.value();
+        s->AddToModel( model );
+        ++i;
+    }
+    mutex.unlock();
+}
 
-//void Optimizer::UpdateView( QStandardItemModel *model )
-//{
-//    mutex.lock();
-//    QMap<int,OptimizerStep*>::iterator i = listOfSteps.begin();
-//    while(i!=listOfSteps.end()) {
-//        OptimizerStep* s = i.value();
-//        s->UpdateView( model );
-//        ++i;
-//    }
-//    mutex.unlock();
-//}
+void Optimizer::UpdateView( QStandardItemModel *model )
+{
+    mutex.lock();
+    QMap<int,OptimizerStep*>::iterator i = listOfSteps.begin();
+    while(i!=listOfSteps.end()) {
+        OptimizerStep* s = i.value();
+        s->UpdateView( model );
+        ++i;
+    }
+    mutex.unlock();
+}
 

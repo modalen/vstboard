@@ -69,9 +69,6 @@ public:
     void GetTempo(int &tempo, int &sign1, int &sign2);
     void SetTimeInfo(const VstTimeInfo *info);
 
-//    QStandardItemModel *GetRendererModel() { return renderer->GetModel(); }
-
-    void OptimizeRenderer() { if(renderer) renderer->Optimize(); }
     Renderer * GetRenderer() { return renderer; }
 
     void OnCableAdded(Connectables::Cable *cab);
@@ -101,10 +98,6 @@ public:
 
     QTimer *updateViewTimer;
 
-//    HostModel * GetModel() {return model;}
-//    void SetModel(HostModel *m) {
-//        model=m;
-//    }
     ProgramsModel *programsModel;
     Connectables::ObjectFactory *objFactory;
     MainWindow *mainWindow;
