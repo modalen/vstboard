@@ -71,6 +71,9 @@ AudioDevices::AudioDevices(MainHostHost *myHost) :
     myHost(myHost),
     fakeRenderTimer(0)
 {
+    SET_MUTEX_NAME(mutexDevices,"mutexDevices audiodevices");
+    SET_MUTEX_NAME(mutexClosing,"mutexClosing audiodevices");
+
     fakeRenderTimer = new FakeTimer(myHost);
     Init();
 }

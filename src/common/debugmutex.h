@@ -18,13 +18,19 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-#ifndef MUTEXDEBUG_H
-#define MUTEXDEBUG_H
+#ifndef DEBUGMUTEX_H
+#define DEBUGMUTEX_H
 
-#ifndef QT_NO_DEBUG
+#ifndef DEBUG_MUTEX
+    #define DMutex QMutex
+    #define SET_MUTEX_NAME(MUT,NAME);
+#else
 
+#include <QDebug>
 #include "precomp.h"
 #define DMutex DebugMutex
+#define SET_MUTEX_NAME(MUT,NAME); MUT.name=NAME;
+
 
 class DebugMutex : public QMutex
 {
@@ -32,12 +38,26 @@ public:
     DebugMutex(RecursionMode mode = NonRecursive) :
         QMutex(mode),
         countUsage(0),
-        countLocked(0)
-    {}
+        countLocked(0),
+        countLockedTime(0),
+        maxLockedTime(0)
+    {
+        name=QString("%1").arg((long)this,16);
+    }
 
     ~DebugMutex()
     {
-        LOGSIMPLE("mutex usage : "<<countUsage<<" locks"<<countLocked);
+#ifdef DEUBG_MUTEX_REPORT_UNUSED
+        if(countUsage==0) {
+            qDebug()<<name<<"unused mutex";
+        }
+#endif
+        if(countUsage!=0) {
+            qDebug()<<name<<"mutex usage:"<<countUsage
+                      <<"locks:"<<countLocked
+                      <<"time locked:"<<countLockedTime
+                      <<"maxTimeLock:"<<maxLockedTime;
+        }
     }
 
     void lock()
@@ -46,8 +66,15 @@ public:
 
         if(!QMutex::tryLock()) {
             ++countLocked;
-            LOGSIMPLE("wait lock");
+            qDebug()<<name<<"wait locked";
+
+            elapsed.restart();
             QMutex::lock();
+            qint64 t = elapsed.elapsed();
+
+            countLockedTime+=t;
+            if(t>maxLockedTime)
+                maxLockedTime=t;
         }
     }
 
@@ -57,7 +84,7 @@ public:
 
         if(!QMutex::tryLock()) {
             ++countLocked;
-            LOGSIMPLE("trylock failed");
+            qDebug()<<name<<"trylock failed";
             return false;
         }
         return true;
@@ -67,16 +94,28 @@ public:
     {
         ++countUsage;
 
-        if(!QMutex::tryLock()) {
-            ++countLocked;
-            LOGSIMPLE("trylock failed");
+        if(QMutex::tryLock()) {
+            return true;
         }
 
-        if(!QMutex::tryLock(timeout)) {
-            LOGSIMPLE("trylock timeout"<<timeout);
-            return false;
+        ++countLocked;
+        qDebug()<<name<<"trylock locked";
+
+
+        elapsed.restart();
+        bool res=QMutex::tryLock(timeout);
+        qint64 t = elapsed.elapsed();
+
+        countLockedTime+=t;
+
+        if(!res) {
+            qDebug()<<name<<"trylock timeout"<<timeout<<t;
+        } else {
+            if(t>maxLockedTime)
+                maxLockedTime=t;
         }
-        return true;
+
+        return res;
     }
 
     void unlock()
@@ -84,15 +123,18 @@ public:
         QMutex::unlock();
     }
 
+    QString name;
+
 private:
     Q_DISABLE_COPY(DebugMutex)
 
     int countUsage;
     int countLocked;
+    qint64 countLockedTime;
+    qint64 maxLockedTime;
+    QElapsedTimer elapsed;
 };
 
-#else
-    #define DMutex QMutex
 #endif
 
-#endif // MUTEXDEBUG_H
+#endif // DEBUGMUTEX_H

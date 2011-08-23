@@ -51,6 +51,7 @@ MetaInfo::MetaInfo() :
     parentObjectId(0),
     transporter(0)
 {
+    SET_MUTEX_NAME(mutexListInfos,"mutexListInfos");
 }
 
 MetaInfo::MetaInfo(const MetaInfo &c)
@@ -67,6 +68,7 @@ MetaInfo::MetaInfo(const MetaTypes::Enum type) :
     parentObjectId(0),
     transporter(0)
 {
+    SET_MUTEX_NAME(mutexListInfos,"mutexListInfos");
 }
 
 MetaInfo::MetaInfo(const QByteArray &b)

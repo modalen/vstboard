@@ -24,7 +24,7 @@
 #include "precomp.h"
 //#include "globals.h"
 //#include "models/scenemodel.h"
-#include "mutexdebug.h"
+#include "debugmutex.h"
 
 namespace MetaTypes {
     enum Enum {
@@ -218,6 +218,7 @@ class MetaInfo
         if(name.isEmpty())
             return;
         objName = name;
+        SET_MUTEX_NAME(mutexListInfos,"mutexListInfos "+name);
     }
     inline const QString & Name() const {
         return objName;

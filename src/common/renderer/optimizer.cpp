@@ -24,6 +24,7 @@
 Optimizer::Optimizer() :
     nbThreads(0)
 {
+    SET_MUTEX_NAME(mutex,"mutex optimizer");
 }
 
 Optimizer::~Optimizer()

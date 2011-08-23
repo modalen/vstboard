@@ -1,7 +1,9 @@
 #ifndef RENDERTHREAD_H
 #define RENDERTHREAD_H
 
-#include "mutexdebug.h"
+#include "debugmutex.h"
+#include "debugsemaphore.h"
+#include "debugreadwritelock.h"
 
 class Renderer;
 class RendererNode;
@@ -26,9 +28,9 @@ protected:
 
     QMap<int, RendererNode* > listOfSteps;
     Renderer *renderer;
-    QReadWriteLock mutex;
+    DReadWriteLock rwlock;
 
-    QSemaphore sem;
+    DSemaphore sem;
     int step;
     bool stop;
 

@@ -51,6 +51,8 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
 {
     SetType(MetaTypes::object);
 
+    SET_MUTEX_NAME(objMutex,"objMutex"+Name())
+
     connect(this, SIGNAL(UndoStackPush(QUndoCommand*)),
             myHost, SLOT(UndoStackPush(QUndoCommand*)));
 

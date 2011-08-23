@@ -31,6 +31,9 @@ RenderThread::RenderThread(Renderer *renderer, int cpu, const QString &name)
       currentNode(0)
 {
     setObjectName(name);
+    SET_MUTEX_NAME(mutexRender,"mutexRender "+name);
+    SET_READWRITELOCK_NAME(rwlock,"rwlock "+name);
+    SET_SEMAPHORE_NAME(sem,"sem "+name);
 }
 
 RenderThread::~RenderThread()
@@ -60,7 +63,7 @@ void RenderThread::RenderStep(int step)
 {
     //new loop : reset the nodes
     if(step==-1) {
-        mutex.lockForRead();
+        rwlock.lockForRead();
 
         //reset counters
         QMap<int, RendererNode* >::iterator i = listOfSteps.begin();
@@ -71,7 +74,7 @@ void RenderThread::RenderStep(int step)
             }
             ++i;
         }
-        mutex.unlock();
+        rwlock.unlock();
         renderer->sem.release();
         return;
     }
@@ -128,10 +131,10 @@ void RenderThread::ResetSteps()
 
 void RenderThread::SetListOfSteps( const QMap<int, RendererNode* > &lst )
 {
-    mutex.lockForWrite();
+    rwlock.lockForWrite();
     ResetSteps();
     listOfSteps = lst;
-    mutex.unlock();
+    rwlock.unlock();
 }
 
 void RenderThread::StartRenderStep( int s )
@@ -142,7 +145,7 @@ void RenderThread::StartRenderStep( int s )
 
 QList<RendererNode*> RenderThread::GetListOfNodes()
 {
-    mutex.lockForRead();
+    rwlock.lockForRead();
     QList<RendererNode*> tmpList;
 
     foreach(RendererNode *node, listOfSteps) {
@@ -153,6 +156,6 @@ QList<RendererNode*> RenderThread::GetListOfNodes()
             newNode->ClearMergedNodes();
         }
     }
-    mutex.unlock();
+    rwlock.unlock();
     return tmpList;
 }

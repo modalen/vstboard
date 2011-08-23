@@ -28,6 +28,7 @@ PathSolver::PathSolver(MainHost *parent) :
     QObject(parent),
     myHost(parent)
 {
+    SET_MUTEX_NAME(mutex,"mutex pathsolver");
 }
 
 PathSolver::~PathSolver()

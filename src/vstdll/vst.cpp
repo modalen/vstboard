@@ -51,6 +51,9 @@ Vst::Vst (audioMasterCallback audioMaster, bool asInstrument) :
     setNumInputs (DEFAULT_INPUTS*2);
     setNumOutputs (DEFAULT_OUTPUTS*2);
 
+    SET_MUTEX_NAME(mutexDevices,"mutexDevices vst");
+    SET_MUTEX_NAME(mutexParam,"mutexParam vst");
+
     if(asInstrument)
         setUniqueID (uniqueIDInstrument);
     else

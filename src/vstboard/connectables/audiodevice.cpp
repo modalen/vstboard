@@ -68,6 +68,10 @@ AudioDevice::AudioDevice(PaDeviceInfo &devInfo,MainHostHost *myHost,const MetaIn
     devOutClosing=false;
     setObjectName(objInfo.Name());
 
+    SET_MUTEX_NAME(mutexOpenClose,"mutexOpenClose "+objectName());
+    SET_MUTEX_NAME(mutexDevicesInOut,"mutexDevicesInOut "+objectName());
+    SET_MUTEX_NAME(mutexCountInputDevicesReady,"mutexCountInputDevicesReady AudioDevice");
+
     connect(myHost,SIGNAL(SampleRateChanged(float)),
             this,SLOT(SetSampleRate(float)));
 

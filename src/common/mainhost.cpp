@@ -75,6 +75,10 @@ MainHost::MainHost(QObject *parent, QString settingsGroup) :
 {
     setObjectName("MainHost");
 
+    SET_MUTEX_NAME(mutexRender,"mutexRender mainHost");
+    SET_MUTEX_NAME((*mutexListCables),"mutexListCables mainHost");
+    SET_MUTEX_NAME(mutexSolver,"mutexSolver mainHost");
+
     sampleRate = 44100.0;
     bufferSize = 100;
 

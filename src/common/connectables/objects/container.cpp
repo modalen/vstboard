@@ -48,6 +48,8 @@ Container::Container(MainHost *myHost, MetaInfo &info) :
 {
     SetType(MetaTypes::container);
 
+    SET_MUTEX_NAME(mutexCurrentProg,"mutexCurrentProg"+Name())
+
     parkModel.setObjectName("parkModel"%objectName());
     LoadProgram(TEMP_PROGRAM);
     connect(myHost,SIGNAL(BufferSizeChanged(ulong)),

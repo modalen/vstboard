@@ -2,7 +2,7 @@
 #define OPTIMIZER_H
 
 #include "optimizerstep.h"
-#include "mutexdebug.h"
+#include "debugmutex.h"
 
 class Optimizer
 {

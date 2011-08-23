@@ -45,6 +45,8 @@ VstPlugin::VstPlugin(MainHost *myHost, MetaInfo & info) :
 {
     SetName("VstPlugin");
 
+    SET_MUTEX_NAME(midiEventsMutex,"midiEventsMutex"+Name())
+
     for(int i=0;i<128;i++) {
         listValues << i;
     }

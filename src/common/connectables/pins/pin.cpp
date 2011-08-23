@@ -49,6 +49,8 @@ Pin::Pin(Object *parent, MetaInfo &info) :
     SetType(MetaTypes::pin);
     setObjectName(Name());
 
+    SET_MUTEX_NAME(objMutex,"objMutex"+Name())
+
     if(!Meta(MetaInfos::Hidden).toBool())
         SetVisible(true);
 }

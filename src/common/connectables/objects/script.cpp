@@ -32,6 +32,9 @@ Script::Script(MainHost *host, MetaInfo &info) :
     editorWnd(0)
 {
     SetName("Script");
+
+    SET_MUTEX_NAME(mutexScript,"mutexScript")
+
     setObjectName( QString("objScript%1").arg(ObjId()) );
     objScriptName = objectName();
     objScriptName.append("sc");

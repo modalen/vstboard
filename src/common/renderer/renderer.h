@@ -25,6 +25,8 @@
 #include "connectables/objects/object.h"
 #include "renderthread.h"
 #include "optimizer.h"
+#include "debugsemaphore.h"
+#include "debugreadwritelock.h"
 
 class MainHost;
 class RendererNode;
@@ -63,8 +65,8 @@ protected:
     int nextOptimize;
 //    bool needBuildModel;
     QList<RenderThread*>listOfThreads;
-    QReadWriteLock mutex;
-    QSemaphore sem;
+    DReadWriteLock rwlock;
+    DSemaphore sem;
     MainHost *myHost;
 //    QTimer updateViewTimer;
     Optimizer optimizer;

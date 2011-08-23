@@ -184,7 +184,9 @@ HEADERS += \
     commands/comaddpin.h \
     models/scenemodel.h \
     connectables/mididefines.h \
-    mutexdebug.h
+    debugmutex.h \
+    debugreadwritelock.h \
+    debugsemaphore.h
 
 HEADERS += \
     views/configdialog.h \
@@ -232,40 +234,3 @@ TRANSLATIONS = ../resources/translations/common_fr.ts
 
 RESOURCES += \
     ../resources/resources.qrc
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

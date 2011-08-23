@@ -38,6 +38,11 @@ Renderer::Renderer(MainHost *myHost)
       sem(0),
       myHost(myHost)
 {
+    SET_MUTEX_NAME(mutexNodes,"mutexNodes renderer");
+    SET_MUTEX_NAME(mutexOptimize,"mutexOptimize renderer");
+    SET_READWRITELOCK_NAME(rwlock,"rwlock renderer");
+    SET_SEMAPHORE_NAME(sem,"sem renderer");
+
     maxNumberOfThreads = ConfigDialog::defaultNumberOfThreads(myHost);
     InitThreads();
 
@@ -78,13 +83,13 @@ Renderer::~Renderer()
 
 void Renderer::Clear()
 {
-    mutex.lockForWrite();
+    rwlock.lockForWrite();
     stop=true;
     numberOfThreads=0;
     numberOfSteps=0;
     qDeleteAll(listOfThreads);
     listOfThreads.clear();
-    mutex.unlock();
+    rwlock.unlock();
 }
 
 void Renderer::SetNbThreads(int nbThreads)
@@ -92,12 +97,12 @@ void Renderer::SetNbThreads(int nbThreads)
 //    Clear();
     if(nbThreads<=0) nbThreads = 2;
 
-    mutex.lockForWrite();
+    rwlock.lockForWrite();
     qDeleteAll(listOfThreads);
     listOfThreads.clear();
     maxNumberOfThreads = nbThreads;
     InitThreads();
-    mutex.unlock();
+    rwlock.unlock();
 }
 
 void Renderer::LoadNodes(const QList<RendererNode*> & listNodes)
@@ -155,13 +160,13 @@ void Renderer::OnNewRenderingOrder(const QList<SolverNode*> & listNodes)
 
 void Renderer::StartRender()
 {
-    if(!mutex.tryLockForRead(5)) {
+    if(!rwlock.tryLockForRead(5)) {
         LOG("can't lock renderer");
         return;
     }
 
     if(stop) {
-        mutex.unlock();
+        rwlock.unlock();
         return;
     }
 
@@ -193,7 +198,7 @@ void Renderer::StartRender()
     }
 
     if(numberOfThreads<=0) {
-        mutex.unlock();
+        rwlock.unlock();
         return;
     }
 
@@ -230,7 +235,7 @@ void Renderer::StartRender()
         sem.acquire(sem.available());
     }
 
-    mutex.unlock();
+    rwlock.unlock();
 }
 
 void Renderer::Optimize()
