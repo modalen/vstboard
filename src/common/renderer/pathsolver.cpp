@@ -347,7 +347,7 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListParents( QShared
 
     mapCables::iterator i = listCables.begin();
     while (i != listCables.end()) {
-        QSharedPointer<Connectables::Object> parentPtr = myHost->objFactory->GetObjectFromId(i.key().ObjId());
+        QSharedPointer<Connectables::Object> parentPtr = myHost->objFactory->GetObjectFromId(i.key().ParentObjectId());
         if(!parentPtr.isNull()) {
             if(i.value().ObjId() == objPtr->ObjId()) {
                 if(!listParents.contains(parentPtr)) {
@@ -367,7 +367,7 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListParents( QShared
 //{
 //    hashCables::iterator i = listCables.begin();
 //    while (i != listCables.end()) {
-//        QSharedPointer<Connectables::Object> parentPtr = myHost->objFactory->GetObjectFromId(i.key().objId);
+//        QSharedPointer<Connectables::Object> parentPtr = myHost->objFactory->GetObjectFromId(i.key().ParentObjectId());
 //        if(!parentPtr.isNull()) {
 //            if(i.value().objId == info.objId && i.value().pinNumber == info.pinNumber && i.value().type == info.type) {
 //                if(!listParents.contains(parentPtr)) {
@@ -388,7 +388,7 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListChildren( QShare
 
     mapCables::iterator i = listCables.begin();
     while (i != listCables.end()) {
-        QSharedPointer<Connectables::Object> childPtr = myHost->objFactory->GetObjectFromId(i.value().ObjId());
+        QSharedPointer<Connectables::Object> childPtr = myHost->objFactory->GetObjectFromId(i.value().ParentObjectId());
         if(!childPtr.isNull()) {
             if(i.key().ObjId() == objPtr->ObjId()) {
                 if(!listChildren.contains(childPtr)) {
@@ -408,7 +408,7 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListChildren( QShare
 //{
 //    hashCables::iterator i = listCables.begin();
 //    while (i != listCables.end()) {
-//        QSharedPointer<Connectables::Object> childPtr = myHost->objFactory->GetObjectFromId(i.value().objId);
+//        QSharedPointer<Connectables::Object> childPtr = myHost->objFactory->GetObjectFromId(i.value().ParentObjectId());
 //        if(!childPtr.isNull()) {
 //            if(i.key().objId == info.objId && i.key().pinNumber == info.pinNumber && i.key().type == info.type) {
 //                if(!listChildren.contains(childPtr)) {
