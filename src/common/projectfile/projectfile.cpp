@@ -161,13 +161,13 @@ bool ProjectFile::FromStream(MainHost *myHost,QDataStream &in)
     quint32 magic;
     in >> magic;
     if(magic != PROJECT_FILE_KEY && magic != SETUP_FILE_KEY && magic != SETUPANDPROJECT_FILE_KEY) {
-        myHost->mainWindow->DisplayMessage(QMessageBox::Critical,"",tr("Unknown file format. This file can't be loaded"));
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("Unknown file format. This file can't be loaded"));
         return false;
     }
 
     in >> MainHost::currentFileVersion;
     if(MainHost::currentFileVersion != PROJECT_AND_SETUP_FILE_VERSION) {
-        myHost->mainWindow->DisplayMessage(QMessageBox::Critical,"",tr("File format v%1 can't be converted to the current file format v%2").arg(MainHost::currentFileVersion).arg(PROJECT_AND_SETUP_FILE_VERSION));
+        myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("File format v%1 can't be converted to the current file format v%2").arg(MainHost::currentFileVersion).arg(PROJECT_AND_SETUP_FILE_VERSION));
         return false;
     }
 
@@ -258,7 +258,7 @@ bool ProjectFile::FromStream(MainHost *myHost,QDataStream &in)
             myHost->objFactory->ResetSavedId();
             myHost->renderer->SetEnabled(true);
             myHost->EnableSolverUpdate(true);
-            myHost->mainWindow->DisplayMessage(QMessageBox::Critical,"",tr("The file is corrupted and cannot be loaded"));
+            myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("The file is corrupted and cannot be loaded"));
             return false;
         }
     }

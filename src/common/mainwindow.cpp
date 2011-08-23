@@ -128,18 +128,6 @@ void MainWindow::Init()
              this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)));
 }
 
-void MainWindow::CreateNewPluginWindow(QObject* obj)
-{
-    View::VstPluginWindow *editorWnd = new View::VstPluginWindow(this);
-    if(!editorWnd->SetPlugin(obj))
-        editorWnd->close();
-}
-void MainWindow::CreateNewScriptEditor(QObject* obj)
-{
-    View::ScriptEditor *editorWnd = new View::ScriptEditor(this);
-    static_cast<Connectables::Object*>(obj)->SetEditorWnd(editorWnd);
-}
-
 void MainWindow::SetupBrowsersModels(const QString &vstPath, const QString &browserPath)
 {
 #if !defined(__GNUC__)
@@ -668,4 +656,38 @@ void MainWindow::SaveFileDialogAsync(const QString title, const QString dir, con
 void MainWindow::OpenFileDialogAsync(const QString title, const QString dir, const QString fType)
 {
     lastFileSelected = QFileDialog::getOpenFileName(this, title, dir, fType);
+}
+
+void MainWindow::CreateNewPluginWindow(QObject* obj)
+{
+    if(thread()!=QThread::currentThread()) {
+        QMetaObject::invokeMethod(this, "CreateNewPluginWindowAsync",
+              Qt::BlockingQueuedConnection,
+              Q_ARG(QObject*, obj));
+    } else {
+        CreateNewPluginWindowAsync(obj);
+    }
+}
+
+void MainWindow::CreateNewScriptEditor(QObject* obj)
+{
+    if(thread()!=QThread::currentThread()) {
+        QMetaObject::invokeMethod(this, "CreateNewScriptEditorAsync",
+              Qt::BlockingQueuedConnection,
+              Q_ARG(QObject*, obj));
+    } else {
+        CreateNewScriptEditorAsync(obj);
+    }
+}
+
+void MainWindow::CreateNewPluginWindowAsync(QObject* obj)
+{
+    View::VstPluginWindow *editorWnd = new View::VstPluginWindow(this);
+    if(!editorWnd->SetPlugin(obj))
+        editorWnd->close();
+}
+void MainWindow::CreateNewScriptEditorAsync(QObject* obj)
+{
+    View::ScriptEditor *editorWnd = new View::ScriptEditor(this);
+    static_cast<Connectables::Object*>(obj)->SetEditorWnd(editorWnd);
 }

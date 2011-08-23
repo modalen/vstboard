@@ -53,8 +53,8 @@ public:
     int GetLastMessageResult() {return lastMessageResult;}
     const QString &GetLastSelectedFile() {return lastFileSelected;}
 
-    Q_INVOKABLE void CreateNewPluginWindow(QObject* obj);
-    Q_INVOKABLE void CreateNewScriptEditor(QObject* obj);
+    void CreateNewPluginWindow(QObject* obj);
+    void CreateNewScriptEditor(QObject* obj);
     void DisplayMessage(QMessageBox::Icon icon,const QString &text, const QString &info="", QMessageBox::StandardButtons buttons=QMessageBox::NoButton, QMessageBox::StandardButton defaultButton=QMessageBox::NoButton);
     void SaveFileDialog(const QString title, const QString dir, const QString fType);
     void OpenFileDialog(const QString title, const QString dir, const QString fType);
@@ -87,6 +87,8 @@ private:
     Q_INVOKABLE void DisplayMessageAsync(QMessageBox::Icon icon,const QString &text, const QString &info="", QMessageBox::StandardButtons buttons=QMessageBox::NoButton, QMessageBox::StandardButton defaultButton=QMessageBox::NoButton);
     Q_INVOKABLE void SaveFileDialogAsync(const QString title, const QString dir, const QString fType);
     Q_INVOKABLE void OpenFileDialogAsync(const QString title, const QString dir, const QString fType);
+    Q_INVOKABLE void CreateNewPluginWindowAsync(QObject* obj);
+    Q_INVOKABLE void CreateNewScriptEditorAsync(QObject* obj);
 
 signals:
     void askLoadSetup(const QString &file);

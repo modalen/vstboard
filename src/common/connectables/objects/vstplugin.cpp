@@ -416,11 +416,8 @@ bool VstPlugin::initPlugin()
 
     Object::Open();
 
-    if((pEffect->flags & effFlagsHasEditor)) {
-        QMetaObject::invokeMethod(myHost->mainWindow,"CreateNewPluginWindow",
-                                   Qt::BlockingQueuedConnection,
-                                   Q_ARG(QObject*, this));
-    }
+    if((pEffect->flags & effFlagsHasEditor))
+        myHost->mainWindow->CreateNewPluginWindow(this);
 
     return true;
 }

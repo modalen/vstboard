@@ -46,9 +46,7 @@ Script::Script(MainHost *host, MetaInfo &info) :
     listEditorVisible << "show";
     listParameterPinIn->AddPin(FixedPinNumber::editorVisible);
 
-    QMetaObject::invokeMethod(myHost->mainWindow,"CreateNewScriptEditor",
-                               Qt::BlockingQueuedConnection,
-                               Q_ARG(QObject*, this));
+    myHost->mainWindow->CreateNewScriptEditor(this);
 }
 
 void Script::SetEditorWnd(QWidget *wnd)
