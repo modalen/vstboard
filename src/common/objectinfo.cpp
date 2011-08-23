@@ -32,11 +32,11 @@ void MetaTransporter::ValueChanged( const MetaInfo & senderInfo, int type, const
 }
 
 void MetaTransporter::PostEvent( QEvent * event) {
-#ifndef QT_NO_DEBUG
-    if(listeners.isEmpty()) {
-        LOG("no listener")
-    }
-#endif
+//#ifndef QT_NO_DEBUG
+//    if(listeners.isEmpty()) {
+//        LOG("no listener")
+//    }
+//#endif
     foreach(QObject *obj, listeners) {
         qApp->postEvent(obj,event);
     }

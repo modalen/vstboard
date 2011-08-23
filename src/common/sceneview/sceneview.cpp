@@ -18,6 +18,7 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
+#include <QDebug>
 #include "sceneview.h"
 #include "globals.h"
 #include "connectables/objectfactory.h"
@@ -162,7 +163,7 @@ void SceneView::DelObj(quint32 objId)
         {
             ObjectView *obj = static_cast<ObjectView*>(mapViewItems.value(objId,0));
             if(!obj) {
-                LOG("obj not found"<<info.toStringFull());
+                qDebug()<<"obj not found"<<info.toStringFull();
                 return;
             }
             obj->hide();
@@ -174,7 +175,7 @@ void SceneView::DelObj(quint32 objId)
         {
             QGraphicsWidget *obj = static_cast<QGraphicsWidget*>( mapViewItems.value(info.ObjId(),0) );
             if(!obj) {
-                LOG("container not found"<<info.toStringFull());
+                qDebug()<<"container not found"<<info.toStringFull();
                 return;
             }
             obj->hide();
@@ -186,7 +187,7 @@ void SceneView::DelObj(quint32 objId)
         {
             PinView *pin = static_cast<PinView*>(mapViewItems.value(info.ObjId(),0));
             if(!pin) {
-                LOG("pin not found"<<info.toStringFull());
+                qDebug()<<"pin not found"<<info.toStringFull();
                 return;
             }
 
@@ -214,7 +215,7 @@ void SceneView::DelObj(quint32 objId)
 
             CableView *cable = static_cast<CableView*>(mapViewItems.value(info.ObjId(),0));
             if(!cable) {
-                LOG("cable not found"<<info.toStringFull());
+                qDebug()<<"cable not found"<<info.toStringFull();
                 return;
             }
 
@@ -229,7 +230,7 @@ void SceneView::DelObj(quint32 objId)
             break;
         }
     default:
-        LOG("nodetype not found"<<info.toStringFull());
+        qDebug()<<"nodetype not found"<<info.toStringFull();
         return;
     }
     mapViewItems.remove(info.ObjId());
@@ -336,7 +337,7 @@ void SceneView::AddObj(MetaInfo &info)
         {
             MainContainerView *containerView = static_cast<MainContainerView*>(mapViewItems.value(info.ContainerId(),0));
             if(!containerView) {
-                LOG("object container not found"<<info.toStringFull());
+                qDebug()<<"object container not found"<<info.toStringFull();
                 return;
             }
 
@@ -376,7 +377,7 @@ void SceneView::AddObj(MetaInfo &info)
 //                ObjectInfo infoParent = parent.data(UserRoles::objInfo).value<ObjectInfo>();
             ObjectView *objView = static_cast<ObjectView*>(mapViewItems.value(info.ParentId(),0));
             if(!objView) {
-                LOG("listPin parent not found" << info.toStringFull());
+                qDebug()<<"listPin parent not found" << info.toStringFull();
                 return;
             }
 
@@ -420,7 +421,7 @@ void SceneView::AddObj(MetaInfo &info)
         {
             ListPinsView *parentList = static_cast<ListPinsView*>(mapViewItems.value(info.ParentId(),0));
             if(!parentList) {
-                LOG("MetaTypes::pin list not found"<<info.toStringFull());
+                qDebug()<<"MetaTypes::pin list not found"<<info.toStringFull();
                 return;
             }
 
@@ -501,7 +502,7 @@ void SceneView::AddObj(MetaInfo &info)
             PinView* pinIn = static_cast<PinView*>(mapViewItems.value( infoIn.ObjId(),0 ));
 
             if(!pinOut || !pinIn) {
-                LOG("addcable : pin not found"<<info.toStringFull());
+                qDebug()<<"addcable : pin not found"<<info.toStringFull();
                 return;
             }
             CableView *cable = new CableView(infoOut,infoIn,cnt,myHost->mainWindow->viewConfig);
@@ -515,7 +516,7 @@ void SceneView::AddObj(MetaInfo &info)
             break;
         }
         default:
-            LOG("unknown obj type"<<info.toStringFull());
+            qDebug()<<"unknown obj type"<<info.toStringFull();
             break;
 
     }

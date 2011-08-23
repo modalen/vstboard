@@ -620,8 +620,10 @@ bool ProgramsModel::ChangeProgNow(int midiGroupNum, int midiProgNum)
     if( !ValidateProgChange( index(midiGroupNum,0).child(midiProgNum,0) ) )
         return false;
 
-    //if program changed, force the host to update
-    myHost->UpdateSolverNow();
+    //if program changed, force a prog change now
+    myHost->programContainer->SetProgram(currentPrg);
+    myHost->groupContainer->SetProgram(currentGrp);
+
     return true;
 }
 
