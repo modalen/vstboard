@@ -28,8 +28,6 @@ vstsdk {
 }
 
 scriptengine {
-    QT += script
-
     SOURCES += connectables/objects/script.cpp \
         views/scripteditor.cpp \
 

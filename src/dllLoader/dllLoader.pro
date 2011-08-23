@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-include(../config.pri)
+include(../../mainconfig.pri)
 
 DEFINES -= AS_INSTRUMENT
 TARGET = VstBoardEffect
@@ -19,8 +19,8 @@ SOURCES += \
 
 HEADERS +=
 
+INCLUDEPATH += $$VSTSDK_PATH
+
 win32-msvc* {
     RC_FILE = dllLoader.rc
 }
-
-

@@ -5,8 +5,6 @@ QT += core gui
 TEMPLATE = app
 TARGET = $${APP_NAME}
 
-LIBS += -lportmidi
-
 win32 {
     LIBS += -lwinmm
     LIBS += -luser32
@@ -21,10 +19,6 @@ INCLUDEPATH += $$PORTMIDI_PATH/porttime
 INCLUDEPATH += $$PORTMIDI_PATH/pm_common
 
 INCLUDEPATH += ../common
-
-scriptengine {
-    QT += script
-}
 
 CONFIG(debug, debug|release) {
     LIBS += -L"C:/Program Files (x86)/Visual Leak Detector/lib/" -lvld
