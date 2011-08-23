@@ -507,12 +507,12 @@ Pin* Object::CreatePin(MetaInfo &info)
         case Directions::Output :
             switch(info.Meta(MetaInfos::Media).toInt()) {
                 case MediaTypes::Audio : {
-                    info.SetName(QString("AudioOut%1").arg(Meta(MetaInfos::PinNumber).toInt()));
+                    info.SetName(QString("AudioOut%1").arg(info.Meta(MetaInfos::PinNumber).toInt()));
                     return new AudioPin(this,info,myHost->GetBufferSize(),doublePrecision);
                 }
 
                 case MediaTypes::Midi : {
-                    info.SetName(QString("MidiOut%1").arg(Meta(MetaInfos::PinNumber).toInt()));
+                    info.SetName(QString("MidiOut%1").arg(info.Meta(MetaInfos::PinNumber).toInt()));
                     return new MidiPinOut(this,info);
                 }
                 default :
