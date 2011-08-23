@@ -136,7 +136,7 @@ void ParameterPin::ChangeValue(float val, bool fromObj)
 
     internValue = val;
     outValue = ScaleValue(val);
-    LOG(std::abs(oldVal-outValue));
+
     if(!loading && std::abs(oldVal-outValue)<0.0001f)
         return;
 
