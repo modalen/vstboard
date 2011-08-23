@@ -42,6 +42,8 @@ void MetaTransporter::PostEvent( QEvent * event) {
     }
 }
 
+ DMutex MetaInfo::mutexListInfos;
+
 MetaInfo::MetaInfo() :
     objType(MetaTypes::ND),
     objId(0),
@@ -57,6 +59,7 @@ MetaInfo::MetaInfo() :
 MetaInfo::MetaInfo(const MetaInfo &c)
 {
     *this=c;
+    SET_MUTEX_NAME(mutexListInfos,"mutexListInfos");
 }
 
 MetaInfo::MetaInfo(const MetaTypes::Enum type) :
@@ -75,6 +78,7 @@ MetaInfo::MetaInfo(const QByteArray &b)
 {
     QDataStream stream(b);
     fromStream(stream);
+    SET_MUTEX_NAME(mutexListInfos,"mutexListInfos");
 }
 
 ObjectInfo::ObjectInfo() :

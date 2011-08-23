@@ -287,7 +287,7 @@ private:
     quint32 containerId;
     QString objName;
     QMap<MetaInfos::Enum,QVariant>listInfos;
-    mutable DMutex mutexListInfos;
+    static DMutex mutexListInfos;
 };
 
 
