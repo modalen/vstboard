@@ -602,7 +602,7 @@ void MainWindow::DisplayMessage(QMessageBox::Icon icon,const QString &text, cons
             Q_ARG(QMessageBox::StandardButton, defaultButton)
         );
     } else {
-        DisplayMessage(icon,text,info,buttons,defaultButton);
+        DisplayMessageAsync(icon,text,info,buttons,defaultButton);
     }
 }
 
