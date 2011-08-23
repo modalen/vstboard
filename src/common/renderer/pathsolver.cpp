@@ -349,7 +349,7 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListParents( QShared
     while (i != listCables.end()) {
         QSharedPointer<Connectables::Object> parentPtr = myHost->objFactory->GetObjectFromId(i.key().ParentObjectId());
         if(!parentPtr.isNull()) {
-            if(i.value().ObjId() == objPtr->ObjId()) {
+            if(i.value().ParentObjectId() == objPtr->ObjId()) {
                 if(!listParents.contains(parentPtr)) {
                     listParents << parentPtr;
 //                    if(parentPtr->info().nodeType == MetaTypes::bridge)
@@ -390,7 +390,7 @@ QList< QSharedPointer<Connectables::Object> >PathSolver::GetListChildren( QShare
     while (i != listCables.end()) {
         QSharedPointer<Connectables::Object> childPtr = myHost->objFactory->GetObjectFromId(i.value().ParentObjectId());
         if(!childPtr.isNull()) {
-            if(i.key().ObjId() == objPtr->ObjId()) {
+            if(i.key().ParentObjectId() == objPtr->ObjId()) {
                 if(!listChildren.contains(childPtr)) {
                     listChildren << childPtr;
 //                    if(childPtr->info().nodeType == MetaTypes::bridge)
