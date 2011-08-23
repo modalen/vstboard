@@ -33,11 +33,10 @@ Renderer::Renderer(MainHost *myHost)
       stop(false),
       newNodes(false),
       needOptimize(false),
-      nextOptimize(0),
-//      needBuildModel(false),
       sem(0),
       myHost(myHost),
-      model(0)
+      model(0),
+      countOptimizeAsked(0)
 {
     SET_MUTEX_NAME(mutexNodes,"mutexNodes renderer");
     SET_MUTEX_NAME(mutexOptimize,"mutexOptimize renderer");
@@ -112,10 +111,7 @@ void Renderer::LoadNodes(const QList<RendererNode*> & listNodes)
     newNodes=true;
     mutexNodes.unlock();
 
-    mutexOptimize.lock();
-    nextOptimize=0;
-    needOptimize=true;
-    mutexOptimize.unlock();
+//    AskOptimization();
 }
 
 const QList<RendererNode*> Renderer::SaveNodes() const
@@ -141,10 +137,7 @@ void Renderer::OnNewRenderingOrder(const QList<SolverNode*> & listNodes)
     mutexNodes.unlock();
 
     if(maxNumberOfThreads>1) {
-        mutexOptimize.lock();
-        nextOptimize=50;
-        QTimer::singleShot(nextOptimize, this, SLOT(Optimize()));
-        mutexOptimize.unlock();
+        AskOptimization();
     }
 }
 
@@ -160,10 +153,13 @@ void Renderer::StartRender()
         return;
     }
 
+    bool getSteps = false;
+
     mutexNodes.lock();
     if(newNodes) {
         newNodes=false;
         mutexNodes.unlock();
+        getSteps=true;
         GetStepsFromOptimizer();
     } else {
         mutexNodes.unlock();
@@ -180,10 +176,15 @@ void Renderer::StartRender()
         }
         optimizer.NewListOfNodes( tmpListOfNodes );
         optimizer.Optimize();
+        getSteps=true;
         GetStepsFromOptimizer();
+        myHost->programContainer->UpdateModificationTime();
     } else {
         mutexOptimize.unlock();
     }
+
+    if(getSteps)
+        emit ModelUpdated();
 
     if(numberOfThreads<=0 || numberOfSteps<=0) {
             rwlock.unlock();
@@ -241,24 +242,30 @@ void Renderer::StartRender()
 void Renderer::Optimize()
 {
     mutexOptimize.lock();
-    needOptimize=true;
 
-    switch(nextOptimize) {
-        case 50:
-            nextOptimize=500;
-            break;
-        case 500:
-            nextOptimize=5000;
-            break;
-        default:
-            nextOptimize=0;
-            break;
+    --countOptimizeAsked;
+
+    //only do the last 3 optimizations asked
+    if(countOptimizeAsked>3) {
+        mutexOptimize.unlock();
+        return;
     }
+//    qDebug()<<"optimize"<<countOptimizeAsked;
 
-    if(nextOptimize!=0)
-        QTimer::singleShot(nextOptimize, this, SLOT(Optimize()));
-
+    needOptimize=true;
     mutexOptimize.unlock();
+}
+
+//ask 3 optimizations
+void Renderer::AskOptimization()
+{
+    mutexOptimize.lock();
+    countOptimizeAsked+=3;
+    mutexOptimize.unlock();
+
+    QTimer::singleShot(0, this, SLOT(Optimize()));
+    QTimer::singleShot(50, this, SLOT(Optimize()));
+    QTimer::singleShot(2000, this, SLOT(Optimize()));
 }
 
 void Renderer::GetStepsFromOptimizer()
@@ -279,8 +286,6 @@ void Renderer::GetStepsFromOptimizer()
             }
         }
     }
-
-    emit ModelUpdated();
 }
 
 void Renderer::InitThreads()

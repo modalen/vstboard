@@ -515,6 +515,7 @@ QDataStream & ContainerProgram::fromStream (QDataStream& in)
     for(quint16 i=0; i<nbCables; i++) {
         Cable *cab = new Cable();
         in >> *cab;
+        cab->SetTransporter(myHost);
 //        cab->SetParent(container);
 //        cab->SetContainer(container);
         listCables << cab;

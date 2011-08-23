@@ -108,7 +108,7 @@ void MainWindow::Init()
 
     //solver model
     connect(ui->solverView,SIGNAL(clicked(QModelIndex)),
-            myHost->GetRenderer(),SLOT(Optimize()));
+            myHost->GetRenderer(),SLOT(AskOptimization()));
 
     QStandardItemModel *m = new QStandardItemModel(this);
     ui->solverView->setModel(m);

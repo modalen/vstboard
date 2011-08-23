@@ -78,7 +78,8 @@ namespace MetaInfos {
         LimitInMin,
         LimitInMax,
         LimitOutMin,
-        LimitOutMax
+        LimitOutMax,
+        SavedObjId
     };
 }
 

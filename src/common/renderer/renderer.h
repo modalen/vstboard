@@ -57,7 +57,6 @@ protected:
     bool stop;
     bool newNodes;
     bool needOptimize;
-    int nextOptimize;
     QList<RenderThread*>listOfThreads;
     MainHost *myHost;
     Optimizer optimizer;
@@ -69,6 +68,8 @@ protected:
 
     QStandardItemModel *model;
 
+    int countOptimizeAsked;
+
 signals:
     void ModelUpdated();
 
@@ -76,6 +77,9 @@ public slots:
 
     void StartRender();
     void UpdateView();
+    void AskOptimization();
+
+private slots:
     void Optimize();
 
 friend class RenderThread;

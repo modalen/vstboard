@@ -42,7 +42,7 @@ void MetaTransporter::PostEvent( QEvent * event) {
     }
 }
 
- DMutex MetaInfo::mutexListInfos;
+DMutex MetaInfo::mutexListInfos(QMutex::Recursive);
 
 MetaInfo::MetaInfo() :
     objType(MetaTypes::ND),
@@ -126,7 +126,7 @@ void ObjectInfo::AddToView()
     if(transporter) {
         transporter->PostEvent(event);
     }  else {
-        LOG("transporter not set");
+        LOG("transporter not set"<<toStringFull());
     }
 
     foreach(ObjectInfo *info, childrenInfo) {
@@ -140,7 +140,7 @@ void ObjectInfo::RemoveFromView()
     if(transporter)
         transporter->PostEvent(event);
     else {
-        LOG("transporter not set")
+        LOG("transporter not set"<<toStringFull());
     }
 }
 
@@ -156,7 +156,7 @@ void ObjectInfo::UpdateView()
     if(transporter)
         transporter->PostEvent(event);
     else {
-        LOG("transporter not set")
+        LOG("transporter not set"<<toStringFull());
     }
 }
 
