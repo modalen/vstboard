@@ -109,10 +109,9 @@ void SceneView::SetParkings(QWidget *progPark, QWidget *groupPark)
 
 void SceneView::UpdateObj(const MetaInfo &info)
 {
-//    if( !mapMetaInfos.contains(info.ObjId()) ) {
-//        AddObj(info);
-//        return;
-//    }
+    if( !mapMetaInfos.contains(info.ObjId()) ) {
+        return;
+    }
 
     switch( info.Type() ) {
         case MetaTypes::object :
