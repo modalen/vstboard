@@ -48,7 +48,7 @@ Bridge::Bridge(MainHost *myHost, MetaInfo & info) :
     listBridgePinIn->SetMeta(MetaInfos::Media,MediaTypes::Bridge);
     listBridgePinIn->SetMeta(MetaInfos::Direction,Directions::Input);
     listBridgePinIn->SetParent(this);
-    listBridgePinIn->SetObjId( myHost->objFactory->GetNewId() );
+    listBridgePinIn->SetObjId( MetaInfo::GetNextId() );
     listBridgePinIn->SetNbPins(8);
     pinLists << listBridgePinIn;
 
@@ -57,7 +57,7 @@ Bridge::Bridge(MainHost *myHost, MetaInfo & info) :
     listBridgePinOut->SetMeta(MetaInfos::Media,MediaTypes::Bridge);
     listBridgePinOut->SetMeta(MetaInfos::Direction,Directions::Output);
     listBridgePinOut->SetParent(this);
-    listBridgePinOut->SetObjId( myHost->objFactory->GetNewId() );
+    listBridgePinOut->SetObjId( MetaInfo::GetNextId() );
     listBridgePinOut->SetNbPins(8);
     pinLists << listBridgePinOut;
 

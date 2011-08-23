@@ -22,7 +22,7 @@
 #define OBJECTINFO_H
 
 #include "precomp.h"
-//#include "globals.h"
+#include "globals.h"
 //#include "models/scenemodel.h"
 #include "debugmutex.h"
 
@@ -78,8 +78,7 @@ namespace MetaInfos {
         LimitInMin,
         LimitInMax,
         LimitOutMin,
-        LimitOutMax,
-        SavedObjId
+        LimitOutMax
     };
 }
 
@@ -277,6 +276,16 @@ class MetaInfo
         return *this;
     }
 
+    static QMap<quint32,quint32>savedIds;
+    static quint32 GetNextId() { return nextId++;}
+
+    QStandardItem *toModelItem() {
+        QStandardItem *item = new QStandardItem( QString("%1:%2").arg(ObjId()).arg(Name()) );
+        item->setData(ObjId(),UserRoles::id);
+        item->setData(QVariant::fromValue(*this), UserRoles::metaInfo);
+        return item;
+    }
+
 protected:
     MetaTransporter *transporter;
 
@@ -289,6 +298,7 @@ private:
     QString objName;
     QMap<MetaInfos::Enum,QVariant>listInfos;
     static DMutex mutexListInfos;
+    static quint32 nextId;
 };
 
 
@@ -320,6 +330,7 @@ public:
     virtual void SetContainer(ObjectInfo *container);
 
     void AddToView();
+    void AddToParkView();
     void RemoveFromView();
     void UpdateView();
 

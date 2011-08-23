@@ -29,6 +29,7 @@ namespace Events {
     enum type {
         typeNewObj = QEvent::User,
         typeDelObj,
+        typeParkObj,
         typeUpdateObj,
         typeValChanged,
         typeCommand
@@ -38,7 +39,7 @@ namespace Events {
     class sendObj : public QEvent
     {
     public:
-        sendObj(const MetaInfo &objInfo, Events::type type) :
+        sendObj(MetaInfo objInfo, Events::type type) :
             QEvent((QEvent::Type)type),
             objInfo(objInfo)
         {
@@ -61,7 +62,7 @@ namespace Events {
     class valChanged : public QEvent
     {
     public:
-        valChanged(const MetaInfo &objInfo, const MetaInfos::Enum type, const QVariant &value) :
+        valChanged(MetaInfo objInfo, const MetaInfos::Enum type, QVariant value) :
             QEvent((QEvent::Type)typeValChanged),
             objInfo(objInfo),
             type(type),

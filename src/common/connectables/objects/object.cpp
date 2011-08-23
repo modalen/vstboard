@@ -43,7 +43,6 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     parked(false),
     listenProgramChanges(true),
     myHost(myHost),
-    savedIndex(0),
     sleep(true),
     currentProgram(0),
     currentProgId(TEMP_PROGRAM),
@@ -67,7 +66,7 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     listAudioPinIn->SetMeta(MetaInfos::Media,MediaTypes::Audio);
     listAudioPinIn->SetMeta(MetaInfos::Direction,Directions::Input);
     listAudioPinIn->SetParent(this);
-    listAudioPinIn->SetObjId( myHost->objFactory->GetNewId() );
+    listAudioPinIn->SetObjId( MetaInfo::GetNextId() );
     pinLists << listAudioPinIn;
 
     listAudioPinOut = new PinsList(myHost,this);
@@ -76,7 +75,7 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     listAudioPinOut->SetMeta(MetaInfos::Media,MediaTypes::Audio);
     listAudioPinOut->SetMeta(MetaInfos::Direction,Directions::Output);
     listAudioPinOut->SetParent(this);
-    listAudioPinOut->SetObjId( myHost->objFactory->GetNewId() );
+    listAudioPinOut->SetObjId( MetaInfo::GetNextId() );
     pinLists << listAudioPinOut;
 
     listMidiPinIn = new PinsList(myHost,this);
@@ -85,7 +84,7 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     listMidiPinIn->SetMeta(MetaInfos::Media,MediaTypes::Midi);
     listMidiPinIn->SetMeta(MetaInfos::Direction,Directions::Input);
     listMidiPinIn->SetParent(this);
-    listMidiPinIn->SetObjId( myHost->objFactory->GetNewId() );
+    listMidiPinIn->SetObjId( MetaInfo::GetNextId() );
     pinLists << listMidiPinIn;
 
     listMidiPinOut = new PinsList(myHost,this);
@@ -94,7 +93,7 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     listMidiPinOut->SetMeta(MetaInfos::Media,MediaTypes::Midi);
     listMidiPinOut->SetMeta(MetaInfos::Direction,Directions::Output);
     listMidiPinOut->SetParent(this);
-    listMidiPinOut->SetObjId( myHost->objFactory->GetNewId() );
+    listMidiPinOut->SetObjId( MetaInfo::GetNextId() );
     pinLists << listMidiPinOut;
 
     listParameterPinIn = new PinsList(myHost,this);
@@ -103,7 +102,7 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     listParameterPinIn->SetMeta(MetaInfos::Media,MediaTypes::Parameter);
     listParameterPinIn->SetMeta(MetaInfos::Direction,Directions::Input);
     listParameterPinIn->SetParent(this);
-    listParameterPinIn->SetObjId( myHost->objFactory->GetNewId() );
+    listParameterPinIn->SetObjId( MetaInfo::GetNextId() );
     pinLists << listParameterPinIn;
 
     listParameterPinOut = new PinsList(myHost,this);
@@ -112,7 +111,7 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
     listParameterPinOut->SetMeta(MetaInfos::Media,MediaTypes::Parameter);
     listParameterPinOut->SetMeta(MetaInfos::Direction,Directions::Output);
     listParameterPinOut->SetParent(this);
-    listParameterPinOut->SetObjId( myHost->objFactory->GetNewId() );
+    listParameterPinOut->SetObjId( MetaInfo::GetNextId() );
     pinLists << listParameterPinOut;
 
 
@@ -561,7 +560,7 @@ bool Object::fromStream(QDataStream & in)
 
     quint32 id;
     in >> id;
-    savedIndex=id;
+    MetaInfo::savedIds.insert(id,ObjId());
     in >> sleep;
     in >> listenProgramChanges;
 

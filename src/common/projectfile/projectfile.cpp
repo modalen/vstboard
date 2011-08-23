@@ -23,6 +23,7 @@
 #include "mainwindow.h"
 #include "models/programsmodel.h"
 #include "fileversion.h"
+#include "objectinfo.h"
 
 bool ProjectFile::SaveToProjectFile(MainHost *myHost,QString filePath)
 {
@@ -55,7 +56,9 @@ bool ProjectFile::LoadFromFile(MainHost *myHost,QString filePath)
     }
 
     QDataStream in(&file);
-    return FromStream(myHost,in);
+    bool ret=FromStream(myHost,in);
+    MetaInfo::savedIds.clear();
+    return ret;
 }
 
 bool ProjectFile::ToStream(MainHost *myHost,QDataStream &out, quint32 fileKey )
@@ -255,7 +258,6 @@ bool ProjectFile::FromStream(MainHost *myHost,QDataStream &in)
 
         if(tmpStream.status()==QDataStream::ReadPastEnd) {
             LOG("err"<<tmpStream.status());
-            myHost->objFactory->ResetSavedId();
             myHost->renderer->SetEnabled(true);
             myHost->EnableSolverUpdate(true);
             myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("The file is corrupted and cannot be loaded"));
@@ -263,7 +265,6 @@ bool ProjectFile::FromStream(MainHost *myHost,QDataStream &in)
         }
     }
 
-    myHost->objFactory->ResetSavedId();
     myHost->renderer->SetEnabled(true);
     myHost->EnableSolverUpdate(true);
 

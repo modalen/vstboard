@@ -44,7 +44,6 @@ using namespace Connectables;
 
 ObjectFactory::ObjectFactory(MainHost *myHost) :
     QObject(myHost),
-    cptListObjects(50),
     myHost(myHost)
 {
     setObjectName("ObjectFactory");
@@ -58,37 +57,6 @@ ObjectFactory::ObjectFactory(MainHost *myHost) :
 ObjectFactory::~ObjectFactory()
 {
     listObjects.clear();
-}
-
-void ObjectFactory::ResetSavedId()
-{
-    hashObjects::iterator i = listObjects.begin();
-    while(i != listObjects.end()) {
-        QSharedPointer<Object> objPtr = i.value().toStrongRef();
-        if(objPtr.isNull()) {
-            i=listObjects.erase(i);
-        } else {
-            //don't reset forcced ids
-            if(i.key()>=50) {
-                objPtr->ResetSavedIndex();
-            }
-            ++i;
-        }
-    }
-}
-
-int ObjectFactory::IdFromSavedId(int savedId)
-{
-    hashObjects::const_iterator i = listObjects.constBegin();
-    while(i != listObjects.constEnd()) {
-        QSharedPointer<Object> objPtr = i.value().toStrongRef();
-        if(objPtr && objPtr->GetSavedIndex()==savedId) {
-            return i.key();
-        }
-        ++i;
-    }
-    LOG("id not found"<<savedId);
-    return -1;
 }
 
 Pin *ObjectFactory::GetPin(const MetaInfo &pinInfo)
@@ -134,7 +102,7 @@ QSharedPointer<Object> ObjectFactory::NewObject( MetaInfo &info)
             LOG("forcedId already exists"<<forcedObjId);
         }
     } else {
-        info.SetObjId( GetNewId() );
+        info.SetObjId( MetaInfo::GetNextId() );
     }
 
     Object *obj=0;
@@ -205,10 +173,6 @@ QSharedPointer<Object> ObjectFactory::NewObject( MetaInfo &info)
         return QSharedPointer<Object>();
     }
     obj->SetSleep(false);
-
-    if(forcedObjId) {
-        obj->ResetSavedIndex(forcedObjId);
-    }
 
     return sharedObj;
 

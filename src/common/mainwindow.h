@@ -59,6 +59,9 @@ public:
     void SaveFileDialog(const QString title, const QString dir, const QString fType);
     void OpenFileDialog(const QString title, const QString dir, const QString fType);
 
+    ListToolsModel programParkModel;
+    ListToolsModel groupParkModel;
+
 protected:
     void changeEvent(QEvent *e);
     void SetupBrowsersModels(const QString &vstPath, const QString &browserPath);
@@ -100,8 +103,6 @@ signals:
     void askClearProject();
 
 public slots:
-    void programParkingModelChanges(QStandardItemModel *model);
-    void groupParkingModelChanges(QStandardItemModel *model);
     void currentFileChanged();
     void OnViewConfigClosed();
     void LoadDefaultFiles();

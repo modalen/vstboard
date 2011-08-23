@@ -224,7 +224,7 @@ MetaInfo PinsList::getMetaForPin(int nb)
 
     MetaInfo info(MetaTypes::pin);
     info.SetName("pin");
-    info.SetObjId( myHost->objFactory->GetNewId() );
+    info.SetObjId( MetaInfo::GetNextId() );
     info.SetMeta(MetaInfos::Media, Meta(MetaInfos::Media));
     info.SetMeta(MetaInfos::Direction, Meta(MetaInfos::Direction));
     info.SetParentId(ObjId());

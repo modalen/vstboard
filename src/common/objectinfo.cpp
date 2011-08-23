@@ -42,6 +42,8 @@ void MetaTransporter::PostEvent( QEvent * event) {
     }
 }
 
+quint32 MetaInfo::nextId=50;
+QMap<quint32,quint32> MetaInfo::savedIds;
 DMutex MetaInfo::mutexListInfos(QMutex::Recursive);
 
 MetaInfo::MetaInfo() :
@@ -134,6 +136,16 @@ void ObjectInfo::AddToView()
     }
 }
 
+void ObjectInfo::AddToParkView()
+{
+    Events::sendObj *event = new Events::sendObj(info(), Events::typeParkObj);
+    if(transporter)
+        transporter->PostEvent(event);
+    else {
+        LOG("transporter not set"<<toStringFull());
+    }
+}
+
 void ObjectInfo::RemoveFromView()
 {
     Events::delObj *event = new Events::delObj(ObjId());
@@ -153,9 +165,9 @@ void ObjectInfo::UpdateView()
         return;
 
     Events::sendObj *event = new Events::sendObj(info(), Events::typeUpdateObj);
-    if(transporter)
+    if(transporter) {
         transporter->PostEvent(event);
-    else {
+    } else {
         LOG("transporter not set"<<toStringFull());
     }
 }

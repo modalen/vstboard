@@ -272,7 +272,7 @@ bool ContainerProgram::AddCable(const MetaInfo &outputPin, const MetaInfo &input
         return false;
 
     Cable *cab = new Cable(outputPin,inputPin);
-    cab->SetObjId(myHost->objFactory->GetNewId());
+    cab->SetObjId(MetaInfo::GetNextId());
     cab->SetContainer(container);
     cab->SetParent(container);
     listCables << cab;
@@ -478,7 +478,7 @@ QDataStream & ContainerProgram::toStream (QDataStream& out) const
     quint16 nbObj = listObjects.size();
     out << nbObj;
     foreach(QSharedPointer<Object> objPtr, listObjects) {
-        out << (qint16)objPtr->ObjId();
+        out << (qint32)objPtr->ObjId();
     }
 
     out << (quint16)listCables.size();
@@ -502,10 +502,10 @@ QDataStream & ContainerProgram::fromStream (QDataStream& in)
     quint16 nbobj;
     in >> nbobj;
     for(quint16 i=0; i<nbobj; i++) {
-        quint16 id;
+        quint32 id;
         in >> id;
-        int newid = myHost->objFactory->IdFromSavedId(id);
-        if(newid==-1)
+        quint32 newid = MetaInfo::savedIds.value(id,0);
+        if(newid==0)
             return in;
         listObjects << myHost->objFactory->GetObjectFromId(newid);
     }
@@ -516,6 +516,7 @@ QDataStream & ContainerProgram::fromStream (QDataStream& in)
         Cable *cab = new Cable();
         in >> *cab;
         cab->SetTransporter(myHost);
+
 //        cab->SetParent(container);
 //        cab->SetContainer(container);
         listCables << cab;
@@ -524,11 +525,11 @@ QDataStream & ContainerProgram::fromStream (QDataStream& in)
     quint16 nbPos;
     in >> nbPos;
     for(quint16 i=0; i<nbPos; i++) {
-        int objId;
+        quint32 objId;
         ObjectContainerAttribs attr;
         in >> objId;
         in >> attr;
-        objId=myHost->objFactory->IdFromSavedId(objId);
+        objId=MetaInfo::savedIds.value(objId,0);
         mapObjAttribs.insert(objId,attr);
     }
 

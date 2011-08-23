@@ -70,10 +70,6 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     connect(this, SIGNAL(askClearSetup()),
             myHost, SLOT(ClearSetup()));
 
-    connect(myHost,SIGNAL(programParkingModelChanged(QStandardItemModel*)),
-            this,SLOT(programParkingModelChanges(QStandardItemModel*)));
-    connect(myHost,SIGNAL(groupParkingModelChanged(QStandardItemModel*)),
-            this,SLOT(groupParkingModelChanges(QStandardItemModel*)));
     connect(myHost,SIGNAL(currentFileChanged()),
             this,SLOT(currentFileChanged()));
 
@@ -126,6 +122,9 @@ void MainWindow::Init()
             ui->solverView, SLOT(resizeColumnsToContents()));
     connect(m, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
             ui->solverView, SLOT(resizeRowsToContents()));
+
+    ui->programParkList->setModel(&programParkModel);
+    ui->groupParkList->setModel(&groupParkModel);
 
     //colors
     setPalette( viewConfig->GetPaletteFromColorGroup( ColorGroups::Window, palette() ));
@@ -543,16 +542,6 @@ void MainWindow::openRecentProject()
         return;
 
     emit askLoadProject( action->data().toString() );
-}
-
-void MainWindow::programParkingModelChanges(QStandardItemModel *model)
-{
-    ui->programParkList->setModel(model);
-}
-
-void MainWindow::groupParkingModelChanges(QStandardItemModel *model)
-{
-    ui->groupParkList->setModel(model);
 }
 
 void MainWindow::on_actionRestore_default_layout_triggered()

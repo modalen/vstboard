@@ -605,7 +605,8 @@ void Container::ParkChildObject(QSharedPointer<Object> objPtr)
 //    parkModel.invisibleRootItem()->appendRow(item);
 //    objPtr->modelIndex=item->index();
     objPtr->parked=true;
-    objPtr->RemoveFromView();
+//    objPtr->RemoveFromView();
+    objPtr->AddToParkView();
     QTimer::singleShot(50,objPtr.data(),SLOT(SuspendIfParked()));
 
 //    myHost->SetSolverUpdateNeeded();
@@ -629,6 +630,7 @@ void Container::OnChildDeleted(Object *obj)
 //        if(obj->modelIndex.model()==myHost->GetModel())
 //            myHost->GetModel()->removeRow(obj->modelIndex.row(), obj->modelIndex.parent());
 //    }
+    obj->RemoveFromView();
 }
 
 void Container::UserAddCable(const MetaInfo &outputPin, const MetaInfo &inputPin)
@@ -718,9 +720,10 @@ QDataStream & Container::toStream (QDataStream& out) const
         QDataStream tmpStream( &tmpBa, QIODevice::ReadWrite);
 
         //save container header
-        tmpStream << (qint16)MetaInfo::ObjId();
+        tmpStream << (qint32)MetaInfo::ObjId();
         tmpStream << objectName();
         tmpStream << sleep;
+        LOG(tmpBa.size() << tmpBa.toHex());
         ProjectFile::SaveChunk( "CntHead", tmpBa, out);
     }
 
@@ -813,7 +816,7 @@ bool Container::loadHeaderStream (QDataStream &in)
     //load header
     quint32 id;
     in >> id;
-    savedIndex = id;
+    MetaInfo::savedIds.insert(id,ObjId());
 
     QString name;
     in >> name;
@@ -940,7 +943,6 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
             tmpListObj << obj;
         } else {
             obj->SetContainer(this);
-            obj->ResetSavedIndex(info.ObjId());
         }
         if(!obj) {
             LOG("can't create obj");
@@ -974,7 +976,5 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
             mutexCurrentProg.unlock();
         }
         listContainerPrograms.insert(progId,prog);
-
     }
-    myHost->objFactory->ResetSavedId();
 }

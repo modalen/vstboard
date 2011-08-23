@@ -54,8 +54,6 @@ namespace Connectables {
             return listObjects.value(id);
         }
 
-        int IdFromSavedId(int savedId);
-        void ResetSavedId();
         Pin *GetPin(const MetaInfo &pinInfo);
         bool UpdatePinInfo(MetaInfo &pinInfo);
 //        inline Pin *GetPin(const QModelIndex & index) {
@@ -64,13 +62,10 @@ namespace Connectables {
 
         const hashObjects &GetListObjects() {return listObjects;}
 
-        int GetNewId() {return cptListObjects++;}
-
     protected:
         virtual Object *CreateOtherObjects(MetaInfo &info)=0;
 
         hashObjects listObjects;
-        int cptListObjects;
         MainHost *myHost;
     };
 

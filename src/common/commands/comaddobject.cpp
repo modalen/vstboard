@@ -93,7 +93,7 @@ void ComAddObject::redo ()
     if(!obj) {
         //object was deleted, create a new one
         if(objectInfo.ObjId()==0)
-            objectInfo.SetObjId(myHost->objFactory->GetNewId());
+            objectInfo.SetObjId(MetaInfo::GetNextId());
 
         //add a temporary object on the view
         ObjectInfo tmpMeta(objectInfo,myHost);

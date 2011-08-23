@@ -40,8 +40,9 @@ public:
     void valueChanged( const MetaInfo & senderInfo, int type, const QVariant &value);
     bool event(QEvent *event);
 
-protected:
+private:
     bool dropFile( const QString &fName, MetaInfo &info, MetaInfo &senderInfo);
+    void removeFromParking(quint32 objId, QStandardItemModel *model);
 
     MainHost *myHost;
     QTimer *delayedAction;

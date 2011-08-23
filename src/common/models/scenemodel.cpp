@@ -51,6 +51,24 @@ SceneModel::SceneModel(MainHost *myHost, View::SceneView *view, QObject *parent)
     }
 }
 
+void SceneModel::removeFromParking(quint32 objId, QStandardItemModel *model)
+{
+    int i=model->rowCount()-1;
+    while(i>=0) {
+        QStandardItem *item = model->invisibleRootItem()->child(i);
+        if(!item) {
+            LOG("item not found"<<i);
+            --i;
+            continue;
+        }
+
+        if(item->data(UserRoles::id).toInt()==objId)
+            model->removeRow(i);
+
+        --i;
+    }
+}
+
 bool SceneModel::event(QEvent *event)
 {
     switch(event->type()) {
@@ -59,12 +77,37 @@ bool SceneModel::event(QEvent *event)
             e->objInfo.SetTransporter(this);
 //            LOG("add" << e->objInfo.toStringFull());
             mySceneView->AddObj(e->objInfo);
+
+            if(e->objInfo.Type()==MetaTypes::object) {
+                if(e->objInfo.ContainerId()==FixedObjIds::programContainer) {
+                    removeFromParking(e->objInfo.ObjId(), &myHost->mainWindow->programParkModel);
+                }
+                if(e->objInfo.ContainerId()==FixedObjIds::groupContainer) {
+                    removeFromParking(e->objInfo.ObjId(), &myHost->mainWindow->groupParkModel);
+                }
+            }
+            return true;
+        }
+        case Events::typeParkObj : {
+            Events::sendObj *e = static_cast<Events::sendObj*>(event);
+//            e->objInfo.SetTransporter(this);
+    //            LOG("park" << e->objInfo.toStringFull());
+            mySceneView->DelObj(e->objInfo.ObjId());
+
+            if(e->objInfo.ContainerId()==FixedObjIds::programContainer) {
+                myHost->mainWindow->programParkModel.appendRow( e->objInfo.toModelItem() );
+            }
+            if(e->objInfo.ContainerId()==FixedObjIds::groupContainer) {
+                myHost->mainWindow->groupParkModel.appendRow( e->objInfo.toModelItem() );
+            }
             return true;
         }
         case Events::typeDelObj : {
             Events::delObj *e = static_cast<Events::delObj*>(event);
 //            LOG("del" << e->objId);
             mySceneView->DelObj(e->objId);
+            removeFromParking(e->objId, &myHost->mainWindow->programParkModel);
+            removeFromParking(e->objId, &myHost->mainWindow->groupParkModel);
             return true;
         }
         case Events::typeUpdateObj : {

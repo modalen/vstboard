@@ -71,16 +71,6 @@ namespace Connectables {
         Object(MainHost *host, MetaInfo &info);
         virtual ~Object();
 
-        /*!
-          When saving a project the index of the object is saved,
-            used when loading a project file to map the connections with the current index
-          \return saved index
-          */
-        inline quint32 GetSavedIndex() {return savedIndex;}
-
-        /// Reset the savedIndex to the current index, when the file is loaded or before saving
-        inline void ResetSavedIndex(quint32 id=0) {savedIndex=id;}
-
         PinsList* GetPinList(Directions::Enum dir, MediaTypes::Enum type) const;
 
         bool GetSleep();
@@ -173,9 +163,6 @@ namespace Connectables {
 
         /// list of programs
         hashPrograms listPrograms;
-
-        /// the index the object had when the project was saved
-        quint32 savedIndex;
 
         /// true if sleeping
         bool sleep;

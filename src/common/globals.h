@@ -47,7 +47,8 @@
 namespace UserRoles {
     enum Enum {
         metaInfo = Qt::UserRole+1,
-        value
+        value,
+        id
     };
 }
 
