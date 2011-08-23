@@ -94,13 +94,14 @@ render: function(obj) {\n\
 })";
     }
 
+    compiledScript=scriptText;
     emit ScriptChanged(scriptText);
 
     QMutexLocker l(&mutexScript);
 
     QScriptSyntaxCheckResult chk = myHost->scriptEngine->checkSyntax(scriptText);
     if(chk.state()!=QScriptSyntaxCheckResult::Valid) {
-        comiledScript="";
+        compiledScript="";
         myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("Script syntax error"), tr("line %1\n%2").arg(chk.errorLineNumber()).arg(chk.errorMessage()));
         return true;
     }
@@ -112,7 +113,7 @@ render: function(obj) {\n\
 
     objScript = myHost->scriptEngine->evaluate(scriptText);
     if(myHost->scriptEngine->hasUncaughtException()) {
-        comiledScript="";
+        compiledScript="";
         int line = myHost->scriptEngine->uncaughtExceptionLineNumber();
         myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("Script exception"), tr("line %1\n%2").arg(line).arg(objScript.toString()));
         return true;
@@ -123,7 +124,7 @@ render: function(obj) {\n\
 
     QScriptValue result = openScript.call(objScript, QScriptValueList() << scriptThisObj);
     if(myHost->scriptEngine->hasUncaughtException()) {
-        comiledScript="";
+        compiledScript="";
         int line = myHost->scriptEngine->uncaughtExceptionLineNumber();
         myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("Script exception"), tr("line %1\n%2").arg(line).arg(result.toString()));
         return true;
@@ -165,12 +166,12 @@ void Script::Render()
         static_cast<AudioPin*>(pin)->NewRenderLoop();
     }
 
-    QScriptValue result = renderScript.call(objScript, QScriptValueList() << scriptThisObj);
 
-    if(!comiledScript.isEmpty()) {
-        QScriptValue result = myHost->scriptEngine->evaluate( objScriptName+"m.render();" );
+    if(!compiledScript.isEmpty()) {
+        QScriptValue result = renderScript.call(objScript, QScriptValueList() << scriptThisObj);
+//        QScriptValue result = myHost->scriptEngine->evaluate( objScriptName+"m.render();" );
         if(myHost->scriptEngine->hasUncaughtException()) {
-            comiledScript="";
+            compiledScript="";
 
             int line = myHost->scriptEngine->uncaughtExceptionLineNumber();
             myHost->mainWindow->DisplayMessage(QMessageBox::Critical,tr("Script exception"), tr("line %1\n%2").arg(line).arg(result.toString()));
