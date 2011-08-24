@@ -126,6 +126,9 @@ Object::Object(MainHost *myHost, MetaInfo &info) :
   */
 Object::~Object()
 {
+    RemoveFromView();
+    myHost->objFactory->RemoveObject(ObjId());
+
     pinLists.clear();
 
     if(ContainerId()) {
@@ -134,9 +137,10 @@ Object::~Object()
             cntPtr->OnChildDeleted(this);
         }
     }
+
     Close();
 
-    myHost->objFactory->RemoveObject(ObjId());
+
 }
 
 /*!
@@ -533,7 +537,7 @@ Pin* Object::CreatePin(MetaInfo &info)
   */
 QDataStream & Object::toStream(QDataStream & out) const
 {
-    out << (qint16)MetaInfo::ObjId();
+    out << (qint32)MetaInfo::ObjId();
     out << sleep;
     out << listenProgramChanges;
 
@@ -560,7 +564,7 @@ bool Object::fromStream(QDataStream & in)
 
     quint32 id;
     in >> id;
-    MetaInfo::savedIds.insert(id,ObjId());
+    MetaInfo::SetSavedId(id,ObjId());
     in >> sleep;
     in >> listenProgramChanges;
 

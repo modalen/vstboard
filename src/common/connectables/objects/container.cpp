@@ -561,32 +561,10 @@ void Container::GetListOfConnectedPinsTo(const MetaInfo &pin, QList<MetaInfo> &l
   */
 void Container::AddChildObject(QSharedPointer<Object> objPtr)
 {
-//    if(!modelIndex.isValid()) {
-//        LOG("index not valid");
-//        return;
-//    }
-
-//    if(objPtr->modelIndex.isValid() && objPtr->modelIndex.model()==&parkModel)
-//        parkModel.removeRow(objPtr->modelIndex.row());
-
-//    Events::newObj *event = new Events::newObj(objPtr->info(), index);
-//    myHost->PostEvent(event);
-
-//    QStandardItem *item = objPtr->GetFullItem();
-
     objPtr->parked=false;
     objPtr->Resume();
     objPtr->SetParent(this);
     objPtr->AddToView();
-
-
-
-//    event->errorMessage = objPtr->errorMessage;
-//    myHost->GetModel()->itemFromIndex( modelIndex )->appendRow(item);
-//    objPtr->modelIndex=item->index();
-
-
-//    myHost->SetSolverUpdateNeeded();
 }
 
 /*!
@@ -598,18 +576,11 @@ void Container::ParkChildObject(QSharedPointer<Object> objPtr)
     if(objPtr.isNull())
         return;
 
-//    if(objPtr->modelIndex.isValid() && objPtr->modelIndex.model()==myHost->GetModel())
-//        myHost->GetModel()->removeRow(objPtr->modelIndex.row(), objPtr->modelIndex.parent());
-
-//    QStandardItem *item = objPtr->GetParkingItem();
-//    parkModel.invisibleRootItem()->appendRow(item);
-//    objPtr->modelIndex=item->index();
-    objPtr->parked=true;
-//    objPtr->RemoveFromView();
-    objPtr->AddToParkView();
-    QTimer::singleShot(50,objPtr.data(),SLOT(SuspendIfParked()));
-
-//    myHost->SetSolverUpdateNeeded();
+//    if(objPtr->Type()==MetaTypes::object) {
+        objPtr->parked=true;
+        objPtr->AddToParkView();
+        QTimer::singleShot(50,objPtr.data(),SLOT(SuspendIfParked()));
+//    }
 }
 
 /*!
@@ -723,7 +694,7 @@ QDataStream & Container::toStream (QDataStream& out) const
         tmpStream << (qint32)MetaInfo::ObjId();
         tmpStream << objectName();
         tmpStream << sleep;
-        LOG(tmpBa.size() << tmpBa.toHex());
+//        LOG(tmpBa.size() << tmpBa.toHex());
         ProjectFile::SaveChunk( "CntHead", tmpBa, out);
     }
 
@@ -741,7 +712,7 @@ QDataStream & Container::toStream (QDataStream& out) const
     while(i!=listContainerPrograms.constEnd()) {
         QByteArray tmpBa;
         QDataStream tmpStream( &tmpBa, QIODevice::ReadWrite);
-        tmpStream << (quint32)i.key();
+        tmpStream << (quint16)i.key();
         tmpStream << *(i.value());
         ProjectFile::SaveChunk( "CntProg", tmpBa, out);
         ++i;
@@ -796,7 +767,7 @@ bool Container::fromStream (QDataStream& in)
         }
 
         if(tmpStream.status()==QDataStream::ReadPastEnd) {
-            LOG("ReadPastEnd"<<tmpStream.status());
+            LOG("ReadPastEnd"<<tmpStream.status()<<toStringFull());
             return false;
         }
     }
@@ -808,6 +779,8 @@ bool Container::fromStream (QDataStream& in)
     listLoadingObjects.clear();
     delete listContainerPrograms.take(TEMP_PROGRAM);
 
+    MetaInfo::ResetSavedIds();
+
     return true;
 }
 
@@ -816,7 +789,7 @@ bool Container::loadHeaderStream (QDataStream &in)
     //load header
     quint32 id;
     in >> id;
-    MetaInfo::savedIds.insert(id,ObjId());
+    MetaInfo::SetSavedId(id,ObjId());
 
     QString name;
     in >> name;
@@ -831,6 +804,7 @@ bool Container::loadObjectFromStream (QDataStream &in)
 {
     MetaInfo info;
     in >> info;
+    quint32 oldId=info.ObjId();
     info.SetObjId(0);
 
     QSharedPointer<Object> objPtr = myHost->objFactory->NewObject(info);
@@ -846,6 +820,7 @@ bool Container::loadObjectFromStream (QDataStream &in)
     }
 
     if(!objPtr.isNull()) {
+        MetaInfo::SetSavedId(oldId,objPtr->ObjId());
         AddParkedObject(objPtr);
         if(objPtr->fromStream( in ))
             listLoadingObjects << objPtr; //keep the object alive while loading
@@ -856,7 +831,7 @@ bool Container::loadObjectFromStream (QDataStream &in)
 
 bool Container::loadProgramFromStream (QDataStream &in)
 {
-    quint32 progId;
+    quint16 progId;
     in >> progId;
 
     ContainerProgram *prog = new ContainerProgram(myHost,this);
@@ -941,7 +916,9 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
             obj = myHost->objFactory->NewObject(info);
             AddParkedObject(obj);
             tmpListObj << obj;
+            MetaInfo::SetSavedId(info.ObjId(),obj->ObjId());
         } else {
+            MetaInfo::SetSavedId(info.ObjId(),info.ObjId());
             obj->SetContainer(this);
         }
         if(!obj) {
@@ -977,4 +954,6 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
         }
         listContainerPrograms.insert(progId,prog);
     }
+
+    MetaInfo::ResetSavedIds();
 }

@@ -65,7 +65,20 @@ QDataStream & Cable::fromStream (QDataStream& in)
     in >> *(MetaInfo*)this;
     in >> pinOut;
     in >> pinIn;
+
+    pinOut.SetParentObjectId( MetaInfo::GetIdFromSavedId( pinOut.ParentObjectId() ) );
+    pinIn.SetParentObjectId( MetaInfo::GetIdFromSavedId( pinIn.ParentObjectId() ) );
     return in;
+}
+
+void Cable::UpdatePinsParentIds(MainHost *host)
+{
+
+    host->objFactory->UpdatePinInfo(pinIn);
+    host->objFactory->UpdatePinInfo(pinOut);
+
+    SetMeta(MetaInfos::nbOutputs,QVariant::fromValue(pinOut.info()));
+    SetMeta(MetaInfos::nbInputs,QVariant::fromValue(pinIn.info()));
 }
 
 QDataStream & operator<< (QDataStream & out, const Connectables::Cable& value)

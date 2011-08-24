@@ -229,6 +229,9 @@ void SceneView::DelObj(quint32 objId)
             delete cable;
             break;
         }
+    case MetaTypes::listPin :
+    case MetaTypes::bridge :
+        return;
     default:
         qDebug()<<"nodetype not found"<<info.toStringFull();
         return;
@@ -501,8 +504,12 @@ void SceneView::AddObj(MetaInfo &info)
             PinView* pinOut = static_cast<PinView*>(mapViewItems.value( infoOut.ObjId(),0 ));
             PinView* pinIn = static_cast<PinView*>(mapViewItems.value( infoIn.ObjId(),0 ));
 
-            if(!pinOut || !pinIn) {
-                qDebug()<<"addcable : pin not found"<<info.toStringFull();
+            if(!pinOut) {
+                qDebug()<<"addcable : pinOut not found"<<info.toString()<<infoOut.toStringFull();
+                return;
+            }
+            if(!pinIn) {
+                qDebug()<<"addcable : pinIn not found"<<info.toString()<<infoIn.toStringFull();
                 return;
             }
             CableView *cable = new CableView(infoOut,infoIn,cnt,myHost->mainWindow->viewConfig);

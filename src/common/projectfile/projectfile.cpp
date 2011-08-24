@@ -57,7 +57,6 @@ bool ProjectFile::LoadFromFile(MainHost *myHost,QString filePath)
 
     QDataStream in(&file);
     bool ret=FromStream(myHost,in);
-    MetaInfo::savedIds.clear();
     return ret;
 }
 

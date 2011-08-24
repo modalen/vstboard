@@ -30,7 +30,7 @@ class MainHost;
 
 namespace Connectables {
 
-    typedef QHash<int,QWeakPointer<Object> > hashObjects;
+    typedef QHash<quint32,QWeakPointer<Object> > hashObjects;
 
     class ObjectFactory : public QObject
     {
@@ -44,7 +44,7 @@ namespace Connectables {
             listObjects.remove(id);
         }
 
-        inline QSharedPointer<Object> GetObjectFromId(int id) {
+        inline QSharedPointer<Object> GetObjectFromId(quint32 id) {
             if(id==0)
                 return QSharedPointer<Object>();
 

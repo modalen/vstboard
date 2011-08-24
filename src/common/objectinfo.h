@@ -276,7 +276,21 @@ class MetaInfo
         return *this;
     }
 
-    static QMap<quint32,quint32>savedIds;
+    static void SetSavedId(quint32 savedId, quint32 newId) {
+        savedIds.insert(savedId,newId);
+    }
+    static quint32 GetIdFromSavedId(quint32 savedId) {
+        //don't update fixed Ids
+        if(savedId<50) {
+            return savedId;
+        }
+        if(!savedIds.contains(savedId)) {
+            LOG("savedId not found"<<savedId);
+            return savedId;
+        }
+        return savedIds.value(savedId);
+    }
+    static void ResetSavedIds() { savedIds.clear(); }
     static quint32 GetNextId() { return nextId++;}
 
     QStandardItem *toModelItem() {
@@ -299,6 +313,7 @@ private:
     QMap<MetaInfos::Enum,QVariant>listInfos;
     static DMutex mutexListInfos;
     static quint32 nextId;
+    static QMap<quint32,quint32>savedIds;
 };
 
 

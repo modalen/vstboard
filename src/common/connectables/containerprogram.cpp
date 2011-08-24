@@ -18,7 +18,7 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-
+#include "precomp.h"
 #include "containerprogram.h"
 #include "mainhost.h"
 #include "objects/container.h"
@@ -67,6 +67,8 @@ ContainerProgram::ContainerProgram(const ContainerProgram& c) :
 
 ContainerProgram::~ContainerProgram()
 {
+    LOG("delete prog"<<hex<<(long)this<<QThread::currentThreadId());
+
     foreach(Cable *c, listCables) {
         delete c;
     }
@@ -489,7 +491,7 @@ QDataStream & ContainerProgram::toStream (QDataStream& out) const
     out << (quint16)mapObjAttribs.size();
     QMap<int,ObjectContainerAttribs>::ConstIterator i = mapObjAttribs.constBegin();
     while(i!=mapObjAttribs.constEnd()) {
-        out << i.key();
+        out << (quint32)i.key();
         out << i.value();
         ++i;
     }
@@ -504,9 +506,9 @@ QDataStream & ContainerProgram::fromStream (QDataStream& in)
     for(quint16 i=0; i<nbobj; i++) {
         quint32 id;
         in >> id;
-        quint32 newid = MetaInfo::savedIds.value(id,0);
-        if(newid==0)
-            return in;
+        quint32 newid = MetaInfo::GetIdFromSavedId(id);
+//        if(newid==0)
+//            return in;
         listObjects << myHost->objFactory->GetObjectFromId(newid);
     }
 
@@ -514,11 +516,11 @@ QDataStream & ContainerProgram::fromStream (QDataStream& in)
     in >> nbCables;
     for(quint16 i=0; i<nbCables; i++) {
         Cable *cab = new Cable();
-        in >> *cab;
         cab->SetTransporter(myHost);
-
-//        cab->SetParent(container);
-//        cab->SetContainer(container);
+        cab->SetParent(container);
+        cab->SetContainer(container);
+        in >> *cab;
+        cab->UpdatePinsParentIds(myHost);
         listCables << cab;
     }
 
@@ -529,7 +531,7 @@ QDataStream & ContainerProgram::fromStream (QDataStream& in)
         ObjectContainerAttribs attr;
         in >> objId;
         in >> attr;
-        objId=MetaInfo::savedIds.value(objId,0);
+        objId=MetaInfo::GetIdFromSavedId(objId);
         mapObjAttribs.insert(objId,attr);
     }
 

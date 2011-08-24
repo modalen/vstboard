@@ -92,13 +92,18 @@ bool SceneModel::event(QEvent *event)
             Events::sendObj *e = static_cast<Events::sendObj*>(event);
 //            e->objInfo.SetTransporter(this);
     //            LOG("park" << e->objInfo.toStringFull());
-            mySceneView->DelObj(e->objInfo.ObjId());
 
-            if(e->objInfo.ContainerId()==FixedObjIds::programContainer) {
-                myHost->mainWindow->programParkModel.appendRow( e->objInfo.toModelItem() );
-            }
-            if(e->objInfo.ContainerId()==FixedObjIds::groupContainer) {
-                myHost->mainWindow->groupParkModel.appendRow( e->objInfo.toModelItem() );
+            if(e->objInfo.Type()==MetaTypes::object) {
+                mySceneView->DelObj(e->objInfo.ObjId());
+
+                if(e->objInfo.ContainerId()==FixedObjIds::programContainer) {
+                    myHost->mainWindow->programParkModel.appendRow( e->objInfo.toModelItem() );
+                }
+                if(e->objInfo.ContainerId()==FixedObjIds::groupContainer) {
+                    myHost->mainWindow->groupParkModel.appendRow( e->objInfo.toModelItem() );
+                }
+            } else {
+                mySceneView->DelObj(e->objInfo.ObjId());
             }
             return true;
         }

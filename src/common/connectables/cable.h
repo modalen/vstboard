@@ -47,6 +47,7 @@ namespace Connectables {
         QDataStream & toStream (QDataStream &) const;
         QDataStream & fromStream (QDataStream &);
 
+        void UpdatePinsParentIds(MainHost *host);
     protected:
         /// the output pin (from the sender object)
         MetaInfo pinOut;
