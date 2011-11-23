@@ -31,6 +31,21 @@ RenderThread::RenderThread(Renderer *renderer, int cpu, const QString &name)
       currentNode(0)
 {
     setObjectName(name);
+
+#ifdef WIN32
+    DllAvRt = NULL;
+    FunctionAvSetMmThreadCharacteristics = NULL;
+    FunctionAvRevertMmThreadCharacteristics = NULL;
+    FunctionAvSetMmThreadPriority = NULL;
+
+    DllAvRt = LoadLibrary(TEXT("avrt.dll"));
+    if (DllAvRt != NULL)
+    {
+        FunctionAvSetMmThreadCharacteristics = (AVSETMMTHREADCHARACTERISTICS*)GetProcAddress(DllAvRt,"AvSetMmThreadCharacteristicsA");
+        FunctionAvRevertMmThreadCharacteristics = (AVREVERTMMTHREADCHARACTERISTICS*)GetProcAddress(DllAvRt, "AvRevertMmThreadCharacteristics");
+        FunctionAvSetMmThreadPriority = (AVSETMMTHREADPRIORITY*)GetProcAddress(DllAvRt, "AvSetMmThreadPriority");
+    }
+#endif
 }
 
 RenderThread::~RenderThread()
@@ -38,6 +53,7 @@ RenderThread::~RenderThread()
     ResetSteps();
     stop=true;
     sem.release();
+
     wait(1000);
 }
 
@@ -45,13 +61,38 @@ RenderThread::~RenderThread()
 void RenderThread::run()
 {
 //    SetThreadIdealProcessor( GetCurrentThread(), currentCpu );
+//not available on XP
+//    currentCpu = GetCurrentProcessorNumber();
+
+#ifdef WIN32
+    /* If we have access to AVRT.DLL (Vista and later), use it */
+    if (FunctionAvSetMmThreadCharacteristics != NULL) {
+        DWORD dwTask = 0;
+        HANDLE hMmTask = FunctionAvSetMmThreadCharacteristics(QString("vstboard%1").arg(currentCpu).toStdString().c_str(), &dwTask);
+        if (hMmTask != NULL && hMmTask != INVALID_HANDLE_VALUE) {
+            BOOL bret = FunctionAvSetMmThreadPriority(hMmTask, PA_AVRT_PRIORITY_CRITICAL);
+            if (!bret) {
+                LOG("can't set msc priority");
+            }
+        }
+        else {
+            LOG("can't set msc priority, avrt.dll not loaded");
+        }
+    }
+#endif
 
     while(!stop) {
-//not available on XP
-//        currentCpu = GetCurrentProcessorNumber();
         sem.acquire();
         RenderStep(step);
     }
+
+#ifdef WIN32
+    if (hMmTask != NULL) {
+        FunctionAvRevertMmThreadCharacteristics(hMmTask);
+    }
+    if(DllAvRt)
+        FreeLibrary(DllAvRt);
+#endif
 }
 
 void RenderThread::RenderStep(int step)
