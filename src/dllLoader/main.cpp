@@ -126,7 +126,10 @@ extern "C" {
 #endif
 bool DllExport InitDll ()
 {
-    return InitModule ();
+    if(Hplugin)
+        return true;
+
+    return InitModule();
 }
 bool DllExport ExitDll ()
 {
@@ -141,6 +144,8 @@ bool DllExport ExitDll ()
 namespace Steinberg {
 EXPORT_FACTORY IPluginFactory* PLUGIN_API GetPluginFactory ()
 {
+    if(!Hplugin)
+        InitModule();
     if(!Hplugin)
         return 0;
 

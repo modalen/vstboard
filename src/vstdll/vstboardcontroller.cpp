@@ -31,38 +31,29 @@ namespace Vst {
 //-----------------------------------------------------------------------------
 tresult PLUGIN_API VstBoardController::initialize (FUnknown* context)
 {
-        tresult result = EditController::initialize (context);
-        if (result != kResultTrue)
-            return result;
+    tresult result = EditController::initialize (context);
+    if (result != kResultTrue)
+        return result;
 
-        QCoreApplication::setOrganizationName("CtrlBrk");
-        QCoreApplication::setApplicationName("VstBoard");
+    QCoreApplication::setOrganizationName("CtrlBrk");
+    QCoreApplication::setApplicationName("VstBoard");
 
-#ifdef QT_NO_DEBUG
-    if(qtTranslator.load("qt_" + QLocale::system().name(), ":/translations/"))
-        qApp->installTranslator(&qtTranslator);
-    if(commonTranslator.load("common_" + QLocale::system().name(), ":/translations/"))
-        qApp->installTranslator(&commonTranslator);
-    if(myappTranslator.load("vstboard_" + QLocale::system().name(), ":/translations/"))
-        qApp->installTranslator(&myappTranslator);
-#endif
+    parameters.addParameter (STR16 ("Delay"), STR16 ("sec"), 0, 1, ParameterInfo::kCanAutomate, kDelayTag);
 
-        parameters.addParameter (STR16 ("Delay"), STR16 ("sec"), 0, 1, ParameterInfo::kCanAutomate, kDelayTag);
-
-        return kResultTrue;
+    return kResultTrue;
 }
 
 IPlugView* PLUGIN_API VstBoardController::createView (const char* name)
 {
-        // someone wants my editor
-        if (name && strcmp (name, "editor") == 0)
-        {
-                Gui* view = new Gui();
-                Settings *set = new Settings("plugin/",qApp);
-                view->SetMainWindow(new MainWindowVst(set));
-                return view;
-        }
-        return 0;
+    if (name && strcmp (name, "editor") == 0)
+    {
+        ViewRect viewRect (0, 0, 850, 600);
+        Gui* view = new Gui(&viewRect);
+        Settings *set = new Settings("plugin/",qApp);
+        view->SetMainWindow(new MainWindowVst(set));
+        return view;
+    }
+    return 0;
 }
 
 void VstBoardController::editorAttached (EditorView* editor)

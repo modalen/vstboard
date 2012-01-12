@@ -28,18 +28,21 @@
 #include "mainwindow.h"
 #include "../common/ui_mainwindow.h"
 
-class MainHostVst;
 class MainWindowVst : public MainWindow {
     Q_OBJECT
 
 public:
-    MainWindowVst(Settings *settings, MainHost * myHost=0, QWidget *parent = 0);
+    MainWindowVst(Settings *settings, QWidget *parent = 0);
     void readSettings();
 
-protected:
+private:
     void closeEvent(QCloseEvent *event);
     void BuildListTools();
     void resetSettings();
+
+    QTranslator qtTranslator;
+    QTranslator commonTranslator;
+    QTranslator myappTranslator;
 
 private slots:
     void on_actionConfig_triggered();

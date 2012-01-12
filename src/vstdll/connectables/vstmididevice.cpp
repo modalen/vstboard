@@ -20,7 +20,6 @@
 
 #include "vstmididevice.h"
 #include "globals.h"
-#include "mainhostvst.h"
 #include "vstboardprocessor.h"
 
 using namespace Connectables;

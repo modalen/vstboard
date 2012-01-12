@@ -21,7 +21,6 @@
 #include "vstboardprocessor.h"
 #include "ids.h"
 
-#include "mainhostvst.h"
 #include "projectfile/projectfile.h"
 #include "views/configdialog.h"
 #include "settings.h"
@@ -55,15 +54,6 @@ tresult PLUGIN_API VstBoardProcessor::initialize (FUnknown* context)
 
     QCoreApplication::setOrganizationName("CtrlBrk");
     QCoreApplication::setApplicationName("VstBoard");
-
-#ifdef QT_NO_DEBUG
-    if(qtTranslator.load("qt_" + QLocale::system().name(), ":/translations/"))
-        qApp->installTranslator(&qtTranslator);
-    if(commonTranslator.load("common_" + QLocale::system().name(), ":/translations/"))
-        qApp->installTranslator(&commonTranslator);
-    if(myappTranslator.load("vstboard_" + QLocale::system().name(), ":/translations/"))
-        qApp->installTranslator(&myappTranslator);
-#endif
 
     Open();
 

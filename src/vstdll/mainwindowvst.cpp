@@ -18,12 +18,21 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 #include "mainwindowvst.h"
-#include "mainhostvst.h"
 #include "views/configdialogvst.h"
 
-MainWindowVst::MainWindowVst(Settings *settings, MainHost * myHost, QWidget *parent) :
-        MainWindow(settings,myHost,parent)
+MainWindowVst::MainWindowVst(Settings *settings, QWidget *parent) :
+        MainWindow(settings,0,parent)
 {
+
+#ifdef QT_NO_DEBUG
+    if(qtTranslator.load("qt_" + QLocale::system().name(), ":/translations/"))
+        qApp->installTranslator(&qtTranslator);
+    if(commonTranslator.load("common_" + QLocale::system().name(), ":/translations/"))
+        qApp->installTranslator(&commonTranslator);
+    if(myappTranslator.load("vstboard_" + QLocale::system().name(), ":/translations/"))
+        qApp->installTranslator(&myappTranslator);
+#endif
+
     ui->actionRefresh_Audio_devices->setDisabled(true);
     ui->actionRefresh_Midi_devices->setDisabled(true);
     setWindowTitle(APP_NAME);

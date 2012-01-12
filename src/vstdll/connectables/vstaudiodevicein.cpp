@@ -21,7 +21,6 @@
 #include "vstaudiodevicein.h"
 #include "globals.h"
 #include "audiobuffer.h"
-#include "mainhostvst.h"
 #include "vstboardprocessor.h"
 
 using namespace Connectables;
