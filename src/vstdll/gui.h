@@ -24,25 +24,31 @@
 
 #include <QObject>
 
-#include "aeffeditor.h"
+//#include "aeffeditor.h"
 #include "mainwindowvst.h"
 #include "resizehandle.h"
 #include <qwinwidget.h>
+#include "public.sdk/source/common/pluginview.h"
 
-class Gui : public QObject, public AEffEditor
+namespace Steinberg
+{
+
+class Gui : public QObject, public CPluginView
 {
     Q_OBJECT
     QWinWidget *widget;
-    AudioEffectX* effect;
+//    AudioEffectX* effect;
 
 public:
-    Gui(AudioEffectX* effect);
+    Gui(ViewRect* size = 0);
     ~Gui();
 
-    virtual bool open(void* ptr);
-    virtual bool getRect (ERect** rect);
-    virtual void close();
+    bool getRect (ERect** rect);
     void SetMainWindow(MainWindowVst *win);
+
+    tresult PLUGIN_API isPlatformTypeSupported (FIDString type);
+    virtual void attachedToParent();
+    virtual void removedFromParent();
 
 protected:
     bool hostCanSizeWindow;
@@ -59,5 +65,5 @@ public slots:
     void OnResizeHandleMove(const QPoint &pt);
 
 };
-
+}
 #endif // GUI_H

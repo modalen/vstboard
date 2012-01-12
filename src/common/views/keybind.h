@@ -22,8 +22,8 @@
 #define KEYBIND_H
 
 #include "precomp.h"
+#include "settings.h"
 
-class MainHost;
 class KeyBind : public QObject
 {
     Q_OBJECT
@@ -108,7 +108,7 @@ public:
         Qt::KeyboardModifiers modifier;
     };
 
-    KeyBind(MainHost *myHost);
+    KeyBind(Settings *settings);
     const QString GetMainShortcut(const MainShortcuts id) const;
     const MoveBind GetMoveSortcuts(const MovesBindings id) const;
     QStandardItemModel * GetMainBindingModel();
@@ -122,7 +122,7 @@ public:
     void SetCurrentMode(const QString mode) {currentMode=mode;}
 
 private:
-    MainHost *myHost;
+    Settings *settings;
     QMap<MainShortcuts, QString>mapMainShortcuts;
     QMap<QString, QMap<MovesBindings, MoveBind> >mapModes;
     QStandardItemModel mainModel;

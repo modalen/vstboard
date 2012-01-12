@@ -23,8 +23,8 @@
 #include "connectables/audiodevice.h"
 #include "connectables/objectfactoryhost.h"
 
-MainHostHost::MainHostHost(QObject *parent, QString settingsGroup) :
-    MainHost(parent,settingsGroup)
+MainHostHost::MainHostHost(Settings *settings, QObject *parent) :
+    MainHost(settings,parent)
 {
     objFactory = new Connectables::ObjectFactoryHost(this);
     midiDevices = new MidiDevices(this);

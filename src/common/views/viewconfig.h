@@ -3,8 +3,7 @@
 
 //#include "precomp.h"
 #include "keybind.h"
-
-class MainHost;
+#include "settings.h"
 
 namespace ColorGroups {
     enum Enum {
@@ -62,7 +61,7 @@ namespace View {
     Q_OBJECT
 
     public:
-        ViewConfig( MainHost *myHost,  QObject *parent=0 );
+        ViewConfig( Settings *settings,  QObject *parent=0 );
 
         void SetColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color);
         QColor GetColor(ColorGroups::Enum groupId, Colors::Enum colorId);
@@ -130,7 +129,7 @@ namespace View {
 
         QString currentPresetName;
 
-        MainHost *myHost;
+        Settings *settings;
 
     signals:
         /*!

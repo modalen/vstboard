@@ -17,6 +17,83 @@
 #    You should have received a copy of the under the terms of the GNU Lesser General Public License
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
+#include "pluginterfaces/base/ftypes.h"
+
+#include <windows.h>
+#include <QMfcApp>
+
+#if defined (_MSC_VER) && defined (DEVELOPMENT)
+        #include <crtdbg.h>
+#endif
+
+#ifdef UNICODE
+#define tstrrchr wcsrchr
+#else
+#define tstrrchr strrchr
+#endif
+
+//------------------------------------------------------------------------
+HINSTANCE ghInst = 0;
+void* moduleHandle = 0;
+Steinberg::tchar gPath[MAX_PATH] = {0};
+
+//------------------------------------------------------------------------
+#define DllExport __declspec( dllexport )
+
+//------------------------------------------------------------------------
+extern bool InitModule ();		///< must be provided by Plug-in: called when the library is loaded
+extern bool DeinitModule ();	///< must be provided by Plug-in: called when the library is unloaded
+
+//------------------------------------------------------------------------
+#ifdef __cplusplus
+extern "C" {
+#endif
+        bool DllExport InitDll () ///< must be called from host right after loading dll
+        {
+                return InitModule ();
+        }
+        bool DllExport ExitDll ()  ///< must be called from host right before unloading dll
+        {
+                return DeinitModule ();
+        }
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
+//------------------------------------------------------------------------
+BOOL WINAPI DllMain (HINSTANCE hInst, DWORD dwReason, LPVOID /*lpvReserved*/)
+{
+    static bool ownApplication = FALSE;
+
+        if (dwReason == DLL_PROCESS_ATTACH)
+        {
+            ownApplication = QMfcApp::pluginInstance( hInst );
+
+        #if defined (_MSC_VER) && defined (DEVELOPMENT)
+                _CrtSetReportMode ( _CRT_WARN, _CRTDBG_MODE_DEBUG );
+                _CrtSetReportMode ( _CRT_ERROR, _CRTDBG_MODE_DEBUG );
+                _CrtSetReportMode ( _CRT_ASSERT, _CRTDBG_MODE_DEBUG );
+                int flag = _CrtSetDbgFlag (_CRTDBG_REPORT_FLAG);
+                _CrtSetDbgFlag (flag | _CRTDBG_LEAK_CHECK_DF);
+        #endif
+
+                moduleHandle = ghInst = hInst;
+
+                // gets the path of the component
+                GetModuleFileName (ghInst, gPath, MAX_PATH);
+                Steinberg::tchar* bkslash = tstrrchr (gPath, TEXT ('\\'));
+                if (bkslash)
+                        gPath[bkslash - gPath + 1] = 0;
+        }
+
+        if ( dwReason == DLL_PROCESS_DETACH && ownApplication ) {
+            delete qApp;
+        }
+
+        return TRUE;
+}
+
+/*
 #include "vst.h"
 
 extern AudioEffect* createEffectInstance (audioMasterCallback audioMaster, bool asInstrument);
@@ -29,9 +106,6 @@ extern "C" {
 #define VST_EXPORT _declspec(dllexport)
 //#endif
 
-    //------------------------------------------------------------------------
-    /** Prototype of the export function main */
-    //------------------------------------------------------------------------
     VST_EXPORT AEffect* VSTPluginMain (audioMasterCallback audioMaster)
     {
         // Get VST Version of the Host
@@ -70,7 +144,7 @@ extern "C" {
 #include <QMfcApp>
 
 extern "C" {
-BOOL WINAPI DllMain( HINSTANCE hInst, DWORD dwReason, LPVOID /*lpvReserved*/ )
+BOOL WINAPI DllMain( HINSTANCE hInst, DWORD dwReason, LPVOID )
 {
     static bool ownApplication = FALSE;
      if ( dwReason == DLL_PROCESS_ATTACH )
@@ -85,5 +159,5 @@ BOOL WINAPI DllMain( HINSTANCE hInst, DWORD dwReason, LPVOID /*lpvReserved*/ )
 
 #endif
 
-
+*/
 

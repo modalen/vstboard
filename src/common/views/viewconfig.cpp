@@ -19,7 +19,6 @@
 **************************************************************************/
 //#include "precomp.h"
 #include "viewconfig.h"
-#include "mainhost.h"
 
 using namespace View;
 
@@ -31,12 +30,12 @@ using namespace View;
 /*!
   Constructor
   */
-ViewConfig::ViewConfig(MainHost *myHost, QObject *parent) :
+ViewConfig::ViewConfig(Settings *settings, QObject *parent) :
     QObject(parent),
     savedInSetupFile(false),
     currentPresetName("Default"),
-    myHost(myHost),
-    keyBinding(new KeyBind(myHost)),
+    settings(settings),
+    keyBinding(new KeyBind(settings)),
     AutoOpenGui(false)
 {
     colorGroupNames.insert( ColorGroups::ND, tr("-undefined-") );
@@ -136,7 +135,7 @@ void ViewConfig::LoadPreset(const QString &presetName)
     currentPresetName=presetName;
     UpdateAllWidgets();
     if(!savedInSetupFile)
-        myHost->SetSetting("ColorPreset",currentPresetName);
+        settings->SetSetting("ColorPreset",currentPresetName);
 }
 
 /*!
@@ -377,22 +376,22 @@ void ViewConfig::SaveInRegistry()
     QDataStream tmpStream( &tmpBa , QIODevice::ReadWrite);
     toStream( tmpStream );
     QVariant lVar=QVariant::fromValue(tmpBa);
-    myHost->SetSetting("Colors",lVar);
-    myHost->SetSetting("ColorPreset",currentPresetName);
+    settings->SetSetting("Colors",lVar);
+    settings->SetSetting("ColorPreset",currentPresetName);
 }
 
 void ViewConfig::LoadFromRegistry()
 {
     SetSavedInSetup(false);
-    QVariant lVar = myHost->GetSetting("Colors", QVariant::Invalid);
+    QVariant lVar = settings->GetSetting("Colors", QVariant::Invalid);
     if( !lVar.isValid() ) {
         SaveInRegistry();
-        lVar = myHost->GetSetting("Colors");
+        lVar = settings->GetSetting("Colors");
     }
     QByteArray tmpBa( lVar.value<QByteArray>() );
     QDataStream tmpStream( &tmpBa , QIODevice::ReadWrite);
     fromStream( tmpStream );
-    QString name = myHost->GetSetting("ColorPreset", "Default").toString();
+    QString name = settings->GetSetting("ColorPreset", "Default").toString();
     LoadPreset(name);
 }
 

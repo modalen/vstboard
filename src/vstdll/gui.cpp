@@ -20,10 +20,13 @@
 #include "gui.h"
 #include <QtGui/QHBoxLayout>
 
-Gui::Gui(AudioEffectX* effect) :
+namespace Steinberg
+{
+Gui::Gui(ViewRect* size) :
+    CPluginView(size),
     widget(0),
     myWindow(0),
-    effect(effect),
+//    effect(effect),
     resizeH(0)
 {
     rectangle.top = 0;
@@ -32,15 +35,15 @@ Gui::Gui(AudioEffectX* effect) :
     rectangle.right = 800;
 
     //reaper needs an offset.. can't find a good solution
-    char str[64];
-    effect->getHostProductString(str);
-    if(!strcmp(str,"REAPER")) {
-        widgetOffset.setY(27);
-    }
+//    char str[64];
+//    effect->getHostProductString(str);
+//    if(!strcmp(str,"REAPER")) {
+//        widgetOffset.setY(27);
+//    }
 
-    hostCanSizeWindow = (bool)effect->canHostDo("sizeWindow");
-    if(!hostCanSizeWindow)
-        qDebug()<<"host can't resize window";
+//    hostCanSizeWindow = (bool)effect->canHostDo("sizeWindow");
+//    if(!hostCanSizeWindow)
+//        qDebug()<<"host can't resize window";
 }
 
 Gui::~Gui()
@@ -53,6 +56,27 @@ Gui::~Gui()
         delete widget;
         widget=0;
     }
+}
+
+tresult PLUGIN_API Gui::isPlatformTypeSupported (FIDString type)
+{
+#if WINDOWS
+        if (strcmp (type, kPlatformTypeHWND) == 0)
+                return kResultTrue;
+
+#elif MAC
+        #if MAC_CARBON
+        if (strcmp (type, kPlatformTypeHIView) == 0)
+                return kResultTrue;
+        #endif
+
+        #if MAC_COCOA
+        if (strcmp (type, kPlatformTypeNSView) == 0)
+                return kResultTrue;
+        #endif
+#endif
+
+        return kInvalidArgument;
 }
 
 void Gui::UpdateColor(ColorGroups::Enum groupId, Colors::Enum /*colorId*/, const QColor & /*color*/)
@@ -78,13 +102,13 @@ void Gui::SetMainWindow(MainWindowVst *win)
              Qt::UniqueConnection);
 }
 
-bool Gui::open(void* ptr)
+void Gui::attachedToParent()
 {
-    if(!ptr || !myWindow)
-        return false;
+    if(!myWindow)
+        return;
 
-    AEffEditor::open(ptr);
-    widget = new QWinWidget(static_cast<HWND>(ptr));
+//    AEffEditor::open(ptr);
+    widget = new QWinWidget(static_cast<HWND>(systemWindow));
     widget->setAutoFillBackground(false);
     widget->setObjectName("QWinWidget");
 
@@ -110,7 +134,7 @@ bool Gui::open(void* ptr)
             this, SLOT(OnResizeHandleMove(QPoint)));
 
     widget->show();
-    return true;
+    return;
 }
 
 
@@ -123,14 +147,14 @@ void Gui::OnResizeHandleMove(const QPoint &pt)
     if(myWindow)
         myWindow->resize(pt.x(), pt.y());
 
-    if(effect)
-        effect->sizeWindow(pt.x(), pt.y());
+//    if(effect)
+//        effect->sizeWindow(pt.x(), pt.y());
 
     rectangle.right = pt.x();
     rectangle.bottom = pt.y();
 }
 
-void Gui::close()
+void Gui::removedFromParent()
 {
     if(myWindow) {
         myWindow->writeSettings();
@@ -149,4 +173,6 @@ bool Gui::getRect (ERect** rect)
 
     *rect = &rectangle;
     return true;
+}
+
 }

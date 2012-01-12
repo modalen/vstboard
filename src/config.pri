@@ -4,7 +4,7 @@ PORTAUDIO_PATH 	= ../../libs/portaudio
 PORTMIDI_PATH 	= ../../libs/portmidi
 
 win32|macx {
-    VSTSDK_PATH	= ../../libs/vstsdk2.4
+    VSTSDK_PATH	= ../../libs/VST3SDK
     CONFIG += vstsdk
     DEFINES += VSTSDK
     INCLUDEPATH += $$VSTSDK_PATH \
@@ -30,6 +30,7 @@ CONFIG(debug, debug|release) {
 } else {
     POST =
     build_postfix=release
+    DEFINES += RELEASE
 }
 
 win32-g++ {

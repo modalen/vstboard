@@ -2,8 +2,8 @@
 #include "../common/ui_configdialog.h"
 #include "mainhost.h"
 
-ConfigDialogVst::ConfigDialogVst(MainHost *myHost, QWidget *parent) :
-    ConfigDialog(myHost, parent)
+ConfigDialogVst::ConfigDialogVst(Settings *settings, MainHost *myHost, QWidget *parent) :
+    ConfigDialog(settings, myHost, parent)
 {
     //ui->groupSampleFormat->setVisible(false);
     ui->sampleRate->setVisible(false);

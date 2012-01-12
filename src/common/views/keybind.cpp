@@ -20,11 +20,10 @@
 
 #include "keybind.h"
 #include "precomp.h"
-#include "mainhost.h"
 
-KeyBind::KeyBind(MainHost *myHost) :
-    QObject(myHost),
-    myHost(myHost),
+KeyBind::KeyBind(Settings *settings) :
+    QObject(settings),
+    settings(settings),
     currentMode("Cable")
 {
     LoadFromRegistry();
@@ -165,12 +164,12 @@ void KeyBind::SaveInRegistry()
         ++j;
     }
 
-    myHost->SetSetting("keyBinding",ba);
+    settings->SetSetting("keyBinding",ba);
 }
 
 void KeyBind::LoadFromRegistry()
 {
-    QByteArray ba = myHost->GetSetting("keyBinding","").toByteArray();
+    QByteArray ba = settings->GetSetting("keyBinding","").toByteArray();
     if(ba.size()==0) {
         SetDefaults();
         SaveInRegistry();

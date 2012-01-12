@@ -21,8 +21,8 @@
 #include "mainhostvst.h"
 #include "views/configdialogvst.h"
 
-MainWindowVst::MainWindowVst(MainHost * myHost,QWidget *parent) :
-        MainWindow(myHost,parent)
+MainWindowVst::MainWindowVst(Settings *settings, MainHost * myHost, QWidget *parent) :
+        MainWindow(settings,myHost,parent)
 {
     ui->actionRefresh_Audio_devices->setDisabled(true);
     ui->actionRefresh_Midi_devices->setDisabled(true);
@@ -115,6 +115,6 @@ void MainWindowVst::resetSettings()
 
 void MainWindowVst::on_actionConfig_triggered()
 {
-    ConfigDialogVst conf(myHost,this);
+    ConfigDialogVst conf(settings,0,this);
     conf.exec();
 }

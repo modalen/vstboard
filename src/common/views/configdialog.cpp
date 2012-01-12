@@ -23,9 +23,10 @@
 #include "mainhost.h"
 #include "viewconfigdialog.h"
 
-ConfigDialog::ConfigDialog(MainHost *myHost, QWidget *parent) :
+ConfigDialog::ConfigDialog(Settings *settings, MainHost *myHost, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ConfigDialog),
+    settings(settings),
     myHost(myHost)
 {
     ui->setupUi(this);
@@ -38,7 +39,7 @@ ConfigDialog::ConfigDialog(MainHost *myHost, QWidget *parent) :
     connect( ui->defaultVstPath, SIGNAL(currentIndexChanged(int)),
              this, SLOT(onVstPathIndexChanged(int)));
 
-    QString vstPath = myHost->GetSetting("defaultVstPath", "fromLastSession").toString();
+    QString vstPath = settings->GetSetting("defaultVstPath", "fromLastSession").toString();
     if(vstPath == "systemDefault" || vstPath == "fromLastSession") {
         ui->defaultVstPath->setCurrentIndex( ui->defaultVstPath->findData( vstPath ) );
     } else {
@@ -57,7 +58,7 @@ ConfigDialog::ConfigDialog(MainHost *myHost, QWidget *parent) :
     connect( ui->defaultBankPath, SIGNAL(currentIndexChanged(int)),
              this, SLOT(onBankPathIndexChanged(int)));
 
-    QString bankPath = myHost->GetSetting("defaultBankPath", "fromLastSession").toString();
+    QString bankPath = settings->GetSetting("defaultBankPath", "fromLastSession").toString();
     if(bankPath == "fromLastSession") {
         ui->defaultBankPath->setCurrentIndex( ui->defaultBankPath->findData( bankPath ) );
     } else {
@@ -72,14 +73,14 @@ ConfigDialog::ConfigDialog(MainHost *myHost, QWidget *parent) :
     ui->defaultSetup->addItem(QIcon(":/img16x16/empty.png"), tr("Empty setup"), "empty");
     ui->defaultSetup->addItem(QIcon(":/img16x16/file_setup.png"), tr("From last session"), "fromLastSession");
     ui->defaultSetup->addItem(tr("Custom setup file"));
-    foreach(const QString &str, myHost->GetSetting("recentSetupFiles").toStringList()) {
+    foreach(const QString &str, settings->GetSetting("recentSetupFiles").toStringList()) {
         ui->defaultSetup->addItem(str);
     }
 
     connect( ui->defaultSetup, SIGNAL(currentIndexChanged(int)),
              this, SLOT(onSetupIndexChanged(int)));
 
-    QString setupFile = myHost->GetSetting("defaultSetupFile","fromLastSession").toString();
+    QString setupFile = settings->GetSetting("defaultSetupFile","fromLastSession").toString();
     if(setupFile == "empty" || setupFile == "fromLastSession") {
         ui->defaultSetup->setCurrentIndex( ui->defaultSetup->findData( setupFile ) );
     } else {
@@ -94,14 +95,14 @@ ConfigDialog::ConfigDialog(MainHost *myHost, QWidget *parent) :
     ui->defaultProject->addItem(QIcon(":/img16x16/empty.png"), tr("Empty project"), "empty");
     ui->defaultProject->addItem(QIcon(":/img16x16/file_project.png"), tr("From last session"), "fromLastSession");
     ui->defaultProject->addItem(tr("Custom project file"));
-    foreach(const QString &str, myHost->GetSetting("recentProjectFiles").toStringList()) {
+    foreach(const QString &str, settings->GetSetting("recentProjectFiles").toStringList()) {
         ui->defaultProject->addItem(str);
     }
 
     connect( ui->defaultProject, SIGNAL(currentIndexChanged(int)),
              this, SLOT(onProjectIndexChanged(int)));
 
-    QString projectFile = myHost->GetSetting("defaultProjectFile","fromLastSession").toString();
+    QString projectFile = settings->GetSetting("defaultProjectFile","fromLastSession").toString();
     if(projectFile == "empty" || projectFile == "fromLastSession") {
         ui->defaultProject->setCurrentIndex( ui->defaultProject->findData( projectFile ) );
     } else {
@@ -119,7 +120,7 @@ ConfigDialog::ConfigDialog(MainHost *myHost, QWidget *parent) :
 //sample precision
     ui->samplePrecision->addItem("32 bits",false);
     ui->samplePrecision->addItem("64 bits",true);
-    index=ui->samplePrecision->findData( defaultDoublePrecision(myHost) );
+    index=ui->samplePrecision->findData( defaultDoublePrecision(settings) );
     if(index==-1) {
         LOG("invalid sample precision"<<index)
         index=0;
@@ -132,7 +133,7 @@ ConfigDialog::ConfigDialog(MainHost *myHost, QWidget *parent) :
     ui->onUnsavedSetup->addItem(tr("Save changes"),Qt::Checked);
     ui->onUnsavedSetup->addItem(tr("Discard changes"),Qt::Unchecked);
 
-    int unsavedSetup = myHost->GetSetting("onUnsavedSetup",Qt::PartiallyChecked).toInt();
+    int unsavedSetup = settings->GetSetting("onUnsavedSetup",Qt::PartiallyChecked).toInt();
     ui->onUnsavedSetup->setCurrentIndex( ui->onUnsavedSetup->findData(unsavedSetup) );
 
 //on unsaved project
@@ -140,20 +141,22 @@ ConfigDialog::ConfigDialog(MainHost *myHost, QWidget *parent) :
     ui->onUnsavedProject->addItem(tr("Save changes"),Qt::Checked);
     ui->onUnsavedProject->addItem(tr("Discard changes"),Qt::Unchecked);
 
-    int unsavedProject = myHost->GetSetting("onUnsavedProject",Qt::PartiallyChecked).toInt();
+    int unsavedProject = settings->GetSetting("onUnsavedProject",Qt::PartiallyChecked).toInt();
     ui->onUnsavedProject->setCurrentIndex( ui->onUnsavedProject->findData(unsavedProject) );
 
 //engine
-    int th = myHost->GetSetting("NbThreads",0).toInt();
+    int th = settings->GetSetting("NbThreads",0).toInt();
     if(th<1 && th>32)
         th=0;
     ui->nbThreads->setValue( th );
 
-    connect(ui->nbThreads, SIGNAL(valueChanged(int)),
-        myHost, SLOT(ChangeNbThreads(int)));
+    if(myHost) {
+        connect(ui->nbThreads, SIGNAL(valueChanged(int)),
+            myHost, SLOT(ChangeNbThreads(int)));
+    }
 
 //hide/close editors
-    ui->fastEditorOpenClose->setChecked( myHost->GetSetting("fastEditorsOpenClose",true).toBool() );
+    ui->fastEditorOpenClose->setChecked( myHost->settings->GetSetting("fastEditorsOpenClose",true).toBool() );
 }
 
 ConfigDialog::~ConfigDialog()
@@ -203,39 +206,39 @@ void ConfigDialog::onProjectIndexChanged(int index)
 }
 
 
-const QString ConfigDialog::defaultSetupFile(MainHost *myHost)
+const QString ConfigDialog::defaultSetupFile(Settings *settings)
 {
-    QString file = myHost->GetSetting("defaultSetupFile","fromLastSession").toString();
+    QString file = settings->GetSetting("defaultSetupFile","fromLastSession").toString();
     if(file == "empty") {
         return "";
     }
     if(file == "fromLastSession") {
-        file = myHost->GetSetting("lastSetupFile","").toString();
+        file = settings->GetSetting("lastSetupFile","").toString();
     }
     return file;
 }
 
-const QString ConfigDialog::defaultProjectFile(MainHost *myHost)
+const QString ConfigDialog::defaultProjectFile(Settings *settings)
 {
-    QString file = myHost->GetSetting("defaultProjectFile","fromLastSession").toString();
+    QString file = settings->GetSetting("defaultProjectFile","fromLastSession").toString();
     if(file == "empty") {
         return "";
     }
     if(file == "fromLastSession") {
-        file = myHost->GetSetting("lastProjectFile","").toString();
+        file = settings->GetSetting("lastProjectFile","").toString();
     }
     return file;
 }
 
-const QString ConfigDialog::defaultVstPath(MainHost *myHost)
+const QString ConfigDialog::defaultVstPath(Settings *settings)
 {
-    QString vstPathType = myHost->GetSetting("defaultVstPath","fromLastSession").toString();
+    QString vstPathType = settings->GetSetting("defaultVstPath","fromLastSession").toString();
 
     QSettings vstSettings("HKEY_LOCAL_MACHINE\\Software\\VST", QSettings::NativeFormat);
     QString defaultPath = vstSettings.value("VSTPluginsPath", "").toString();
     defaultPath.replace("\\","/");
 
-    QString lastPath = myHost->GetSetting("lastVstPath", "").toString();
+    QString lastPath = settings->GetSetting("lastVstPath", "").toString();
 
     //if we want the path from the last session
     if(vstPathType == "fromLastSession") {
@@ -278,12 +281,12 @@ const QString ConfigDialog::defaultVstPath(MainHost *myHost)
     return QDir::homePath();
 }
 
-const QString ConfigDialog::defaultBankPath(MainHost *myHost)
+const QString ConfigDialog::defaultBankPath(Settings * settings)
 {
-    QString bankPath = myHost->GetSetting("defaultBankPath","fromLastSession").toString();
+    QString bankPath = settings->GetSetting("defaultBankPath","fromLastSession").toString();
 
     if(bankPath == "fromLastSession") {
-        bankPath = myHost->GetSetting("lastBankPath","").toString();
+        bankPath = settings->GetSetting("lastBankPath","").toString();
     }
 
     if(!bankPath.isEmpty())
@@ -293,24 +296,24 @@ const QString ConfigDialog::defaultBankPath(MainHost *myHost)
     return QDir::homePath();
 }
 
-const float ConfigDialog::defaultSampleRate(MainHost *myHost)
+const float ConfigDialog::defaultSampleRate(Settings *settings)
 {
-    return myHost->GetSetting("sampleRate",44100.0).toFloat();
+    return settings->GetSetting("sampleRate",44100.0).toFloat();
 }
 
-const int ConfigDialog::defaultBufferSize(MainHost *myHost)
+const int ConfigDialog::defaultBufferSize(Settings *settings)
 {
-    return myHost->GetSetting("bufferSize").toInt();
+    return settings->GetSetting("bufferSize").toInt();
 }
 
-const bool ConfigDialog::defaultDoublePrecision(MainHost *myHost)
+const bool ConfigDialog::defaultDoublePrecision(Settings *settings)
 {
-    return myHost->GetSetting("doublePrecision",false).toBool();
+    return settings->GetSetting("doublePrecision",false).toBool();
 }
 
-const int ConfigDialog::defaultNumberOfThreads(MainHost *myHost)
+const int ConfigDialog::defaultNumberOfThreads(Settings *settings)
 {
-    int th = myHost->GetSetting("NbThreads",0).toInt();
+    int th = settings->GetSetting("NbThreads",0).toInt();
     if(th>0 && th<=32)
         return th;
 
@@ -323,46 +326,46 @@ const int ConfigDialog::defaultNumberOfThreads(MainHost *myHost)
     return 2;
 }
 
-void ConfigDialog::AddRecentSetupFile(const QString &file,MainHost *myHost)
+void ConfigDialog::AddRecentSetupFile(const QString &file,Settings *settings)
 {
     if(!file.isEmpty()) {
-        QStringList lstFiles = myHost->GetSetting("recentSetupFiles").toStringList();
+        QStringList lstFiles = settings->GetSetting("recentSetupFiles").toStringList();
         lstFiles.insert(0, file);
         lstFiles.removeDuplicates();
         while(lstFiles.size()>NB_RECENT_FILES) {
             lstFiles.removeLast();
         }
-        myHost->SetSetting("recentSetupFiles",lstFiles);
+        settings->SetSetting("recentSetupFiles",lstFiles);
     }
-    myHost->SetSetting("lastSetupFile", file);
+    settings->SetSetting("lastSetupFile", file);
 }
 
-void ConfigDialog::AddRecentProjectFile(const QString &file,MainHost *myHost)
+void ConfigDialog::AddRecentProjectFile(const QString &file,Settings *settings)
 {
     if(!file.isEmpty()) {
-        QStringList lstFiles = myHost->GetSetting("recentProjectFiles").toStringList();
+        QStringList lstFiles = settings->GetSetting("recentProjectFiles").toStringList();
         lstFiles.insert(0, file);
         lstFiles.removeDuplicates();
         while(lstFiles.size()>NB_RECENT_FILES) {
             lstFiles.removeLast();
         }
-        myHost->SetSetting("recentProjectFiles",lstFiles);
+        settings->SetSetting("recentProjectFiles",lstFiles);
     }
-    myHost->SetSetting("lastProjectFile", file);
+    settings->SetSetting("lastProjectFile", file);
 }
 
-void ConfigDialog::RemoveRecentSetupFile(const QString &file,MainHost *myHost)
+void ConfigDialog::RemoveRecentSetupFile(const QString &file,Settings *settings)
 {
-    QStringList lstFiles = myHost->GetSetting("recentSetupFiles").toStringList();
+    QStringList lstFiles = settings->GetSetting("recentSetupFiles").toStringList();
     lstFiles.removeAll(file);
-    myHost->SetSetting("recentSetupFiles",lstFiles);
+    settings->SetSetting("recentSetupFiles",lstFiles);
 }
 
-void ConfigDialog::RemoveRecentProjectFile(const QString &file,MainHost *myHost)
+void ConfigDialog::RemoveRecentProjectFile(const QString &file,Settings *settings)
 {
-    QStringList lstFiles = myHost->GetSetting("recentProjectFiles").toStringList();
+    QStringList lstFiles = settings->GetSetting("recentProjectFiles").toStringList();
     lstFiles.removeAll(file);
-    myHost->SetSetting("recentProjectFiles",lstFiles);
+    settings->SetSetting("recentProjectFiles",lstFiles);
 }
 
 void ConfigDialog::accept()
@@ -438,28 +441,28 @@ void ConfigDialog::accept()
     }
 
 //default files
-    myHost->SetSetting("defaultVstPath", vstDir );
-    myHost->SetSetting("defaultBankPath", bankDir );
-    myHost->SetSetting("defaultSetupFile", setupFile );
-    myHost->SetSetting("defaultProjectFile", projectFile );
+    settings->SetSetting("defaultVstPath", vstDir );
+    settings->SetSetting("defaultBankPath", bankDir );
+    settings->SetSetting("defaultSetupFile", setupFile );
+    settings->SetSetting("defaultProjectFile", projectFile );
 
     bool precision = ui->samplePrecision->itemData(ui->samplePrecision->currentIndex()).toBool();
-    if(defaultDoublePrecision(myHost)!=precision)
+    if(defaultDoublePrecision(settings)!=precision)
         needRestart=true;
-    myHost->SetSetting("doublePrecision",precision);
+    settings->SetSetting("doublePrecision",precision);
 
 //on unsaved changes
-    myHost->SetSetting("onUnsavedSetup", ui->onUnsavedSetup->itemData( ui->onUnsavedSetup->currentIndex() ).toInt() );
-    myHost->SetSetting("onUnsavedProject", ui->onUnsavedProject->itemData( ui->onUnsavedProject->currentIndex() ).toInt() );
+    settings->SetSetting("onUnsavedSetup", ui->onUnsavedSetup->itemData( ui->onUnsavedSetup->currentIndex() ).toInt() );
+    settings->SetSetting("onUnsavedProject", ui->onUnsavedProject->itemData( ui->onUnsavedProject->currentIndex() ).toInt() );
 
 //engine
-    int oldNbThreads = myHost->GetSetting("NbThreads",0).toInt();
+    int oldNbThreads = settings->GetSetting("NbThreads",0).toInt();
     int newNbThreads = ui->nbThreads->value();
     if( newNbThreads != oldNbThreads ) {
-        myHost->SetSetting("NbThreads", newNbThreads);
+        settings->SetSetting("NbThreads", newNbThreads);
     }
 //hide/close editors
-    myHost->SetSetting("fastEditorsOpenClose", ui->fastEditorOpenClose->isChecked());
+    settings->SetSetting("fastEditorsOpenClose", ui->fastEditorOpenClose->isChecked());
 
     QDialog::accept();
 
@@ -485,7 +488,7 @@ void ConfigDialog::changeEvent(QEvent *e)
 
 void ConfigDialog::on_browseVst_clicked()
 {
-    QFileDialog fileDlg( this, tr("Default Vst path"), defaultBankPath(myHost), tr("Directory (*.)") );
+    QFileDialog fileDlg( this, tr("Default Vst path"), defaultBankPath(settings), tr("Directory (*.)") );
     fileDlg.setFileMode(QFileDialog::Directory);
 
     QString filename;
@@ -498,12 +501,12 @@ void ConfigDialog::on_browseVst_clicked()
     if(ui->defaultVstPath->findText(filename) == -1)
         ui->defaultVstPath->addItem(filename);
     ui->defaultVstPath->setCurrentIndex( ui->defaultVstPath->findText(filename) );
-    myHost->SetSetting("defaultVstPath", filename );
+    settings->SetSetting("defaultVstPath", filename );
 }
 
 void ConfigDialog::on_browseSetup_clicked()
 {
-    QFileDialog fileDlg( this, tr("Default setup file"), defaultSetupFile(myHost), tr("Setup file (*.%1)").arg(SETUP_FILE_EXTENSION) );
+    QFileDialog fileDlg( this, tr("Default setup file"), defaultSetupFile(settings), tr("Setup file (*.%1)").arg(SETUP_FILE_EXTENSION) );
     fileDlg.setFileMode(QFileDialog::ExistingFile);
     fileDlg.setDefaultSuffix(SETUP_FILE_EXTENSION);
 
@@ -521,7 +524,7 @@ void ConfigDialog::on_browseSetup_clicked()
         return;
     }
 
-    AddRecentSetupFile(filename,myHost);
+    AddRecentSetupFile(filename,settings);
 
     int i = ui->defaultSetup->findText(filename);
     if(i == -1) {
@@ -529,12 +532,12 @@ void ConfigDialog::on_browseSetup_clicked()
         i = ui->defaultSetup->findText(filename);
     }
     ui->defaultSetup->setCurrentIndex( i );
-    myHost->SetSetting("defaultSetupFile", filename );
+    settings->SetSetting("defaultSetupFile", filename );
 }
 
 void ConfigDialog::on_browseProject_clicked()
 {
-    QFileDialog fileDlg( this, tr("Default project file"), defaultSetupFile(myHost), tr("Project file (*.%1)").arg(PROJECT_FILE_EXTENSION) );
+    QFileDialog fileDlg( this, tr("Default project file"), defaultSetupFile(settings), tr("Project file (*.%1)").arg(PROJECT_FILE_EXTENSION) );
     fileDlg.setFileMode(QFileDialog::ExistingFile);
     fileDlg.setDefaultSuffix(PROJECT_FILE_EXTENSION);
 
@@ -552,7 +555,7 @@ void ConfigDialog::on_browseProject_clicked()
         return;
     }
 
-    AddRecentProjectFile(filename,myHost);
+    AddRecentProjectFile(filename,settings);
 
     int i = ui->defaultProject->findText(filename);
     if(i == -1) {
@@ -560,12 +563,12 @@ void ConfigDialog::on_browseProject_clicked()
         i = ui->defaultProject->findText(filename);
     }
     ui->defaultProject->setCurrentIndex( i );
-    myHost->SetSetting("defaultProjectFile", filename );
+    settings->SetSetting("defaultProjectFile", filename );
 }
 
 void ConfigDialog::on_browseBank_clicked()
 {
-    QFileDialog fileDlg( this, tr("Default Bank path"), defaultBankPath(myHost), tr("Directory (*.)") );
+    QFileDialog fileDlg( this, tr("Default Bank path"), defaultBankPath(settings), tr("Directory (*.)") );
     fileDlg.setFileMode(QFileDialog::Directory);
 
     QString filename;
@@ -578,6 +581,6 @@ void ConfigDialog::on_browseBank_clicked()
     if(ui->defaultBankPath->findText(filename) == -1)
         ui->defaultBankPath->addItem(filename);
     ui->defaultBankPath->setCurrentIndex( ui->defaultBankPath->findText(filename) );
-    myHost->SetSetting("defaultBankPath", filename );
+    settings->SetSetting("defaultBankPath", filename );
 }
 

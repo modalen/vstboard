@@ -250,9 +250,9 @@ bool AudioDevice::OpenStream(double sampleRate)
                 wmmeStreamInfo.size = sizeof(PaWinMmeStreamInfo);
                 wmmeStreamInfo.hostApiType = paMME;
                 wmmeStreamInfo.version = 1;
-                wmmeStreamInfo.flags = myHost->GetSetting("api/wmme_flags", MME_DFAULT_FLAGS).toUInt();
-                wmmeStreamInfo.framesPerBuffer = myHost->GetSetting("api/wmme_bufferSize", MME_DEFAULT_BUFFER_SIZE).toUInt();
-                wmmeStreamInfo.bufferCount = myHost->GetSetting("api/wmme_bufferCount", MME_DEFAULT_BUFFER_COUNT).toUInt();
+                wmmeStreamInfo.flags = myHost->settings->GetSetting("api/wmme_flags", MME_DFAULT_FLAGS).toUInt();
+                wmmeStreamInfo.framesPerBuffer = myHost->settings->GetSetting("api/wmme_bufferSize", MME_DEFAULT_BUFFER_SIZE).toUInt();
+                wmmeStreamInfo.bufferCount = myHost->settings->GetSetting("api/wmme_bufferCount", MME_DEFAULT_BUFFER_COUNT).toUInt();
                 inputParameters->hostApiSpecificStreamInfo = &wmmeStreamInfo;
                 break;
             case paASIO :
@@ -278,10 +278,10 @@ bool AudioDevice::OpenStream(double sampleRate)
                 wasapiStreamInfo.size = sizeof(PaWasapiStreamInfo);
                 wasapiStreamInfo.hostApiType = paWASAPI;
                 wasapiStreamInfo.version = 1;
-                wasapiStreamInfo.flags = myHost->GetSetting("api/wasapi_flags", WASAPI_DEFAULT_FLAGS).toUInt();
+                wasapiStreamInfo.flags = myHost->settings->GetSetting("api/wasapi_flags", WASAPI_DEFAULT_FLAGS).toUInt();
                 inputParameters->hostApiSpecificStreamInfo = &wasapiStreamInfo;
 
-                unsigned int lat = myHost->GetSetting("api/wasapi_inLatency", WASAPI_DEFAULT_INLATENCY).toUInt();
+                unsigned int lat = myHost->settings->GetSetting("api/wasapi_inLatency", WASAPI_DEFAULT_INLATENCY).toUInt();
                 if(lat!=0)
                     inputParameters->suggestedLatency = (PaTime)lat/1000;
                 break;
@@ -318,9 +318,9 @@ bool AudioDevice::OpenStream(double sampleRate)
                 wmmeStreamInfo.size = sizeof(PaWinMmeStreamInfo);
                 wmmeStreamInfo.hostApiType = paMME;
                 wmmeStreamInfo.version = 1;
-                wmmeStreamInfo.flags = myHost->GetSetting("api/wmme_flags", MME_DFAULT_FLAGS).toUInt();
-                wmmeStreamInfo.framesPerBuffer = myHost->GetSetting("api/wmme_bufferSize", MME_DEFAULT_BUFFER_SIZE).toUInt();
-                wmmeStreamInfo.bufferCount = myHost->GetSetting("api/wmme_bufferCount", MME_DEFAULT_BUFFER_COUNT).toUInt();
+                wmmeStreamInfo.flags = myHost->settings->GetSetting("api/wmme_flags", MME_DFAULT_FLAGS).toUInt();
+                wmmeStreamInfo.framesPerBuffer = myHost->settings->GetSetting("api/wmme_bufferSize", MME_DEFAULT_BUFFER_SIZE).toUInt();
+                wmmeStreamInfo.bufferCount = myHost->settings->GetSetting("api/wmme_bufferCount", MME_DEFAULT_BUFFER_COUNT).toUInt();
                 outputParameters->hostApiSpecificStreamInfo = &wmmeStreamInfo;
                 break;
             case paASIO :
@@ -346,10 +346,10 @@ bool AudioDevice::OpenStream(double sampleRate)
                 wasapiStreamInfo.size = sizeof(PaWasapiStreamInfo);
                 wasapiStreamInfo.hostApiType = paWASAPI;
                 wasapiStreamInfo.version = 1;
-                wasapiStreamInfo.flags = myHost->GetSetting("api/wasapi_flags", WASAPI_DEFAULT_FLAGS).toUInt();
+                wasapiStreamInfo.flags = myHost->settings->GetSetting("api/wasapi_flags", WASAPI_DEFAULT_FLAGS).toUInt();
                 outputParameters->hostApiSpecificStreamInfo = &wasapiStreamInfo;
 
-                unsigned int lat = myHost->GetSetting("api/wasapi_outLatency", WASAPI_DEFAULT_OUTLATENCY).toUInt();
+                unsigned int lat = myHost->settings->GetSetting("api/wasapi_outLatency", WASAPI_DEFAULT_OUTLATENCY).toUInt();
                 if(lat!=0)
                     outputParameters->suggestedLatency = (PaTime)lat/1000;
                 break;

@@ -129,7 +129,7 @@ void VstPluginView::UpdateModelIndex()
 
 void VstPluginView::SaveBankAs()
 {
-    QString lastDir = myHost->GetSetting("lastBankPath").toString();
+    QString lastDir = myHost->settings->GetSetting("lastBankPath").toString();
     QString filename = QFileDialog::getSaveFileName(0, tr("Save Bank"), lastDir, tr("Bank File (*.%1)").arg(VST_BANK_FILE_EXTENSION) );
     if(filename.isEmpty())
         return;
@@ -138,7 +138,7 @@ void VstPluginView::SaveBankAs()
         filename.append( QString(".")+VST_BANK_FILE_EXTENSION );
     }
 
-    myHost->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
+    myHost->settings->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
     model->setData(objIndex,filename,UserRoles::bankFile);
 }
 
@@ -153,7 +153,7 @@ void VstPluginView::SaveBank()
 
 void VstPluginView::SaveProgramAs()
 {
-    QString lastDir = myHost->GetSetting("lastBankPath").toString();
+    QString lastDir = myHost->settings->GetSetting("lastBankPath").toString();
     QString filename = QFileDialog::getSaveFileName(0, tr("Save Program"), lastDir, tr("Program File (*.%1)").arg(VST_PROGRAM_FILE_EXTENSION) );
     if(filename.isEmpty())
         return;
@@ -162,7 +162,7 @@ void VstPluginView::SaveProgramAs()
         filename.append(QString(".")+VST_PROGRAM_FILE_EXTENSION);
     }
 
-    myHost->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
+    myHost->settings->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
     model->setData(objIndex,filename,UserRoles::programFile);
 }
 

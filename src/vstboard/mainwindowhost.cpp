@@ -25,8 +25,8 @@
 #include "mididevices.h"
 #include "models/programsmodel.h"
 
-MainWindowHost::MainWindowHost(MainHostHost * myHost,QWidget *parent) :
-    MainWindow(myHost,parent)
+MainWindowHost::MainWindowHost(Settings *settings, MainHostHost * myHost, QWidget *parent) :
+    MainWindow(settings,myHost,parent)
 {
     setWindowTitle(APP_NAME);
 
@@ -63,7 +63,7 @@ MainWindowHost::MainWindowHost(MainHostHost * myHost,QWidget *parent) :
              this, SLOT(UpdateMidiDevices()));
     ui->treeMidiInterfaces->addAction( updateMidiList );
 
-    myHost->SetSampleRate( ConfigDialog::defaultSampleRate(myHost) );
+    myHost->SetSampleRate( ConfigDialog::defaultSampleRate(settings) );
 }
 
 void MainWindowHost::closeEvent(QCloseEvent *event)
@@ -146,6 +146,6 @@ void MainWindowHost::on_actionRefresh_Midi_devices_triggered()
 
 void MainWindowHost::on_actionConfig_triggered()
 {
-    ConfigDialogHost conf(myHost,this);
+    ConfigDialogHost conf(settings,myHost,this);
     conf.exec();
 }

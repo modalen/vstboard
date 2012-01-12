@@ -29,7 +29,7 @@
 #include "models/programsmodel.h"
 #include "views/keybindingdialog.h"
 
-MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
+MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
     QMainWindow(parent),
     mySceneView(0),
     listToolsModel(0),
@@ -37,18 +37,19 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
     listVstBanksModel(0),
     ui(new Ui::MainWindow),
     myHost(myHost),
-    viewConfig( new View::ViewConfig(myHost,this)),
+    viewConfig( new View::ViewConfig(settings,this)),
     viewConfigDlg(0),
     actUndo(0),
-    actRedo(0)
+    actRedo(0),
+    settings(settings)
 {
-    myHost->mainWindow=this;
-    connect(myHost,SIGNAL(programParkingModelChanged(QStandardItemModel*)),
-            this,SLOT(programParkingModelChanges(QStandardItemModel*)));
-    connect(myHost,SIGNAL(groupParkingModelChanged(QStandardItemModel*)),
-            this,SLOT(groupParkingModelChanges(QStandardItemModel*)));
-    connect(myHost,SIGNAL(currentFileChanged()),
-            this,SLOT(currentFileChanged()));
+    //myHost->mainWindow=this;
+//    connect(myHost,SIGNAL(programParkingModelChanged(QStandardItemModel*)),
+//            this,SLOT(programParkingModelChanges(QStandardItemModel*)));
+//    connect(myHost,SIGNAL(groupParkingModelChanged(QStandardItemModel*)),
+//            this,SLOT(groupParkingModelChanges(QStandardItemModel*)));
+//    connect(myHost,SIGNAL(currentFileChanged()),
+//            this,SLOT(currentFileChanged()));
 
     ui->setupUi(this);
     ui->statusBar->hide();
@@ -57,42 +58,42 @@ MainWindow::MainWindow(MainHost * myHost,QWidget *parent) :
             ui->actionTool_bar, SLOT(setChecked(bool)));
 
     //programs
-    ui->Programs->SetModel( myHost->programsModel );
+//    ui->Programs->SetModel( myHost->programsModel );
 
-    SetupBrowsersModels( ConfigDialog::defaultVstPath(myHost), ConfigDialog::defaultBankPath(myHost));
+    SetupBrowsersModels( ConfigDialog::defaultVstPath(settings), ConfigDialog::defaultBankPath(settings));
 
-    mySceneView = new View::SceneView(myHost, myHost->objFactory, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
-    mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
-    mySceneView->setModel(myHost->GetModel());
+//    mySceneView = new View::SceneView(myHost, myHost->objFactory, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
+//    mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
+//    mySceneView->setModel(myHost->GetModel());
 
-    ui->solverView->setModel(myHost->GetRendererModel());
-    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-            ui->solverView, SLOT(resizeColumnsToContents()));
-    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-            ui->solverView, SLOT(resizeRowsToContents()));
+//    ui->solverView->setModel(myHost->GetRendererModel());
+//    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+//            ui->solverView, SLOT(resizeColumnsToContents()));
+//    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+//            ui->solverView, SLOT(resizeRowsToContents()));
 
-    ui->treeHostModel->setModel(myHost->GetModel());
+//    ui->treeHostModel->setModel(myHost->GetModel());
 
     setPalette( viewConfig->GetPaletteFromColorGroup( ColorGroups::Window, palette() ));
-    connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
-             myHost->programsModel, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
+//    connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
+//             myHost->programsModel, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
     connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
              this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)));
 
     connect(viewConfig->keyBinding, SIGNAL(BindingChanged()),
             this, SLOT(UpdateKeyBinding()));
 
-    actUndo = myHost->undoStack.createUndoAction(ui->mainToolBar);
-    actUndo->setIcon(QIcon(":/img16x16/undo.png"));
-    actUndo->setShortcutContext(Qt::ApplicationShortcut);
-    ui->mainToolBar->addAction( actUndo );
+//    actUndo = myHost->undoStack.createUndoAction(ui->mainToolBar);
+//    actUndo->setIcon(QIcon(":/img16x16/undo.png"));
+//    actUndo->setShortcutContext(Qt::ApplicationShortcut);
+//    ui->mainToolBar->addAction( actUndo );
 
-    actRedo = myHost->undoStack.createRedoAction(ui->mainToolBar);
-    actRedo->setIcon(QIcon(":/img16x16/redo.png"));
-    actRedo->setShortcutContext(Qt::ApplicationShortcut);
-    ui->mainToolBar->addAction( actRedo );
+//    actRedo = myHost->undoStack.createRedoAction(ui->mainToolBar);
+//    actRedo->setIcon(QIcon(":/img16x16/redo.png"));
+//    actRedo->setShortcutContext(Qt::ApplicationShortcut);
+//    ui->mainToolBar->addAction( actRedo );
 
-    ui->listUndo->setStack(&myHost->undoStack);
+//    ui->listUndo->setStack(&myHost->undoStack);
 
     UpdateKeyBinding();
 }
@@ -204,7 +205,7 @@ void MainWindow::BuildListTools()
     item = new QStandardItem(tr("Delay Buffer"));
     info.nodeType = NodeType::object;
     info.objType = ObjType::Buffer;
-    info.inputs = myHost->GetBufferSize()*2;
+    info.inputs = 2000;//myHost->GetBufferSize()*2;
     item->setData(QVariant::fromValue(info),UserRoles::objInfo);
     parentItem->appendRow(item);
 
@@ -258,14 +259,16 @@ void MainWindow::on_actionSave_Setup_As_triggered()
 
 void MainWindow::on_actionConfig_triggered()
 {
-    ConfigDialog conf(myHost,this);
+    ConfigDialog conf(settings,0,this);
     conf.exec();
 }
 
 void MainWindow::UpdateKeyBinding()
 {
-    actUndo->setShortcut( viewConfig->keyBinding->GetMainShortcut(KeyBind::undo) );
-    actRedo->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::redo));
+    if(actUndo)
+        actUndo->setShortcut( viewConfig->keyBinding->GetMainShortcut(KeyBind::undo) );
+    if(actRedo)
+        actRedo->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::redo));
     ui->actionLoad->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::openProject));
     ui->actionSave->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::saveProject));
     ui->actionSave_Project_As->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::saveProjectAs));
@@ -295,21 +298,21 @@ void MainWindow::UpdateKeyBinding()
 
 void MainWindow::writeSettings()
 {
-    myHost->SetSetting("MainWindow/geometry", saveGeometry());
-    myHost->SetSetting("MainWindow/state", saveState());
-//    myHost->SetSetting("MainWindow/statusBar", ui->statusBar->isVisible());
-    myHost->SetSetting("MainWindow/splitPan", ui->splitterPanels->saveState());
-    myHost->SetSetting("MainWindow/splitProg", ui->splitterProg->saveState());
-    myHost->SetSetting("MainWindow/splitGroup", ui->splitterGroup->saveState());
+    settings->SetSetting("MainWindow/geometry", saveGeometry());
+    settings->SetSetting("MainWindow/state", saveState());
+//    settings->SetSetting("MainWindow/statusBar", ui->statusBar->isVisible());
+    settings->SetSetting("MainWindow/splitPan", ui->splitterPanels->saveState());
+    settings->SetSetting("MainWindow/splitProg", ui->splitterProg->saveState());
+    settings->SetSetting("MainWindow/splitGroup", ui->splitterGroup->saveState());
 
-    myHost->SetSetting("MainWindow/planelHost", ui->actionHost_panel->isChecked());
-    myHost->SetSetting("MainWindow/planelProject", ui->actionProject_panel->isChecked());
-    myHost->SetSetting("MainWindow/planelProgram", ui->actionProgram_panel->isChecked());
-    myHost->SetSetting("MainWindow/planelGroup", ui->actionGroup_panel->isChecked());
+    settings->SetSetting("MainWindow/planelHost", ui->actionHost_panel->isChecked());
+    settings->SetSetting("MainWindow/planelProject", ui->actionProject_panel->isChecked());
+    settings->SetSetting("MainWindow/planelProgram", ui->actionProgram_panel->isChecked());
+    settings->SetSetting("MainWindow/planelGroup", ui->actionGroup_panel->isChecked());
 
-    myHost->SetSetting("lastVstPath", ui->VstBrowser->path());
-    myHost->SetSetting("lastBankPath", ui->BankBrowser->path());
-    ui->Programs->writeSettings(myHost);
+    settings->SetSetting("lastVstPath", ui->VstBrowser->path());
+    settings->SetSetting("lastBankPath", ui->BankBrowser->path());
+    ui->Programs->writeSettings(settings);
     //settings.sync();
 }
 
@@ -360,9 +363,9 @@ void MainWindow::readSettings()
 
     //window state
 
-    if(myHost->SettingDefined("MainWindow/geometry")) {
-        restoreGeometry(myHost->GetSetting("MainWindow/geometry").toByteArray());
-        restoreState(myHost->GetSetting("MainWindow/state").toByteArray());
+    if(settings->SettingDefined("MainWindow/geometry")) {
+        restoreGeometry(settings->GetSetting("MainWindow/geometry").toByteArray());
+        restoreState(settings->GetSetting("MainWindow/state").toByteArray());
 //        bool statusb = myHost->GetSetting("MainWindow/statusBar",false).toBool();
 //        ui->actionStatus_bar->setChecked( statusb );
 //        ui->statusBar->setVisible(statusb);
@@ -373,19 +376,19 @@ void MainWindow::readSettings()
     ui->splitterProg->setStretchFactor(0,100);
     ui->splitterGroup->setStretchFactor(0,100);
 
-    if(myHost->SettingDefined("MainWindow/splitPan"))
-        ui->splitterPanels->restoreState(myHost->GetSetting("MainWindow/splitPan").toByteArray());
-    if(myHost->SettingDefined("MainWindow/splitProg"))
-        ui->splitterProg->restoreState(myHost->GetSetting("MainWindow/splitProg").toByteArray());
-    if(myHost->SettingDefined("MainWindow/splitGroup"))
-        ui->splitterGroup->restoreState(myHost->GetSetting("MainWindow/splitGroup").toByteArray());
+    if(settings->SettingDefined("MainWindow/splitPan"))
+        ui->splitterPanels->restoreState(settings->GetSetting("MainWindow/splitPan").toByteArray());
+    if(settings->SettingDefined("MainWindow/splitProg"))
+        ui->splitterProg->restoreState(settings->GetSetting("MainWindow/splitProg").toByteArray());
+    if(settings->SettingDefined("MainWindow/splitGroup"))
+        ui->splitterGroup->restoreState(settings->GetSetting("MainWindow/splitGroup").toByteArray());
 
-    ui->actionHost_panel->setChecked( myHost->GetSetting("MainWindow/planelHost",true).toBool() );
-    ui->actionProject_panel->setChecked( myHost->GetSetting("MainWindow/planelProject",false).toBool() );
-    ui->actionProgram_panel->setChecked( myHost->GetSetting("MainWindow/planelProgram",true).toBool() );
-    ui->actionGroup_panel->setChecked( myHost->GetSetting("MainWindow/planelGroup",true).toBool() );
+    ui->actionHost_panel->setChecked( settings->GetSetting("MainWindow/planelHost",true).toBool() );
+    ui->actionProject_panel->setChecked( settings->GetSetting("MainWindow/planelProject",false).toBool() );
+    ui->actionProgram_panel->setChecked( settings->GetSetting("MainWindow/planelProgram",true).toBool() );
+    ui->actionGroup_panel->setChecked( settings->GetSetting("MainWindow/planelGroup",true).toBool() );
 
-    ui->Programs->readSettings(myHost);
+    ui->Programs->readSettings(settings);
 
     viewConfig->LoadFromRegistry();
 
@@ -395,11 +398,11 @@ void MainWindow::readSettings()
 void MainWindow::LoadDefaultFiles()
 {
     //load default files
-    QString file = ConfigDialog::defaultSetupFile(myHost);
+    QString file = ConfigDialog::defaultSetupFile(settings);
     if(!file.isEmpty())
         myHost->LoadSetupFile( file );
 
-    file = ConfigDialog::defaultProjectFile(myHost);
+    file = ConfigDialog::defaultProjectFile(settings);
     if(!file.isEmpty())
         myHost->LoadProjectFile( file );
 
@@ -484,7 +487,7 @@ void MainWindow::on_actionAbout_triggered()
 void MainWindow::updateRecentFileActions()
 {
     {
-        QStringList files = myHost->GetSetting("recentSetupFiles").toStringList();
+        QStringList files = settings->GetSetting("recentSetupFiles").toStringList();
 
         int numRecentFiles = qMin(files.size(), (int)NB_RECENT_FILES);
 
@@ -498,7 +501,7 @@ void MainWindow::updateRecentFileActions()
     }
 
     {
-        QStringList files = myHost->GetSetting("recentProjectFiles").toStringList();
+        QStringList files = settings->GetSetting("recentProjectFiles").toStringList();
 
         int numRecentFiles = qMin(files.size(), (int)NB_RECENT_FILES);
 
@@ -584,21 +587,21 @@ void MainWindow::LoadProgramsFont()
 {
     QFont f(ui->Programs->font());
 
-    QString fam( myHost->GetSetting("fontProgFamily","Default").toString() );
+    QString fam( settings->GetSetting("fontProgFamily","Default").toString() );
     if(fam!="Default")
         f.setFamily( fam );
     else
         f.setFamily( ui->dockPrograms->font().family() );
 
-    int s = myHost->GetSetting("fontProgSize",0).toInt();
+    int s = settings->GetSetting("fontProgSize",0).toInt();
     if(s>0)
         f.setPointSize( s );
     else
         f.setPointSize( ui->dockPrograms->font().pointSize() );
 
-    f.setStretch( myHost->GetSetting("fontProgStretch",100).toInt() );
-    f.setBold( myHost->GetSetting("fontProgBold",false).toBool() );
-    f.setItalic( myHost->GetSetting("fontProgItalic",false).toBool() );
+    f.setStretch( settings->GetSetting("fontProgStretch",100).toInt() );
+    f.setBold( settings->GetSetting("fontProgBold",false).toBool() );
+    f.setItalic( settings->GetSetting("fontProgItalic",false).toBool() );
     ui->Programs->setFont(f);
 }
 

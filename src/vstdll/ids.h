@@ -1,5 +1,5 @@
 /**************************************************************************
-#    Copyright 2010-2011 Raphaël François
+#    Copyright 2010-2011 RaphaÃ«l FranÃ§ois
 #    Contact : ctrlbrk76@gmail.com
 #
 #    This file is part of VstBoard.
@@ -18,31 +18,21 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-#ifndef MAINWINDOWVST_H
-#define MAINWINDOWVST_H
+#ifndef IDS_H
+#define IDS_H
 
-#ifndef APP_NAME
-#define APP_NAME "noname ?"
-#endif
+namespace Steinberg {
+namespace Vst {
 
-#include "mainwindow.h"
-#include "../common/ui_mainwindow.h"
-
-class MainHostVst;
-class MainWindowVst : public MainWindow {
-    Q_OBJECT
-
-public:
-    MainWindowVst(Settings *settings, MainHost * myHost=0, QWidget *parent = 0);
-    void readSettings();
-
-protected:
-    void closeEvent(QCloseEvent *event);
-    void BuildListTools();
-    void resetSettings();
-
-private slots:
-    void on_actionConfig_triggered();
+// parameter tags
+enum {
+        kDelayTag = 100,
 };
 
-#endif // MAINWINDOWVST_H
+// unique class ids
+static const FUID VstBoardProcessorUID (0x6183A41C, 0x584C4795, 0xA819AB96, 0xF04CBA61);
+static const FUID VstBoardControllerUID (0x999B210E, 0x45964a25, 0x91A5ACDC, 0xF8EB9481);
+
+}}
+
+#endif // IDS_H

@@ -104,7 +104,8 @@ SOURCES += \
     views/keybindingdialog.cpp \
     views/buttonswidget.cpp \
     views/modifierswidget.cpp \
-    renderer/updatedelays.cpp
+    renderer/updatedelays.cpp \
+    settings.cpp
 
 SOURCES += \
     views/programlist.cpp \
@@ -201,7 +202,8 @@ HEADERS += \
     views/keybindingdialog.h \
     views/buttonswidget.h \
     views/modifierswidget.h \
-    renderer/updatedelays.h
+    renderer/updatedelays.h \
+    settings.h
 
 HEADERS += \
     views/configdialog.h \
@@ -255,6 +257,8 @@ TRANSLATIONS = ../resources/translations/common_fr.ts
 
 RESOURCES += \
     ../resources/resources.qrc
+
+
 
 
 

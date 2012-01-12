@@ -84,8 +84,9 @@ int main(int argc, char *argv[])
         app.installTranslator(&myappTranslator);
 #endif
 
-    MainHostHost host;
-    MainWindowHost w(&host);
+    Settings *set = new Settings("",qApp);
+    MainHostHost host(set);
+    MainWindowHost w(set, &host);
     host.Open();
     w.readSettings();
     w.show();

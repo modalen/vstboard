@@ -33,7 +33,7 @@
 
 quint32 MainHost::currentFileVersion=PROJECT_AND_SETUP_FILE_VERSION;
 
-MainHost::MainHost(QObject *parent, QString settingsGroup) :
+MainHost::MainHost(Settings *settings, QObject *parent) :
     QObject(parent),
     solver(new PathSolver(this)),
     objFactory(0),
@@ -41,10 +41,10 @@ MainHost::MainHost(QObject *parent, QString settingsGroup) :
     solverNeedAnUpdate(false),
     solverUpdateEnabled(true),
 //    mutexListCables(new QMutex(QMutex::Recursive)),
-    settingsGroup(settingsGroup),
+    settings(settings),
     undoProgramChangesEnabled(false)
 {
-    doublePrecision=GetSetting("doublePrecision",false).toBool();
+    doublePrecision=settings->GetSetting("doublePrecision",false).toBool();
 
     setObjectName("MainHost");
 
@@ -804,21 +804,6 @@ void MainHost::GetTempo(int &tempo, int &sign1, int &sign2)
 #endif
 }
 
-void MainHost::SetSetting(QString name, QVariant value)
-{
-    settings.setValue(settingsGroup + name,value);
-}
-
-QVariant MainHost::GetSetting(QString name, QVariant defaultVal)
-{
-    return settings.value(settingsGroup + name,defaultVal);
-}
-
-bool MainHost::SettingDefined(QString name)
-{
-    return settings.contains(settingsGroup + name);
-}
-
 void MainHost::LoadFile(const QString &filename)
 {
     QFileInfo info(filename);
@@ -838,7 +823,7 @@ void MainHost::LoadSetupFile(const QString &filename)
     QString name = filename;
 
     if(name.isEmpty()) {
-        QString lastDir = GetSetting("lastSetupDir").toString();
+        QString lastDir = settings->GetSetting("lastSetupDir").toString();
         name = QFileDialog::getOpenFileName(mainWindow, tr("Open a Setup file"), lastDir, tr("Setup Files (*.%1)").arg(SETUP_FILE_EXTENSION));
     }
 
@@ -848,10 +833,10 @@ void MainHost::LoadSetupFile(const QString &filename)
     undoStack.clear();
 
     if(ProjectFile::LoadFromFile(this,name)) {
-        ConfigDialog::AddRecentSetupFile(name,this);
+        ConfigDialog::AddRecentSetupFile(name,settings);
         currentSetupFile = name;
     } else {
-        ConfigDialog::RemoveRecentSetupFile(name,this);
+        ConfigDialog::RemoveRecentSetupFile(name,settings);
         ClearSetup();
     }
     emit currentFileChanged();
@@ -865,7 +850,7 @@ void MainHost::LoadProjectFile(const QString &filename)
     QString name = filename;
 
     if(name.isEmpty()) {
-        QString lastDir = GetSetting("lastProjectDir").toString();
+        QString lastDir = settings->GetSetting("lastProjectDir").toString();
         name = QFileDialog::getOpenFileName(mainWindow, tr("Open a Project file"), lastDir, tr("Project Files (*.%1)").arg(PROJECT_FILE_EXTENSION));
     }
 
@@ -875,10 +860,10 @@ void MainHost::LoadProjectFile(const QString &filename)
     undoStack.clear();
 
     if(ProjectFile::LoadFromFile(this,name)) {
-        ConfigDialog::AddRecentProjectFile(name,this);
+        ConfigDialog::AddRecentProjectFile(name,settings);
         currentProjectFile = name;
     } else {
-        ConfigDialog::RemoveRecentProjectFile(name,this);
+        ConfigDialog::RemoveRecentProjectFile(name,settings);
         ClearProject();
     }
     emit currentFileChanged();
@@ -901,7 +886,7 @@ void MainHost::ReloadSetup()
 
     undoStack.clear();
 
-    ConfigDialog::AddRecentSetupFile(currentSetupFile,this);
+    ConfigDialog::AddRecentSetupFile(currentSetupFile,settings);
 }
 
 void MainHost::ClearSetup()
@@ -917,7 +902,7 @@ void MainHost::ClearSetup()
     if(mainWindow)
         mainWindow->viewConfig->LoadFromRegistry();
 
-    ConfigDialog::AddRecentSetupFile("",this);
+    ConfigDialog::AddRecentSetupFile("",settings);
     currentSetupFile = "";
     emit currentFileChanged();
 }
@@ -937,7 +922,7 @@ void MainHost::ClearProject()
 
     programsModel->BuildDefaultModel();
 
-    ConfigDialog::AddRecentProjectFile("",this);
+    ConfigDialog::AddRecentProjectFile("",settings);
     currentProjectFile = "";
     emit currentFileChanged();
 }
@@ -947,7 +932,7 @@ void MainHost::SaveSetupFile(bool saveAs)
     QString filename;
 
     if(currentSetupFile.isEmpty() || saveAs) {
-        QString lastDir = GetSetting("lastSetupDir").toString();
+        QString lastDir = settings->GetSetting("lastSetupDir").toString();
         filename = QFileDialog::getSaveFileName(mainWindow, tr("Save Setup"), lastDir, tr("Setup Files (*.%1)").arg(SETUP_FILE_EXTENSION));
 
         if(filename.isEmpty())
@@ -962,8 +947,8 @@ void MainHost::SaveSetupFile(bool saveAs)
     }
 
     if(ProjectFile::SaveToSetupFile(this,filename)) {
-        SetSetting("lastSetupDir",QFileInfo(filename).absolutePath());
-        ConfigDialog::AddRecentSetupFile(filename,this);
+        settings->SetSetting("lastSetupDir",QFileInfo(filename).absolutePath());
+        ConfigDialog::AddRecentSetupFile(filename,settings);
         currentSetupFile = filename;
         emit currentFileChanged();
     }
@@ -974,7 +959,7 @@ void MainHost::SaveProjectFile(bool saveAs)
     QString filename;
 
     if(currentProjectFile.isEmpty() || saveAs) {
-        QString lastDir = GetSetting("lastProjectDir").toString();
+        QString lastDir = settings->GetSetting("lastProjectDir").toString();
         filename = QFileDialog::getSaveFileName(mainWindow, tr("Save Project"), lastDir, tr("Project Files (*.%1)").arg(PROJECT_FILE_EXTENSION));
 
         if(filename.isEmpty())
@@ -989,8 +974,8 @@ void MainHost::SaveProjectFile(bool saveAs)
     }
 
     if(ProjectFile::SaveToProjectFile(this,filename)) {
-        SetSetting("lastProjectDir",QFileInfo(filename).absolutePath());
-        ConfigDialog::AddRecentProjectFile(filename,this);
+        settings->SetSetting("lastProjectDir",QFileInfo(filename).absolutePath());
+        ConfigDialog::AddRecentProjectFile(filename,settings);
         currentProjectFile = filename;
         emit currentFileChanged();
     }

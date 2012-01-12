@@ -1,5 +1,5 @@
 /**************************************************************************
-#    Copyright 2010-2011 Raphaël François
+#    Copyright 2010-2011 RaphaÃ«l FranÃ§ois
 #    Contact : ctrlbrk76@gmail.com
 #
 #    This file is part of VstBoard.
@@ -18,19 +18,25 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-#ifndef MAINHOSTVST_H
-#define MAINHOSTVST_H
+#ifndef SETTINGS_H
+#define SETTINGS_H
 
-#include "mainhost.h"
+#include "precomp.h"
 
-class Vst;
-class MainHostVst : public MainHost
+class Settings : public QObject
 {
 Q_OBJECT
 public:
-    MainHostVst(Vst *myVstPlugin, QObject *parent = 0, QString settingsGroup="");
-    Vst *myVstPlugin;
+    Settings(const QString & settingsGroup, QObject *parent=0);
+
+    void SetSetting(QString name, QVariant value);
+    QVariant GetSetting(QString name, QVariant defaultVal=0);
+    bool SettingDefined(QString name);
+
+private:
+    QString settingsGroup;
+    QSettings settings;
 };
 
-#endif // MAINHOSTVST_H
 
+#endif // SETTINGS_H

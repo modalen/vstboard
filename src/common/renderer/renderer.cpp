@@ -38,7 +38,7 @@ Renderer::Renderer(MainHost *myHost)
       sem(0),
       myHost(myHost)
 {
-    maxNumberOfThreads = ConfigDialog::defaultNumberOfThreads(myHost);
+    maxNumberOfThreads = ConfigDialog::defaultNumberOfThreads(myHost->settings);
     InitThreads();
 
     connect(&updateViewTimer, SIGNAL(timeout()),

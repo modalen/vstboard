@@ -21,8 +21,8 @@
 #include "../common/ui_configdialog.h"
 #include "mainhost.h"
 
-ConfigDialogHost::ConfigDialogHost(MainHost *myHost, QWidget *parent) :
-    ConfigDialog(myHost, parent)
+ConfigDialogHost::ConfigDialogHost(Settings *settings,MainHost *myHost, QWidget *parent) :
+    ConfigDialog(settings,myHost, parent)
 {
     ui->sampleRate->addItem("44.1 kHz",44100);
     ui->sampleRate->addItem("48 kHz",48000);
@@ -49,10 +49,10 @@ ConfigDialogHost::ConfigDialogHost(MainHost *myHost, QWidget *parent) :
 void ConfigDialogHost::accept()
 {
     float rate = ui->sampleRate->itemData(ui->sampleRate->currentIndex()).toFloat();
-    if(rate!=defaultSampleRate(myHost)) {
+    if(rate!=defaultSampleRate(settings)) {
         myHost->SetSampleRate( rate );
     }
-    myHost->SetSetting("sampleRate", rate);
+    myHost->settings->SetSetting("sampleRate", rate);
 
 //    int buffer = ui->bufferSize->itemData(ui->bufferSize->currentIndex()).toInt();
 //    settings.setValue("bufferSize", buffer);

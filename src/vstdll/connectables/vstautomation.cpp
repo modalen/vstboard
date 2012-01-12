@@ -19,8 +19,7 @@
 **************************************************************************/
 
 #include "vstautomation.h"
-#include "mainhostvst.h"
-#include "vst.h"
+#include "vstboardprocessor.h"
 #include "commands/comaddpin.h"
 #include "commands/comremovepin.h"
 
@@ -45,7 +44,7 @@ VstAutomation::VstAutomation(MainHost *myHost,int index) :
     listParameterPinIn->SetNbPins(VST_AUTOMATION_DEFAULT_NB_PINS);
     listParameterPinOut->SetNbPins(VST_AUTOMATION_DEFAULT_NB_PINS);
 
-    connect(static_cast<MainHostVst*>(myHost)->myVstPlugin,SIGNAL(HostChangedProg(int)),
+    connect(myHost,SIGNAL(HostChangedProg(int)),
             this,SLOT(OnHostChangedProg(int)));
 }
 
@@ -58,13 +57,13 @@ VstAutomation::~VstAutomation()
 void VstAutomation::Render()
 {
     if(!listChanged.isEmpty()) {
-        Vst *vst=static_cast<MainHostVst*>(myHost)->myVstPlugin;
+//        Steinberg::Vst::VstBoardProcessor *vst=static_cast<MainHostVst*>(myHost)->myVstPlugin;
         QHash<int,float>::const_iterator i = listChanged.constBegin();
         while(i!=listChanged.constEnd()) {
             if(listParameterPinOut->listPins.contains(i.key())) {
                 static_cast<ParameterPin*>( listParameterPinOut->listPins.value(i.key()) )->ChangeValue(i.value());
             }
-            vst->updateParameter(i.key(),i.value());
+//            vst->updateParameter(i.key(),i.value());
             ++i;
         }
         listChanged.clear();
@@ -169,13 +168,13 @@ void VstAutomation::OnParameterChanged(ConnectionInfo pinInfo, float value)
 
 bool VstAutomation::Close()
 {
-    static_cast<MainHostVst*>(myHost)->myVstPlugin->removeVstAutomation(this);
+//    static_cast<MainHostVst*>(myHost)->myVstPlugin->removeVstAutomation(this);
     return Object::Close();
 }
 
 bool VstAutomation::Open()
 {
-    static_cast<MainHostVst*>(myHost)->myVstPlugin->addVstAutomation(this);
+//    static_cast<MainHostVst*>(myHost)->myVstPlugin->addVstAutomation(this);
     return Object::Open();
 }
 
@@ -192,12 +191,12 @@ Pin* VstAutomation::CreatePin(const ConnectionInfo &info)
 
     switch(info.direction) {
         case PinDirection::Output :
-            if(info.pinNumber == FixedPinNumber::vstProgNumber) {
-                int prog=(int)static_cast<MainHostVst*>(myHost)->myVstPlugin->getProgram();
-                ParameterPin *newPin = new ParameterPinOut(this,FixedPinNumber::vstProgNumber,prog,&listValues,tr("Prog"));
-                newPin->SetLimitsEnabled(false);
-                return newPin;
-            }
+//            if(info.pinNumber == FixedPinNumber::vstProgNumber) {
+//                int prog=(int)static_cast<MainHostVst*>(myHost)->myVstPlugin->getProgram();
+//                ParameterPin *newPin = new ParameterPinOut(this,FixedPinNumber::vstProgNumber,prog,&listValues,tr("Prog"));
+//                newPin->SetLimitsEnabled(false);
+//                return newPin;
+//            }
 
             return new ParameterPinOut(this,info.pinNumber,0,QString("autom%1").arg(info.pinNumber),false,true);
 

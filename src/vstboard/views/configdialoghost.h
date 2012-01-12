@@ -6,7 +6,7 @@
 class ConfigDialogHost : public ConfigDialog
 {
 public:
-    ConfigDialogHost(MainHost *myHost, QWidget *parent = 0);
+    ConfigDialogHost(Settings *settings,MainHost *myHost=0, QWidget *parent = 0);
 
 public slots:
     void accept();

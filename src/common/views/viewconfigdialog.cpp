@@ -75,12 +75,12 @@ void ViewConfigDialog::InitDialog()
     foreach (const QString &family, database.families()) {
         ui->fontProgFamily->addItem(family);
     }
-    ui->fontProgFamily->setCurrentIndex( ui->fontProgFamily->findText(myHost->GetSetting("fontProgFamily","Default").toString()) );
+    ui->fontProgFamily->setCurrentIndex( ui->fontProgFamily->findText(myHost->settings->GetSetting("fontProgFamily","Default").toString()) );
 
-    ui->fontProgSize->setValue( myHost->GetSetting("fontProgSize",0).toInt() );
-    ui->fontProgBold->setChecked( myHost->GetSetting("fontProgbold",false).toBool() );
-    ui->fontProgItalic->setChecked( myHost->GetSetting("fontProgItalic",false).toBool() );
-    ui->fontProgStretch->setValue( myHost->GetSetting("fontProgStretch",100).toInt() );
+    ui->fontProgSize->setValue( myHost->settings->GetSetting("fontProgSize",0).toInt() );
+    ui->fontProgBold->setChecked( myHost->settings->GetSetting("fontProgbold",false).toBool() );
+    ui->fontProgItalic->setChecked( myHost->settings->GetSetting("fontProgItalic",false).toBool() );
+    ui->fontProgStretch->setValue( myHost->settings->GetSetting("fontProgStretch",100).toInt() );
     UpdateProgramsFont();
 }
 
@@ -143,11 +143,11 @@ bool ViewConfigDialog::UserWantsToUnloadPreset()
 
 void ViewConfigDialog::SaveChanges()
 {
-    myHost->SetSetting("fontProgFamily", ui->fontProgFamily->itemText(ui->fontProgFamily->currentIndex()) );
-    myHost->SetSetting("fontProgSize", static_cast<int>(ui->fontProgSize->value()));
-    myHost->SetSetting("fontProgBold", static_cast<int>(ui->fontProgBold->isChecked()));
-    myHost->SetSetting("fontProgItalic", static_cast<int>(ui->fontProgItalic->isChecked()));
-    myHost->SetSetting("fontProgStretch", static_cast<int>(ui->fontProgStretch->value()));
+    myHost->settings->SetSetting("fontProgFamily", ui->fontProgFamily->itemText(ui->fontProgFamily->currentIndex()) );
+    myHost->settings->SetSetting("fontProgSize", static_cast<int>(ui->fontProgSize->value()));
+    myHost->settings->SetSetting("fontProgBold", static_cast<int>(ui->fontProgBold->isChecked()));
+    myHost->settings->SetSetting("fontProgItalic", static_cast<int>(ui->fontProgItalic->isChecked()));
+    myHost->settings->SetSetting("fontProgStretch", static_cast<int>(ui->fontProgStretch->value()));
 
     if(!modified)
         return;

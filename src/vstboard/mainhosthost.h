@@ -31,7 +31,7 @@ class MainHostHost : public MainHost
 {
 Q_OBJECT
 public:
-    MainHostHost(QObject *parent = 0, QString settingsGroup="");
+    MainHostHost(Settings *settings, QObject *parent = 0);
     ~MainHostHost();
 
     AudioDevices *audioDevices;

@@ -33,7 +33,7 @@ class MainWindowHost : public MainWindow {
     Q_OBJECT
 
 public:
-    MainWindowHost(MainHostHost * myHost, QWidget *parent = 0);
+    MainWindowHost(Settings *settings, MainHostHost * myHost, QWidget *parent = 0);
     void readSettings();
 
 protected:

@@ -460,7 +460,7 @@ bool VstPlugin::initPlugin()
     EffSetProgram(0);
     Object::Open();
 
-    if(myHost->GetSetting("fastEditorsOpenClose",true).toBool()) {
+    if(myHost->settings->GetSetting("fastEditorsOpenClose",true).toBool()) {
         CreateEditorWindow();
     }
     AddPluginToDatabase();
@@ -473,12 +473,12 @@ bool VstPlugin::initPlugin()
 
 void VstPlugin::AddPluginToDatabase()
 {
-   myHost->SetSetting(QString("pluginsDb/%1").arg(pEffect->uniqueID),objInfo.filename);
+   myHost->settings->SetSetting(QString("pluginsDb/%1").arg(pEffect->uniqueID),objInfo.filename);
 }
 
 bool VstPlugin::FilenameFromDatabase(VstInt32 id, QString &filename)
 {
-    filename=myHost->GetSetting(QString("pluginsDb/%1").arg(id),"").toString();
+    filename=myHost->settings->GetSetting(QString("pluginsDb/%1").arg(id),"").toString();
     if(filename.isEmpty())
         return false;
 
@@ -573,7 +573,7 @@ void VstPlugin::OnHideEditor()
 
     editorWnd->SaveAttribs();
 
-    if(myHost->GetSetting("fastEditorsOpenClose",true).toBool()) {
+    if(myHost->settings->GetSetting("fastEditorsOpenClose",true).toBool()) {
         disconnect(myHost->updateViewTimer,SIGNAL(timeout()),
             this,SLOT(EditIdle()));
         emit HideEditorWindow();

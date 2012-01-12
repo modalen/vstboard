@@ -29,6 +29,7 @@ namespace Ui {
 }
 
 class ProgramsModel;
+class Settings;
 class ProgramList : public QWidget
 {
     Q_OBJECT
@@ -38,8 +39,8 @@ public:
     ~ProgramList();
 
     void SetModel(ProgramsModel *model);
-    void writeSettings(MainHost *myHost);
-    void readSettings(MainHost *myHost);
+    void writeSettings(Settings *settings);
+    void readSettings(Settings *settings);
     void resetSettings();
 
 private:

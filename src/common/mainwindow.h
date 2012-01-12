@@ -27,6 +27,7 @@
 #include "sceneview/sceneview.h"
 #include "views/viewconfig.h"
 #include "views/keybind.h"
+#include "settings.h"
 
 namespace Ui {
     class MainWindow;
@@ -40,7 +41,7 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    MainWindow(MainHost * myHost, QWidget *parent = 0);
+    MainWindow(Settings *settings, MainHost * myHost=0, QWidget *parent = 0);
     virtual ~MainWindow();
     virtual void readSettings();
     void writeSettings();
@@ -48,6 +49,8 @@ public:
 
     View::SceneView *mySceneView;
     View::ViewConfig *viewConfig;
+
+    Settings *settings;
 
 protected:
     void changeEvent(QEvent *e);

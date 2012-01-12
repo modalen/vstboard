@@ -1,5 +1,5 @@
 /**************************************************************************
-#    Copyright 2010-2011 Raphaël François
+#    Copyright 2010-2011 RaphaÃ«l FranÃ§ois
 #    Contact : ctrlbrk76@gmail.com
 #
 #    This file is part of VstBoard.
@@ -17,17 +17,27 @@
 #    You should have received a copy of the under the terms of the GNU Lesser General Public License
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
-#include "mainhostvst.h"
-#include "vst.h"
-#include "connectables/vstaudiodevicein.h"
-#include "connectables/vstaudiodeviceout.h"
-#include "connectables/objectfactoryvst.h"
 
-MainHostVst::MainHostVst(Vst *myVstPlugin, QObject *parent, QString settingsGroup) :
-    MainHost(parent,settingsGroup),
-    myVstPlugin(myVstPlugin)
+#include "settings.h"
+
+Settings::Settings(const QString & settingsGroup, QObject *parent) :
+    settingsGroup(settingsGroup),
+    QObject(parent)
 {
-    objFactory = new Connectables::ObjectFactoryVst(this);
 }
 
 
+void Settings::SetSetting(QString name, QVariant value)
+{
+    settings.setValue(settingsGroup + name,value);
+}
+
+QVariant Settings::GetSetting(QString name, QVariant defaultVal)
+{
+    return settings.value(settingsGroup + name,defaultVal);
+}
+
+bool Settings::SettingDefined(QString name)
+{
+    return settings.contains(settingsGroup + name);
+}

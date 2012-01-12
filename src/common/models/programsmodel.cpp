@@ -728,7 +728,7 @@ bool ProgramsModel::userWantsToUnloadProject()
     if(openedPrompt)
         return false;
 
-    Qt::CheckState onUnsaved = (Qt::CheckState)myHost->GetSetting("onUnsavedProject",Qt::PartiallyChecked).toInt();
+    Qt::CheckState onUnsaved = (Qt::CheckState)myHost->settings->GetSetting("onUnsavedProject",Qt::PartiallyChecked).toInt();
 
     if(onUnsaved == Qt::Unchecked)
         return true;
@@ -775,7 +775,7 @@ bool ProgramsModel::userWantsToUnloadSetup()
     if(openedPrompt)
         return false;
 
-    Qt::CheckState onUnsaved = (Qt::CheckState)myHost->GetSetting("onUnsavedSetup",Qt::PartiallyChecked).toInt();
+    Qt::CheckState onUnsaved = (Qt::CheckState)myHost->settings->GetSetting("onUnsavedSetup",Qt::PartiallyChecked).toInt();
 
     if(onUnsaved == Qt::Unchecked)
         return true;

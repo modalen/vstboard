@@ -30,9 +30,9 @@ MmeConfigDialog::MmeConfigDialog( MainHost *myHost, QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle(tr("MME Config"));
 
-    unsigned int flags = myHost->GetSetting("api/wmme_flags", MME_DFAULT_FLAGS).toUInt();
-    unsigned int framesPerBuffer = myHost->GetSetting("api/wmme_bufferSize", MME_DEFAULT_BUFFER_SIZE).toUInt();
-    unsigned int bufferCount = myHost->GetSetting("api/wmme_bufferCount", MME_DEFAULT_BUFFER_COUNT).toUInt();
+    unsigned int flags = myHost->settings->GetSetting("api/wmme_flags", MME_DFAULT_FLAGS).toUInt();
+    unsigned int framesPerBuffer = myHost->settings->GetSetting("api/wmme_bufferSize", MME_DEFAULT_BUFFER_SIZE).toUInt();
+    unsigned int bufferCount = myHost->settings->GetSetting("api/wmme_bufferCount", MME_DEFAULT_BUFFER_COUNT).toUInt();
 
     ui->UseLowLevelLatencyParameters->setChecked( flags & paWinMmeUseLowLevelLatencyParameters );
     ui->DontThrottleOverloadedProcessingThread->setChecked( flags & paWinMmeDontThrottleOverloadedProcessingThread );
@@ -59,9 +59,9 @@ void MmeConfigDialog::accept()
     unsigned int framesPerBuffer = ui->framesPerBuffer->value();
     unsigned int bufferCount = ui->bufferCount->value();
 
-    myHost->SetSetting("api/wmme_flags", flags);
-    myHost->SetSetting("api/wmme_bufferSize", framesPerBuffer);
-    myHost->SetSetting("api/wmme_bufferCount", bufferCount);
+    myHost->settings->SetSetting("api/wmme_flags", flags);
+    myHost->settings->SetSetting("api/wmme_bufferSize", framesPerBuffer);
+    myHost->settings->SetSetting("api/wmme_bufferCount", bufferCount);
 
     QDialog::accept();
 }

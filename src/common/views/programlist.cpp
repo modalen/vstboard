@@ -22,6 +22,7 @@
 #include "mainhost.h"
 #include "ui_programlist.h"
 #include "models/programsmodel.h"
+#include "settings.h"
 
 ProgramList::ProgramList(QWidget *parent) :
     QWidget(parent),
@@ -58,17 +59,17 @@ void ProgramList::SetModel(ProgramsModel *mod)
             model, SLOT(UserChangeGroupAutosave(Qt::CheckState)));
 }
 
-void ProgramList::writeSettings(MainHost *myHost)
+void ProgramList::writeSettings(Settings *settings)
 {
-    myHost->SetSetting("ProgramList/geometry", saveGeometry());
-    myHost->SetSetting("ProgramList/state", ui->splitter->saveState());
+    settings->SetSetting("ProgramList/geometry", saveGeometry());
+    settings->SetSetting("ProgramList/state", ui->splitter->saveState());
 }
 
-void ProgramList::readSettings(MainHost *myHost)
+void ProgramList::readSettings(Settings *settings)
 {
-    if(myHost->SettingDefined("ProgramList/geometry")) {
-        restoreGeometry(myHost->GetSetting("ProgramList/geometry").toByteArray());
-        ui->splitter->restoreState(myHost->GetSetting("ProgramList/state").toByteArray());
+    if(settings->SettingDefined("ProgramList/geometry")) {
+        restoreGeometry(settings->GetSetting("ProgramList/geometry").toByteArray());
+        ui->splitter->restoreState(settings->GetSetting("ProgramList/state").toByteArray());
     } else {
         resetSettings();
     }

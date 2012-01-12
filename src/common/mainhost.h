@@ -30,7 +30,7 @@
 #include "renderer/renderer.h"
 #include "globals.h"
 #include "models/hostmodel.h"
-
+#include "settings.h"
 #ifdef VSTSDK
     #include "vst/cvsthost.h"
 #endif
@@ -41,7 +41,7 @@ class MainHost : public QObject
 {
 Q_OBJECT
 public:
-    MainHost( QObject *parent = 0, QString settingsGroup="");
+    MainHost( Settings *settings, QObject *parent = 0);
     virtual ~MainHost();
 
     void Open();
@@ -107,10 +107,6 @@ public:
     static quint32 currentFileVersion;
     bool doublePrecision;
 
-    void SetSetting(QString name, QVariant value);
-    QVariant GetSetting(QString name, QVariant defaultVal=0);
-    bool SettingDefined(QString name);
-
 #ifdef SCRIPTENGINE
     QScriptEngine *scriptEngine;
 #endif
@@ -120,6 +116,8 @@ public:
 
     QUndoStack undoStack;
     QMutex mutexRender;
+
+    Settings *settings;
 
 protected:
     QTime timeFromStart;
@@ -152,9 +150,6 @@ private:
     int currentTempo;
     int currentTimeSig1;
     int currentTimeSig2;
-
-    QString settingsGroup;
-    QSettings settings;
 
     bool undoProgramChangesEnabled;
 

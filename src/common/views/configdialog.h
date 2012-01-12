@@ -22,6 +22,7 @@
 #define CONFIGDIALOG_H
 
 #include "../precomp.h"
+#include "settings.h"
 
 namespace Ui {
     class ConfigDialog;
@@ -30,26 +31,27 @@ class MainHost;
 class ConfigDialog : public QDialog {
     Q_OBJECT
 public:
-    ConfigDialog(MainHost *myHost, QWidget *parent = 0);
+    ConfigDialog(Settings *settings, MainHost *myHost=0, QWidget *parent = 0);
     ~ConfigDialog();
 
-    static const QString defaultSetupFile(MainHost *myHost);
-    static const QString defaultProjectFile(MainHost *myHost);
-    static const QString defaultVstPath(MainHost *myHost);
-    static const QString defaultBankPath(MainHost *myHost);
-    static void AddRecentSetupFile(const QString &file,MainHost *myHost);
-    static void AddRecentProjectFile(const QString &file,MainHost *myHost);
-    static void RemoveRecentSetupFile(const QString &file,MainHost *myHost);
-    static void RemoveRecentProjectFile(const QString &file,MainHost *myHost);
+    static const QString defaultSetupFile(Settings *settings);
+    static const QString defaultProjectFile(Settings *settings);
+    static const QString defaultVstPath(Settings *settings);
+    static const QString defaultBankPath(Settings *settings);
+    static void AddRecentSetupFile(const QString &file,Settings *settings);
+    static void AddRecentProjectFile(const QString &file,Settings *settings);
+    static void RemoveRecentSetupFile(const QString &file,Settings *settings);
+    static void RemoveRecentProjectFile(const QString &file,Settings *settings);
 
-    static const float defaultSampleRate(MainHost *myHost);
-    static const int defaultBufferSize(MainHost *myHost);
-    static const bool defaultDoublePrecision(MainHost *myHost);
-    static const int defaultNumberOfThreads(MainHost *myHost);
+    static const float defaultSampleRate(Settings *settings);
+    static const int defaultBufferSize(Settings *settings);
+    static const bool defaultDoublePrecision(Settings *settings);
+    static const int defaultNumberOfThreads(Settings *settings);
 
 protected:
     void changeEvent(QEvent *e);
     Ui::ConfigDialog *ui;
+    Settings *settings;
     MainHost *myHost;
 
 public slots:

@@ -1,5 +1,5 @@
 /**************************************************************************
-#    Copyright 2010-2011 Raphaël François
+#    Copyright 2010-2011 RaphaÃ«l FranÃ§ois
 #    Contact : ctrlbrk76@gmail.com
 #
 #    This file is part of VstBoard.
@@ -18,31 +18,33 @@
 #    along with VstBoard.  If not, see <http://www.gnu.org/licenses/>.
 **************************************************************************/
 
-#ifndef MAINWINDOWVST_H
-#define MAINWINDOWVST_H
+#ifndef VSTBOARDCONTROLLER_H
+#define VSTBOARDCONTROLLER_H
 
-#ifndef APP_NAME
-#define APP_NAME "noname ?"
-#endif
+#include "precomp.h"
+#include "public.sdk/source/vst/vsteditcontroller.h"
 
-#include "mainwindow.h"
-#include "../common/ui_mainwindow.h"
+namespace Steinberg {
+class Gui;
 
-class MainHostVst;
-class MainWindowVst : public MainWindow {
-    Q_OBJECT
+namespace Vst {
 
+//-----------------------------------------------------------------------------
+class VstBoardController : public EditController
+{
 public:
-    MainWindowVst(Settings *settings, MainHost * myHost=0, QWidget *parent = 0);
-    void readSettings();
+    static FUnknown* createInstance (void*) { return (IEditController*)new VstBoardController (); }
 
-protected:
-    void closeEvent(QCloseEvent *event);
-    void BuildListTools();
-    void resetSettings();
-
-private slots:
-    void on_actionConfig_triggered();
+    tresult PLUGIN_API initialize (FUnknown* context);
+    IPlugView* PLUGIN_API createView (const char* name);
+    void editorDestroyed (EditorView* editor) {}
+    void editorAttached (EditorView* editor);
+    void editorRemoved (EditorView* editor);
+    tresult PLUGIN_API notify (IMessage* message);
+private:
+    QList<Gui*> listGui;
 };
 
-#endif // MAINWINDOWVST_H
+}}
+
+#endif // VSTBOARDCONTROLLER_H
