@@ -31,7 +31,8 @@ MainGraphicsView::MainGraphicsView(QWidget * parent) :
     moving(false),
     actZoomIn(0),
     actZoomOut(0),
-    actZoomReset(0)
+    actZoomReset(0),
+    config(0)
 {
     actZoomIn = new QAction(tr("Zoom in"), this);
     actZoomIn->setShortcutContext(Qt::WidgetShortcut);

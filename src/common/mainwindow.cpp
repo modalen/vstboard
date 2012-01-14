@@ -62,8 +62,8 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
 
     SetupBrowsersModels( ConfigDialog::defaultVstPath(settings), ConfigDialog::defaultBankPath(settings));
 
-//    mySceneView = new View::SceneView(myHost, myHost->objFactory, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
-//    mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
+    mySceneView = new View::SceneView(myHost, this, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
+    mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
 //    mySceneView->setModel(myHost->GetModel());
 
 //    ui->solverView->setModel(myHost->GetRendererModel());

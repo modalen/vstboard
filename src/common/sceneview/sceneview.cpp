@@ -40,7 +40,7 @@
 
 using namespace View;
 
-SceneView::SceneView(MainHost *myHost,Connectables::ObjectFactory *objFactory, MainGraphicsView *viewHost, MainGraphicsView *viewProject, MainGraphicsView *viewProgram, MainGraphicsView *viewGroup,QWidget *parent) :
+SceneView::SceneView(MainHost *myHost, MainWindow *mainWindow, MainGraphicsView *viewHost, MainGraphicsView *viewProject, MainGraphicsView *viewProgram, MainGraphicsView *viewGroup,QWidget *parent) :
     QAbstractItemView(parent),
     viewHost(viewHost),
     viewProject(viewProject),
@@ -60,8 +60,8 @@ SceneView::SceneView(MainHost *myHost,Connectables::ObjectFactory *objFactory, M
     progParking(0),
     groupParking(0),
     timerFalloff(0),
-    objFactory(objFactory),
-    myHost(myHost)
+    myHost(myHost),
+    mainWindow(mainWindow)
 {
     setHidden(true);
     timerFalloff = new QTimer(this);
@@ -72,10 +72,10 @@ SceneView::SceneView(MainHost *myHost,Connectables::ObjectFactory *objFactory, M
     sceneProgram = new QGraphicsScene(this);
     sceneGroup = new QGraphicsScene(this);
 
-    viewHost->SetViewConfig(myHost->mainWindow->viewConfig);
-    viewProject->SetViewConfig(myHost->mainWindow->viewConfig);
-    viewProgram->SetViewConfig(myHost->mainWindow->viewConfig);
-    viewGroup->SetViewConfig(myHost->mainWindow->viewConfig);
+    viewHost->SetViewConfig(mainWindow->viewConfig);
+    viewProject->SetViewConfig(mainWindow->viewConfig);
+    viewProgram->SetViewConfig(mainWindow->viewConfig);
+    viewGroup->SetViewConfig(mainWindow->viewConfig);
 
     //we need a root object to avoid a bug when the scene is empty
     rootObjHost = new QGraphicsRectItem(0, sceneHost);
@@ -481,11 +481,6 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     continue;
                 }
                 ConnectionInfo pinInfo = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
-                Connectables::Pin *pin = objFactory->GetPin(pinInfo);
-                if(!pin) {
-                    LOG("NodeType::pin pin not found");
-                    continue;
-                }
 
                 PinView *pinView;
                 ObjectInfo parentInfo = parent.parent().data(UserRoles::objInfo).value<ObjectInfo>();
@@ -497,7 +492,7 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     if(parentInfo.objType==ObjType::BridgeSend || parentInfo.objType==ObjType::BridgeReturn)
                         angle=-1.570796f; //-pi/2
 
-                    pinView = static_cast<PinView*>( new BridgePinView(angle, model(), parentList, pin->GetConnectionInfo(),myHost->mainWindow->viewConfig) );
+                    pinView = static_cast<PinView*>( new BridgePinView(angle, model(), parentList, pinInfo,mainWindow->viewConfig) );
                     connect(timerFalloff,SIGNAL(timeout()),
                             pinView,SLOT(updateVu()));
                 } else {
@@ -508,12 +503,12 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
 
 
                     if(pinInfo.type==PinType::Parameter) {
-                        MinMaxPinView *p = new MinMaxPinView(angle,model(),parentList,pin->GetConnectionInfo(),myHost->mainWindow->viewConfig);
+                        MinMaxPinView *p = new MinMaxPinView(angle,model(),parentList,pinInfo,mainWindow->viewConfig);
                         connect(timerFalloff,SIGNAL(timeout()),
                                 p,SLOT(updateVu()));
                         pinView = static_cast<PinView*>(p);
                     } else {
-                        ConnectablePinView *p = new ConnectablePinView(angle, model(), parentList, pin->GetConnectionInfo(),myHost->mainWindow->viewConfig);
+                        ConnectablePinView *p = new ConnectablePinView(angle, model(), parentList, pinInfo,mainWindow->viewConfig);
                         connect(timerFalloff,SIGNAL(timeout()),
                                 p,SLOT(updateVu()));
                         pinView = static_cast<PinView*>(p);
@@ -577,7 +572,7 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     LOG("addcable : pin not found");
                     continue;
                 }
-                CableView *cable = new CableView(infoOut,infoIn,cnt,myHost->mainWindow->viewConfig);
+                CableView *cable = new CableView(infoOut,infoIn,cnt,mainWindow->viewConfig);
                 cable->UpdateModelIndex(index);
                 pinOut->AddCable(cable);
                 pinIn->AddCable(cable);
