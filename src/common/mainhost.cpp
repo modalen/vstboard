@@ -980,3 +980,16 @@ void MainHost::SaveProjectFile(bool saveAs)
         emit currentFileChanged();
     }
 }
+
+void MainHost::ReceiveMsg(const QString &type, const QVariant &data)
+{
+    QByteArray tmpBa;
+    QDataStream tmpStream( &tmpBa, QIODevice::ReadWrite);
+    hostContainer->toStream(tmpStream);
+    SendMsg("msg",tmpBa.data());
+}
+
+void MainHost::SendMsg(const QString &type, const QVariant &data)
+{
+
+}

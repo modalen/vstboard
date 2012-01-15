@@ -24,6 +24,7 @@
 #include "precomp.h"
 #include "public.sdk/source/vst/vsteditcontroller.h"
 
+class MainWindowVst;
 namespace Steinberg {
 class Gui;
 
@@ -43,6 +44,7 @@ public:
     tresult PLUGIN_API notify (IMessage* message);
 private:
     QList<Gui*> listGui;
+    MainWindowVst *mainWindow;
 };
 
 }}

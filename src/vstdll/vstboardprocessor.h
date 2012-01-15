@@ -55,6 +55,8 @@ public:
             return (IAudioProcessor*)new VstBoardProcessor (set);
         }
 
+        tresult PLUGIN_API notify (IMessage* message);
+
 protected:
         QApplication *myApp;
 

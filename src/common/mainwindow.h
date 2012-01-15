@@ -45,7 +45,8 @@ public:
     virtual ~MainWindow();
     virtual void readSettings();
     void writeSettings();
-
+    void ReceiveMsg(const QString &type, const QVariant &data);
+    virtual void SendMsg(const QString &type, const QVariant &data);
 
     View::SceneView *mySceneView;
     View::ViewConfig *viewConfig;

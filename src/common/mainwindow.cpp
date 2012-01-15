@@ -98,6 +98,16 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
     UpdateKeyBinding();
 }
 
+void MainWindow::ReceiveMsg(const QString &type, const QVariant &data)
+{
+    LOG(data)
+}
+
+void MainWindow::SendMsg(const QString &type, const QVariant &data)
+{
+
+}
+
 void MainWindow::SetupBrowsersModels(const QString &vstPath, const QString &browserPath)
 {
 #if !defined(__GNUC__)

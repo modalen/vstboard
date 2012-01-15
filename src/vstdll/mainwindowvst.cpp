@@ -19,9 +19,11 @@
 **************************************************************************/
 #include "mainwindowvst.h"
 #include "views/configdialogvst.h"
+#include "vstboardcontroller.h"
 
-MainWindowVst::MainWindowVst(Settings *settings, QWidget *parent) :
-        MainWindow(settings,0,parent)
+MainWindowVst::MainWindowVst(Steinberg::Vst::VstBoardController *controller,Settings *settings, QWidget *parent) :
+    MainWindow(settings,0,parent),
+    controller(controller)
 {
 
 #ifdef QT_NO_DEBUG
@@ -38,6 +40,18 @@ MainWindowVst::MainWindowVst(Settings *settings, QWidget *parent) :
     setWindowTitle(APP_NAME);
     BuildListTools();
     setAcceptDrops(false);
+}
+
+void MainWindowVst::SendMsg(const QString &type, const QVariant &data)
+{
+    Steinberg::Vst::IMessage* message = controller->allocateMessage();
+    if (message)
+    {
+        message->setMessageID("msg");
+        QByteArray br( data.toByteArray() );
+        message->getAttributes ()->setBinary ("data", br.data(), br.size());
+        controller->sendMessage(message);
+    }
 }
 
 void MainWindowVst::closeEvent(QCloseEvent *event)
@@ -124,6 +138,7 @@ void MainWindowVst::resetSettings()
 
 void MainWindowVst::on_actionConfig_triggered()
 {
+    SendMsg("type",0);
     ConfigDialogVst conf(settings,0,this);
     conf.exec();
 }

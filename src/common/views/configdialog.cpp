@@ -156,7 +156,7 @@ ConfigDialog::ConfigDialog(Settings *settings, MainHost *myHost, QWidget *parent
     }
 
 //hide/close editors
-    ui->fastEditorOpenClose->setChecked( myHost->settings->GetSetting("fastEditorsOpenClose",true).toBool() );
+    ui->fastEditorOpenClose->setChecked( settings->GetSetting("fastEditorsOpenClose",true).toBool() );
 }
 
 ConfigDialog::~ConfigDialog()

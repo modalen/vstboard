@@ -31,6 +31,8 @@ namespace Vst {
 //-----------------------------------------------------------------------------
 tresult PLUGIN_API VstBoardController::initialize (FUnknown* context)
 {
+    mainWindow=0;
+
     tresult result = EditController::initialize (context);
     if (result != kResultTrue)
         return result;
@@ -50,7 +52,8 @@ IPlugView* PLUGIN_API VstBoardController::createView (const char* name)
         ViewRect viewRect (0, 0, 850, 600);
         Gui* view = new Gui(&viewRect);
         Settings *set = new Settings("plugin/",qApp);
-        view->SetMainWindow(new MainWindowVst(set));
+        mainWindow = new MainWindowVst(this,set);
+        view->SetMainWindow(mainWindow);
         return view;
     }
     return 0;
@@ -75,20 +78,15 @@ tresult PLUGIN_API VstBoardController::notify (IMessage* message)
     if (!message)
         return kInvalidArgument;
 
-    if (!strcmp (message->getMessageID (), "BinaryMessage"))
+    const void* data;
+    uint32 size;
+    if (message->getAttributes ()->getBinary ("data", data, size) == kResultOk)
     {
-        const void* data;
-        uint32 size;
-        if (message->getAttributes ()->getBinary ("MyData", data, size) == kResultOk)
-        {
-            // we are in UI thread
-            // size should be 100
-            if (size == 100 && ((char*)data)[1] == 1) // yeah...
-            {
-
-            }
-            return kResultOk;
+        if(mainWindow) {
+            QByteArray ba((char*)data,size);
+            mainWindow->ReceiveMsg(message->getMessageID(),ba);
         }
+        return kResultOk;
     }
 
     return EditController::notify(message);

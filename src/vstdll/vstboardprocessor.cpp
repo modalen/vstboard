@@ -32,7 +32,8 @@
 namespace Steinberg {
 namespace Vst {
 VstBoardProcessor::VstBoardProcessor (Settings *settings,QObject *parent) :
-    MainHost(settings,parent)
+    MainHost(settings,parent),
+    AudioEffect()
 {
         setControllerClass (VstBoardControllerUID);
         objFactory = new Connectables::ObjectFactoryVst(this);
@@ -135,6 +136,22 @@ void VstBoardProcessor::Render() {
         message->getAttributes ()->setBinary ("MyData", data, size);
         sendMessage(message);
     }
+}
+
+tresult PLUGIN_API VstBoardProcessor::notify (IMessage* message) {
+    if (!message)
+        return kInvalidArgument;
+
+    const void* data;
+    uint32 size;
+    if (message->getAttributes ()->getBinary ("data", data, size) == kResultOk)
+    {
+        QByteArray ba((char*)data,size);
+        ReceiveMsg(message->getMessageID(),ba);
+        return kResultOk;
+    }
+
+    return AudioEffect::notify(message);
 }
 
 }}

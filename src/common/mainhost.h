@@ -67,6 +67,9 @@ public:
 
     void SetSetupDirtyFlag() { if(hostContainer) hostContainer->SetDirty(); }
 
+    void ReceiveMsg(const QString &type, const QVariant &data);
+    virtual void SendMsg(const QString &type, const QVariant &data);
+
     inline void UpdateSolverNow() {
         //if we need to update everything now, we have to ask for an update and force a render loop
         SetSolverUpdateNeeded();
