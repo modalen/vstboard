@@ -23,8 +23,8 @@
 
 using namespace View;
 
-ConnectablePinView::ConnectablePinView(float angle, QAbstractItemModel *model, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
-    PinView(angle,model,parent,pinInfo,config),
+ConnectablePinView::ConnectablePinView(float angle, MsgController *msgCtrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
+    PinView(angle,msgCtrl,objId,parent,pinInfo,config),
     value(0),
     isParameter(false),
     overload(0),
@@ -130,6 +130,30 @@ void ConnectablePinView::mousePressEvent ( QGraphicsSceneMouseEvent * event )
 {
     ResetOveload();
     PinView::mousePressEvent(event);
+}
+
+void ConnectablePinView::ReceiveMsg(const MsgObject &msg)
+{
+    if(msg.prop.contains("name")) {
+        QString newName = msg.prop.value("name","").toString();
+        if(newName!=textItem->text()) {
+            textItem->setText(newName);
+
+            if(textItem->boundingRect().width()>size().width())
+                setMinimumWidth( textItem->boundingRect().width()+10 );
+        }
+    }
+
+    if(msg.prop.contains("value")) {
+        if(connectInfo.type == PinType::Parameter) {
+            value = msg.prop.value("value",.0).toFloat();
+            float newVu = size().width() * value;
+            rectVu->setRect(0,0, newVu, size().height());
+        } else {
+            float newVal = msg.prop.value("value",.0).toFloat();
+            value = std::max(value,newVal);
+        }
+    }
 }
 
 void ConnectablePinView::UpdateModelIndex(const QModelIndex &index)

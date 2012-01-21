@@ -26,6 +26,7 @@
 #include "mainhosthost.h"
 #include "mainwindowhost.h"
 #include "connectables/objectinfo.h"
+#include "msgobject.h"
 
 #ifndef QT_NO_DEBUG
 
@@ -55,9 +56,11 @@ int main(int argc, char *argv[])
 {
     qRegisterMetaType<ConnectionInfo>("ConnectionInfo");
     qRegisterMetaType<ObjectInfo>("ObjectInfo");
+    qRegisterMetaType<MsgObject>("MsgObject");
     qRegisterMetaType<int>("ObjType::Enum");
     qRegisterMetaType<QVariant>("QVariant");
     qRegisterMetaType<AudioBuffer*>("AudioBuffer*");
+
 
     qRegisterMetaTypeStreamOperators<ObjectInfo>("ObjectInfo");
 

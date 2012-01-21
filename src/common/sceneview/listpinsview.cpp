@@ -23,8 +23,9 @@
 
 using namespace View;
 
-ListPinsView::ListPinsView(QGraphicsItem * parent, Qt::WindowFlags wFlags) :
-    QGraphicsWidget(parent,wFlags)
+ListPinsView::ListPinsView(MsgController *msgCtrl, int objId, QGraphicsItem * parent) :
+    QGraphicsWidget(parent),
+    MsgHandler(msgCtrl, objId)
 {
     setObjectName("listPinView");
     layout = new QGraphicsLinearLayout(this);

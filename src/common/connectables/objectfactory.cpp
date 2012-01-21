@@ -119,7 +119,7 @@ QSharedPointer<Object> ObjectFactory::GetObj(const QModelIndex & index)
 
 QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info)
 {
-    int objId = cptListObjects;
+    int objId = GetNewObjId();
     if(info.forcedObjId!=0) {
         objId = info.forcedObjId;
         if(listObjects.contains(objId)) {
@@ -204,7 +204,7 @@ QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info)
     if(info.forcedObjId) {
         obj->ResetSavedIndex(info.forcedObjId);
     } else {
-        cptListObjects++;
+//        cptListObjects++;
     }
 
     return sharedObj;

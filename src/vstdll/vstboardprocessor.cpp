@@ -28,6 +28,7 @@
 #include "connectables/vstaudiodevicein.h"
 #include "connectables/vstaudiodeviceout.h"
 #include "connectables/objectfactoryvst.h"
+#include "msgobject.h"
 
 namespace Steinberg {
 namespace Vst {
@@ -47,6 +48,7 @@ tresult PLUGIN_API VstBoardProcessor::initialize (FUnknown* context)
 
     qRegisterMetaType<ConnectionInfo>("ConnectionInfo");
     qRegisterMetaType<ObjectInfo>("ObjectInfo");
+    qRegisterMetaType<MsgObject>("MsgObject");
     qRegisterMetaType<int>("ObjType::Enum");
     qRegisterMetaType<QVariant>("QVariant");
     qRegisterMetaType<AudioBuffer*>("AudioBuffer*");
@@ -120,24 +122,6 @@ tresult PLUGIN_API VstBoardProcessor::process (ProcessData& data)
     return kResultTrue;
 }
 
-void VstBoardProcessor::Render() {
-    MainHost::Render();
-    IMessage* message = allocateMessage();
-    if (message)
-    {
-        message->setMessageID ("BinaryMessage");
-
-        uint32 size = 100;
-        char8 data[100];
-        memset (data, 0, size * sizeof (char));
-        // fill my data with dummy stuff
-        for (uint32 i = 0; i < size; i++)
-                data[i] = i;
-        message->getAttributes ()->setBinary ("MyData", data, size);
-        sendMessage(message);
-    }
-}
-
 tresult PLUGIN_API VstBoardProcessor::notify (IMessage* message) {
     if (!message)
         return kInvalidArgument;
@@ -146,12 +130,44 @@ tresult PLUGIN_API VstBoardProcessor::notify (IMessage* message) {
     uint32 size;
     if (message->getAttributes ()->getBinary ("data", data, size) == kResultOk)
     {
-        QByteArray ba((char*)data,size);
-        ReceiveMsg(message->getMessageID(),ba);
-        return kResultOk;
+        if (!strcmp (message->getMessageID (), "msglist")) {
+            QByteArray ba((char*)data,size);
+            ReceiveMsg(message->getMessageID(),ba);
+            return kResultOk;
+        }
+
+        if (!strcmp (message->getMessageID (), "msg")) {
+            QByteArray ba((char*)data,size);
+            ReceiveMsg( QVariant(ba).value<MsgObject>() );
+            return kResultOk;
+        }
     }
 
     return AudioEffect::notify(message);
+}
+
+void VstBoardProcessor::SendMsg(const MsgObject &msg)
+{
+    Steinberg::Vst::IMessage* message = allocateMessage();
+    if (message)
+    {
+        message->setMessageID("msg");
+        QByteArray br( QVariant::fromValue(msg).toByteArray() );
+        message->getAttributes ()->setBinary ("data", br.data(), br.size());
+        sendMessage(message);
+    }
+}
+
+void VstBoardProcessor::SendMsg(const QString &type, const QVariant &data)
+{
+    Steinberg::Vst::IMessage* message = allocateMessage();
+    if (message)
+    {
+        message->setMessageID("msglist");
+        QByteArray br( data.toByteArray() );
+        message->getAttributes ()->setBinary ("data", br.data(), br.size());
+        sendMessage(message);
+    }
 }
 
 }}

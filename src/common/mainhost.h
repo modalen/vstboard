@@ -31,13 +31,15 @@
 #include "globals.h"
 #include "models/hostmodel.h"
 #include "settings.h"
+#include "msgcontroller.h"
+
 #ifdef VSTSDK
     #include "vst/cvsthost.h"
 #endif
 
 class MainWindow;
 class ProgramsModel;
-class MainHost : public QObject
+class MainHost : public QObject, public MsgController
 {
 Q_OBJECT
 public:
@@ -67,8 +69,9 @@ public:
 
     void SetSetupDirtyFlag() { if(hostContainer) hostContainer->SetDirty(); }
 
+    void ReceiveMsg(const MsgObject &msg);
     void ReceiveMsg(const QString &type, const QVariant &data);
-    virtual void SendMsg(const QString &type, const QVariant &data);
+
 
     inline void UpdateSolverNow() {
         //if we need to update everything now, we have to ask for an update and force a render loop

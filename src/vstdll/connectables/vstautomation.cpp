@@ -124,7 +124,7 @@ void VstAutomation::OnParameterChanged(ConnectionInfo pinInfo, float value)
 {
     Object::OnParameterChanged(pinInfo,value);
     if(pinInfo.pinNumber==FixedPinNumber::numberOfPins) {
-        int nbPins=static_cast<ParameterPin*>( listParameterPinIn->listPins.value(FixedPinNumber::numberOfPins) )->GetIndex();
+        int nbPins=static_cast<ParameterPin*>( listParameterPinIn->listPins.value(FixedPinNumber::numberOfPins) )->GetStepIndex();
 
         QUndoCommand *com = new QUndoCommand(tr("Change number of pins"));
         QList<quint16>listAdded;

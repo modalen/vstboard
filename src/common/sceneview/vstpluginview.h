@@ -8,8 +8,9 @@ namespace View {
     {
     Q_OBJECT
     public:
-        VstPluginView(MainHost *myHost,QAbstractItemModel *model,MainContainerView * parent = 0, Qt::WindowFlags wFlags = 0);
-        void SetModelIndex(QPersistentModelIndex index);
+        VstPluginView(MainHost *myHost,MsgController *msgCtrl, int objId, MainContainerView * parent = 0);
+        void ReceiveMsg(const MsgObject &msg);
+//        void SetModelIndex(QPersistentModelIndex index);
         void UpdateModelIndex();
 
     protected:

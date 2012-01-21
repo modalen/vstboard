@@ -24,6 +24,7 @@
 #include "precomp.h"
 #include "cable.h"
 #include "objectinfo.h"
+#include "msgobject.h"
 
 class MainHost;
 
@@ -85,6 +86,8 @@ namespace Connectables {
         QTime lastModificationTime;
         QTime savedTime;
         static QTime unsavedTime;
+
+        void GetInfos(MsgObject &msg);
 
     protected:
         inline void ResetDirty() {

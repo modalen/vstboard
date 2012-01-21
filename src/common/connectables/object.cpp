@@ -40,6 +40,7 @@ using namespace Connectables;
   */
 Object::Object(MainHost *host, int index, const ObjectInfo &info) :
     QObject(),
+    MsgHandler(host,index),
     parked(false),
     listenProgramChanges(true),
     myHost(host),
@@ -52,7 +53,6 @@ Object::Object(MainHost *host, int index, const ObjectInfo &info) :
     listParameterPinIn(new PinsList(host,this)),
     listParameterPinOut(new PinsList(host,this)),
     solverNode(0),
-    index(index),
     savedIndex(-2),
     sleep(true),
     currentProgram(0),
@@ -130,14 +130,14 @@ Object::~Object()
 
     if(containerId!=FixedObjId::noContainer) {
         QSharedPointer<Container>cntPtr = myHost->objFactory->GetObjectFromId( containerId ).staticCast<Container>();
-        QSharedPointer<Object>objPtr = myHost->objFactory->GetObjectFromId( index );
+        QSharedPointer<Object>objPtr = myHost->objFactory->GetObjectFromId( GetIndex() );
         if(cntPtr && objPtr) {
             cntPtr->OnChildDeleted(objPtr);
         }
     }
     Close();
 
-    myHost->objFactory->RemoveObject(index);
+    myHost->objFactory->RemoveObject(GetIndex());
 }
 
 /*!
@@ -374,7 +374,7 @@ Pin * Object::GetPin(const ConnectionInfo &pinInfo)
 QStandardItem *Object::GetParkingItem()
 {
     QStandardItem *modelNode=new QStandardItem();
-    modelNode->setData(index,UserRoles::value);
+    modelNode->setData(GetIndex(),UserRoles::value);
     modelNode->setData(objectName(), Qt::DisplayRole);
 
     //suspend the object if not used in the next program
@@ -392,7 +392,7 @@ QStandardItem *Object::GetFullItem()
 {
     QStandardItem *modelNode = new QStandardItem();
     modelNode->setData(QVariant::fromValue(objInfo), UserRoles::objInfo);
-    modelNode->setData(index, UserRoles::value);
+    modelNode->setData(GetIndex(), UserRoles::value);
     modelNode->setData(objectName(), Qt::DisplayRole);
     modelNode->setData(errorMessage, UserRoles::errorMessage);
     Resume();
@@ -446,7 +446,7 @@ void Object::OnParameterChanged(ConnectionInfo pinInfo, float value)
 {
     //editor pin
     if(pinInfo.pinNumber==FixedPinNumber::editorVisible) {
-        int val = static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(FixedPinNumber::editorVisible))->GetIndex();
+        int val = static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(FixedPinNumber::editorVisible))->GetStepIndex();
         if(val)
             QTimer::singleShot(0, this, SLOT(OnShowEditor()));
         else
@@ -463,7 +463,7 @@ bool Object::ToggleEditor(bool visible)
     ParameterPin *pin = static_cast<ParameterPin*>(listParameterPinIn->listPins.value(FixedPinNumber::editorVisible));
     if(!pin)
         return false;
-    if(static_cast<bool>(pin->GetIndex())==visible)
+    if(static_cast<bool>(pin->GetStepIndex())==visible)
         return false;
     pin->ChangeValue(visible);
     return true;
@@ -478,7 +478,7 @@ LearningMode::Enum Object::GetLearningMode()
     if(!listParameterPinIn->listPins.contains(FixedPinNumber::learningMode))
         return LearningMode::off;
 
-    return (LearningMode::Enum)static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(FixedPinNumber::learningMode))->GetIndex();
+    return (LearningMode::Enum)static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(FixedPinNumber::learningMode))->GetStepIndex();
 }
 
 /*!
@@ -647,7 +647,7 @@ Pin* Object::CreatePin(const ConnectionInfo &info)
   */
 QDataStream & Object::toStream(QDataStream & out) const
 {
-    out << (qint16)index;
+    out << (qint16)GetIndex();
     out << sleep;
     out << listenProgramChanges;
 
@@ -769,3 +769,24 @@ QDataStream & operator<< (QDataStream & out, const Connectables::Object& value)
 //{
 //    return value.fromStream(in);
 //}
+
+void Object::GetInfos(MsgObject &msg)
+{
+    msg.prop["nodeType"]=info().nodeType;
+    msg.prop["objType"]=info().objType;
+    msg.prop["name"]=info().name;
+
+    QMap<QString, PinsList*>::iterator i = pinLists.constBegin();
+    while(i!=pinLists.constEnd()) {
+        PinsList *lst = i.value();
+        if(!lst->IsVisible()) {
+            ++i;
+            continue;
+        }
+        MsgObject a(GetIndex(), lst->GetIndex());
+        a.prop["actionType"]="add";
+        lst->GetInfos(a);
+        msg.children << a;
+        ++i;
+    }
+}

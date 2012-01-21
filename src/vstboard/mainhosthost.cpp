@@ -22,6 +22,7 @@
 #include "connectables/mididevice.h"
 #include "connectables/audiodevice.h"
 #include "connectables/objectfactoryhost.h"
+#include "mainwindow.h"
 
 MainHostHost::MainHostHost(Settings *settings, QObject *parent) :
     MainHost(settings,parent)
@@ -47,4 +48,14 @@ void MainHostHost::Render()
     #endif
 
     MainHost::Render();
+}
+
+void MainHostHost::SendMsg(const MsgObject &msg)
+{
+    mainWindow->ReceiveMsg(msg);
+}
+
+void MainHostHost::SendMsg(const QString &type, const QVariant &data)
+{
+    mainWindow->ReceiveMsg(type,data);
 }

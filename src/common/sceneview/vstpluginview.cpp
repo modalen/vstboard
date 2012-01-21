@@ -22,8 +22,8 @@
 
 using namespace View;
 
-VstPluginView::VstPluginView(MainHost *myHost,QAbstractItemModel *model,MainContainerView * parent, Qt::WindowFlags wFlags) :
-    ConnectableObjectView(myHost,model,parent,wFlags),
+VstPluginView::VstPluginView(MainHost *myHost,MsgController *msgCtrl,int objId, MainContainerView *parent) :
+    ConnectableObjectView(myHost,msgCtrl,objId,parent),
     actSaveBank(0),
     actSaveBankAs(0),
     actSaveProgram(0),
@@ -61,9 +61,9 @@ void VstPluginView::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId,
     ConnectableObjectView::UpdateColor(groupId,colorId,color);
 }
 
-void VstPluginView::SetModelIndex(QPersistentModelIndex index)
+void VstPluginView::ReceiveMsg(const MsgObject &msg)
 {
-    ConnectableObjectView::SetModelIndex(index);
+    ConnectableObjectView::ReceiveMsg(msg);
 
     actSaveBank = new QAction(QIcon(":/img16x16/filesave.png"),tr("Save Bank"),this);
     actSaveBank->setShortcutContext(Qt::WidgetShortcut);
@@ -93,6 +93,39 @@ void VstPluginView::SetModelIndex(QPersistentModelIndex index)
 
     UpdateKeyBinding();
 }
+
+//void VstPluginView::SetModelIndex(QPersistentModelIndex index)
+//{
+//    ConnectableObjectView::SetModelIndex(index);
+
+//    actSaveBank = new QAction(QIcon(":/img16x16/filesave.png"),tr("Save Bank"),this);
+//    actSaveBank->setShortcutContext(Qt::WidgetShortcut);
+//    connect(actSaveBank,SIGNAL(triggered()),
+//            this,SLOT(SaveBank()));
+//    addAction(actSaveBank);
+
+//    actSaveBankAs = new QAction(QIcon(":/img16x16/filesaveas.png"),tr("Save Bank As..."),this);
+//    actSaveBankAs->setShortcutContext(Qt::WidgetShortcut);
+//    connect(actSaveBankAs,SIGNAL(triggered()),
+//            this,SLOT(SaveBankAs()));
+//    actSaveBankAs->setEnabled(false);
+//    addAction(actSaveBankAs);
+
+//    actSaveProgram = new QAction(QIcon(":/img16x16/filesave.png"),tr("Save Program"),this);
+//    actSaveProgram->setShortcutContext(Qt::WidgetShortcut);
+//    connect(actSaveProgram,SIGNAL(triggered()),
+//            this,SLOT(SaveProgram()));
+//    addAction(actSaveProgram);
+
+//    actSaveProgramAs = new QAction(QIcon(":/img16x16/filesaveas.png"),tr("Save Program As..."),this);
+//    actSaveProgramAs->setShortcutContext(Qt::WidgetShortcut);
+//    connect(actSaveProgramAs,SIGNAL(triggered()),
+//            this,SLOT(SaveProgramAs()));
+//    actSaveProgramAs->setEnabled(false);
+//    addAction(actSaveProgramAs);
+
+//    UpdateKeyBinding();
+//}
 
 void VstPluginView::UpdateKeyBinding()
 {
@@ -139,13 +172,13 @@ void VstPluginView::SaveBankAs()
     }
 
     myHost->settings->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
-    model->setData(objIndex,filename,UserRoles::bankFile);
+//    model->setData(objIndex,filename,UserRoles::bankFile);
 }
 
 void VstPluginView::SaveBank()
 {
     if(objIndex.data(UserRoles::bankFile).isValid() && !objIndex.data(UserRoles::bankFile).toString().isEmpty()) {
-        model->setData(objIndex, objIndex.data(UserRoles::bankFile).toString(), UserRoles::bankFile);
+//        model->setData(objIndex, objIndex.data(UserRoles::bankFile).toString(), UserRoles::bankFile);
     } else {
         SaveBankAs();
     }
@@ -163,13 +196,13 @@ void VstPluginView::SaveProgramAs()
     }
 
     myHost->settings->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
-    model->setData(objIndex,filename,UserRoles::programFile);
+//    model->setData(objIndex,filename,UserRoles::programFile);
 }
 
 void VstPluginView::SaveProgram()
 {
     if(objIndex.data(UserRoles::programFile).isValid() && !objIndex.data(UserRoles::programFile).toString().isEmpty()) {
-        model->setData(objIndex, objIndex.data(UserRoles::programFile).toString(), UserRoles::programFile);
+//        model->setData(objIndex, objIndex.data(UserRoles::programFile).toString(), UserRoles::programFile);
     } else {
         SaveProgramAs();
     }
@@ -210,7 +243,7 @@ void VstPluginView::dropEvent( QGraphicsSceneDragDropEvent *event)
 {
     HighlightStop();
     QGraphicsWidget::dropEvent(event);
-    event->setAccepted(model->dropMimeData(event->mimeData(), event->proposedAction(), 0, 0, objIndex));
+//    event->setAccepted(model->dropMimeData(event->mimeData(), event->proposedAction(), 0, 0, objIndex));
 }
 
 void VstPluginView::HighlightStart()

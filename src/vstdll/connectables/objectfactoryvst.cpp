@@ -34,7 +34,7 @@ ObjectFactoryVst::ObjectFactoryVst(MainHost *myHost) :
 
 Object *ObjectFactoryVst::CreateOtherObjects(const ObjectInfo &info)
 {
-    int objId = cptListObjects;
+    int objId = GetNewObjId();
     if(info.forcedObjId) {
         objId = info.forcedObjId;
     }

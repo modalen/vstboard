@@ -114,6 +114,8 @@ namespace Connectables {
 
         void NewRenderLoop();
 
+        void GetInfos(MsgObject &msg);
+
     protected:
         void AddChildObject(QSharedPointer<Object> objPtr);
         void ParkChildObject(QSharedPointer<Object> objPtr);

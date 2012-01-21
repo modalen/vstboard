@@ -35,6 +35,8 @@ class MainWindowHost : public MainWindow {
 public:
     MainWindowHost(Settings *settings, MainHostHost * myHost, QWidget *parent = 0);
     void readSettings();
+    void SendMsg(const MsgObject &msg);
+    void SendMsg(const QString &type, const QVariant &data);
 
 protected:
     void closeEvent(QCloseEvent *event);

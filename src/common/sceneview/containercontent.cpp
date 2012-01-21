@@ -30,9 +30,8 @@
 
 using namespace View;
 
-ContainerContent::ContainerContent(MainHost *myHost, QAbstractItemModel *model, MainContainerView * parent ) :
-    ObjectDropZone(parent),
-    model(model),
+ContainerContent::ContainerContent(MainHost *myHost, MsgController *msgCtrl, int objId, MainContainerView * parent ) :
+    ObjectDropZone(msgCtrl,objId,parent),
     rectAttachLeft(0),
     rectAttachRight(0),
     config(myHost->mainWindow->viewConfig)
@@ -51,10 +50,15 @@ ContainerContent::ContainerContent(MainHost *myHost, QAbstractItemModel *model, 
             this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
 }
 
-void ContainerContent::SetModelIndex(QPersistentModelIndex index)
+void ContainerContent::ReceiveMsg(const MsgObject &msg)
 {
-    objIndex = index;
+
 }
+
+//void ContainerContent::SetModelIndex(QPersistentModelIndex index)
+//{
+//    objIndex = index;
+//}
 
 QPointF ContainerContent::GetDropPos()
 {
@@ -129,9 +133,18 @@ void ContainerContent::dragLeaveEvent( QGraphicsSceneDragDropEvent *event)
 
 void ContainerContent::dropEvent( QGraphicsSceneDragDropEvent *event)
 {
-    ObjectDropZone::dropEvent(event);
+    HighlightStop();
+
+    MsgObject msg;
+    TranslateMimeData(event->mimeData(), msg);
+
+//    ObjectDropZone::dropEvent(event);
     dropPos = event->scenePos();
-    event->setAccepted(model->dropMimeData(event->mimeData(), event->proposedAction(), 0, 0, objIndex));
+
+    msg.objIndex=GetIndex();
+    msg.prop["actionType"]="addInto";
+    msgCtrl->SendMsg(msg);
+//    event->setAccepted(model->dropMimeData(event->mimeData(), event->proposedAction(), 0, 0, objIndex));
 }
 
 void ContainerContent::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)

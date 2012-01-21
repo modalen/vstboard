@@ -30,6 +30,7 @@
 #include "projectfile/fileversion.h"
 #include "projectfile/projectfile.h"
 #include "views/configdialog.h"
+#include "msgobject.h"
 
 quint32 MainHost::currentFileVersion=PROJECT_AND_SETUP_FILE_VERSION;
 
@@ -839,6 +840,15 @@ void MainHost::LoadSetupFile(const QString &filename)
         ConfigDialog::RemoveRecentSetupFile(name,settings);
         ClearSetup();
     }
+
+
+    if(hostContainer) {
+        MsgObject a(0, FixedObjId::hostContainer);
+        a.prop["actionType"]="add";
+        hostContainer->GetInfos(a);
+        SendMsg(a);
+    }
+
     emit currentFileChanged();
 }
 
@@ -866,6 +876,32 @@ void MainHost::LoadProjectFile(const QString &filename)
         ConfigDialog::RemoveRecentProjectFile(name,settings);
         ClearProject();
     }
+
+    MsgObject msg;
+    if(projectContainer) {
+        MsgObject a(0, FixedObjId::projectContainer);
+        a.prop["actionType"]="add";
+        projectContainer->GetInfos(a);
+        msg.children << a;
+    }
+
+    if(groupContainer) {
+        MsgObject b(0, FixedObjId::groupContainer);
+        b.prop["actionType"]="add";
+        groupContainer->GetInfos(b);
+        msg.children << b;
+    }
+
+
+    if(!programContainer) {
+        MsgObject c(0, FixedObjId::programContainer);
+        c.prop["actionType"]="add";
+        programContainer->GetInfos(c);
+        msg.children << c;
+    }
+
+    SendMsg(msg);
+
     emit currentFileChanged();
 }
 
@@ -981,15 +1017,95 @@ void MainHost::SaveProjectFile(bool saveAs)
     }
 }
 
+void MainHost::ReceiveMsg(const MsgObject &msg)
+{
+//    LOG(msg.objIndex << msg.prop)
+
+    if(msg.prop["actionType"]=="getWithChildren") {
+        QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(msg.objIndex);
+        if(!objPtr) {
+            LOG("obj not found")
+            return;
+        }
+        MsgObject a(0, objPtr->GetIndex());
+        a.prop["actionType"]="add";
+        objPtr->GetInfos(a);
+        SendMsg(a);
+        return;
+    }
+
+    if(msg.prop["actionType"]=="update") {
+        if(!listObj.contains(msg.objIndex)) {
+            LOG("obj note found"<<msg.objIndex)
+            return;
+        }
+        MsgHandler *h = listObj.value(msg.objIndex);
+        h->ReceiveMsg(msg);
+        return;
+    }
+
+    if(msg.prop.contains("filesToLoad")) {
+        QStringList lstFiles = msg.prop["filesToLoad"].toStringList();
+        foreach(const QString filename, lstFiles) {
+            QFileInfo info;
+            info.setFile( filename );
+            if ( info.isFile() && info.isReadable() ) {
+                QString fileType(info.suffix().toLower());
+
+#ifdef VSTSDK
+                //vst plugin
+                if ( fileType=="dll" ) {
+                    continue;
+                }
+                //vst3 plugin
+                if ( fileType=="vst3" ) {
+                    continue;
+                }
+
+#endif
+                //setup file
+                if ( fileType==SETUP_FILE_EXTENSION ) {
+                    LoadSetupFile(filename);
+                    continue;
+                }
+
+                //project file
+                if ( fileType==PROJECT_FILE_EXTENSION ) {
+                    LoadProjectFile(filename);
+                    continue;
+                }
+
+                //fxb file
+                if( fileType == VST_BANK_FILE_EXTENSION || fileType == VST_PROGRAM_FILE_EXTENSION) {
+                    continue;
+                }
+            }
+        }
+    }
+
+    if(msg.objIndex!=-1 && listObj.contains(msg.objIndex)) {
+        listObj.value(msg.objIndex)->ReceiveMsg(msg);
+    }
+}
+
 void MainHost::ReceiveMsg(const QString &type, const QVariant &data)
 {
-    QByteArray tmpBa;
-    QDataStream tmpStream( &tmpBa, QIODevice::ReadWrite);
-    hostContainer->toStream(tmpStream);
-    SendMsg("msg",tmpBa.data());
+//    if(type=="GetObjWithChildren") {
+//        QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(data.toInt());
+//        if(!objPtr) {
+//            LOG("obj not found")
+//            return;
+//        }
+//        MsgObject a(0, objPtr->GetIndex());
+//        a.prop["actionType"]="add";
+//        a.prop["nodeType"]=objPtr->info().nodeType;
+//        a.prop["objType"]=objPtr->info().objType;
+//        objPtr->GetAllChildrenObjects(a.children);
+//        ListMsgObj l;
+//        l << a;
+//        SendMsg("ObjWithChildren",QVariant::fromValue(l));
+//        return;
+//    }
+
 }
 
-void MainHost::SendMsg(const QString &type, const QVariant &data)
-{
-
-}

@@ -97,7 +97,7 @@ void Container::SetContainerId(quint16 id)
 
     foreach(QSharedPointer<Object>obj, listLoadedObjects) {
         if(obj)
-            obj->SetContainerId(index);
+            obj->SetContainerId(GetIndex());
     }
 }
 
@@ -390,7 +390,7 @@ void Container::RemoveProgram(const QModelIndex &idx)
   */
 void Container::AddObject(QSharedPointer<Object> objPtr)
 {
-    objPtr->SetContainerId(index);
+    objPtr->SetContainerId(GetIndex());
     objPtr->UnloadProgram();
 
     //bridges are not stored in program
@@ -428,7 +428,7 @@ void Container::AddObject(QSharedPointer<Object> objPtr)
   */
 void Container::AddParkedObject(QSharedPointer<Object> objPtr)
 {
-    objPtr->SetContainerId(index);
+    objPtr->SetContainerId(GetIndex());
     objPtr->UnloadProgram();
 
     listLoadedObjects << objPtr;
@@ -724,7 +724,7 @@ QDataStream & Container::toStream (QDataStream& out) const
         QDataStream tmpStream( &tmpBa, QIODevice::ReadWrite);
 
         //save container header
-        tmpStream << (qint16)index;
+        tmpStream << (qint16)GetIndex();
         tmpStream << objectName();
         tmpStream << sleep;
         ProjectFile::SaveChunk( "CntHead", tmpBa, out);
@@ -939,7 +939,7 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
             AddParkedObject(obj);
             tmpListObj << obj;
         } else {
-            obj->SetContainerId(index);
+            obj->SetContainerId(GetIndex());
             obj->ResetSavedIndex(info.forcedObjId);
         }
         if(!obj) {
@@ -971,4 +971,24 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
 
     }
     myHost->objFactory->ResetSavedId();
+}
+
+void Container::GetInfos(MsgObject &msg)
+{
+    Object::GetInfos(msg);
+
+    foreach( QSharedPointer< Object >obj, listStaticObjects) {
+        if(!obj.isNull()) {
+            MsgObject a(GetIndex(), obj->GetIndex());
+            a.prop["actionType"]="add";
+            obj->GetInfos(a);
+            msg.children << a;
+        }
+    }
+
+    if(!currentContainerProgram)
+        return;
+
+    currentContainerProgram->GetInfos(msg);
+
 }

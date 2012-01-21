@@ -25,19 +25,22 @@
 #include "../globals.h"
 #include "pinview.h"
 #include "views/viewconfig.h"
+#include "msghandler.h"
 
 namespace View {
 
 #ifndef SIMPLE_CABLES
-    class CableView : public QObject, public QGraphicsPathItem
+    class CableView : public QObject, public QGraphicsPathItem, public MsgHandler
 #else
-    class CableView : public QObject, public QGraphicsLineItem
+    class CableView : public QObject, public QGraphicsLineItem, public MsgHandler
 #endif
     {
     Q_OBJECT
     public:
-        CableView(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn, QGraphicsItem *parent, ViewConfig *config);
-        CableView(const ConnectionInfo &pinOut, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config);
+        CableView(MsgController *msgCtrl, int objId, const ConnectionInfo &pinOut, const ConnectionInfo &pinIn, QGraphicsItem *parent, ViewConfig *config);
+        CableView(MsgController *msgCtrl, int objId, const ConnectionInfo &pinOut, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config);
+
+        void ReceiveMsg(const MsgObject &msg);
 
         void UpdatePosition(const ConnectionInfo &pinInfo, const float angle, const QPointF &pt);
         void UpdatePosition(const QPointF &pt);

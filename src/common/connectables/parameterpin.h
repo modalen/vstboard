@@ -25,6 +25,7 @@
 #include "pin.h"
 #include "objectprogram.h"
 #include "objectparameter.h"
+#include "cursor.h"
 
 namespace Connectables {
 
@@ -38,6 +39,8 @@ namespace Connectables {
         ParameterPin(Object *parent, PinDirection::Enum direction, int number, float defaultValue, const QString &name="", bool nameCanChange=false, bool isRemoveable=false, bool bridge=false);
         ParameterPin(Object *parent, PinDirection::Enum direction, int number, const QVariant &defaultVariantValue, QList<QVariant> *listValues, const QString &name="", bool nameCanChange=false, bool isRemoveable=false, bool bridge=false);
 
+        virtual ~ParameterPin();
+
         void ChangeValue(float val, bool fromObj=false);
         void ChangeValue(int index, bool fromObj=false);
         void ChangeValue(const QVariant &variant, bool fromObj=false);
@@ -45,7 +48,7 @@ namespace Connectables {
 
         virtual void OnValueChanged(float val);
 
-        inline int GetIndex() {return outStepIndex;}
+        inline int GetStepIndex() {return outStepIndex;}
         inline QVariant GetVariantValue() {if(!listValues) return outValue; return listValues->at(outStepIndex);}
         void SetVariantValue(const QVariant &val);
 
@@ -62,7 +65,11 @@ namespace Connectables {
         void SetLimit(ObjType::Enum type, float newVal);
         void SetLimitsEnabled(bool enable) {limitsEnabled=enable;}
 
+        void ReceiveMsg(const MsgObject &msg);
+        void GetInfos(MsgObject &msg);
+
     protected:
+        void InitCursors();
         void UpdateView();
 
         QList<QVariant> *listValues;
@@ -73,10 +80,10 @@ namespace Connectables {
         bool loading;
         bool nameCanChange;
         bool dirty;
-        float limitInMin;
-        float limitInMax;
-        float limitOutMin;
-        float limitOutMax;
+        Cursor *limitInMin;
+        Cursor *limitInMax;
+        Cursor *limitOutMin;
+        Cursor *limitOutMax;
 
         int outStepIndex;
         float outValue;
@@ -94,6 +101,7 @@ namespace Connectables {
 
     public slots:
         void OnStep(int delta);
+        void CursorValueChanged(float val);
 
     };
 }

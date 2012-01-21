@@ -63,7 +63,7 @@ void MidiSender::Render()
 
     unsigned char status=0;
 
-    unsigned char msgType = static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(Param_MsgType))->GetIndex();
+    unsigned char msgType = static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(Param_MsgType))->GetStepIndex();
     unsigned char value1 = static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(Param_Value1))->GetVariantValue().toInt();
     unsigned char value2 = static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(Param_Value2))->GetVariantValue().toInt();
     unsigned char channel = static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(Param_Channel))->GetVariantValue().toInt();

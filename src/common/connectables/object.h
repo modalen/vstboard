@@ -38,6 +38,7 @@
 #include "objectprogram.h"
 #include "objectinfo.h"
 #include "pinslist.h"
+#include "msghandler.h"
 
 class SolverNode;
 class MainHost;
@@ -46,7 +47,7 @@ namespace Connectables {
 
     typedef QHash<int,ObjectProgram*> hashPrograms;
 
-    class Object : public QObject
+    class Object : public QObject, public MsgHandler
     {
     Q_OBJECT
     public:
@@ -62,12 +63,6 @@ namespace Connectables {
           \return saved index
           */
         inline int GetSavedIndex() {return savedIndex;}
-
-        /*!
-          Get the current index
-          \return index
-          */
-        inline const int GetIndex() const {return index;}
 
         /// Reset the savedIndex to the current index, when the file is loaded or before saving
         inline void ResetSavedIndex(int id=-2) {savedIndex=id;}
@@ -182,6 +177,8 @@ namespace Connectables {
 
         long GetInitDelay() {return initialDelay;}
 
+        virtual void GetInfos(MsgObject &msg);
+
     protected:
 
         void SetInitDelay(long d) {initialDelay=d;}
@@ -226,9 +223,6 @@ namespace Connectables {
 
         /// list of programs
         hashPrograms listPrograms;
-
-        /// the object index
-        int index;
 
         /// the index the object had when the project was saved
         int savedIndex;

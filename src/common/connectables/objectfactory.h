@@ -66,12 +66,16 @@ namespace Connectables {
 
         QList<int>listDelayObj;
 
+        int GetNewObjId() { return cptListObjects++; }
+
     protected:
         virtual Object *CreateOtherObjects(const ObjectInfo &info)=0;
 
         hashObjects listObjects;
-        int cptListObjects;
         MainHost *myHost;
+
+    private :
+        int cptListObjects;
     };
 
 }

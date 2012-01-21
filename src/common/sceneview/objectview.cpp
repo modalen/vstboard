@@ -38,8 +38,9 @@ using namespace View;
   \param wFlags window flags
   \todo the model parameter can be removed
   */
-ObjectView::ObjectView(MainHost *myHost, QAbstractItemModel *model, QGraphicsItem * parent, Qt::WindowFlags wFlags ) :
-    QGraphicsWidget(parent,wFlags),
+ObjectView::ObjectView(MainHost *myHost, MsgController *msgCtrl, int objId, QGraphicsItem * parent) :
+    QGraphicsWidget(parent),
+    MsgHandler(msgCtrl,objId),
     listAudioIn(0),
     listAudioOut(0),
     listMidiIn(0),
@@ -52,7 +53,6 @@ ObjectView::ObjectView(MainHost *myHost, QAbstractItemModel *model, QGraphicsIte
     selectBorder(0),
     errorMessage(0),
     layout(0),
-    model(model),
     actRemove(0),
     actRemoveBridge(0),
     actShowEditor(0),
@@ -129,18 +129,14 @@ void ObjectView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     menu.exec(actions(),event->screenPos(),actions().at(0),event->widget());
 }
 
-/*!
-  Set the model index of this object
-  \param index the index
-  */
-void ObjectView::SetModelIndex(QPersistentModelIndex index)
+void ObjectView::ReceiveMsg(const MsgObject &msg)
 {
-    ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-    if(info.objType == ObjType::dummy) {
+    if(msg.prop.value("objType",-1).toInt() == ObjType::dummy) {
         SetErrorMessage("object not loaded");
     }
 
-    if(info.nodeType != NodeType::bridge) {
+    if(msg.prop.value("nodeType",-1).toInt() != NodeType::bridge) {
+
         actRemoveBridge = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove"),this);
         actRemoveBridge->setShortcutContext(Qt::WidgetShortcut);
         connect(actRemoveBridge,SIGNAL(triggered()),
@@ -180,9 +176,63 @@ void ObjectView::SetModelIndex(QPersistentModelIndex index)
 
     UpdateKeyBinding();
 
-    objIndex = index;
-    UpdateTitle();
+    UpdateTitle(msg.prop.value("name","noname").toString());
 }
+
+///*!
+//  Set the model index of this object
+//  \param index the index
+//  */
+//void ObjectView::SetModelIndex(QPersistentModelIndex index)
+//{
+//    ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
+//    if(info.objType == ObjType::dummy) {
+//        SetErrorMessage("object not loaded");
+//    }
+
+//    if(info.nodeType != NodeType::bridge) {
+//        actRemoveBridge = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove"),this);
+//        actRemoveBridge->setShortcutContext(Qt::WidgetShortcut);
+//        connect(actRemoveBridge,SIGNAL(triggered()),
+//                this,SLOT(RemoveWithBridge()));
+//        addAction(actRemoveBridge);
+
+//        actRemove = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove with cables"),this);
+//        actRemove->setShortcutContext(Qt::WidgetShortcut);
+//        connect(actRemove,SIGNAL(triggered()),
+//                this,SLOT(close()));
+//        addAction(actRemove);
+
+//        actShowEditor = new QAction(tr("Show Editor"),this);
+//        actShowEditor->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+//        actShowEditor->setEnabled(false);
+//        actShowEditor->setCheckable(true);
+//        connect(actShowEditor,SIGNAL(toggled(bool)),
+//                this,SLOT(SwitchEditor(bool)));
+//        addAction(actShowEditor);
+
+//        actLearnSwitch = new QAction(tr("Learn Mode"),this);
+//        actLearnSwitch->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+//        actLearnSwitch->setEnabled(false);
+//        actLearnSwitch->setCheckable(true);
+//        connect(actLearnSwitch,SIGNAL(toggled(bool)),
+//                this,SLOT(SwitchLearnMode(bool)));
+//        addAction(actLearnSwitch);
+
+//        actToggleBypass = new QAction("Bypass",this);
+//        actToggleBypass->setShortcutContext(Qt::WidgetShortcut);
+//        actToggleBypass->setEnabled(false);
+//        actToggleBypass->setCheckable(true);
+//        connect(actToggleBypass,SIGNAL(toggled(bool)),
+//                this,SLOT(ToggleBypass(bool)));
+//        addAction(actToggleBypass);
+//    }
+
+//    UpdateKeyBinding();
+
+//    objIndex = index;
+//    UpdateTitle();
+//}
 
 void ObjectView::UpdateKeyBinding()
 {
@@ -193,23 +243,23 @@ void ObjectView::UpdateKeyBinding()
     if(actToggleBypass) actToggleBypass->setShortcut( config->keyBinding->GetMainShortcut(KeyBind::toggleBypass) );
 }
 
-void ObjectView::UpdateTitle()
+void ObjectView::UpdateTitle(const QString &name)
 {
     if(titleText) {
-        QString newTitle=objIndex.data(Qt::DisplayRole).toString();
-            titleText->setText(newTitle);
+        QString newTitle=name;
+        titleText->setText(newTitle);
 
-        if(objIndex.data(UserRoles::isDirty).isValid()) {
-            if(objIndex.data(UserRoles::isDirty).toBool()) {
-                titleText->setText(newTitle.prepend("*"));
-            }
-        }
+//        if(objIndex.data(UserRoles::isDirty).isValid()) {
+//            if(objIndex.data(UserRoles::isDirty).toBool()) {
+//                titleText->setText(newTitle.prepend("*"));
+//            }
+//        }
 
-        if(objIndex.data(UserRoles::isDoublePrecision).isValid()) {
-            if(objIndex.data(UserRoles::isDoublePrecision).toBool()) {
-                titleText->setText(newTitle.append("(D)"));
-            }
-        }
+//        if(objIndex.data(UserRoles::isDoublePrecision).isValid()) {
+//            if(objIndex.data(UserRoles::isDoublePrecision).toBool()) {
+//                titleText->setText(newTitle.append("(D)"));
+//            }
+//        }
     }
 }
 
@@ -218,18 +268,18 @@ void ObjectView::UpdateTitle()
   */
 void ObjectView::UpdateModelIndex()
 {
-    if(!objIndex.isValid())
-        return;
+//    if(!objIndex.isValid())
+//        return;
 
-    if(objIndex.data(UserRoles::position).isValid())
-        setPos( objIndex.data(UserRoles::position).toPointF() );
+//    if(objIndex.data(UserRoles::position).isValid())
+//        setPos( objIndex.data(UserRoles::position).toPointF() );
 
-    if(objIndex.data(UserRoles::errorMessage).isValid()) {
-        QString err = objIndex.data(UserRoles::errorMessage).toString();
-        SetErrorMessage( err );
-    }
+//    if(objIndex.data(UserRoles::errorMessage).isValid()) {
+//        QString err = objIndex.data(UserRoles::errorMessage).toString();
+//        SetErrorMessage( err );
+//    }
 
-    UpdateTitle();
+//    UpdateTitle("");
 }
 
 /*!

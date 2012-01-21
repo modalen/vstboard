@@ -28,6 +28,8 @@
 MainWindowHost::MainWindowHost(Settings *settings, MainHostHost * myHost, QWidget *parent) :
     MainWindow(settings,myHost,parent)
 {
+    myHost->mainWindow=this;
+
     setWindowTitle(APP_NAME);
 
     //audio devices
@@ -148,4 +150,14 @@ void MainWindowHost::on_actionConfig_triggered()
 {
     ConfigDialogHost conf(settings,myHost,this);
     conf.exec();
+}
+
+void MainWindowHost::SendMsg(const MsgObject &msg)
+{
+    myHost->ReceiveMsg(msg);
+}
+
+void MainWindowHost::SendMsg(const QString &type, const QVariant &data)
+{
+    myHost->ReceiveMsg(type,data);
 }

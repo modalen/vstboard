@@ -162,6 +162,27 @@ void ContainerProgram::Unload()
     }
 }
 
+void ContainerProgram::GetInfos(MsgObject &msg)
+{
+    foreach(QSharedPointer<Object> obj, listObjects) {
+        if(obj) {
+            MsgObject a(container->GetIndex(), obj->GetIndex());
+            a.prop["actionType"]="add";
+            obj->GetInfos(a);
+            msg.children << a;
+        }
+    }
+
+    foreach(QSharedPointer<Cable>cab, listCables) {
+        if(cab) {
+            MsgObject a(container->GetIndex(), cab->GetIndex());
+            a.prop["actionType"]="add";
+            cab->GetInfos(a);
+            msg.children << a;
+        }
+    }
+}
+
 void ContainerProgram::SaveRendererState()
 {
     const QTime t = container->GetLastModificationTime();

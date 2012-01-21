@@ -105,7 +105,11 @@ SOURCES += \
     views/buttonswidget.cpp \
     views/modifierswidget.cpp \
     renderer/updatedelays.cpp \
-    settings.cpp
+    settings.cpp \
+    msgobject.cpp \
+    msghandler.cpp \
+    msgcontroller.cpp \
+    connectables/cursor.cpp
 
 SOURCES += \
     views/programlist.cpp \
@@ -203,7 +207,11 @@ HEADERS += \
     views/buttonswidget.h \
     views/modifierswidget.h \
     renderer/updatedelays.h \
-    settings.h
+    settings.h \
+    msgobject.h \
+    msghandler.h \
+    msgcontroller.h \
+    connectables/cursor.h
 
 HEADERS += \
     views/configdialog.h \

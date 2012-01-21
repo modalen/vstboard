@@ -32,8 +32,9 @@ namespace View {
     {
     Q_OBJECT
     public:
-        explicit ContainerContent(MainHost *myHost, QAbstractItemModel *model, MainContainerView * parent = 0);
-        void SetModelIndex(QPersistentModelIndex index);
+        explicit ContainerContent(MainHost *myHost, MsgController *msgCtrl, int objId, MainContainerView *parent);
+        virtual void ReceiveMsg(const MsgObject &msg);
+//        void SetModelIndex(QPersistentModelIndex index);
         QPointF GetDropPos();
         void SetDropPos(const QPointF &pt);
 
@@ -45,7 +46,6 @@ namespace View {
         void dragLeaveEvent( QGraphicsSceneDragDropEvent *event);
         void dropEvent( QGraphicsSceneDragDropEvent *event);
 
-        QAbstractItemModel *model;
         QPersistentModelIndex objIndex;
         QPointF dropPos;
 

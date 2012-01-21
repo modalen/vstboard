@@ -422,11 +422,11 @@ bool VstPlugin::initPlugin()
 
         char szBuf[256] = "";
         if ((EffGetProductString(szBuf)) && (*szBuf)) {
-            setObjectName( QString("%1%2").arg(szBuf).arg(index) );
+            setObjectName( QString("%1%2").arg(szBuf).arg(GetIndex()) );
         } else {
             sName = sName.section("/",-1);
             sName = sName.section(".",0,-2);
-            setObjectName( sName % QString::number(index) );
+            setObjectName( sName % QString::number(GetIndex()) );
         }
         objInfo.name=objectName();
 
@@ -862,7 +862,7 @@ void VstPlugin::OnParameterChanged(ConnectionInfo pinInfo, float value)
 
         if(pinInfo.pinNumber==FixedPinNumber::vstProgNumber) {
             //program pin
-            EffSetProgram( static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(FixedPinNumber::vstProgNumber))->GetIndex() );
+            EffSetProgram( static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(FixedPinNumber::vstProgNumber))->GetStepIndex() );
             onVstProgramChanged();
             return;
         }

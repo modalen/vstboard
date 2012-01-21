@@ -22,8 +22,8 @@
 
 using namespace View;
 
-BridgeView::BridgeView(MainHost *myHost,QAbstractItemModel *model, QGraphicsItem * parent, Qt::WindowFlags wFlags) :
-        ObjectView(myHost,model,parent,wFlags),
+BridgeView::BridgeView(MainHost *myHost,MsgController *msgCtrl, int objId, QGraphicsItem * parent) :
+        ObjectView(myHost,msgCtrl,objId,parent),
         lLayout(0)
 {
     setObjectName("bridgeView");
@@ -35,7 +35,7 @@ BridgeView::BridgeView(MainHost *myHost,QAbstractItemModel *model, QGraphicsItem
     lLayout->setContentsMargins(0,0,0,0);
     setLayout(lLayout);
 
-    listBridge = new ListPinsView(this);
+    listBridge = new ListPinsView(msgCtrl,-1,this);
     listBridge->layout->setOrientation(Qt::Horizontal);
     lLayout->addItem(listBridge);
 

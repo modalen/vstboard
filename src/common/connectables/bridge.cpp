@@ -39,7 +39,7 @@ using namespace Connectables;
   \param info ObjectInfo description of the object
   */
 Bridge::Bridge(MainHost *myHost,int index, const ObjectInfo & info) :
-        Object(myHost,index, info)
+    Object(myHost,index, info)
 {
 }
 

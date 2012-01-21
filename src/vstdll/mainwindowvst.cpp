@@ -42,12 +42,24 @@ MainWindowVst::MainWindowVst(Steinberg::Vst::VstBoardController *controller,Sett
     setAcceptDrops(false);
 }
 
-void MainWindowVst::SendMsg(const QString &type, const QVariant &data)
+void MainWindowVst::SendMsg(const MsgObject &msg)
 {
     Steinberg::Vst::IMessage* message = controller->allocateMessage();
     if (message)
     {
         message->setMessageID("msg");
+        QByteArray br( QVariant::fromValue(msg).toByteArray() );
+        message->getAttributes ()->setBinary ("data", br.data(), br.size());
+        controller->sendMessage(message);
+    }
+}
+
+void MainWindowVst::SendMsg(const QString &type, const QVariant &data)
+{
+    Steinberg::Vst::IMessage* message = controller->allocateMessage();
+    if (message)
+    {
+        message->setMessageID("msglist");
         QByteArray br( data.toByteArray() );
         message->getAttributes ()->setBinary ("data", br.data(), br.size());
         controller->sendMessage(message);
@@ -138,7 +150,6 @@ void MainWindowVst::resetSettings()
 
 void MainWindowVst::on_actionConfig_triggered()
 {
-    SendMsg("type",0);
     ConfigDialogVst conf(settings,0,this);
     conf.exec();
 }

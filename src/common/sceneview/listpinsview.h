@@ -22,16 +22,18 @@
 #define LISTPINSVIEW_H
 
 #include "../precomp.h"
+#include "msghandler.h"
 
 namespace View {
     class PinView;
-    class ListPinsView : public QGraphicsWidget
+    class ListPinsView : public QGraphicsWidget, public MsgHandler
     {
     public:
-        ListPinsView(QGraphicsItem * parent = 0, Qt::WindowFlags wFlags = 0);
+        ListPinsView(MsgController *msgCtrl, int objId, QGraphicsItem * parent = 0);
         QGraphicsLinearLayout *layout;
         void UpdateCablesPosition();
         int GetPinPosition(int newPinNumber);
+        virtual void ReceiveMsg(const MsgObject &) {}
     };
 }
 

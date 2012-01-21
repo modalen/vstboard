@@ -25,6 +25,7 @@
 #include "globals.h"
 #include "connectables/connectioninfo.h"
 #include "views/viewconfig.h"
+#include "msghandler.h"
 
 #ifdef _MSC_VER
 #pragma warning( push )
@@ -37,24 +38,25 @@ namespace Connectables {
 
 namespace View {
     class CableView;
-    class PinView : public QGraphicsWidget
+    class PinView : public QGraphicsWidget, public MsgHandler
     {
     Q_OBJECT
 
     public:
 
-        explicit PinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config);
+        explicit PinView(float angle, MsgController *ctrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config);
         const ConnectionInfo GetConnectionInfo() const {return connectInfo;}
         void AddCable(CableView *cable);
         void RemoveCable(CableView *cable);
         void UpdateCablesPosition();
 
+        virtual void ReceiveMsg(const MsgObject &) {}
         /*!
           Called when the model changed
           \param index the model index of the pin
           \todo does the parameter can be removed since the index is stored anyway ?
           */
-        virtual void UpdateModelIndex(const QModelIndex &index) {}
+        virtual void UpdateModelIndex(const QModelIndex &) {}
 
         /*!
           Set the model index and update the view
@@ -92,9 +94,6 @@ namespace View {
 
         /// description of the pin
         ConnectionInfo connectInfo;
-
-        /// pointer to the model
-        QAbstractItemModel *model;
 
         /// model index of the pin
         QPersistentModelIndex pinIndex;

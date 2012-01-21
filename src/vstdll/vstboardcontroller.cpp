@@ -82,10 +82,21 @@ tresult PLUGIN_API VstBoardController::notify (IMessage* message)
     uint32 size;
     if (message->getAttributes ()->getBinary ("data", data, size) == kResultOk)
     {
-        if(mainWindow) {
+        if(!mainWindow)
+            return kResultOk;
+
+        if (!strcmp (message->getMessageID (), "msglist")) {
             QByteArray ba((char*)data,size);
             mainWindow->ReceiveMsg(message->getMessageID(),ba);
+            return kResultOk;
         }
+
+        if (!strcmp (message->getMessageID (), "msg")) {
+            QByteArray ba((char*)data,size);
+            mainWindow->ReceiveMsg( QVariant(ba).value<MsgObject>() );
+            return kResultOk;
+        }
+
         return kResultOk;
     }
 

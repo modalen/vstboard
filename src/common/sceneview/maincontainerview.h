@@ -33,9 +33,10 @@ namespace View {
     {
     Q_OBJECT
     public:
-        explicit MainContainerView(MainHost *myHost,QAbstractItemModel *model);
-        ~MainContainerView();
-        void SetModelIndex(QPersistentModelIndex index);
+        explicit MainContainerView(MainHost *myHost,MsgController *msgCtrl, int objId);
+        virtual ~MainContainerView();
+        void ReceiveMsg(const MsgObject &msg);
+//        void SetModelIndex(QPersistentModelIndex index);
         void SetParking(QWidget *parking);
         QWidget *GetParking();
         QPointF GetDropPos();
@@ -47,6 +48,7 @@ namespace View {
         BridgeView *bridgeReturn;
 
     protected:
+        void showEvent(QShowEvent *event);
         ContainerContent *content;
         QList<CableView*>listCables;
 

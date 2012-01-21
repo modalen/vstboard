@@ -33,7 +33,7 @@ namespace View {
     {
     Q_OBJECT
     public:
-        ConnectableObjectView(MainHost *myHost,QAbstractItemModel *model,MainContainerView * parent = 0, Qt::WindowFlags wFlags = 0);
+        ConnectableObjectView(MainHost *myHost,MsgController *msgCtrl,int objId, MainContainerView *parent);
 
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -53,7 +53,7 @@ namespace View {
         void CommandStep(ConnectionInfo pinInfo, int delta);
 
     public slots:
-        void ObjectDropped(QGraphicsSceneDragDropEvent *event);
+        void ObjectDropped(QGraphicsSceneDragDropEvent *event, MsgObject msg);
         virtual void UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color);
 //        void SetBackground();
     };

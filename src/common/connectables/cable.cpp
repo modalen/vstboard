@@ -37,6 +37,7 @@ using namespace Connectables;
   \param pinIn the input pin (the receiver)
   */
 Cable::Cable(MainHost *myHost, const ConnectionInfo &pinOut, const ConnectionInfo &pinIn) :
+    MsgHandler(myHost, myHost->objFactory->GetNewObjId()),
     pinOut(pinOut),
     pinIn(pinIn),
     modelIndex(QModelIndex()),
@@ -52,6 +53,7 @@ Cable::Cable(MainHost *myHost, const ConnectionInfo &pinOut, const ConnectionInf
   \param c the model
   */
 Cable::Cable(const Cable & c) :
+    MsgHandler(c.myHost, c.myHost->objFactory->GetNewObjId()),
     pinOut(c.pinOut),
     pinIn(c.pinIn),
     modelIndex(c.modelIndex),
@@ -112,11 +114,11 @@ void Cable::RemoveFromParentNode(const QModelIndex &parentIndex)
 bool Cable::SetDelay(quint32 d)
 {
     delay=d;
-    if(modelIndex.isValid()) {
-        QStandardItem *item = myHost->GetModel()->itemFromIndex(modelIndex);
-        item->setText( QString("cable %1:%2 %3").arg(pinOut.objId).arg(pinIn.objId).arg(delay) );
-        item->setData(d,UserRoles::position);
-    }
+//    if(modelIndex.isValid()) {
+//        QStandardItem *item = myHost->GetModel()->itemFromIndex(modelIndex);
+//        item->setText( QString("cable %1:%2 %3").arg(pinOut.objId).arg(pinIn.objId).arg(delay) );
+//        item->setData(d,UserRoles::position);
+//    }
 
     if(delay==0) {
         if(buffer) {
@@ -137,6 +139,11 @@ bool Cable::SetDelay(quint32 d)
         tmpBuf = new AudioBuffer(false,false);
 
     tmpBuf->SetSize(myHost->GetBufferSize());
+
+    MsgObject msg(-1,GetIndex());
+    msg.prop["actionType"]="update";
+    msg.prop["delay"]=d;
+    msgCtrl->SendMsg(msg);
     return true;
 }
 
@@ -164,5 +171,14 @@ void Cable::Render(const PinMessage::Enum msgType,void *data)
         pin->ReceiveMsg(msgType,(void*)tmpBuf);
 //        static_cast<AudioPin*>(pin)->GetBuffer()->AddToStack(tmpBuf);
     }
+
+}
+
+void Cable::GetInfos(MsgObject &msg)
+{
+    msg.prop["nodeType"]=NodeType::cable;
+    msg.prop["pinOut"]=myHost->objFactory->GetPin(pinOut)->GetIndex();
+    msg.prop["pinIn"]=myHost->objFactory->GetPin(pinIn)->GetIndex();
+    msg.prop["delay"]=delay;
 
 }

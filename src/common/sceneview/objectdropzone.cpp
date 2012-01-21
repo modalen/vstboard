@@ -23,8 +23,9 @@
 
 using namespace View;
 
-ObjectDropZone::ObjectDropZone(QGraphicsItem *parent, QWidget *parking) :
+ObjectDropZone::ObjectDropZone(MsgController *msgCtrl, int objId, QGraphicsItem *parent, QWidget *parking) :
     QGraphicsWidget(parent),
+    MsgHandler(msgCtrl,objId),
     myParking(parking)
 {
     setAcceptDrops(true);
@@ -103,8 +104,12 @@ void ObjectDropZone::dragLeaveEvent( QGraphicsSceneDragDropEvent *event)
 void ObjectDropZone::dropEvent( QGraphicsSceneDragDropEvent *event)
 {
     HighlightStop();
-    emit(ObjectDropped(event));
-    //reste to copy : we don't really want a moveaction
+
+    MsgObject msg;
+    TranslateMimeData(event->mimeData(), msg);
+
+    emit(ObjectDropped(event, msg));
+    //reset to copy : we don't really want a moveaction
     event->setDropAction(Qt::CopyAction);
     QGraphicsWidget::dropEvent(event);
 }
@@ -122,4 +127,86 @@ void ObjectDropZone::HighlightStop()
 void ObjectDropZone::UpdateHeight()
 {
     resize( size().width(), parentWidget()->size().height() );
+}
+
+bool ObjectDropZone::TranslateMimeData( const QMimeData * data, MsgObject &msg )
+{
+    //drop a file
+    if (data->hasUrls()) {
+        QStringList lstFiles;
+        foreach(QUrl url, data->urls()) {
+            lstFiles << url.toLocalFile();
+        }
+        msg.prop["filesToLoad"]=lstFiles;
+    }
+
+    //objects from parking
+    QByteArray unparkObj;
+    QDataStream stream(&unparkObj, QIODevice::WriteOnly);
+    if(data->hasFormat("application/x-qstandarditemmodeldatalist")) {
+        QStandardItemModel mod;
+        mod.dropMimeData(data,Qt::CopyAction,0,0,QModelIndex());
+        int a=mod.rowCount();
+        for(int i=0;i<a;i++) {
+            QStandardItem *it = mod.invisibleRootItem()->child(i);
+            if(it->data(UserRoles::value).isValid()) {
+                stream << it->data(UserRoles::value).toInt();
+            }
+        }
+    }
+    if(!unparkObj.isEmpty())
+        msg.prop["objToUnpark"]=unparkObj;
+
+    QByteArray listObjInfoToAdd;
+    QDataStream streamObj(&listObjInfoToAdd, QIODevice::WriteOnly);
+
+    //audio interface
+    if(data->hasFormat("application/x-audiointerface")) {
+        QByteArray b = data->data("application/x-audiointerface");
+        QDataStream stream(&b,QIODevice::ReadOnly);
+
+        while(!stream.atEnd()) {
+            ObjectInfo info;
+            stream >> info;
+
+            if(info.inputs!=0) {
+                info.objType=ObjType::AudioInterfaceIn;
+                streamObj << info;
+            }
+
+            if(info.outputs!=0) {
+                info.objType=ObjType::AudioInterfaceOut;
+                streamObj << info;
+            }
+        }
+    }
+
+    //midi interface
+    if(data->hasFormat("application/x-midiinterface")) {
+        QByteArray b = data->data("application/x-midiinterface");
+        QDataStream stream(&b,QIODevice::ReadOnly);
+
+        while(!stream.atEnd()) {
+            ObjectInfo info;
+            stream >> info;
+            streamObj << info;
+        }
+    }
+
+    //tools
+    if(data->hasFormat("application/x-tools")) {
+        QByteArray b = data->data("application/x-tools");
+        QDataStream stream(&b,QIODevice::ReadOnly);
+
+        while(!stream.atEnd()) {
+            ObjectInfo info;
+            stream >> info;
+            streamObj << info;
+        }
+    }
+
+    if(!listObjInfoToAdd.isEmpty())
+        msg.prop["objToLoad"]=listObjInfoToAdd;
+
+    return true;
 }

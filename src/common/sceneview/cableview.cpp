@@ -22,7 +22,7 @@
 
 using namespace View;
 
-CableView::CableView(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn, QGraphicsItem *parent, ViewConfig *config)
+CableView::CableView(MsgController *msgCtrl, int objId, const ConnectionInfo &pinOut, const ConnectionInfo &pinIn, QGraphicsItem *parent, ViewConfig *config)
 #ifndef SIMPLE_CABLES
     : QGraphicsPathItem(parent),
 #else
@@ -30,6 +30,7 @@ CableView::CableView(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn, 
 #endif
 
     QObject(),
+    MsgHandler(msgCtrl,objId),
     pinOut(pinOut),
     pinIn(pinIn)
 {
@@ -38,13 +39,14 @@ CableView::CableView(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn, 
             this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
 }
 
-CableView::CableView(const ConnectionInfo &pinOut, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config)
+CableView::CableView(MsgController *msgCtrl, int objId, const ConnectionInfo &pinOut, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config)
 #ifndef SIMPLE_CABLES
     : QGraphicsPathItem(parent),
 #else
     : QGraphicsLineItem(parent),
 #endif
     QObject(),
+    MsgHandler(msgCtrl,objId),
     pinOut(pinOut),
     PtIn(PtIn),
     config(config)
@@ -105,9 +107,21 @@ void CableView::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, con
 
 void CableView::UpdateModelIndex(const QModelIndex &index)
 {
+//    QPen p = pen();
+
+//    if(index.data(UserRoles::position).toInt()>0) {
+//        p.setWidth(3);
+//    } else {
+//        p.setWidth(0);
+//    }
+//    setPen(p);
+}
+
+void CableView::ReceiveMsg(const MsgObject &msg)
+{
     QPen p = pen();
 
-    if(index.data(UserRoles::position).toInt()>0) {
+    if(msg.prop.value("delay",0).toInt()>0) {
         p.setWidth(3);
     } else {
         p.setWidth(0);

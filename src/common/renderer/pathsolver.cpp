@@ -71,6 +71,8 @@ void PathSolver::Resolve(hashCables cables, Renderer *renderer)
     SetMinAndMaxStep();
 
     renderer->OnNewRenderingOrder(listNodes);
+
+    listCables.clear();
     mutex.unlock();
 }
 

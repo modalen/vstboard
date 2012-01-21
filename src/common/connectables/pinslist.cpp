@@ -32,10 +32,13 @@
 using namespace Connectables;
 
 PinsList::PinsList(MainHost *myHost, Object *parent) :
-        QObject(parent),
-        parent(parent),
-        myHost(myHost)
+    QObject(parent),
+    parent(parent),
+    myHost(myHost),
+    visible(true)
 {
+    index = myHost->objFactory->GetNewObjId();
+
     connect(this,SIGNAL(PinAdded(int)),
             this,SLOT(AddPin(int)));
     connect(this,SIGNAL(PinRemoved(int)),
@@ -71,7 +74,8 @@ void PinsList::SetInfo(Object *parent,const ConnectionInfo &connInfo, const Obje
     this->objInfo=objInfo;
 }
 
-void PinsList::SetVisible(bool visible) {
+void PinsList::SetVisible(bool v) {
+    visible=v;
     foreach(Pin* pin, listPins) {
         pin->SetVisible(visible);
     }
@@ -268,4 +272,27 @@ QDataStream & operator<< (QDataStream & out, const Connectables::PinsList& value
 QDataStream & operator>> (QDataStream & in, Connectables::PinsList& value)
 {
     return value.fromStream(in);
+}
+
+void PinsList::GetInfos(MsgObject &msg)
+{
+    msg.prop["nodeType"]=NodeType::listPin;
+    msg.prop["objType"]=objInfo.objType;
+    msg.prop["name"]=objectName();
+
+    QMap<quint16,Pin*>::iterator i = listPins.constBegin();
+    while(i!=listPins.constEnd()) {
+        Pin *p = i.value();
+        if(!p->GetVisible()) {
+            ++i;
+            continue;
+        }
+        MsgObject a(GetIndex(), p->GetIndex());
+        a.prop["actionType"]="add";
+        a.prop["parentNodeType"]=parent->info().nodeType;
+        a.prop["parentObjType"]=parent->info().objType;
+        p->GetInfos(a);
+        msg.children << a;
+        ++i;
+    }
 }

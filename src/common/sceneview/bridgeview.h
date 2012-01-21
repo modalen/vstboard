@@ -30,7 +30,7 @@ namespace View {
     {
     Q_OBJECT
     public:
-        BridgeView(MainHost *myHost,QAbstractItemModel *model, QGraphicsItem * parent = 0, Qt::WindowFlags wFlags = 0);
+        BridgeView(MainHost *myHost,MsgController *msgCtrl, int objId, QGraphicsItem * parent = 0);
 
     protected:
         void moveEvent ( QGraphicsSceneMoveEvent * event );

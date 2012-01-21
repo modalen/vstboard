@@ -24,6 +24,7 @@
 #include "../precomp.h"
 #include "../globals.h"
 #include "connectioninfo.h"
+#include "msghandler.h"
 
 #ifdef _MSC_VER
 #pragma warning( push )
@@ -34,12 +35,14 @@ namespace Connectables {
 
     class Object;
     class Cable;
-    class Pin : public QObject
+    class Pin : public QObject, public MsgHandler
     {
     Q_OBJECT
     public:
         Pin(Object *parent,PinType::Enum type, PinDirection::Enum direction, int number, bool bridge=false );
         virtual ~Pin();
+
+        virtual void GetInfos(MsgObject &msg);
 
         virtual void SendMsg(const PinMessage::Enum msgType,void *data=0);
 
@@ -82,6 +85,7 @@ namespace Connectables {
         void RemoveCable(const QWeakPointer<Cable>&c) {cablesMutex.lock(); listCables.removeAll(c); cablesMutex.unlock();}
 
     protected:
+
         QMutex cablesMutex;
         QList<QWeakPointer<Cable> >listCables;
 

@@ -34,8 +34,8 @@ using namespace View;
   \param parent pointer to the parent object view
   \param pinInfo description of the pin
   */
-BridgePinView::BridgePinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
-    PinView(angle, model,parent, pinInfo,config),
+BridgePinView::BridgePinView(float angle,MsgController *ctrl, int objId,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
+    PinView(angle, ctrl, objId, parent, pinInfo, config),
     value(.0f),
     valueType(PinType::ND),
     bridgeOutline(0),

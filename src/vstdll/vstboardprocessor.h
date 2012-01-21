@@ -57,6 +57,9 @@ public:
 
         tresult PLUGIN_API notify (IMessage* message);
 
+        void SendMsg(const MsgObject &msg);
+        void SendMsg(const QString &type, const QVariant &data);
+
 protected:
         QApplication *myApp;
 
@@ -64,8 +67,6 @@ protected:
 //        float** buffer;
 //        int32 bufferPos;
 
-public slots:
-        void Render();
 };
 
 }}

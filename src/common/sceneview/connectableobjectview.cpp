@@ -25,8 +25,8 @@
 
 using namespace View;
 
-ConnectableObjectView::ConnectableObjectView(MainHost *myHost,QAbstractItemModel *model,MainContainerView * parent, Qt::WindowFlags wFlags ) :
-    ObjectView(myHost,model,parent,wFlags),
+ConnectableObjectView::ConnectableObjectView(MainHost *myHost, MsgController *msgCtrl, int objId, MainContainerView * parent=0 ) :
+    ObjectView(myHost,msgCtrl,objId,parent),
     dropReplace(0),
     dropAttachLeft(0),
     dropAttachRight(0),
@@ -45,12 +45,12 @@ ConnectableObjectView::ConnectableObjectView(MainHost *myHost,QAbstractItemModel
 //    setFlag(QGraphicsItem::ItemIsMovable, true);
     setFocusPolicy(Qt::StrongFocus);
 
-    listAudioIn = new ListPinsView(this);
-    listAudioOut = new ListPinsView(this);
-    listMidiIn = new ListPinsView(this);
-    listMidiOut = new ListPinsView(this);
-    listParametersIn = new ListPinsView(this);
-    listParametersOut = new ListPinsView(this);
+    listAudioIn = new ListPinsView(msgCtrl,-1,this);
+    listAudioOut = new ListPinsView(msgCtrl,-1,this);
+    listMidiIn = new ListPinsView(msgCtrl,-1,this);
+    listMidiOut = new ListPinsView(msgCtrl,-1,this);
+    listParametersIn = new ListPinsView(msgCtrl,-1,this);
+    listParametersOut = new ListPinsView(msgCtrl,-1,this);
 
     layout->addItem(listAudioIn,0,0,Qt::AlignLeft | Qt::AlignTop);
     layout->addItem(listAudioOut,0,1,Qt::AlignRight | Qt::AlignTop);
@@ -59,27 +59,27 @@ ConnectableObjectView::ConnectableObjectView(MainHost *myHost,QAbstractItemModel
     layout->addItem(listParametersIn,2,0,Qt::AlignLeft | Qt::AlignTop);
     layout->addItem(listParametersOut,2,1,Qt::AlignRight | Qt::AlignTop);
 
-    dropReplace = new ObjectDropZone(this,parent->GetParking());
+    dropReplace = new ObjectDropZone(msgCtrl,-1,this,parent->GetParking());
     connect(parent,SIGNAL(ParkingChanged(QWidget*)),
             dropReplace,SLOT(SetParking(QWidget*)));
-    connect(dropReplace, SIGNAL(ObjectDropped(QGraphicsSceneDragDropEvent*)),
-            this,SLOT(ObjectDropped(QGraphicsSceneDragDropEvent*)));
+    connect(dropReplace, SIGNAL(ObjectDropped(QGraphicsSceneDragDropEvent*,MsgObject)),
+            this,SLOT(ObjectDropped(QGraphicsSceneDragDropEvent*,MsgObject)));
     connect(this, SIGNAL(heightChanged()),
             dropReplace, SLOT(UpdateHeight()));
 
-    dropAttachLeft = new ObjectDropZone(this,parent->GetParking());
+    dropAttachLeft = new ObjectDropZone(msgCtrl,-1,this,parent->GetParking());
     connect(parent,SIGNAL(ParkingChanged(QWidget*)),
             dropAttachLeft,SLOT(SetParking(QWidget*)));
-    connect(dropAttachLeft, SIGNAL(ObjectDropped(QGraphicsSceneDragDropEvent*)),
-            this,SLOT(ObjectDropped(QGraphicsSceneDragDropEvent*)));
+    connect(dropAttachLeft, SIGNAL(ObjectDropped(QGraphicsSceneDragDropEvent*,MsgObject)),
+            this,SLOT(ObjectDropped(QGraphicsSceneDragDropEvent*,MsgObject)));
     connect(this, SIGNAL(heightChanged()),
             dropAttachLeft, SLOT(UpdateHeight()));
 
-    dropAttachRight = new ObjectDropZone(this,parent->GetParking());
+    dropAttachRight = new ObjectDropZone(msgCtrl,-1,this,parent->GetParking());
     connect(parent,SIGNAL(ParkingChanged(QWidget*)),
             dropAttachLeft,SLOT(SetParking(QWidget*)));
-    connect(dropAttachRight, SIGNAL(ObjectDropped(QGraphicsSceneDragDropEvent*)),
-            this,SLOT(ObjectDropped(QGraphicsSceneDragDropEvent*)));
+    connect(dropAttachRight, SIGNAL(ObjectDropped(QGraphicsSceneDragDropEvent*,MsgObject)),
+            this,SLOT(ObjectDropped(QGraphicsSceneDragDropEvent*,MsgObject)));
     connect(this, SIGNAL(heightChanged()),
             dropAttachRight, SLOT(UpdateHeight()));
 
@@ -122,7 +122,7 @@ void ConnectableObjectView::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
     if(moving) {
         moving=false;
-        model->setData(objIndex,pos(),UserRoles::position);
+//        model->setData(objIndex,pos(),UserRoles::position);
         return;
     }
 }
@@ -148,7 +148,8 @@ void ConnectableObjectView::mouseReleaseEvent ( QGraphicsSceneMouseEvent * event
 {
     if(moving) {
         moving=false;
-        model->setData(objIndex,pos(),UserRoles::position);
+//        if(model)
+//            model->setData(objIndex,pos(),UserRoles::position);
         event->accept();
         return;
     }
@@ -156,27 +157,39 @@ void ConnectableObjectView::mouseReleaseEvent ( QGraphicsSceneMouseEvent * event
 
 }
 
-void ConnectableObjectView::ObjectDropped(QGraphicsSceneDragDropEvent *event)
+void ConnectableObjectView::ObjectDropped(QGraphicsSceneDragDropEvent *event, MsgObject msg)
 {
     QPointF dropPos(0,0);
     int col=0;
 
     if(sender()==dropAttachLeft) {
+        msg.prop["actionType"]="before";
         col=1;
         dropPos.rx()-=(geometry().width()+10);
     }
     if(sender()==dropReplace){
+        msg.prop["actionType"]="replace";
         col=2;
     }
     if(sender()==dropAttachRight){
+        msg.prop["actionType"]="after";
         col=3;
         dropPos.rx()+=(geometry().width()+10);
     }
 
+    if(event->dropAction()==Qt::MoveAction)
+        msg.prop["actionType"]="insert";
+    else
+        msg.prop["actionType"]="add";
+
     MainContainerView *cnt = static_cast<MainContainerView*>(parentItem());
     if(cnt)
         cnt->SetDropPos( mapToScene(dropPos) );
-    event->setAccepted(model->dropMimeData(event->mimeData(), event->dropAction(), 0, col, objIndex));
+
+    msg.objIndex=GetIndex();
+    msgCtrl->SendMsg(msg);
+
+//    event->setAccepted(model->dropMimeData(event->mimeData(), event->dropAction(), 0, col, objIndex));
 }
 
 void ConnectableObjectView::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)

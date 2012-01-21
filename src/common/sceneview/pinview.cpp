@@ -21,7 +21,6 @@
 #include "pinview.h"
 #include "cableview.h"
 #include "../connectables/pin.h"
-#include "../connectables/objectfactory.h"
 #include "objectview.h"
 
 using namespace View;
@@ -35,17 +34,16 @@ CableView *PinView::currentLine = 0;
 
 /*!
   \param angle angle in rad (0=output, pi=input) used by CableView
-  \param model pointer to the model
+  \param msgCtrl pointer to the message controller
   \param parent pointer to the parent object view
   \param pinInfo description of the pin
-  \todo the model parameter can be removed
-  */
-PinView::PinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
+    */
+PinView::PinView(float angle, MsgController *msgCtrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
     QGraphicsWidget(parent),
+    MsgHandler(msgCtrl,objId),
     outline(0),
     highlight(0),
     connectInfo(pinInfo),
-    model(model),
     pinAngle(angle),
     config(config),
     defaultCursor(Qt::OpenHandCursor)
@@ -157,7 +155,7 @@ void PinView::mouseMoveEvent ( QGraphicsSceneMouseEvent  * event )
     drag->setMimeData(mime);
 
     if(!currentLine) {
-        currentLine = new CableView(connectInfo,event->pos(),this,config);
+        currentLine = new CableView(msgCtrl,-1,connectInfo,event->pos(),this,config);
         AddCable(currentLine);
     }
 

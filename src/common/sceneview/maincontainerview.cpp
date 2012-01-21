@@ -23,16 +23,16 @@
 
 using namespace View;
 
-MainContainerView::MainContainerView(MainHost *myHost,QAbstractItemModel *model) :
-        ObjectView(myHost,model)
+MainContainerView::MainContainerView(MainHost *myHost, MsgController *msgCtrl, int objId) :
+        ObjectView(myHost,msgCtrl,objId)
 {
-    content = new ContainerContent(myHost,model,this);
+    content = new ContainerContent(myHost,msgCtrl,-1,this);
     content->setAcceptDrops(true);
 
-    bridgeIn = new BridgeView(myHost, model, this);
-    bridgeOut = new BridgeView(myHost, model, this);
-    bridgeSend = new BridgeView(myHost, model, this);
-    bridgeReturn = new BridgeView(myHost, model, this);
+    bridgeIn = new BridgeView(myHost, msgCtrl, -1, this);
+    bridgeOut = new BridgeView(myHost, msgCtrl, -1, this);
+    bridgeSend = new BridgeView(myHost, msgCtrl, -1, this);
+    bridgeReturn = new BridgeView(myHost, msgCtrl, -1, this);
 
     setGeometry(0,0,0,0);
 }
@@ -45,6 +45,11 @@ MainContainerView::~MainContainerView()
     }
 }
 
+void MainContainerView::showEvent(QShowEvent *event)
+{
+    LOG("container show event"<<GetIndex())
+}
+
 QPointF MainContainerView::GetDropPos()
 {
     return mapFromScene( content->GetDropPos() );
@@ -55,11 +60,16 @@ void MainContainerView::SetDropPos(const QPointF &pt)
     content->SetDropPos( pt );
 }
 
-void MainContainerView::SetModelIndex(QPersistentModelIndex index)
+void MainContainerView::ReceiveMsg(const MsgObject &msg)
 {
-    setObjectName(QString("MainContainerView%1").arg(index.data(UserRoles::value).toInt()));
-    content->SetModelIndex(index);
+    content->ReceiveMsg(msg);
 }
+
+//void MainContainerView::SetModelIndex(QPersistentModelIndex index)
+//{
+//    setObjectName(QString("MainContainerView%1").arg(index.data(UserRoles::value).toInt()));
+//    content->SetModelIndex(index);
+//}
 
 void MainContainerView::SetParking(QWidget *parking)
 {

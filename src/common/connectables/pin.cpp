@@ -39,6 +39,7 @@ using namespace Connectables;
   */
 Pin::Pin(Object *parent,PinType::Enum type, PinDirection::Enum direction, int number, bool bridge) :
     QObject(parent),
+    MsgHandler(parent->getHost(), parent->getHost()->objFactory->GetNewObjId()),
     connectInfo(parent->getHost(),parent->GetIndex(),type,direction,number,bridge),
     value(.0f),
     stepSize(.1f),
@@ -209,24 +210,38 @@ void Pin::UpdateModelNode()
   */
 void Pin::updateView()
 {
-    QMutexLocker l(&objMutex);
-
     if(closed || !visible | !modelIndex.isValid()) {
         return;
     }
 
+    QMutexLocker l(&objMutex);
+    MsgObject msg(0, GetIndex());
+
     if(!displayedText.isEmpty()) {
-        parent->getHost()->GetModel()->setData(modelIndex, displayedText, Qt::DisplayRole);
+        msg.prop["name"]=displayedText;
         displayedText="";
     }
 
     float newVu = GetValue();
-    if(!valueChanged)
-        return;
+    if(valueChanged) {
+        valueChanged=false;
+        msg.prop["value"]=newVu;
+    }
 
-    valueChanged=false;
+    if(msg.prop.count()>0) {
+        msg.prop["actionType"]="update";
+        parent->getHost()->SendMsg(msg);
+    }
+}
 
-    parent->getHost()->GetModel()->setData(modelIndex, newVu, UserRoles::value);
+void Pin::GetInfos(MsgObject &msg)
+{
+    if(displayedText.isEmpty())
+        msg.prop["name"]=objectName();
+    else
+        msg.prop["name"]=displayedText;
 
-
+    msg.prop["value"]=value;
+    msg.prop["nodeType"]=NodeType::pin;
+    msg.prop["connectionInfo"]=QVariant::fromValue(connectInfo);
 }

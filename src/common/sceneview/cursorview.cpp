@@ -27,15 +27,15 @@ using namespace View;
 #define CURS_WIDTH 5.0f
 #define CURD_HEIGHT 7.5f
 
-CursorView::CursorView(QAbstractItemModel *model,bool isMaxi,bool upsideDown,QGraphicsItem *parent, ViewConfig *config) :
-        QGraphicsWidget(parent),
-        isMaxi(isMaxi),
-        upsideDown(upsideDown),
-        drag(false),
-        value(.0f),
-        model(model),
-        offset(QPointF(0,0)),
-        config(config)
+CursorView::CursorView(MsgController *msgCtrl, int objId, bool isMaxi,bool upsideDown,QGraphicsItem *parent, ViewConfig *config) :
+    QGraphicsWidget(parent),
+    MsgHandler(msgCtrl,objId),
+    isMaxi(isMaxi),
+    upsideDown(upsideDown),
+    drag(false),
+    value(.0f),
+    offset(QPointF(0,0)),
+    config(config)
 {
     QPolygonF pol;
 
@@ -66,6 +66,14 @@ CursorView::CursorView(QAbstractItemModel *model,bool isMaxi,bool upsideDown,QGr
     setFocusPolicy(Qt::StrongFocus);
     setCursor(Qt::SplitHCursor);
     resize(cursor->boundingRect().size());
+}
+
+void CursorView::ReceiveMsg(const MsgObject &msg)
+{
+    if(msg.prop.contains("value")) {
+        SetValue( msg.prop.value("value").toFloat() );
+        emit ValueChanged();
+    }
 }
 
 void CursorView::setPos ( const QPointF & pos )
@@ -179,7 +187,11 @@ void CursorView::ValueChanged(float newVal)
     if(newVal>1.0f) newVal=1.0f;
     if(newVal<0.0f) newVal=0.0f;
 
-    model->setData(modelIndex,newVal,UserRoles::value);
+    MsgObject msg(-1,GetIndex());
+    msg.prop["actionType"]="update";
+    msg.prop["value"]=newVal;
+    msgCtrl->SendMsg(msg);
+//    model->setData(modelIndex,newVal,UserRoles::value);
 }
 
 //QVariant CursorView::itemChange(GraphicsItemChange change, const QVariant &value)

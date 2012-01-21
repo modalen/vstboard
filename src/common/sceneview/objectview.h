@@ -28,20 +28,22 @@
 //#include "textbutton.h"
 #include "../mainhost.h"
 #include "../mainwindow.h"
+#include "msghandler.h"
 
 class MainHost;
 namespace View {
 
     class MinMaxPinView;
     class PinView;
-    class ObjectView : public QGraphicsWidget
+    class ObjectView : public QGraphicsWidget, public MsgHandler
     {
     Q_OBJECT
     public:
-        explicit ObjectView(MainHost *myHost, QAbstractItemModel *model, QGraphicsItem * parent = 0, Qt::WindowFlags wFlags = 0);
+        explicit ObjectView(MainHost *myHost, MsgController *msgCtrl, int objId, QGraphicsItem * parent = 0);
         virtual ~ObjectView();
 
-        virtual void SetModelIndex(QPersistentModelIndex index);
+//        virtual void SetModelIndex(QPersistentModelIndex index);
+        virtual void ReceiveMsg(const MsgObject &msg);
         virtual void UpdateModelIndex();
         void Shrink();
 
@@ -81,7 +83,7 @@ namespace View {
         void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 
         void SetErrorMessage(const QString & msg);
-        void UpdateTitle();
+        void UpdateTitle(const QString &name);
 
         /// the title text
         QGraphicsSimpleTextItem *titleText;
@@ -97,9 +99,6 @@ namespace View {
 
         /// objects layout
         QGraphicsGridLayout *layout;
-
-        /// main model
-        QAbstractItemModel *model;
 
         /// objects model index
         QPersistentModelIndex objIndex;

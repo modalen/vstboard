@@ -23,19 +23,21 @@
 
 //#include "precomp.h"
 #include "views/viewconfig.h"
+#include "msghandler.h"
 
 namespace View {
 
-    class CursorView : public QGraphicsWidget
+    class CursorView : public QGraphicsWidget, public MsgHandler
     {
         Q_OBJECT
     public:
-        explicit CursorView(QAbstractItemModel *model,bool isMaxi,bool upsideDown,QGraphicsItem *parent, ViewConfig *config);
+        explicit CursorView(MsgController *msgCtrl, int objId,bool isMaxi,bool upsideDown,QGraphicsItem *parent, ViewConfig *config);
         void SetValue(float newVal);
         void SetModelIndex(QPersistentModelIndex index);
         inline float GetValue() const {return value;}
         void setPos ( const QPointF & pos );
         void setPos ( qreal x, qreal y );
+        void ReceiveMsg(const MsgObject &);
 
     protected:
         void keyPressEvent ( QKeyEvent * event );
@@ -53,13 +55,15 @@ namespace View {
         bool upsideDown;
         bool drag;
         float value;
-        QAbstractItemModel *model;
         QPersistentModelIndex modelIndex;
         QPointF offset;
         ViewConfig *config;
 
         float startDragValue;
         QPointF startDragPos;
+
+    signals:
+        void ValueChanged();
 
     public slots:
         void UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color);

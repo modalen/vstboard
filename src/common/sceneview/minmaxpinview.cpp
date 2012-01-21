@@ -23,9 +23,8 @@
 
 using namespace View;
 
-MinMaxPinView::MinMaxPinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
-    ConnectablePinView(angle,model,parent,pinInfo,config),
-    cursorCreated(false),
+MinMaxPinView::MinMaxPinView(float angle, MsgController *msgCtrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
+    ConnectablePinView(angle,msgCtrl,objId,parent,pinInfo,config),
     changingValue(false),
     startDragValue(.0f),
     inMin(0),
@@ -34,50 +33,100 @@ MinMaxPinView::MinMaxPinView(float angle, QAbstractItemModel *model,QGraphicsIte
     outMax(0),
     scaledView(0)
 {
+    CreateCursors();
+}
 
+void MinMaxPinView::ReceiveMsg(const MsgObject &msg)
+{
+    if(msg.prop.value("nodeType",0).toInt()==NodeType::cursor) {
+        switch(msg.prop.value("objType",0).toInt()) {
+            case ObjType::limitInMin :
+                inMin->SetIndex(msg.objIndex);
+                inMin->SetValue(msg.prop.value("value",.0f).toFloat());
+                break;
+            case ObjType::limitInMax :
+                inMax->SetIndex(msg.objIndex);
+                inMax->SetValue(msg.prop.value("value",1.0f).toFloat());
+                break;
+            case ObjType::limitOutMin :
+                outMin->SetIndex(msg.objIndex);
+                outMin->SetValue(msg.prop.value("value",.0f).toFloat());
+                break;
+            case ObjType::limitOutMax :
+                outMax->SetIndex(msg.objIndex);
+                outMax->SetValue(msg.prop.value("value",1.0f).toFloat());
+                break;
+        }
+        return;
+    }
+
+    ConnectablePinView::ReceiveMsg(msg);
+
+    if(msg.prop.contains("value")) {
+        UpdateScaleView();
+
+        ObjectView *parentObj = static_cast<ObjectView*>(parentWidget()->parentWidget());
+        if(parentObj) {
+            if(connectInfo.pinNumber == FixedPinNumber::editorVisible) {
+                parentObj->SetEditorPin(this, value);
+            }
+            if(connectInfo.pinNumber == FixedPinNumber::learningMode) {
+                parentObj->SetLearnPin(this, value);
+            }
+            if(connectInfo.pinNumber == FixedPinNumber::bypass) {
+                parentObj->SetBypassPin(this, value);
+            }
+        }
+    }
 }
 
 void MinMaxPinView::resizeEvent ( QGraphicsSceneResizeEvent * event )
 {
     ConnectablePinView::resizeEvent(event);
 
-    if(cursorCreated) {
-        inMin->setPos( inMin->GetValue()*event->newSize().width(), 0 );
-        inMax->setPos( inMax->GetValue()*event->newSize().width(), 0 );
-        outMin->setPos( outMin->GetValue()*event->newSize().width(), 0 );
-        outMax->setPos( outMax->GetValue()*event->newSize().width(), 0 );
-        UpdateScaleView();
-    }
+    inMin->setPos( inMin->GetValue()*event->newSize().width(), 0 );
+    inMax->setPos( inMax->GetValue()*event->newSize().width(), 0 );
+    outMin->setPos( outMin->GetValue()*event->newSize().width(), 0 );
+    outMax->setPos( outMax->GetValue()*event->newSize().width(), 0 );
+    UpdateScaleView();
 }
 
 void MinMaxPinView::CreateCursors()
 {
-    cursorCreated=true;
+//    cursorCreated=true;
 
     scaledView = new QGraphicsPolygonItem(this);
     scaledView->setBrush(QColor(0,0,0,30));
 
-    inMin=new CursorView(model,false,false,this,config);
+    inMin=new CursorView(msgCtrl,-1,false,false,this,config);
     inMin->setPos(rect().topLeft());
     inMin->SetValue(.0f);
+    connect(inMin,SIGNAL(ValueChanged()),
+            this,SLOT(CursorValueChanged()));
 
-    inMax=new CursorView(model,true,false,this,config);
+    inMax=new CursorView(msgCtrl,-1,true,false,this,config);
     inMax->setPos(rect().topRight());
     inMax->SetValue(1.0f);
+    connect(inMax,SIGNAL(ValueChanged()),
+            this,SLOT(CursorValueChanged()));
 
-    outMin=new CursorView(model,false,true,this,config);
+    outMin=new CursorView(msgCtrl,-1,false,true,this,config);
     outMin->setPos(rect().bottomLeft());
     outMin->SetValue(.0f);
+    connect(outMin,SIGNAL(ValueChanged()),
+            this,SLOT(CursorValueChanged()));
 
-    outMax=new CursorView(model,true,true,this,config);
+    outMax=new CursorView(msgCtrl,-1,true,true,this,config);
     outMax->setPos(rect().bottomRight());
     outMax->SetValue(1.0f);
+    connect(outMax,SIGNAL(ValueChanged()),
+            this,SLOT(CursorValueChanged()));
 }
 
-void MinMaxPinView::SetLimitModelIndex(ObjType::Enum type, QPersistentModelIndex index)
+void MinMaxPinView::SetCursor(ObjType::Enum type, QPersistentModelIndex index)
 {
-    if(!cursorCreated)
-        CreateCursors();
+//    if(!cursorCreated)
+//        CreateCursors();
 
     switch(type) {
         case ObjType::limitInMin:
@@ -96,6 +145,11 @@ void MinMaxPinView::SetLimitModelIndex(ObjType::Enum type, QPersistentModelIndex
             LOG("unknown type"<<type);
             break;
     }
+}
+
+void MinMaxPinView::CursorValueChanged()
+{
+    UpdateScaleView();
 }
 
 void MinMaxPinView::UpdateLimitModelIndex(const QModelIndex &index)
@@ -120,8 +174,7 @@ void MinMaxPinView::UpdateModelIndex(const QModelIndex &index)
     float newVu = geometry().width() * value;
     rectVu->setRect(0,0, newVu, geometry().height());
 
-    if(cursorCreated)
-        UpdateScaleView();
+    UpdateScaleView();
 
     ObjectView *parentObj = static_cast<ObjectView*>(parentWidget()->parentWidget());
     if(parentObj) {
@@ -168,7 +221,11 @@ void MinMaxPinView::ValueChanged(float newVal)
     if(newVal>1.0f) newVal=1.0f;
     if(newVal<0.0f) newVal=0.0f;
 
-    model->setData(pinIndex,newVal,UserRoles::value);
+    MsgObject msg(-1,objId);
+    msg.prop["actionType"]="update";
+    msg.prop["value"]=newVal;
+    msgCtrl->SendMsg(msg);
+//    model->setData(pinIndex,newVal,UserRoles::value);
 }
 
 void MinMaxPinView::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -177,7 +234,7 @@ void MinMaxPinView::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if(b.input == KeyBind::mouse && b.buttons == event->buttons() && b.modifier == event->modifiers()) {
         changingValue=true;
         startDragPos=event->pos();
-        startDragValue=pinIndex.data(UserRoles::value).toFloat();
+        startDragValue=value;//pinIndex.data(UserRoles::value).toFloat();
         grabMouse();
         return;
     }

@@ -33,6 +33,8 @@ Q_OBJECT
 public:
     MainHostHost(Settings *settings, QObject *parent = 0);
     ~MainHostHost();
+    void SendMsg(const MsgObject &msg);
+    void SendMsg(const QString &type, const QVariant &data);
 
     AudioDevices *audioDevices;
     MidiDevices *midiDevices;

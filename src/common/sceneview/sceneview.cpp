@@ -112,82 +112,62 @@ void SceneView::SetParkings(QWidget *progPark, QWidget *groupPark)
 
 void SceneView::dataChanged ( const QModelIndex & topLeft, const QModelIndex & bottomRight  )
 {
-    QAbstractItemView::dataChanged(topLeft, bottomRight);
+//    QAbstractItemView::dataChanged(topLeft, bottomRight);
 
-    QModelIndex tmpIndex = topLeft;
-    do {
-        ObjectInfo info = tmpIndex.data(UserRoles::objInfo).value<ObjectInfo>();
+//    QModelIndex tmpIndex = topLeft;
+//    do {
+//        ObjectInfo info = tmpIndex.data(UserRoles::objInfo).value<ObjectInfo>();
 
-        switch( info.nodeType ) {
-        case NodeType::object :
-        case NodeType::container :
-            {
-                ObjectView *view = static_cast<ObjectView*>(hashItems.value(tmpIndex,0));
-                if(!view) {
-                    LOG("object not found");
-                    return;
-                }
-                view->UpdateModelIndex();
-                break;
-            }
-        case NodeType::pin :
-            {
-                PinView *view = static_cast<PinView*>(hashItems.value(tmpIndex,0));
-                if(!view) {
-                    LOG("pin not found");
-                    return;
-                }
-                view->UpdateModelIndex(tmpIndex);
-                break;
-            }
-//        case NodeType::editor :
+//        switch( info.nodeType ) {
+//        case NodeType::object :
+//        case NodeType::container :
 //            {
-//                ObjectView *view = static_cast<ObjectView*>(hashItems.value(tmpIndex.parent(),0));
+//                ObjectView *view = static_cast<ObjectView*>(hashItems.value(tmpIndex,0));
 //                if(!view) {
-//                    debug("SceneView::dataChanged editor not found")
-//                            return;
+//                    LOG("object not found");
+//                    return;
 //                }
-//                view->SetEditorIndex(tmpIndex);
+//                view->UpdateModelIndex();
 //                break;
 //            }
-//        case NodeType::learning :
+//        case NodeType::pin :
 //            {
-//                ObjectView *view = static_cast<ObjectView*>(hashItems.value(tmpIndex.parent(),0));
+//                PinView *view = static_cast<PinView*>(hashItems.value(tmpIndex,0));
 //                if(!view) {
-//                    debug("SceneView::dataChanged editor not found")
-//                            return;
+//                    LOG("pin not found");
+//                    return;
 //                }
-//                view->SetLearningIndex(tmpIndex);
+//                view->UpdateModelIndex(tmpIndex);
 //                break;
 //            }
-        case NodeType::cursor :
-            {
-                PinView *view = static_cast<PinView*>(hashItems.value(tmpIndex.parent(),0));
-                if(!view) {
-                    LOG("pin not found");
-                    return;
-                }
-                static_cast<MinMaxPinView*>(view)->UpdateLimitModelIndex(tmpIndex.parent());
-                break;
-            }
-        case NodeType::cable :
-            {
-                CableView *cable = static_cast<CableView*>(hashItems.value(tmpIndex,0));
-                if(!cable) {
-                    LOG("cable not found");
-                    continue;
-                }
-                cable->UpdateModelIndex(tmpIndex);
-                break;
-            }
-        default:
-            break;
-        }
+//        case NodeType::cursor :
+//            {
+//                PinView *view = static_cast<PinView*>(hashItems.value(tmpIndex.parent(),0));
+//                if(!view) {
+//                    LOG("pin not found");
+//                    return;
+//                }
+//                static_cast<MinMaxPinView*>(view)->UpdateLimitModelIndex(tmpIndex.parent());
+//                break;
+//            }
+//        case NodeType::cable :
+//            {
+//                CableView *cable = static_cast<CableView*>(hashItems.value(tmpIndex,0));
+//                if(!cable) {
+//                    LOG("cable not found");
+//                    continue;
+//                }
+//                cable->UpdateModelIndex(tmpIndex);
+//                break;
+//            }
+//        default:
+//            break;
+//        }
 
-        if ( tmpIndex == bottomRight )
-            break;
-        tmpIndex = traverseTroughIndexes ( tmpIndex );
-    } while ( tmpIndex.isValid() );
+//        if ( tmpIndex == bottomRight )
+//            break;
+//        tmpIndex = traverseTroughIndexes ( tmpIndex );
+//    } while ( tmpIndex.isValid() );
 }
 
 QModelIndex SceneView::traverseTroughIndexes ( QModelIndex index ) {
@@ -293,32 +273,30 @@ void SceneView::rowsAboutToBeRemoved ( const QModelIndex & parent, int start, in
     QAbstractItemView::rowsAboutToBeRemoved(parent, start, end);
 }
 
-void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
+void SceneView::AddObject(const MsgObject &msg)
 {
-    if(parent.row()==-1) {
-        QAbstractItemView::rowsAboutToBeRemoved(parent, start, end);
+    ObjectView *objView = 0;
+
+    //update existing object
+    if(msg.prop["actionType"]=="update") {
+        if(!mainWindow->listObj.contains(msg.objIndex)) {
+//            LOG("obj not found"<<msg.objIndex)
+            return;
+        }
+        mainWindow->listObj.value(msg.objIndex)->ReceiveMsg(msg);
         return;
     }
 
-    if(!parent.isValid()) {
-        LOG("parent not valid");
-        return;
-    }
+    //create new object
+    if(msg.prop["actionType"]=="add") {
 
-
-    for ( int i = start; i <= end; ++i ) {
-        QPersistentModelIndex index( parent.child(i,0) ); // model()->index( i, 0, parent );
-
-        ObjectView *objView = 0;
-        ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-
-        switch(info.nodeType) {
+        switch(msg.prop.value("nodeType",0).toInt()) {
             case NodeType::container :
             {
-                int objId = index.data(UserRoles::value).toInt();
-
-                if(objId == FixedObjId::hostContainer) {
-                    hostContainerView = new MainContainerView(myHost, model());
+                if(msg.objIndex == FixedObjId::hostContainer) {
+                    if(hostContainerView)
+                        delete hostContainerView;
+                    hostContainerView = new MainContainerView(myHost, mainWindow, msg.objIndex);
                     objView=hostContainerView;
                     hostContainerView->setParentItem(rootObjHost);
                     connect(viewHost,SIGNAL(viewResized(QRectF)),
@@ -326,8 +304,10 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     QTimer::singleShot(0, viewHost, SLOT(ForceResize()));
                 }
 
-                if(objId == FixedObjId::projectContainer) {
-                    projectContainerView = new MainContainerView(myHost, model());
+                if(msg.objIndex == FixedObjId::projectContainer) {
+                    if(projectContainerView)
+                        delete projectContainerView;
+                    projectContainerView = new MainContainerView(myHost, mainWindow, msg.objIndex);
                     objView=projectContainerView;
                     projectContainerView->setParentItem(rootObjProject);
                     connect(viewProject,SIGNAL(viewResized(QRectF)),
@@ -335,8 +315,10 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     QTimer::singleShot(0, viewProject, SLOT(ForceResize()));
                 }
 
-                if(objId == FixedObjId::programContainer) {
-                    programContainerView = new MainContainerView(myHost, model());
+                if(msg.objIndex == FixedObjId::programContainer) {
+                    if(programContainerView)
+                        delete programContainerView;
+                    programContainerView = new MainContainerView(myHost, mainWindow, msg.objIndex);
                     objView=programContainerView;
                     programContainerView->setParentItem(rootObjProgram);
                     connect(viewProgram,SIGNAL(viewResized(QRectF)),
@@ -345,8 +327,10 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     programContainerView->SetParking(progParking);
                 }
 
-                if(objId == FixedObjId::groupContainer) {
-                    groupContainerView = new MainContainerView(myHost, model());
+                if(msg.objIndex == FixedObjId::groupContainer) {
+                    if(groupContainerView)
+                        delete groupContainerView;
+                    groupContainerView = new MainContainerView(myHost, mainWindow, msg.objIndex);
                     objView=groupContainerView;
                     groupContainerView->setParentItem(rootObjInsert);
                     connect(viewGroup,SIGNAL(viewResized(QRectF)),
@@ -355,88 +339,78 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                     groupContainerView->SetParking(groupParking);
                 }
 
-                hashItems.insert( index , objView);
-                connect(objView,SIGNAL(destroyed(QObject*)),
-                        this,SLOT(graphicObjectRemoved(QObject*)));
-
-                objView->SetModelIndex(index);
-
+                objView->ReceiveMsg(msg);
                 break;
             }
             case NodeType::bridge :
             {
 
-                ObjectView *parentView = static_cast<ObjectView*>(hashItems.value(parent,0));
+                ObjectView *parentView = static_cast<ObjectView*>(mainWindow->listObj.value(msg.parentIndex,0));
                 if(!parentView) {
                     LOG("parent not found");
-                    continue;
+                    return;
                 }
 
-                switch(info.objType) {
+                MainContainerView *containerView = static_cast<MainContainerView*>(parentView);
+                switch(msg.prop.value("objType",0).toInt()) {
                     case ObjType::BridgeIn :
-                        objView = static_cast<MainContainerView*>(parentView)->bridgeIn;
+                        objView = containerView->bridgeIn;
                         break;
                     case ObjType::BridgeOut :
-                        objView = static_cast<MainContainerView*>(parentView)->bridgeOut;
+                        objView = containerView->bridgeOut;
                         break;
                     case ObjType::BridgeSend :
-                        objView = static_cast<MainContainerView*>(parentView)->bridgeSend;
+                        objView = containerView->bridgeSend;
                         break;
                     case ObjType::BridgeReturn :
-                        objView = static_cast<MainContainerView*>(parentView)->bridgeReturn;
+                        objView = containerView->bridgeReturn;
                         break;
                     default:
                         LOG("unknown listpin");
-                        continue;
+                        return;
                 }
 
-
-                hashItems.insert( index , objView);
-                connect(objView,SIGNAL(destroyed(QObject*)),
-                        this,SLOT(graphicObjectRemoved(QObject*)));
-                objView->SetModelIndex(index);
-               // viewHost->ForceResize();
+                objView->SetIndex(msg.objIndex);
+                objView->ReceiveMsg(msg);
                 break;
             }
             case NodeType::object :
             {
-                MainContainerView *parentView = static_cast<MainContainerView*>(hashItems.value(parent,0));
+                MainContainerView *parentView = static_cast<MainContainerView*>(mainWindow->listObj.value(msg.parentIndex,0));
                 if(!parentView) {
                     LOG("object parent not found");
-                    continue;
+                    return;
                 }
 
-                if(info.objType == ObjType::VstPlugin) {
-                    objView = new VstPluginView(myHost, model(),parentView);
+                if(msg.prop.value("objType",0).toInt() == ObjType::VstPlugin) {
+                    objView = new VstPluginView(myHost, mainWindow, msg.objIndex, parentView);
                 } else {
-                    objView = new ConnectableObjectView(myHost, model(),parentView);
+                    objView = new ConnectableObjectView(myHost, mainWindow, msg.objIndex, parentView);
                 }
-                hashItems.insert( index , objView);
-                objView->SetModelIndex(index);
+                objView->ReceiveMsg(msg);
+
                 QPointF pos = parentView->GetDropPos();
                 objView->setPos(pos);
-                model()->setData(index,pos,UserRoles::position);
+                //model()->setData(index,pos,UserRoles::position);
 
                 //when adding item, the scene set focus to the last item
                 if(objView->scene()->focusItem())
                     objView->scene()->focusItem()->clearFocus();
 
-                connect(objView,SIGNAL(destroyed(QObject*)),
-                        this,SLOT(graphicObjectRemoved(QObject*)));
+
                 break;
             }
             case NodeType::listPin :
             {
-//                ObjectInfo infoParent = parent.data(UserRoles::objInfo).value<ObjectInfo>();
-                ObjectView *parentView = static_cast<ObjectView*>(hashItems.value(parent,0));
+                ObjectView *parentView = static_cast<ObjectView*>(mainWindow->listObj.value(msg.parentIndex,0));
                 if(!parentView) {
-                    LOG("listAudioIn parent not found");
-                    continue;
+                    LOG("listAudioIn parent not found"<<msg.prop);
+                    return;
                 }
 
                 ListPinsView *v=0;
 
-                switch(info.objType) {
+                switch(msg.prop.value("objType",0).toInt()) {
                     case ObjType::listAudioIn :
                         v = parentView->listAudioIn;
                         break;
@@ -461,38 +435,36 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                         break;
                     default:
                         LOG("unknown pin type");
-                        continue;
+                        return;
                 }
 
                 if(!v) {
                     //debug("SceneView::rowsInserted listpin not found")
-                    continue;
+                    return;
                 }
-                hashItems.insert(index, v);
-                connect(v,SIGNAL(destroyed(QObject*)),
-                        this,SLOT(graphicObjectRemoved(QObject*)));
+                v->SetIndex(msg.objIndex);
                 break;
             }
             case NodeType::pin :
             {
-                ListPinsView *parentList = static_cast<ListPinsView*>(hashItems.value(parent,0));
+                ListPinsView *parentList = static_cast<ListPinsView*>(mainWindow->listObj.value(msg.parentIndex,0));
                 if(!parentList) {
                     LOG("NodeType::pin list not found");
-                    continue;
+                    return;
                 }
-                ConnectionInfo pinInfo = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
+                ConnectionInfo pinInfo = msg.prop.value("connectionInfo").value<ConnectionInfo>();
 
                 PinView *pinView;
-                ObjectInfo parentInfo = parent.parent().data(UserRoles::objInfo).value<ObjectInfo>();
                 float angle=.0f;
 
-                if(parentInfo.nodeType == NodeType::bridge) {
-                    if(parentInfo.objType==ObjType::BridgeIn || parentInfo.objType==ObjType::BridgeOut)
+                if(msg.prop.value("parentNodeType",-1).toInt() == NodeType::bridge) {
+                    ObjType::Enum t = (ObjType::Enum)msg.prop.value("parentObjType",-1).toInt();
+                    if(t==ObjType::BridgeIn || t==ObjType::BridgeOut)
                         angle=1.570796f; //pi/2
-                    if(parentInfo.objType==ObjType::BridgeSend || parentInfo.objType==ObjType::BridgeReturn)
+                    if(t==ObjType::BridgeSend || t==ObjType::BridgeReturn)
                         angle=-1.570796f; //-pi/2
 
-                    pinView = static_cast<PinView*>( new BridgePinView(angle, model(), parentList, pinInfo,mainWindow->viewConfig) );
+                    pinView = static_cast<PinView*>( new BridgePinView(angle, mainWindow, msg.objIndex, parentList, pinInfo,mainWindow->viewConfig) );
                     connect(timerFalloff,SIGNAL(timeout()),
                             pinView,SLOT(updateVu()));
                 } else {
@@ -503,24 +475,19 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
 
 
                     if(pinInfo.type==PinType::Parameter) {
-                        MinMaxPinView *p = new MinMaxPinView(angle,model(),parentList,pinInfo,mainWindow->viewConfig);
+                        MinMaxPinView *p = new MinMaxPinView(angle,mainWindow,msg.objIndex,parentList,pinInfo,mainWindow->viewConfig);
                         connect(timerFalloff,SIGNAL(timeout()),
                                 p,SLOT(updateVu()));
                         pinView = static_cast<PinView*>(p);
                     } else {
-                        ConnectablePinView *p = new ConnectablePinView(angle, model(), parentList, pinInfo,mainWindow->viewConfig);
+                        ConnectablePinView *p = new ConnectablePinView(angle, mainWindow, msg.objIndex, parentList, pinInfo,mainWindow->viewConfig);
                         connect(timerFalloff,SIGNAL(timeout()),
                                 p,SLOT(updateVu()));
                         pinView = static_cast<PinView*>(p);
                     }
 
                 }
-                pinView->SetPinModelIndex(index);
-
-                hashItems.insert(index, pinView);
-                connect(pinView,SIGNAL(destroyed(QObject*)),
-                        this,SLOT(graphicObjectRemoved(QObject*)));
-                mapConnectionInfo.insert(pinInfo,index);
+    //            mapConnectionInfo.insert(pinInfo,index);
 
                 int pinPlace = parentList->GetPinPosition(pinInfo.pinNumber);
                 parentList->layout->insertItem(pinPlace, pinView);
@@ -533,70 +500,357 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
                 connect(pinView,SIGNAL(RemovePin(ConnectionInfo)),
                         this,SLOT(RemovePin(ConnectionInfo)));
 
-                pinView->UpdateModelIndex(index);
+                pinView->ReceiveMsg(msg);
                 break;
             }
             case NodeType::cursor :
             {
-                MinMaxPinView* pin = static_cast<MinMaxPinView*>(hashItems.value( index.parent(),0 ));
-                if(!pin) {
+                MinMaxPinView* pinView = static_cast<MinMaxPinView*>(mainWindow->listObj.value(msg.parentIndex,0));
+                if(!pinView) {
                     LOG("add pinLimit, pin not found");
-                    continue;
+                    return;
                 }
-                ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-                pin->SetLimitModelIndex(info.objType, index);
+                pinView->ReceiveMsg(msg);
                 break;
             }
             case NodeType::cable :
             {
-                MainContainerView *cnt = static_cast<MainContainerView*>(hashItems.value(parent.parent(),0));
+                MainContainerView *cnt = static_cast<MainContainerView*>(mainWindow->listObj.value(msg.parentIndex,0));
                 if(!cnt) {
                     LOG("add cable, container not found");
-                    continue;
-                }
-                ConnectionInfo infoOut = index.data(UserRoles::value).value<ConnectionInfo>();
-                ConnectionInfo infoIn = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
-
-                if(!mapConnectionInfo.contains(infoOut) || !mapConnectionInfo.contains(infoIn)) {
-                    LOG("add cable, connectioninfo not found");
-                    continue;
+                    return;
                 }
 
-                QPersistentModelIndex ixOut =  mapConnectionInfo.value(infoOut);
-                QPersistentModelIndex ixIn =  mapConnectionInfo.value(infoIn);
-
-                PinView* pinOut = static_cast<PinView*>(hashItems.value( ixOut,0 ));
-                PinView* pinIn = static_cast<PinView*>(hashItems.value( ixIn,0 ));
+                PinView* pinOut = static_cast<PinView*>(mainWindow->listObj.value(msg.prop["pinOut"].toInt(),0));
+                PinView* pinIn = static_cast<PinView*>(mainWindow->listObj.value(msg.prop["pinIn"].toInt(),0));
 
                 if(!pinOut || !pinIn) {
                     LOG("addcable : pin not found");
-                    continue;
+                    return;
                 }
-                CableView *cable = new CableView(infoOut,infoIn,cnt,mainWindow->viewConfig);
-                cable->UpdateModelIndex(index);
+                CableView *cable = new CableView(mainWindow, msg.objIndex, pinOut->GetConnectionInfo(), pinOut->GetConnectionInfo(),cnt,mainWindow->viewConfig);
+                cable->ReceiveMsg(msg);
+//                cable->UpdateModelIndex(index);
                 pinOut->AddCable(cable);
                 pinIn->AddCable(cable);
-                hashItems.insert(index, cable);
-                connect(cable,SIGNAL(destroyed(QObject*)),
-                        this,SLOT(graphicObjectRemoved(QObject*)));
+                cable->ReceiveMsg(msg);
                 break;
             }
-            default:
-                if(index.data().toString()!="cables") {
-                    LOG("nodetype not found");
-                }
-                break;
-
+            default :
+            {
+                LOG("unkown nodeType"<< msg.objIndex << msg.prop)
+                return;
+            }
         }
+        return;
     }
+
+    LOG("unhandled action"<<msg.prop);
+}
+
+void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
+{
+//    if(parent.row()==-1) {
+//        QAbstractItemView::rowsAboutToBeRemoved(parent, start, end);
+//        return;
+//    }
+
+//    if(!parent.isValid()) {
+//        LOG("parent not valid");
+//        return;
+//    }
+
+
+//    for ( int i = start; i <= end; ++i ) {
+//        QPersistentModelIndex index( parent.child(i,0) ); // model()->index( i, 0, parent );
+
+//        ObjectView *objView = 0;
+//        ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
+
+//        switch(info.nodeType) {
+//            case NodeType::container :
+//            {
+//                int objId = index.data(UserRoles::value).toInt();
+
+//                if(objId == FixedObjId::hostContainer) {
+//                    hostContainerView = new MainContainerView(myHost, model());
+//                    objView=hostContainerView;
+//                    hostContainerView->setParentItem(rootObjHost);
+//                    connect(viewHost,SIGNAL(viewResized(QRectF)),
+//                            hostContainerView,SLOT(OnViewChanged(QRectF)));
+//                    QTimer::singleShot(0, viewHost, SLOT(ForceResize()));
+//                }
+
+//                if(objId == FixedObjId::projectContainer) {
+//                    projectContainerView = new MainContainerView(myHost, model());
+//                    objView=projectContainerView;
+//                    projectContainerView->setParentItem(rootObjProject);
+//                    connect(viewProject,SIGNAL(viewResized(QRectF)),
+//                            projectContainerView,SLOT(OnViewChanged(QRectF)));
+//                    QTimer::singleShot(0, viewProject, SLOT(ForceResize()));
+//                }
+
+//                if(objId == FixedObjId::programContainer) {
+//                    programContainerView = new MainContainerView(myHost, model());
+//                    objView=programContainerView;
+//                    programContainerView->setParentItem(rootObjProgram);
+//                    connect(viewProgram,SIGNAL(viewResized(QRectF)),
+//                            programContainerView,SLOT(OnViewChanged(QRectF)));
+//                    QTimer::singleShot(0, viewProgram, SLOT(ForceResize()));
+//                    programContainerView->SetParking(progParking);
+//                }
+
+//                if(objId == FixedObjId::groupContainer) {
+//                    groupContainerView = new MainContainerView(myHost, model());
+//                    objView=groupContainerView;
+//                    groupContainerView->setParentItem(rootObjInsert);
+//                    connect(viewGroup,SIGNAL(viewResized(QRectF)),
+//                            groupContainerView,SLOT(OnViewChanged(QRectF)));
+//                    QTimer::singleShot(0, viewGroup, SLOT(ForceResize()));
+//                    groupContainerView->SetParking(groupParking);
+//                }
+
+//                hashItems.insert( index , objView);
+//                connect(objView,SIGNAL(destroyed(QObject*)),
+//                        this,SLOT(graphicObjectRemoved(QObject*)));
+
+////                objView->SetModelIndex(index);
+
+//                break;
+//            }
+//            case NodeType::bridge :
+//            {
+
+//                ObjectView *parentView = static_cast<ObjectView*>(hashItems.value(parent,0));
+//                if(!parentView) {
+//                    LOG("parent not found");
+//                    continue;
+//                }
+
+//                switch(info.objType) {
+//                    case ObjType::BridgeIn :
+//                        objView = static_cast<MainContainerView*>(parentView)->bridgeIn;
+//                        break;
+//                    case ObjType::BridgeOut :
+//                        objView = static_cast<MainContainerView*>(parentView)->bridgeOut;
+//                        break;
+//                    case ObjType::BridgeSend :
+//                        objView = static_cast<MainContainerView*>(parentView)->bridgeSend;
+//                        break;
+//                    case ObjType::BridgeReturn :
+//                        objView = static_cast<MainContainerView*>(parentView)->bridgeReturn;
+//                        break;
+//                    default:
+//                        LOG("unknown listpin");
+//                        continue;
+//                }
+
+
+//                hashItems.insert( index , objView);
+//                connect(objView,SIGNAL(destroyed(QObject*)),
+//                        this,SLOT(graphicObjectRemoved(QObject*)));
+////                objView->SetModelIndex(index);
+//                break;
+//            }
+//            case NodeType::object :
+//            {
+//                MainContainerView *parentView = static_cast<MainContainerView*>(hashItems.value(parent,0));
+//                if(!parentView) {
+//                    LOG("object parent not found");
+//                    continue;
+//                }
+
+//                if(info.objType == ObjType::VstPlugin) {
+//                    objView = new VstPluginView(myHost, model(),parentView);
+//                } else {
+//                    objView = new ConnectableObjectView(myHost, model(),parentView);
+//                }
+//                hashItems.insert( index , objView);
+////                objView->SetModelIndex(index);
+//                QPointF pos = parentView->GetDropPos();
+//                objView->setPos(pos);
+//                model()->setData(index,pos,UserRoles::position);
+
+//                //when adding item, the scene set focus to the last item
+//                if(objView->scene()->focusItem())
+//                    objView->scene()->focusItem()->clearFocus();
+
+//                connect(objView,SIGNAL(destroyed(QObject*)),
+//                        this,SLOT(graphicObjectRemoved(QObject*)));
+//                break;
+//            }
+//            case NodeType::listPin :
+//            {
+////                ObjectInfo infoParent = parent.data(UserRoles::objInfo).value<ObjectInfo>();
+//                ObjectView *parentView = static_cast<ObjectView*>(hashItems.value(parent,0));
+//                if(!parentView) {
+//                    LOG("listAudioIn parent not found");
+//                    continue;
+//                }
+
+//                ListPinsView *v=0;
+
+//                switch(info.objType) {
+//                    case ObjType::listAudioIn :
+//                        v = parentView->listAudioIn;
+//                        break;
+//                    case ObjType::listAudioOut :
+//                        v = parentView->listAudioOut;
+//                        break;
+//                    case ObjType::listMidiIn :
+//                        v = parentView->listMidiIn;
+//                        break;
+//                    case ObjType::listMidiOut :
+//                        v = parentView->listMidiOut;
+//                        break;
+//                    case ObjType::listParamIn :
+//                        v = parentView->listParametersIn;
+//                        break;
+//                    case ObjType::listParamOut :
+//                        v = parentView->listParametersOut;
+//                        break;
+//                    case ObjType::listBridgeIn :
+//                    case ObjType::listBridgeOut :
+//                        v = parentView->listBridge;
+//                        break;
+//                    default:
+//                        LOG("unknown pin type");
+//                        continue;
+//                }
+
+//                if(!v) {
+//                    //debug("SceneView::rowsInserted listpin not found")
+//                    continue;
+//                }
+//                hashItems.insert(index, v);
+//                connect(v,SIGNAL(destroyed(QObject*)),
+//                        this,SLOT(graphicObjectRemoved(QObject*)));
+//                break;
+//            }
+//            case NodeType::pin :
+//            {
+//                ListPinsView *parentList = static_cast<ListPinsView*>(hashItems.value(parent,0));
+//                if(!parentList) {
+//                    LOG("NodeType::pin list not found");
+//                    continue;
+//                }
+//                ConnectionInfo pinInfo = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
+
+//                PinView *pinView;
+//                ObjectInfo parentInfo = parent.parent().data(UserRoles::objInfo).value<ObjectInfo>();
+//                float angle=.0f;
+
+//                if(parentInfo.nodeType == NodeType::bridge) {
+//                    if(parentInfo.objType==ObjType::BridgeIn || parentInfo.objType==ObjType::BridgeOut)
+//                        angle=1.570796f; //pi/2
+//                    if(parentInfo.objType==ObjType::BridgeSend || parentInfo.objType==ObjType::BridgeReturn)
+//                        angle=-1.570796f; //-pi/2
+
+//                    pinView = static_cast<PinView*>( new BridgePinView(angle, model(), parentList, pinInfo,mainWindow->viewConfig) );
+//                    connect(timerFalloff,SIGNAL(timeout()),
+//                            pinView,SLOT(updateVu()));
+//                } else {
+//                    if(pinInfo.direction==PinDirection::Input)
+//                        angle=3.141592f;
+//                    if(pinInfo.direction==PinDirection::Output)
+//                        angle=.0f;
+
+
+//                    if(pinInfo.type==PinType::Parameter) {
+//                        MinMaxPinView *p = new MinMaxPinView(angle,model(),parentList,pinInfo,mainWindow->viewConfig);
+//                        connect(timerFalloff,SIGNAL(timeout()),
+//                                p,SLOT(updateVu()));
+//                        pinView = static_cast<PinView*>(p);
+//                    } else {
+//                        ConnectablePinView *p = new ConnectablePinView(angle, model(), parentList, pinInfo,mainWindow->viewConfig);
+//                        connect(timerFalloff,SIGNAL(timeout()),
+//                                p,SLOT(updateVu()));
+//                        pinView = static_cast<PinView*>(p);
+//                    }
+
+//                }
+//                pinView->SetPinModelIndex(index);
+
+//                hashItems.insert(index, pinView);
+//                connect(pinView,SIGNAL(destroyed(QObject*)),
+//                        this,SLOT(graphicObjectRemoved(QObject*)));
+//                mapConnectionInfo.insert(pinInfo,index);
+
+//                int pinPlace = parentList->GetPinPosition(pinInfo.pinNumber);
+//                parentList->layout->insertItem(pinPlace, pinView);
+
+//                parentList->layout->setAlignment(pinView,Qt::AlignTop);
+//                connect(pinView, SIGNAL(ConnectPins(ConnectionInfo,ConnectionInfo)),
+//                        this, SLOT(ConnectPins(ConnectionInfo,ConnectionInfo)));
+//                connect(pinView,SIGNAL(RemoveCablesFromPin(ConnectionInfo)),
+//                        this,SLOT(RemoveCablesFromPin(ConnectionInfo)));
+//                connect(pinView,SIGNAL(RemovePin(ConnectionInfo)),
+//                        this,SLOT(RemovePin(ConnectionInfo)));
+
+//                pinView->UpdateModelIndex(index);
+//                break;
+//            }
+//            case NodeType::cursor :
+//            {
+//                MinMaxPinView* pin = static_cast<MinMaxPinView*>(hashItems.value( index.parent(),0 ));
+//                if(!pin) {
+//                    LOG("add pinLimit, pin not found");
+//                    continue;
+//                }
+//                ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
+//                pin->SetLimitModelIndex(info.objType, index);
+//                break;
+//            }
+//            case NodeType::cable :
+//            {
+//                MainContainerView *cnt = static_cast<MainContainerView*>(hashItems.value(parent.parent(),0));
+//                if(!cnt) {
+//                    LOG("add cable, container not found");
+//                    continue;
+//                }
+//                ConnectionInfo infoOut = index.data(UserRoles::value).value<ConnectionInfo>();
+//                ConnectionInfo infoIn = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
+
+//                if(!mapConnectionInfo.contains(infoOut) || !mapConnectionInfo.contains(infoIn)) {
+//                    LOG("add cable, connectioninfo not found");
+//                    continue;
+//                }
+
+//                QPersistentModelIndex ixOut =  mapConnectionInfo.value(infoOut);
+//                QPersistentModelIndex ixIn =  mapConnectionInfo.value(infoIn);
+
+//                PinView* pinOut = static_cast<PinView*>(hashItems.value( ixOut,0 ));
+//                PinView* pinIn = static_cast<PinView*>(hashItems.value( ixIn,0 ));
+
+//                if(!pinOut || !pinIn) {
+//                    LOG("addcable : pin not found");
+//                    continue;
+//                }
+//                CableView *cable = new CableView(infoOut,infoIn,cnt,mainWindow->viewConfig);
+//                cable->UpdateModelIndex(index);
+//                pinOut->AddCable(cable);
+//                pinIn->AddCable(cable);
+//                hashItems.insert(index, cable);
+//                connect(cable,SIGNAL(destroyed(QObject*)),
+//                        this,SLOT(graphicObjectRemoved(QObject*)));
+//                break;
+//            }
+//            default:
+//                if(index.data().toString()!="cables") {
+//                    LOG("nodetype not found");
+//                }
+//                break;
+
+//        }
+//    }
 
     QAbstractItemView::rowsInserted(parent, start, end);
 }
 
-void SceneView::graphicObjectRemoved ( QObject* obj)
-{
-    hashItems.remove( hashItems.key(obj) );
-}
+//void SceneView::graphicObjectRemoved ( QObject* obj)
+//{
+//    hashItems.remove( hashItems.key(obj) );
+//}
 
 void SceneView::ConnectPins(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn)
 {

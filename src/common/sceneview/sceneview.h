@@ -29,12 +29,14 @@
 //#include "precomp.h"
 #include "connectables/connectioninfo.h"
 #include "views/maingraphicsview.h"
+#include "msghandler.h"
 
 namespace Connectables {
     class ObjectFactory;
 }
 class MainHost;
 class MainWindow;
+class MsgObject;
 namespace View {
     class MainContainerView;
     class ViewConfig;
@@ -49,6 +51,7 @@ namespace View {
         QModelIndex indexAt(const QPoint &point) const {return QModelIndex();}
 
         void SetParkings(QWidget *progPark, QWidget *groupPark);
+        void AddObject(const MsgObject &msg);
 
         MainGraphicsView *viewHost;
         MainGraphicsView *viewProject;
@@ -111,7 +114,7 @@ namespace View {
         void dataChanged ( const QModelIndex & topLeft, const QModelIndex & bottomRight  );
         void rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end  );
         void rowsInserted ( const QModelIndex & parent, int start, int end  );
-        void graphicObjectRemoved ( QObject* obj);
+//        void graphicObjectRemoved ( QObject* obj);
     };
 }
 

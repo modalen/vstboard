@@ -28,6 +28,7 @@
 #include "views/viewconfigdialog.h"
 #include "models/programsmodel.h"
 #include "views/keybindingdialog.h"
+#include "msgobject.h"
 
 MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
     QMainWindow(parent),
@@ -98,14 +99,40 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
     UpdateKeyBinding();
 }
 
-void MainWindow::ReceiveMsg(const QString &type, const QVariant &data)
+void MainWindow::ReceiveMsg(const MsgObject &msg)
 {
-    LOG(data)
+//    LOG("addobj"<<msg.objIndex<<msg.parentIndex<<msg.prop)
+    mySceneView->AddObject(msg);
+    if(!msg.children.isEmpty())
+        ProcessMsg(msg.children);
 }
 
-void MainWindow::SendMsg(const QString &type, const QVariant &data)
+void MainWindow::ReceiveMsg(const QString &type, const QVariant &data)
 {
+    ProcessMsg( data.value< ListMsgObj >() );
+}
 
+void MainWindow::ProcessMsg(const ListMsgObj &lstMsg)
+{
+    foreach(MsgObject msg, lstMsg) {
+        ReceiveMsg(msg);
+    }
+}
+
+void MainWindow::showEvent(QShowEvent *event)
+{
+    LOG("window show event")
+
+    MsgObject msg;
+    msg.prop["actionType"]="getWithChildren";
+    msg.objIndex=FixedObjId::hostContainer;
+    SendMsg(msg);
+    msg.objIndex=FixedObjId::projectContainer;
+    SendMsg(msg);
+    msg.objIndex=FixedObjId::groupContainer;
+    SendMsg(msg);
+    msg.objIndex=FixedObjId::programContainer;
+    SendMsg(msg);
 }
 
 void MainWindow::SetupBrowsersModels(const QString &vstPath, const QString &browserPath)
@@ -140,8 +167,11 @@ void MainWindow::SetupBrowsersModels(const QString &vstPath, const QString &brow
 
 MainWindow::~MainWindow()
 {
+    if(mySceneView)
+        delete mySceneView;
     if(ui)
         delete ui;
+
 }
 
 void MainWindow::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)
@@ -584,8 +614,6 @@ void MainWindow::OnViewConfigClosed()
 {
     viewConfigDlg=0;
     ui->actionAppearance->setChecked(false);
-
-
 }
 
 void MainWindow::SetProgramsFont(const QFont &f)

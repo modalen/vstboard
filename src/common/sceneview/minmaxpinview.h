@@ -29,11 +29,12 @@ namespace View {
     {
 Q_OBJECT
     public:
-        MinMaxPinView(float angle, QAbstractItemModel *model,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config);
-        void SetLimitModelIndex(ObjType::Enum type, QPersistentModelIndex index);
+        MinMaxPinView(float angle,  MsgController *msgCtrl,int objId, QGraphicsItem *parent, const ConnectionInfo &pinInfo, ViewConfig *config);
+        void SetCursor(ObjType::Enum type, QPersistentModelIndex index);
         void UpdateLimitModelIndex(const QModelIndex &index);
         void UpdateModelIndex(const QModelIndex &index);
         void ValueChanged(float newVal);
+        void ReceiveMsg(const MsgObject &msg);
 
     protected:
         void resizeEvent ( QGraphicsSceneResizeEvent * event );
@@ -49,10 +50,13 @@ Q_OBJECT
         CursorView *outMin;
         CursorView *outMax;
         QGraphicsPolygonItem *scaledView;
-        bool cursorCreated;
+//        bool cursorCreated;
         bool changingValue;
         float startDragValue;
         QPointF startDragPos;
+
+    public slots:
+        void CursorValueChanged();
     };
 }
 #endif // MINMAXPINVIEW_H

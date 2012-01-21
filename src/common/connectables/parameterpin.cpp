@@ -37,14 +37,16 @@ ParameterPin::ParameterPin(Object *parent, PinDirection::Enum direction, int num
         loading(false),
         nameCanChange(nameCanChange),
         dirty(false),
-        limitInMin(.0f),
-        limitInMax(1.0f),
-        limitOutMin(.0f),
-        limitOutMax(1.0f),
+        limitInMin(0),
+        limitInMax(0),
+        limitOutMin(0),
+        limitOutMax(0),
         outStepIndex(0),
         outValue(.0f),
         limitsEnabled(true)
 {
+    InitCursors();
+
     SetVisible(true);
     connectInfo.isRemoveable=isRemoveable;
     value = defaultValue;
@@ -52,6 +54,8 @@ ParameterPin::ParameterPin(Object *parent, PinDirection::Enum direction, int num
     loading=true;
     OnValueChanged( defaultValue );
     loading=false;
+
+
 }
 
 //parameter is a int with a list of possible values
@@ -63,14 +67,16 @@ ParameterPin::ParameterPin(Object *parent, PinDirection::Enum direction, int num
         loading(false),
         nameCanChange(nameCanChange),
         dirty(false),
-        limitInMin(.0f),
-        limitInMax(1.0f),
-        limitOutMin(.0f),
-        limitOutMax(1.0f),
+        limitInMin(0),
+        limitInMax(0),
+        limitOutMin(0),
+        limitOutMax(0),
         outStepIndex(0),
         outValue(.0f),
         limitsEnabled(true)
 {
+    InitCursors();
+
     SetVisible(true);
     connectInfo.isRemoveable=isRemoveable;
     setObjectName(name);
@@ -80,6 +86,38 @@ ParameterPin::ParameterPin(Object *parent, PinDirection::Enum direction, int num
     OnValueChanged( .0f);
     UpdateView();
     loading=false;
+}
+
+ParameterPin::~ParameterPin()
+{
+    delete limitInMin;
+    delete limitInMax;
+    delete limitOutMin;
+    delete limitOutMax;
+}
+
+void ParameterPin::InitCursors()
+{
+    limitInMin = new Cursor(parent->getHost(),.0f);
+    limitInMax = new Cursor(parent->getHost(),1.0f);
+    limitOutMin = new Cursor(parent->getHost(),.0f);
+    limitOutMax = new Cursor(parent->getHost(),1.0f);
+
+    connect(limitInMin, SIGNAL(valueChanged(float)),
+            this, SLOT(CursorValueChanged(float)));
+    connect(limitInMax, SIGNAL(valueChanged(float)),
+            this, SLOT(CursorValueChanged(float)));
+    connect(limitOutMin, SIGNAL(valueChanged(float)),
+            this, SLOT(CursorValueChanged(float)));
+    connect(limitOutMax, SIGNAL(valueChanged(float)),
+            this, SLOT(CursorValueChanged(float)));
+}
+
+void ParameterPin::ReceiveMsg(const MsgObject &msg)
+{
+    if(msg.prop.contains("value")) {
+        ChangeValue( msg.prop.value("value",.0).toFloat() );
+    }
 }
 
 void ParameterPin::SetRemoveable()
@@ -99,10 +137,10 @@ void ParameterPin::GetValues(ObjectParameter &param)
     param.index=stepIndex;
     param.value=value;
     param.visible=visible;
-    param.limitInMin=limitInMin;
-    param.limitInMax=limitInMax;
-    param.limitOutMin=limitOutMin;
-    param.limitOutMax=limitOutMax;
+    param.limitInMin=limitInMin->GetValue();
+    param.limitInMax=limitInMax->GetValue();
+    param.limitOutMin=limitOutMin->GetValue();
+    param.limitOutMax=limitOutMax->GetValue();
 }
 
 //from float
@@ -182,10 +220,10 @@ void ParameterPin::Load(const ObjectParameter &param)
 {
     loading = true;
 
-    limitInMin=param.limitInMin;
-    limitInMax=param.limitInMax;
-    limitOutMin=param.limitOutMin;
-    limitOutMax=param.limitOutMax;
+    limitInMin->SetValue(param.limitInMin);
+    limitInMax->SetValue(param.limitInMax);
+    limitOutMin->SetValue(param.limitOutMin);
+    limitOutMax->SetValue(param.limitOutMax);
 
     if(listValues)
         ChangeValue(param.index);
@@ -207,15 +245,15 @@ void ParameterPin::OnValueChanged(float val)
     value=val;
 
     //scale value
-    if(val>limitInMax)
-        val=limitInMax;
-    if(val<limitInMin)
-        val=limitInMin;
-    val-=limitInMin;
-    if(limitInMax!=limitInMin)
-        val/=(limitInMax-limitInMin);
-    val*=(limitOutMax-limitOutMin);
-    val+=limitOutMin;
+    if(val>limitInMax->GetValue())
+        val=limitInMax->GetValue();
+    if(val<limitInMin->GetValue())
+        val=limitInMin->GetValue();
+    val-=limitInMin->GetValue();
+    if(limitInMax->GetValue()!=limitInMin->GetValue())
+        val/=(limitInMax->GetValue()-limitInMin->GetValue());
+    val*=(limitOutMax->GetValue()-limitOutMin->GetValue());
+    val+=limitOutMin->GetValue();
     outValue=val;
     outStepIndex=(int)( 0.5f + outValue/stepSize );
 
@@ -246,41 +284,41 @@ void ParameterPin::SetFixedName(QString fixedName)
 
 void ParameterPin::SetLimit(ObjType::Enum type, float newVal)
 {
-    switch(type) {
-        case ObjType::limitInMin:
-            limitInMin = newVal;
-            if(limitInMax<=limitInMin) {
-                limitInMax=limitInMin+0.005;
-                if(indexLimitInMax.isValid())
-                    parent->getHost()->GetModel()->setData( indexLimitInMax, limitInMax, UserRoles::value);
-            }
-            break;
-        case ObjType::limitInMax:
-            limitInMax = newVal;
-            if(limitInMax<=limitInMin) {
-                limitInMin=limitInMax-0.005;
-                if(indexLimitInMin.isValid())
-                    parent->getHost()->GetModel()->setData( indexLimitInMin, limitInMin, UserRoles::value);
-            }
-            break;
-        case ObjType::limitOutMin:
-            limitOutMin = newVal;
-            break;
-        case ObjType::limitOutMax:
-            limitOutMax = newVal;
-            break;
-        default:
-            LOG("unknown cursor type"<<type)
-            return;
-    }
+//    switch(type) {
+//        case ObjType::limitInMin:
+//            limitInMin->value = newVal;
+//            if(limitInMax->value<=limitInMin->value) {
+//                limitInMax->value=limitInMin->value+0.005;
+//                if(indexLimitInMax.isValid())
+//                    parent->getHost()->GetModel()->setData( indexLimitInMax, limitInMax->value, UserRoles::value);
+//            }
+//            break;
+//        case ObjType::limitInMax:
+//            limitInMax->value = newVal;
+//            if(limitInMax->value<=limitInMin->value) {
+//                limitInMin->value=limitInMax->value-0.005;
+//                if(indexLimitInMin.isValid())
+//                    parent->getHost()->GetModel()->setData( indexLimitInMin, limitInMin->value, UserRoles::value);
+//            }
+//            break;
+//        case ObjType::limitOutMin:
+//            limitOutMin->value = newVal;
+//            break;
+//        case ObjType::limitOutMax:
+//            limitOutMax->value = newVal;
+//            break;
+//        default:
+//            LOG("unknown cursor type"<<type)
+//            return;
+//    }
 
-    OnValueChanged(value);
-    parent->OnParameterChanged(connectInfo,outValue);
-    UpdateView();
-    if(!dirty) {
-        dirty=true;
-        parent->OnProgramDirty();
-    }
+//    OnValueChanged(value);
+//    parent->OnParameterChanged(connectInfo,outValue);
+//    UpdateView();
+//    if(!dirty) {
+//        dirty=true;
+//        parent->OnProgramDirty();
+//    }
 }
 
 void ParameterPin::SetVisible(bool vis)
@@ -302,29 +340,95 @@ void ParameterPin::SetVisible(bool vis)
         QStandardItem *item = new QStandardItem("limitInMin");
         info.objType=ObjType::limitInMin;
         item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-        item->setData(limitInMin,UserRoles::value);
+        item->setData(limitInMin->GetValue(),UserRoles::value);
         pinItem->appendRow(item);
         indexLimitInMin=item->index();
 
         item = new QStandardItem("limitInMax");
         info.objType=ObjType::limitInMax;
         item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-        item->setData(limitInMax,UserRoles::value);
+        item->setData(limitInMax->GetValue(),UserRoles::value);
         pinItem->appendRow(item);
         indexLimitInMax=item->index();
 
         item = new QStandardItem("limitOutMin");
         info.objType=ObjType::limitOutMin;
         item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-        item->setData(limitOutMin,UserRoles::value);
+        item->setData(limitOutMin->GetValue(),UserRoles::value);
         pinItem->appendRow(item);
         indexLimitOutMin=item->index();
 
         item = new QStandardItem("limitOutMax");
         info.objType=ObjType::limitOutMax;
         item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-        item->setData(limitOutMax,UserRoles::value);
+        item->setData(limitOutMax->GetValue(),UserRoles::value);
         pinItem->appendRow(item);
         indexLimitOutMax=item->index();
+    }
+}
+
+void ParameterPin::GetInfos(MsgObject &msg)
+{
+    Pin::GetInfos(msg);
+
+    MsgObject l1(GetIndex(), limitInMin->GetIndex());
+    l1.prop["actionType"]="add";
+    l1.prop["nodeType"]=NodeType::cursor;
+    l1.prop["objType"]=ObjType::limitInMin;
+    l1.prop["value"]=limitInMin->GetValue();
+    msg.children << l1;
+
+    MsgObject l2(GetIndex(), limitInMax->GetIndex());
+    l2.prop["actionType"]="add";
+    l2.prop["nodeType"]=NodeType::cursor;
+    l2.prop["objType"]=ObjType::limitInMax;
+    l2.prop["value"]=limitInMax->GetValue();
+    msg.children << l2;
+
+    MsgObject l3(GetIndex(), limitOutMin->GetIndex());
+    l3.prop["actionType"]="add";
+    l3.prop["nodeType"]=NodeType::cursor;
+    l3.prop["objType"]=ObjType::limitOutMin;
+    l3.prop["value"]=limitOutMin->GetValue();
+    msg.children << l3;
+
+    MsgObject l4(GetIndex(), limitOutMax->GetIndex());
+    l4.prop["actionType"]="add";
+    l4.prop["nodeType"]=NodeType::cursor;
+    l4.prop["objType"]=ObjType::limitOutMax;
+    l4.prop["value"]=limitOutMax->GetValue();
+    msg.children << l4;
+}
+
+
+void ParameterPin::CursorValueChanged(float val)
+{
+    if(sender()==limitInMin) {
+        if(limitInMax->GetValue()<=val) {
+            limitInMax->SetValue(val+0.005);
+        }
+        limitInMin->SetValue(val);
+    }
+
+    if(sender()==limitInMax) {
+        if(limitInMin->GetValue()>=val) {
+            limitInMin->SetValue(val-0.005);
+        }
+        limitInMax->SetValue(val);
+    }
+
+    if(sender()==limitOutMin) {
+        limitOutMin->SetValue(val);
+    }
+    if(sender()==limitOutMax) {
+        limitOutMax->SetValue(val);
+    }
+
+    OnValueChanged(value);
+    parent->OnParameterChanged(connectInfo,outValue);
+    UpdateView();
+    if(!dirty) {
+        dirty=true;
+        parent->OnProgramDirty();
     }
 }

@@ -33,7 +33,7 @@ ObjectFactoryHost::ObjectFactoryHost(MainHost *myHost) :
 
 Object *ObjectFactoryHost::CreateOtherObjects(const ObjectInfo &info)
 {
-    int objId = cptListObjects;
+    int objId = GetNewObjId();
     if(info.forcedObjId) {
         objId = info.forcedObjId;
     }

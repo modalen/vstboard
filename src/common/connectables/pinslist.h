@@ -26,6 +26,7 @@
 #include "connectioninfo.h"
 #include "objectinfo.h"
 #include "audiobuffer.h"
+#include "msgobject.h"
 
 namespace Connectables {
 
@@ -63,10 +64,19 @@ namespace Connectables {
         virtual QDataStream & toStream (QDataStream &) const;
         virtual QDataStream & fromStream (QDataStream &);
 
+        void GetInfos(MsgObject &msg);
+
+        inline const int GetIndex() const {return index;}
+
+        inline bool IsVisible() { return visible; }
+
+
     protected:
+        int index;
         QPersistentModelIndex modelList;
         Object *parent;
         MainHost *myHost;
+        bool visible;
 
     signals :
         void PinAdded(int nb);

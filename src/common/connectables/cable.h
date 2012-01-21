@@ -23,6 +23,7 @@
 
 #include "precomp.h"
 #include "connectioninfo.h"
+#include "msghandler.h"
 
 class MainHost;
 class CircularBuffer;
@@ -30,12 +31,12 @@ class AudioBuffer;
 namespace Connectables {
 
     class Pin;
-    class Cable
+    class Cable : public MsgHandler
     {
     public:
         Cable(MainHost *myHost,const ConnectionInfo &pinOut, const ConnectionInfo &pinIn);
         Cable(const Cable & c);
-        ~Cable();
+        virtual ~Cable();
         void AddToParentNode(const QModelIndex &parentIndex);
         void RemoveFromParentNode(const QModelIndex &parentIndex);
 
@@ -54,6 +55,8 @@ namespace Connectables {
         bool SetDelay(quint32 d);
         quint32 GetDelay() { return delay; }
         void Render(const PinMessage::Enum msgType,void *data);
+
+        void GetInfos(MsgObject &msg);
 
     protected:
         /// the output pin (from the sender object)

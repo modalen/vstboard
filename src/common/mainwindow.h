@@ -28,6 +28,7 @@
 #include "views/viewconfig.h"
 #include "views/keybind.h"
 #include "settings.h"
+#include "msgcontroller.h"
 
 namespace Ui {
     class MainWindow;
@@ -37,7 +38,8 @@ namespace View {
     class ViewConfigDialog;
 }
 
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow , public MsgController
+{
     Q_OBJECT
 
 public:
@@ -45,8 +47,9 @@ public:
     virtual ~MainWindow();
     virtual void readSettings();
     void writeSettings();
+    void ReceiveMsg(const MsgObject &msg);
     void ReceiveMsg(const QString &type, const QVariant &data);
-    virtual void SendMsg(const QString &type, const QVariant &data);
+    void ProcessMsg(const ListMsgObj &lstMsg);
 
     View::SceneView *mySceneView;
     View::ViewConfig *viewConfig;
@@ -54,6 +57,7 @@ public:
     Settings *settings;
 
 protected:
+    void showEvent(QShowEvent *event);
     void changeEvent(QEvent *e);
     void SetupBrowsersModels(const QString &vstPath, const QString &browserPath);
 
