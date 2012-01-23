@@ -45,6 +45,7 @@ namespace View {
     public:
 
         explicit PinView(float angle, MsgController *ctrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config);
+        virtual ~PinView();
         const ConnectionInfo GetConnectionInfo() const {return connectInfo;}
         void AddCable(CableView *cable);
         void RemoveCable(CableView *cable);
@@ -111,19 +112,9 @@ namespace View {
         QPoint startDragMousePos;
 
     signals:
-        /*!
-          emitted when a pin is drag&droped over another one
-          \param outputPin
-          \param inputPin
-          */
-        void ConnectPins(ConnectionInfo outputPin, ConnectionInfo inputPin);
-
-        /*!
-          emitted on double click to remove all the connected cables
-          */
-        void RemoveCablesFromPin(ConnectionInfo pin);
-
-        void RemovePin(ConnectionInfo pin);
+//        void ConnectPins(ConnectionInfo outputPin, ConnectionInfo inputPin);
+//        void RemoveCablesFromPin(ConnectionInfo pin);
+//        void RemovePin(ConnectionInfo pin);
 
     public slots:
         /// update the vu-meter, called by a timer

@@ -52,12 +52,9 @@ SOURCES += \
     circularbuffer.cpp \
     connectables/midipinin.cpp \
     connectables/midipinout.cpp \
-    connectables/objectprogram.cpp \
-    connectables/containerprogram.cpp \
     connectables/bridgepinin.cpp \
     connectables/bridgepinout.cpp \
     connectables/cable.cpp \
-    connectables/objectparameter.cpp \
     connectables/objectfactory.cpp \
     connectables/object.cpp \
     connectables/container.cpp \
@@ -83,6 +80,9 @@ SOURCES += \
     renderer/optimizestepthread.cpp \
     renderer/renderernode.cpp \
     renderer/node.cpp \
+    connectables/objectparameter.cpp \
+    connectables/objectprogram.cpp \
+    connectables/containerprogram.cpp \
     projectfile/projectfile.cpp \
     models/listtoolsmodel.cpp \
     models/hostmodel.cpp \
@@ -155,12 +155,9 @@ HEADERS += \
     connectables/miditoautomation.h \
     connectables/hostcontroller.h \
     connectables/midipinout.h \
-    connectables/objectprogram.h \
-    connectables/containerprogram.h \
     connectables/bridgepinin.h \
     connectables/bridgepinout.h \
     connectables/cable.h \
-    connectables/objectparameter.h \
     connectables/objectfactory.h \
     connectables/object.h \
     connectables/container.h \
@@ -184,6 +181,9 @@ HEADERS += \
     renderer/optimizestepthread.h \
     renderer/renderernode.h \
     renderer/node.h \
+    connectables/objectparameter.h \
+    connectables/objectprogram.h \
+    connectables/containerprogram.h \
     projectfile/projectfile.h \
     projectfile/fileversion.h \
     models/listtoolsmodel.h \

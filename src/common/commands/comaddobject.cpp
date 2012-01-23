@@ -55,7 +55,7 @@ void ComAddObject::undo ()
         QSharedPointer<Connectables::Object> target = myHost->objFactory->GetObjectFromId( targetInfo.forcedObjId );
         if(!target) {
             //the target has been deleted, create it back
-            target = myHost->objFactory->NewObject( targetInfo );
+            target = myHost->objFactory->NewObject( targetInfo, container->GetIndex() );
         }
         if(target) {
             if(targetState.size()!=0) {
@@ -89,11 +89,16 @@ void ComAddObject::redo ()
 {
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
+    //get the container
+    QSharedPointer<Connectables::Container> container = ContainerPtr.toStrongRef();
+    if(!container)
+        return;
+
     //get the object
     QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.forcedObjId );
     if(!obj) {
         //object was deleted, create a new one
-        obj = myHost->objFactory->NewObject( objectInfo );
+        obj = myHost->objFactory->NewObject( objectInfo, container->GetIndex() );
     }
     if(!obj)
         return;
@@ -101,10 +106,7 @@ void ComAddObject::redo ()
     setText(QObject::tr("Add %1").arg(obj->objectName()));
     objectInfo = obj->info();
 
-    //get the container
-    QSharedPointer<Connectables::Container> container = ContainerPtr.toStrongRef();
-    if(!container)
-        return;
+
 
     //get the target
     QSharedPointer<Connectables::Object> target = myHost->objFactory->GetObjectFromId( targetInfo.forcedObjId );

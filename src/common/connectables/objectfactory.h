@@ -39,7 +39,7 @@ namespace Connectables {
         ObjectFactory(MainHost *myHost);
         ~ObjectFactory();
 
-        QSharedPointer<Object> NewObject(const ObjectInfo &info);
+        QSharedPointer<Object> NewObject(const ObjectInfo &info, int containerId=0);
         QSharedPointer<Object> GetObj(const QModelIndex & index);
         inline void RemoveObject(int id) {
             listObjects.remove(id);
@@ -69,7 +69,7 @@ namespace Connectables {
         int GetNewObjId() { return cptListObjects++; }
 
     protected:
-        virtual Object *CreateOtherObjects(const ObjectInfo &info)=0;
+        virtual Object *CreateOtherObjects(const ObjectInfo &info, int objId)=0;
 
         hashObjects listObjects;
         MainHost *myHost;

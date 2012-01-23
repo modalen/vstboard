@@ -83,8 +83,10 @@ void PinsList::SetVisible(bool v) {
 
 void PinsList::SetBridge(bool bridge)
 {
+    visible=!bridge;
     foreach(Pin* pin, listPins) {
         pin->SetBridge(bridge);
+//        pin->SetVisible(!bridge);
     }
 }
 
@@ -142,7 +144,7 @@ void PinsList::UpdateModelNode(QStandardItem *parentNode)
         return;
 
     foreach(Pin* pin, listPins) {
-        pin->SetParentModelIndex(modelList);
+        pin->SetParentModelIndex(this,modelList);
     }
 }
 
@@ -205,7 +207,7 @@ Pin * PinsList::AddPin(int nb)
     listPins.insert(nb, newPin);
 
     if(modelList.isValid())
-        newPin->SetParentModelIndex(modelList);
+        newPin->SetParentModelIndex(this,modelList);
 
     parent->OnProgramDirty();
     return newPin;
@@ -218,6 +220,7 @@ void PinsList::RemovePin(int nb)
 
     parent->OnProgramDirty();
     delete listPins.take(nb);
+
 }
 
 QDataStream & PinsList::toStream(QDataStream & out) const

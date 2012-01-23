@@ -78,6 +78,11 @@ namespace Connectables {
             collectedListOfAddedCables=addedCables;
             collectedListOfRemovedCables=removedCables;
         }
+        void CollectCableUpdatesIds(QList< QSharedPointer<Cable> > *addedCables=0,
+                                QList<int> *removedCables=0) {
+            listAddedCablesIds=addedCables;
+            listRemovedCablesIds=removedCables;
+        }
 
         QDataStream & toStream (QDataStream &) const;
         QDataStream & fromStream (QDataStream &);
@@ -108,6 +113,8 @@ namespace Connectables {
 
         QList< QPair<ConnectionInfo,ConnectionInfo> > *collectedListOfAddedCables;
         QList< QPair<ConnectionInfo,ConnectionInfo> > *collectedListOfRemovedCables;
+        QList< QSharedPointer<Cable> > *listAddedCablesIds;
+        QList<int> *listRemovedCablesIds;
 
         friend class Container;
         friend class ParkingContainer;

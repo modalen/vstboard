@@ -160,27 +160,30 @@ void ConnectableObjectView::mouseReleaseEvent ( QGraphicsSceneMouseEvent * event
 void ConnectableObjectView::ObjectDropped(QGraphicsSceneDragDropEvent *event, MsgObject msg)
 {
     QPointF dropPos(0,0);
-    int col=0;
 
-    if(sender()==dropAttachLeft) {
-        msg.prop["actionType"]="before";
-        col=1;
-        dropPos.rx()-=(geometry().width()+10);
-    }
     if(sender()==dropReplace){
-        msg.prop["actionType"]="replace";
-        col=2;
-    }
-    if(sender()==dropAttachRight){
-        msg.prop["actionType"]="after";
-        col=3;
-        dropPos.rx()+=(geometry().width()+10);
+        msg.prop["actionType"]=InsertionType::Replace;
     }
 
-    if(event->dropAction()==Qt::MoveAction)
-        msg.prop["actionType"]="insert";
-    else
-        msg.prop["actionType"]="add";
+    if(event->dropAction()==Qt::MoveAction) {
+        if(sender()==dropAttachLeft) {
+            msg.prop["actionType"]=InsertionType::InsertBefore;
+            dropPos.rx()-=(geometry().width()+10);
+        }
+        if(sender()==dropAttachRight){
+            msg.prop["actionType"]=InsertionType::InsertAfter;
+            dropPos.rx()+=(geometry().width()+10);
+        }
+    } else {
+        if(sender()==dropAttachLeft) {
+            msg.prop["actionType"]=InsertionType::AddBefore;
+            dropPos.rx()-=(geometry().width()+10);
+        }
+        if(sender()==dropAttachRight){
+            msg.prop["actionType"]=InsertionType::AddAfter;
+            dropPos.rx()+=(geometry().width()+10);
+        }
+    }
 
     MainContainerView *cnt = static_cast<MainContainerView*>(parentItem());
     if(cnt)

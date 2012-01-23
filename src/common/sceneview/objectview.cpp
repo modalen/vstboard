@@ -135,6 +135,10 @@ void ObjectView::ReceiveMsg(const MsgObject &msg)
         SetErrorMessage("object not loaded");
     }
 
+    if(msg.prop.contains("errorMsg")) {
+        SetErrorMessage(msg.prop["errorMsg"].toString());
+    }
+
     if(msg.prop.value("nodeType",-1).toInt() != NodeType::bridge) {
 
         actRemoveBridge = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove"),this);
@@ -315,14 +319,23 @@ void ObjectView::SetErrorMessage(const QString & msg)
 void ObjectView::closeEvent ( QCloseEvent * event )
 {
     setActive(false);
-    myHost->undoStack.push( new ComRemoveObject(myHost, objIndex , RemoveType::RemoveWithCables) );
+    MsgObject msg(-1,GetIndex());
+    msg.prop["actionType"]="remove";
+    msg.prop["type"]=RemoveType::RemoveWithCables;
+    msgCtrl->SendMsg(msg);
+
+//    myHost->undoStack.push( new ComRemoveObject(myHost, objIndex , RemoveType::RemoveWithCables) );
     event->ignore();
 }
 
 void ObjectView::RemoveWithBridge()
 {
     setActive(false);
-    myHost->undoStack.push( new ComRemoveObject(myHost, objIndex, RemoveType::BridgeCables) );
+    MsgObject msg(-1,GetIndex());
+    msg.prop["actionType"]="remove";
+    msg.prop["type"]=RemoveType::BridgeCables;
+    msgCtrl->SendMsg(msg);
+//    myHost->undoStack.push( new ComRemoveObject(myHost, objIndex, RemoveType::BridgeCables) );
 }
 
 /*!

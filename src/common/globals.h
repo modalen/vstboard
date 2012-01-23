@@ -111,7 +111,8 @@ namespace ObjType {
         limitOutMin,
         limitOutMax,
         Script,
-        Buffer
+        Buffer,
+        Vst3Plugin
     };
 }
 

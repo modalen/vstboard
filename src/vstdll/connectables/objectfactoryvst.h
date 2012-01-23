@@ -30,7 +30,7 @@ namespace Connectables {
     public:
         ObjectFactoryVst(MainHost *myHost);
     protected:
-        Object *CreateOtherObjects(const ObjectInfo &info);
+        Object *CreateOtherObjects(const ObjectInfo &info, int objId);
 
     };
 

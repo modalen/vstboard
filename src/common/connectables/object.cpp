@@ -185,19 +185,19 @@ void Object::Hide() {
   Toggle visibility of input bridges pins
   \todo only used by bridges, can it be removed ?
   */
-void Object::SetBridgePinsInVisible(bool visible)
-{
-    listBridgePinIn->SetVisible(visible);
-}
+//void Object::SetBridgePinsInVisible(bool visible)
+//{
+//    listBridgePinIn->SetVisible(visible);
+//}
 
 /*!
   Toggle visibility of output bridges pins
   \todo only used by bridges, can it be removed ?
   */
-void Object::SetBridgePinsOutVisible(bool visible)
-{
-    listBridgePinOut->SetVisible(visible);
-}
+//void Object::SetBridgePinsOutVisible(bool visible)
+//{
+//    listBridgePinOut->SetVisible(visible);
+//}
 
 /*!
   Set the objects name, update the view
@@ -775,6 +775,11 @@ void Object::GetInfos(MsgObject &msg)
     msg.prop["nodeType"]=info().nodeType;
     msg.prop["objType"]=info().objType;
     msg.prop["name"]=info().name;
+
+    if(!errorMessage.isEmpty()) {
+        msg.prop["errorMsg"]=errorMessage;
+        return;
+    }
 
     QMap<QString, PinsList*>::iterator i = pinLists.constBegin();
     while(i!=pinLists.constEnd()) {

@@ -75,24 +75,24 @@ Cable::~Cable()
   \param parentIndex the Container index
   \return true if cable is created
   */
-void Cable::AddToParentNode(const QModelIndex &parentIndex)
-{
-    SetDelay(delay);
+//void Cable::AddToParentNode(const QModelIndex &parentIndex)
+//{
+//    SetDelay(delay);
 
-    QStandardItem *item = new QStandardItem(QString("cable %1:%2 %3").arg(pinOut.objId).arg(pinIn.objId).arg(delay));
-    item->setData(QVariant::fromValue(ObjectInfo(NodeType::cable)),UserRoles::objInfo);
-    item->setData(QVariant::fromValue(pinOut),UserRoles::value);
-    item->setData(QVariant::fromValue(pinIn),UserRoles::connectionInfo);
-    item->setData(delay,UserRoles::position);
+//    QStandardItem *item = new QStandardItem(QString("cable %1:%2 %3").arg(pinOut.objId).arg(pinIn.objId).arg(delay));
+//    item->setData(QVariant::fromValue(ObjectInfo(NodeType::cable)),UserRoles::objInfo);
+//    item->setData(QVariant::fromValue(pinOut),UserRoles::value);
+//    item->setData(QVariant::fromValue(pinIn),UserRoles::connectionInfo);
+//    item->setData(delay,UserRoles::position);
 
-    QStandardItem *parentItem = myHost->GetModel()->itemFromIndex(parentIndex);
-    if(!parentItem) {
-        LOG("parent item not found");
-        return;
-    }
-    parentItem->appendRow(item);
-    modelIndex = item->index();
-}
+//    QStandardItem *parentItem = myHost->GetModel()->itemFromIndex(parentIndex);
+//    if(!parentItem) {
+//        LOG("parent item not found");
+//        return;
+//    }
+//    parentItem->appendRow(item);
+//    modelIndex = item->index();
+//}
 
 /*!
   Remove the cable from the model

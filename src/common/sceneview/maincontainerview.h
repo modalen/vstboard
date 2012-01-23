@@ -56,6 +56,7 @@ namespace View {
         void ParkingChanged(QWidget *parking);
 
     public slots:
+        void ObjectDropped(QGraphicsSceneDragDropEvent *event, MsgObject msg);
         void OnViewChanged(QRectF rect);
 
     };

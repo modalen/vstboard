@@ -34,7 +34,9 @@ ContainerProgram::ContainerProgram(MainHost *myHost,Container *container) :
     dirty(false),
     myHost(myHost),
     collectedListOfAddedCables(0),
-    collectedListOfRemovedCables(0)
+    collectedListOfRemovedCables(0),
+    listAddedCablesIds(0),
+    listRemovedCablesIds(0)
 {
 }
 
@@ -43,7 +45,9 @@ ContainerProgram::ContainerProgram(const ContainerProgram& c) :
     dirty(false),
     myHost(c.myHost),
     collectedListOfAddedCables(0),
-    collectedListOfRemovedCables(0)
+    collectedListOfRemovedCables(0),
+    listAddedCablesIds(0),
+    listRemovedCablesIds(0)
 {
     foreach(QSharedPointer<Object> objPtr, c.listObjects) {
         listObjects << objPtr;
@@ -126,7 +130,7 @@ void ContainerProgram::Load(int progId)
             if(pin)
                 pin->AddCable(cab);
 
-            cab->AddToParentNode(container->GetCablesIndex());
+//            cab->AddToParentNode(container->GetCablesIndex());
         } else {
             //delete cable from program if pins are not found and can't be created
             listCables.removeAll(cab);
@@ -330,9 +334,12 @@ bool ContainerProgram::AddCable(const ConnectionInfo &outputPin, const Connectio
 
     if(collectedListOfAddedCables)
         *collectedListOfAddedCables << QPair<ConnectionInfo,ConnectionInfo>(outputPin,inputPin);
+    if(listAddedCablesIds)
+        *listAddedCablesIds << cab;
 
-    if(!hidden && container)
-        cab->AddToParentNode(container->GetCablesIndex());
+//    if(!hidden && container) {
+//        cab->AddToParentNode(container->GetCablesIndex());
+//    }
 
     Connectables::Pin *pin = myHost->objFactory->GetPin(outputPin);
     if(pin)
@@ -350,6 +357,8 @@ void ContainerProgram::RemoveCable(QSharedPointer<Cable>cab)
 
     if(collectedListOfRemovedCables)
         *collectedListOfRemovedCables << QPair<ConnectionInfo,ConnectionInfo>(cab->GetInfoOut(),cab->GetInfoIn());
+    if(listRemovedCablesIds)
+        *listRemovedCablesIds << cab->GetIndex();
 
     cab->RemoveFromParentNode(container->GetCablesIndex());
     SetDirty();

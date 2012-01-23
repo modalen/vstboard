@@ -54,18 +54,6 @@ void MainWindowVst::SendMsg(const MsgObject &msg)
     }
 }
 
-void MainWindowVst::SendMsg(const QString &type, const QVariant &data)
-{
-    Steinberg::Vst::IMessage* message = controller->allocateMessage();
-    if (message)
-    {
-        message->setMessageID("msglist");
-        QByteArray br( data.toByteArray() );
-        message->getAttributes ()->setBinary ("data", br.data(), br.size());
-        controller->sendMessage(message);
-    }
-}
-
 void MainWindowVst::closeEvent(QCloseEvent *event)
 {
     writeSettings();

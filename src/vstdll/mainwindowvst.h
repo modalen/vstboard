@@ -40,7 +40,6 @@ public:
     MainWindowVst(Steinberg::Vst::VstBoardController *controller,Settings *settings, QWidget *parent = 0);
     void readSettings();
     void SendMsg(const MsgObject &msg);
-    void SendMsg(const QString &type, const QVariant &data);
     Steinberg::Vst::VstBoardController *controller;
 
 private:

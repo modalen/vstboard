@@ -37,17 +37,17 @@ namespace View {
     {
     Q_OBJECT
     public:
-        CableView(MsgController *msgCtrl, int objId, const ConnectionInfo &pinOut, const ConnectionInfo &pinIn, QGraphicsItem *parent, ViewConfig *config);
-        CableView(MsgController *msgCtrl, int objId, const ConnectionInfo &pinOut, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config);
-
+        CableView(MsgController *msgCtrl, int objId, PinView *pinOut, PinView *pinIn, QGraphicsItem *parent, ViewConfig *config);
+        CableView(MsgController *msgCtrl, int objId, PinView *pinOut, const QPointF &PtIn, QGraphicsItem *parent, ViewConfig *config);
+        virtual ~CableView();
         void ReceiveMsg(const MsgObject &msg);
 
-        void UpdatePosition(const ConnectionInfo &pinInfo, const float angle, const QPointF &pt);
+        void UpdatePosition(const PinView *pin, const float angle, const QPointF &pt);
         void UpdatePosition(const QPointF &pt);
         void UpdateModelIndex(const QModelIndex &index);
 
-        const ConnectionInfo pinOut;
-        const ConnectionInfo pinIn;
+//        const ConnectionInfo pinOut;
+//        const ConnectionInfo pinIn;
 
     protected:
         QPointF PtOut;
@@ -55,6 +55,8 @@ namespace View {
         QPointF CtrlPtOut;
         QPointF CtrlPtIn;
         ViewConfig *config;
+        PinView *pinOut;
+        PinView *pinIn;
 
     public slots:
         void UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color);

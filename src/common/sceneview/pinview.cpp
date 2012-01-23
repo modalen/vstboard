@@ -74,6 +74,13 @@ PinView::PinView(float angle, MsgController *msgCtrl, int objId, QGraphicsItem *
     setFocusPolicy(Qt::WheelFocus);
 }
 
+PinView::~PinView()
+{
+    foreach(CableView *cab, connectedCables) {
+        delete cab;
+    }
+}
+
 void PinView::UpdateKeyBinding()
 {
     if(actDel) actDel->setShortcut( config->keyBinding->GetMainShortcut(KeyBind::deletePin) );
@@ -99,7 +106,7 @@ void PinView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 void PinView::UpdateCablesPosition()
 {
     foreach (CableView *cable, connectedCables) {
-        cable->UpdatePosition(connectInfo, pinAngle, mapToScene(pinPos()) );
+        cable->UpdatePosition(this, pinAngle, mapToScene(pinPos()) );
     }
 }
 
@@ -155,7 +162,7 @@ void PinView::mouseMoveEvent ( QGraphicsSceneMouseEvent  * event )
     drag->setMimeData(mime);
 
     if(!currentLine) {
-        currentLine = new CableView(msgCtrl,-1,connectInfo,event->pos(),this,config);
+        currentLine = new CableView(msgCtrl,-1,this,event->pos(),this,config);
         AddCable(currentLine);
     }
 
@@ -180,13 +187,23 @@ void PinView::mouseReleaseEvent ( QGraphicsSceneMouseEvent  * /*event*/ )
 
 void PinView::Unplug()
 {
-    emit RemoveCablesFromPin(connectInfo);
+    MsgObject msg;
+    msg.prop["actionType"]="unplugPin";
+    msg.prop["pin"]=QVariant::fromValue(connectInfo);
+    msgCtrl->SendMsg(msg);
+//    emit RemoveCablesFromPin(connectInfo);
 }
 
 void PinView::RemovePin()
 {
-    if(connectInfo.isRemoveable)
-        emit RemovePin(connectInfo);
+    if(!connectInfo.isRemoveable)
+        return;
+
+    MsgObject msg;
+    msg.prop["actionType"]="removePin";
+    msg.prop["pin"]=QVariant::fromValue(connectInfo);
+    msgCtrl->SendMsg(msg);
+//    emit RemovePin(connectInfo);
 }
 
 /*!
@@ -208,7 +225,7 @@ void PinView::dragEnterEvent ( QGraphicsSceneDragDropEvent * event )
         event->acceptProposedAction();
 
         if(currentLine) {
-            currentLine->UpdatePosition(connectInfo,pinAngle,mapToScene(pinPos()));
+            currentLine->UpdatePosition(this,pinAngle,mapToScene(pinPos()));
             currentLine->setVisible(true);
         }
         if(highlight)
@@ -247,7 +264,14 @@ void PinView::dropEvent ( QGraphicsSceneDragDropEvent  * event )
     QByteArray bytes = event->mimeData()->data("application/x-pin");
     ConnectionInfo connInfo;
     ReadMimeData(bytes,connInfo);
-    emit ConnectPins(connectInfo, connInfo);
+
+    MsgObject msg;
+    msg.prop["actionType"]="connectPins";
+    msg.prop["pin1"]=QVariant::fromValue(connectInfo);
+    msg.prop["pin2"]=QVariant::fromValue(connInfo);
+    msgCtrl->SendMsg(msg);
+
+//    emit ConnectPins(connectInfo, connInfo);
 }
 
 /*!
@@ -299,7 +323,7 @@ void PinView::ReadMimeData(QByteArray &bytes, ConnectionInfo &data)
   */
 void PinView::AddCable(CableView *cable)
 {
-    cable->UpdatePosition(connectInfo, pinAngle, mapToScene(pinPos()) );
+    cable->UpdatePosition(this, pinAngle, mapToScene(pinPos()) );
     connectedCables.append(cable);
     actUnplug->setEnabled(true);
     setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);

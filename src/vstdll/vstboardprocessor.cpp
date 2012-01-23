@@ -158,16 +158,5 @@ void VstBoardProcessor::SendMsg(const MsgObject &msg)
     }
 }
 
-void VstBoardProcessor::SendMsg(const QString &type, const QVariant &data)
-{
-    Steinberg::Vst::IMessage* message = allocateMessage();
-    if (message)
-    {
-        message->setMessageID("msglist");
-        QByteArray br( data.toByteArray() );
-        message->getAttributes ()->setBinary ("data", br.data(), br.size());
-        sendMessage(message);
-    }
-}
 
 }}

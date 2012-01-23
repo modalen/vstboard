@@ -102,9 +102,9 @@ namespace View {
 //        void insertShown(bool shown);
 
     public slots:
-        void ConnectPins(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn);
-        void RemoveCablesFromPin(const ConnectionInfo &pin);
-        void RemovePin(const ConnectionInfo &pin);
+//        void ConnectPins(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn);
+//        void RemoveCablesFromPin(const ConnectionInfo &pin);
+//        void RemovePin(const ConnectionInfo &pin);
         void ToggleHostView(bool show);
         void ToggleProjectView(bool show);
         void ToggleProgramView(bool show);

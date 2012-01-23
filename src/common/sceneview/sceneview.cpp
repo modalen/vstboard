@@ -287,6 +287,36 @@ void SceneView::AddObject(const MsgObject &msg)
         return;
     }
 
+    if(msg.prop["actionType"]=="remove") {
+        if(!mainWindow->listObj.contains(msg.objIndex)) {
+//            LOG("obj not found"<<msg.objIndex)
+            return;
+        }
+        MsgHandler *obj =  mainWindow->listObj.take(msg.objIndex);
+        delete obj;
+        return;
+    }
+
+    if(msg.prop["actionType"]=="tempObj") {
+        MainContainerView *parentView = static_cast<MainContainerView*>(mainWindow->listObj.value(msg.parentIndex,0));
+        if(!parentView) {
+            LOG("object parent not found");
+            return;
+        }
+
+        objView = new ConnectableObjectView(myHost, mainWindow, msg.objIndex, parentView);
+        objView->ReceiveMsg(msg);
+
+        QPointF pos = parentView->GetDropPos();
+        objView->setPos(pos);
+
+        //when adding item, the scene set focus to the last item
+        if(objView->scene()->focusItem())
+            objView->scene()->focusItem()->clearFocus();
+
+        return;
+    }
+
     //create new object
     if(msg.prop["actionType"]=="add") {
 
@@ -381,6 +411,14 @@ void SceneView::AddObject(const MsgObject &msg)
                     LOG("object parent not found");
                     return;
                 }
+                QPointF pos = parentView->GetDropPos();
+
+                //a temp obj exists
+                if(mainWindow->listObj.contains(msg.objIndex)) {
+                    ConnectableObjectView *obj = static_cast<ConnectableObjectView*>( mainWindow->listObj.value(msg.objIndex) );
+                    pos=obj->pos();
+                    delete obj;
+                }
 
                 if(msg.prop.value("objType",0).toInt() == ObjType::VstPlugin) {
                     objView = new VstPluginView(myHost, mainWindow, msg.objIndex, parentView);
@@ -389,7 +427,7 @@ void SceneView::AddObject(const MsgObject &msg)
                 }
                 objView->ReceiveMsg(msg);
 
-                QPointF pos = parentView->GetDropPos();
+
                 objView->setPos(pos);
                 //model()->setData(index,pos,UserRoles::position);
 
@@ -493,12 +531,12 @@ void SceneView::AddObject(const MsgObject &msg)
                 parentList->layout->insertItem(pinPlace, pinView);
 
                 parentList->layout->setAlignment(pinView,Qt::AlignTop);
-                connect(pinView, SIGNAL(ConnectPins(ConnectionInfo,ConnectionInfo)),
-                        this, SLOT(ConnectPins(ConnectionInfo,ConnectionInfo)));
-                connect(pinView,SIGNAL(RemoveCablesFromPin(ConnectionInfo)),
-                        this,SLOT(RemoveCablesFromPin(ConnectionInfo)));
-                connect(pinView,SIGNAL(RemovePin(ConnectionInfo)),
-                        this,SLOT(RemovePin(ConnectionInfo)));
+//                connect(pinView, SIGNAL(ConnectPins(ConnectionInfo,ConnectionInfo)),
+//                        this, SLOT(ConnectPins(ConnectionInfo,ConnectionInfo)));
+//                connect(pinView,SIGNAL(RemoveCablesFromPin(ConnectionInfo)),
+//                        this,SLOT(RemoveCablesFromPin(ConnectionInfo)));
+//                connect(pinView,SIGNAL(RemovePin(ConnectionInfo)),
+//                        this,SLOT(RemovePin(ConnectionInfo)));
 
                 pinView->ReceiveMsg(msg);
                 break;
@@ -525,10 +563,10 @@ void SceneView::AddObject(const MsgObject &msg)
                 PinView* pinIn = static_cast<PinView*>(mainWindow->listObj.value(msg.prop["pinIn"].toInt(),0));
 
                 if(!pinOut || !pinIn) {
-                    LOG("addcable : pin not found");
+                    LOG("addcable : pin not found"<<msg.prop);
                     return;
                 }
-                CableView *cable = new CableView(mainWindow, msg.objIndex, pinOut->GetConnectionInfo(), pinOut->GetConnectionInfo(),cnt,mainWindow->viewConfig);
+                CableView *cable = new CableView(mainWindow, msg.objIndex, pinOut, pinIn, cnt, mainWindow->viewConfig);
                 cable->ReceiveMsg(msg);
 //                cable->UpdateModelIndex(index);
                 pinOut->AddCable(cable);
@@ -852,67 +890,37 @@ void SceneView::rowsInserted ( const QModelIndex & parent, int start, int end  )
 //    hashItems.remove( hashItems.key(obj) );
 //}
 
-void SceneView::ConnectPins(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn)
-{
-//    QPersistentModelIndex ixOut = mapConnectionInfo.value(pinOut);
-//    QPersistentModelIndex ixIn = mapConnectionInfo.value(pinIn);
+//void SceneView::ConnectPins(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn)
+//{
+//    myHost->undoStack.push( new ComAddCable(myHost,pinOut,pinIn) );
+//}
 
-//    //                      pin  . list   . object . container
-//    QModelIndex parentOut = ixOut.parent().parent().parent();
-//    QModelIndex parentIn = ixIn.parent().parent().parent();
+//void SceneView::RemoveCablesFromPin(const ConnectionInfo &pin)
+//{
+//    myHost->undoStack.push( new ComDisconnectPin(myHost,pin) );
+//}
 
-//    if(pinOut.bridge) parentOut = parentOut.parent();
-//    if(pinIn.bridge) parentIn = parentIn.parent();
-
-//    QSharedPointer<Connectables::Object> cntPtr = objFactory->GetObjectFromId(parentOut.data(UserRoles::value).toInt());
-
-//    if(pinOut.direction==PinDirection::Output) {
-//        static_cast<Connectables::Container*>(cntPtr.data())->UserAddCable(pinOut,pinIn);
-//    } else {
-//        static_cast<Connectables::Container*>(cntPtr.data())->UserAddCable(pinIn,pinOut);
-//    }
-
-    myHost->undoStack.push( new ComAddCable(myHost,pinOut,pinIn) );
-}
-
-void SceneView::RemoveCablesFromPin(const ConnectionInfo &pin)
-{
-//    QPersistentModelIndex ix = mapConnectionInfo.value(pin);
-//    QModelIndex parent = ix.parent().parent().parent();
-//    if(pin.bridge) parent = parent.parent();
-//    QSharedPointer<Connectables::Object> cntPtr = objFactory->GetObjectFromId(parent.data(UserRoles::value).toInt());
-//    static_cast<Connectables::Container*>(cntPtr.data())->UserRemoveCableFromPin(pin);
-    myHost->undoStack.push( new ComDisconnectPin(myHost,pin) );
-}
-
-void SceneView::RemovePin(const ConnectionInfo &pin)
-{
-//    QPersistentModelIndex ix = mapConnectionInfo.value(pin);
-//    QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(pin.objId);
-//    objPtr->UserRemovePin(pin);
-    myHost->undoStack.push( new ComRemovePin(myHost,pin) );
-}
+//void SceneView::RemovePin(const ConnectionInfo &pin)
+//{
+//    myHost->undoStack.push( new ComRemovePin(myHost,pin) );
+//}
 
 void SceneView::ToggleHostView(bool show)
 {
     viewHost->setVisible(show);
-//    emit hostShown(show);
 }
 
 void SceneView::ToggleProjectView(bool show)
 {
     viewProject->setVisible(show);
-//    emit projectShown(show);
 }
 
 void SceneView::ToggleProgramView(bool show)
 {
     viewProgram->setVisible(show);
-//    emit programShown(show);
 }
 
 void SceneView::ToggleInsertView(bool show)
 {
     viewGroup->setVisible(show);
-//    emit insertShown(show);
 }

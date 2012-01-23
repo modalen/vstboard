@@ -4,28 +4,23 @@
 #include "models/programsmodel.h"
 
 ComRemoveObject::ComRemoveObject( MainHost *myHost,
-                                  const QModelIndex &objIndex,
+                                  const QSharedPointer<Connectables::Object> &objPtr,
                                   RemoveType::Enum removeType,
                                   QUndoCommand  *parent) :
     QUndoCommand(parent),
     myHost(myHost),
     removeType(removeType),
+    objectInfo(objectInfo),
     currentGroup(0),
     currentProg(0)
 {
-    QSharedPointer<Connectables::Container>container = myHost->objFactory->GetObj( objIndex.parent() ).staticCast<Connectables::Container>();
-    if(!container)
+    ContainerPtr = myHost->objFactory->GetObjectFromId( objPtr->GetContainerId() ).staticCast<Connectables::Container>();
+    if(!ContainerPtr)
         return;
 
-    QSharedPointer<Connectables::Object>object = myHost->objFactory->GetObj( objIndex );
-    if(!object)
-        return;
+    setText(QObject::tr("Remove %1").arg(objPtr->objectName()));
 
-    setText(QObject::tr("Remove %1").arg(object->objectName()));
-
-    //save references
-    ContainerPtr = container;
-    objectInfo = object->info();
+    objectInfo = objPtr->info();
 
     currentGroup = myHost->programsModel->GetCurrentMidiGroup();
     currentProg =  myHost->programsModel->GetCurrentMidiProg();
@@ -35,22 +30,23 @@ void ComRemoveObject::undo ()
 {
     myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
 
+    //get the container
+    QSharedPointer<Connectables::Container> container = ContainerPtr.toStrongRef();
+    if(!container)
+        return;
+
     //get the object
     QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.forcedObjId );
     if(!obj) {
         //object was deleted, create a new one
-        obj = myHost->objFactory->NewObject( objectInfo );
-        ObjectPtr = obj;
+        obj = myHost->objFactory->NewObject( objectInfo, container->GetIndex() );
     }
     if(!obj)
         return;
 
     objectInfo = obj->info();
 
-    //get the container
-    QSharedPointer<Connectables::Container> container = ContainerPtr.toStrongRef();
-    if(!container)
-        return;
+
 
     QDataStream stream(&objState, QIODevice::ReadWrite);
     obj->fromStream( stream );

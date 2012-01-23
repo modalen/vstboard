@@ -28,6 +28,8 @@ MainContainerView::MainContainerView(MainHost *myHost, MsgController *msgCtrl, i
 {
     content = new ContainerContent(myHost,msgCtrl,-1,this);
     content->setAcceptDrops(true);
+    connect(content, SIGNAL(ObjectDropped(QGraphicsSceneDragDropEvent*,MsgObject)),
+            this,SLOT(ObjectDropped(QGraphicsSceneDragDropEvent*,MsgObject)));
 
     bridgeIn = new BridgeView(myHost, msgCtrl, -1, this);
     bridgeOut = new BridgeView(myHost, msgCtrl, -1, this);
@@ -91,3 +93,10 @@ void MainContainerView::OnViewChanged(QRectF rect)
     content->setGeometry(rect);
 }
 
+void MainContainerView::ObjectDropped(QGraphicsSceneDragDropEvent *event, MsgObject msg)
+{
+    SetDropPos( event->scenePos() );
+    msg.objIndex=GetIndex();
+    msg.prop["actionType"]=InsertionType::NoInsertion;
+    msgCtrl->SendMsg(msg);
+}

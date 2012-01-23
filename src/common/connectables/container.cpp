@@ -306,6 +306,13 @@ void Container::LoadProgram(int prog)
     if(oldProg) {
         delete oldProg;
     }
+
+    if(GetIndex()!=FixedObjId::mainContainer) {
+        MsgObject msg(0, GetIndex());
+        msg.prop["actionType"]="add";
+        GetInfos(msg);
+        msgCtrl->SendMsg(msg);
+    }
 }
 
 const QTime Container::GetLastModificationTime() {
@@ -443,8 +450,17 @@ void Container::UserAddObject(const QSharedPointer<Object> &objPtr,
 {
     AddObject(objPtr);
 
+    MsgObject msg(GetIndex(), objPtr->GetIndex());
+    msg.prop["actionType"]="add";
+    objPtr->GetInfos(msg);
+    msgCtrl->SendMsg(msg);
+
     if(targetPtr) {
         currentContainerProgram->CollectCableUpdates( listOfAddedCables, listOfRemovedCables );
+        QList< QSharedPointer<Cable> >addedCables;
+        QList<int>removedCables;
+        currentContainerProgram->CollectCableUpdatesIds( &addedCables, &removedCables );
+
 
         switch(insertType) {
             case InsertionType::InsertBefore:
@@ -470,11 +486,28 @@ void Container::UserAddObject(const QSharedPointer<Object> &objPtr,
                 break;
         }
         currentContainerProgram->CollectCableUpdates();
+
+        currentContainerProgram->CollectCableUpdatesIds();
+
+        foreach(int id, removedCables) {
+            MsgObject msg(GetIndex(),id);
+            msg.prop["actionType"]="remove";
+            msgCtrl->SendMsg(msg);
+        }
+
+        foreach(QSharedPointer<Cable> cab, addedCables) {
+            MsgObject msg(GetIndex(),cab->GetIndex());
+            msg.prop["actionType"]="add";
+            cab->GetInfos(msg);
+            msgCtrl->SendMsg(msg);
+        }
+
     }
     if(!loadingMode) {
         myHost->SetSolverUpdateNeeded();
         UpdateModificationTime();
     }
+
 }
 
 
@@ -483,7 +516,14 @@ void Container::UserParkObject(QSharedPointer<Object> objPtr,
                                QList< QPair<ConnectionInfo,ConnectionInfo> > *listOfAddedCables,
                                QList< QPair<ConnectionInfo,ConnectionInfo> > *listOfRemovedCables)
 {
+    MsgObject msg(GetIndex(), objPtr->GetIndex());
+    msg.prop["actionType"]="remove";
+    msgCtrl->SendMsg(msg);
+
     currentContainerProgram->CollectCableUpdates( listOfAddedCables, listOfRemovedCables );
+    QList< QSharedPointer<Cable> >addedCables;
+    QList<int>removedCables;
+    currentContainerProgram->CollectCableUpdatesIds( &addedCables, &removedCables );
 
     if(removeType==RemoveType::BridgeCables)
         currentContainerProgram->CreateBridgeOverObj(objPtr->GetIndex());
@@ -491,11 +531,27 @@ void Container::UserParkObject(QSharedPointer<Object> objPtr,
     ParkObject(objPtr);
 
     currentContainerProgram->CollectCableUpdates();
+    currentContainerProgram->CollectCableUpdatesIds();
+
+    foreach(int id, removedCables) {
+        MsgObject msg(GetIndex(),id);
+        msg.prop["actionType"]="remove";
+        msgCtrl->SendMsg(msg);
+    }
+
+    foreach(QSharedPointer<Cable> cab, addedCables) {
+        MsgObject msg(GetIndex(),cab->GetIndex());
+        msg.prop["actionType"]="add";
+        cab->GetInfos(msg);
+        msgCtrl->SendMsg(msg);
+    }
+
 
     if(!loadingMode) {
         myHost->SetSolverUpdateNeeded();
         UpdateModificationTime();
     }
+
 }
 
 /*!
@@ -592,6 +648,8 @@ void Container::AddChildObject(QSharedPointer<Object> objPtr)
     else
         myHost->objFactory->listDelayObj.removeAll(objPtr->GetIndex());
 
+
+
 //    myHost->SetSolverUpdateNeeded();
 }
 
@@ -613,6 +671,8 @@ void Container::ParkChildObject(QSharedPointer<Object> objPtr)
     parkModel.invisibleRootItem()->appendRow(item);
     objPtr->modelIndex=item->index();
     objPtr->parked=true;
+
+
 
 //    myHost->SetSolverUpdateNeeded();
 }
@@ -639,7 +699,18 @@ void Container::OnChildDeleted(QSharedPointer<Object>obj)
 
 void Container::UserAddCable(const ConnectionInfo &outputPin, const ConnectionInfo &inputPin)
 {
+    QList< QSharedPointer<Cable> >addedCables;
+    currentContainerProgram->CollectCableUpdatesIds( &addedCables, 0 );
+
     AddCable(outputPin,inputPin,false);
+
+    currentContainerProgram->CollectCableUpdatesIds();
+    foreach(QSharedPointer<Cable> cab, addedCables) {
+        MsgObject msg(GetIndex(),cab->GetIndex());
+        msg.prop["actionType"]="add";
+        cab->GetInfos(msg);
+        msgCtrl->SendMsg(msg);
+    }
 
     if(!loadingMode) {
         myHost->SetSolverUpdateNeeded();
@@ -654,7 +725,17 @@ void Container::UserAddCable(const QPair<ConnectionInfo,ConnectionInfo>&pair)
 
 void Container::UserRemoveCableFromPin(const ConnectionInfo &pin)
 {
+    QList<int>removedCables;
+    currentContainerProgram->CollectCableUpdatesIds( 0, &removedCables );
+
     RemoveCableFromPin(pin);
+
+    currentContainerProgram->CollectCableUpdatesIds();
+    foreach(int id, removedCables) {
+        MsgObject msg(GetIndex(),id);
+        msg.prop["actionType"]="remove";
+        msgCtrl->SendMsg(msg);
+    }
 
     if(!loadingMode) {
         myHost->SetSolverUpdateNeeded();

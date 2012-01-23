@@ -131,18 +131,52 @@ void ObjectDropZone::UpdateHeight()
 
 bool ObjectDropZone::TranslateMimeData( const QMimeData * data, MsgObject &msg )
 {
+    QByteArray listObjInfoToAdd;
+    QDataStream streamObj(&listObjInfoToAdd, QIODevice::WriteOnly);
+
     //drop a file
     if (data->hasUrls()) {
         QStringList lstFiles;
         foreach(QUrl url, data->urls()) {
+
+            QFileInfo fInfo;
+            fInfo.setFile( url.toLocalFile() );
+            if ( fInfo.isFile() && fInfo.isReadable() ) {
+                QString fileType(fInfo.suffix().toLower());
+
+#ifdef VSTSDK
+                //vst plugin
+                if ( fileType=="dll" ) {
+                    ObjectInfo infoVst;
+                    infoVst.nodeType = NodeType::object;
+                    infoVst.objType = ObjType::VstPlugin;
+                    infoVst.filename = url.toLocalFile();
+                    infoVst.name = fInfo.baseName();
+                    streamObj << infoVst;
+                    continue;
+                }
+                //vst3 plugin
+                if ( fileType=="vst3" ) {
+                    ObjectInfo infoVst;
+                    infoVst.nodeType = NodeType::object;
+                    infoVst.objType = ObjType::Vst3Plugin;
+                    infoVst.filename = url.toLocalFile();
+                    infoVst.name = fInfo.baseName();
+                    streamObj << infoVst;
+                    continue;
+                }
+#endif
+            }
             lstFiles << url.toLocalFile();
         }
-        msg.prop["filesToLoad"]=lstFiles;
+        if(!lstFiles.isEmpty())
+            msg.prop["filesToLoad"]=lstFiles;
     }
 
     //objects from parking
     QByteArray unparkObj;
     QDataStream stream(&unparkObj, QIODevice::WriteOnly);
+
     if(data->hasFormat("application/x-qstandarditemmodeldatalist")) {
         QStandardItemModel mod;
         mod.dropMimeData(data,Qt::CopyAction,0,0,QModelIndex());
@@ -157,8 +191,7 @@ bool ObjectDropZone::TranslateMimeData( const QMimeData * data, MsgObject &msg )
     if(!unparkObj.isEmpty())
         msg.prop["objToUnpark"]=unparkObj;
 
-    QByteArray listObjInfoToAdd;
-    QDataStream streamObj(&listObjInfoToAdd, QIODevice::WriteOnly);
+
 
     //audio interface
     if(data->hasFormat("application/x-audiointerface")) {

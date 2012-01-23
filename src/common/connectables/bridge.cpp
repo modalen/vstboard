@@ -41,6 +41,13 @@ using namespace Connectables;
 Bridge::Bridge(MainHost *myHost,int index, const ObjectInfo & info) :
     Object(myHost,index, info)
 {
+    if(objInfo.objType == ObjType::BridgeIn || objInfo.objType == ObjType::BridgeReturn) {
+        listBridgePinIn->SetBridge(true);
+    }
+
+    if(objInfo.objType == ObjType::BridgeOut || objInfo.objType == ObjType::BridgeSend) {
+        listBridgePinOut->SetBridge(true);
+    }
 }
 
 /*!
@@ -53,13 +60,7 @@ bool Bridge::Open()
     listBridgePinIn->ChangeNumberOfPins(8);
     listBridgePinOut->ChangeNumberOfPins(8);
 
-    if(objInfo.objType == ObjType::BridgeIn || objInfo.objType == ObjType::BridgeReturn) {
-        listBridgePinIn->SetBridge(true);
-    }
 
-    if(objInfo.objType == ObjType::BridgeOut || objInfo.objType == ObjType::BridgeSend) {
-        listBridgePinOut->SetBridge(true);
-    }
 
     Object::Open();
     return true;

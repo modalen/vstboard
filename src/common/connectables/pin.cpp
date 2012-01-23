@@ -46,7 +46,8 @@ Pin::Pin(Object *parent,PinType::Enum type, PinDirection::Enum direction, int nu
     parent(parent),
     visible(false),
     closed(false),
-    valueChanged(false)
+    valueChanged(false),
+    pinList(0)
 {
     connectInfo.container = parent->GetContainerId();
 //    setObjectName(QString("pin:%1:%2:%3:%4").arg(connectInfo.objId).arg(connectInfo.type).arg(connectInfo.direction).arg(connectInfo.pinNumber));
@@ -83,8 +84,10 @@ void Pin::SendMsg(const PinMessage::Enum msgType,void *data)
   Update the view with the new parent
   \param newParent
   */
-void Pin::SetParentModelIndex(const QModelIndex &newParent)
+void Pin::SetParentModelIndex(PinsList *list, const QModelIndex &newParent)
 {
+    pinList=list;
+
     closed=false;
 
     //moving from another parent (when does it happen ?)
@@ -157,6 +160,11 @@ void Pin::SetVisible(bool vis)
         parentItem->appendRow(item);
         modelIndex = item->index();
 
+        MsgObject msg(pinList->GetIndex(),GetIndex());
+        msg.prop["actionType"]="add";
+        GetInfos(msg);
+        msgCtrl->SendMsg(msg);
+
         connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
                 this,SLOT(updateView()),
                 Qt::UniqueConnection);
@@ -178,6 +186,11 @@ void Pin::SetVisible(bool vis)
         if(modelIndex.isValid())
             parent->getHost()->GetModel()->removeRow(modelIndex.row(), modelIndex.parent());
         modelIndex=QModelIndex();
+
+        MsgObject msg(pinList->GetIndex(),GetIndex());
+        msg.prop["actionType"]="remove";
+        msgCtrl->SendMsg(msg);
+
     }
 }
 

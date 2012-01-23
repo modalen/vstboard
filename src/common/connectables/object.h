@@ -137,8 +137,8 @@ namespace Connectables {
         virtual bool fromStream (QDataStream &);
         virtual void SetContainerId(quint16 id);
         virtual QStandardItem * UpdateModelNode();
-        virtual void SetBridgePinsInVisible(bool visible);
-        virtual void SetBridgePinsOutVisible(bool visible);
+//        virtual void SetBridgePinsInVisible(bool visible);
+//        virtual void SetBridgePinsOutVisible(bool visible);
         virtual void RemoveProgram(int prg);
         virtual void SetContainerAttribs(const ObjectContainerAttribs &attr);
         virtual void GetContainerAttribs(ObjectContainerAttribs &attr);

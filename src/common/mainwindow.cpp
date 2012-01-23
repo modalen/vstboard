@@ -101,6 +101,8 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
 
 void MainWindow::ReceiveMsg(const MsgObject &msg)
 {
+    if(!mySceneView)
+        return;
 //    LOG("addobj"<<msg.objIndex<<msg.parentIndex<<msg.prop)
     mySceneView->AddObject(msg);
     if(!msg.children.isEmpty())
@@ -167,8 +169,10 @@ void MainWindow::SetupBrowsersModels(const QString &vstPath, const QString &brow
 
 MainWindow::~MainWindow()
 {
-    if(mySceneView)
+    if(mySceneView) {
         delete mySceneView;
+        mySceneView=0;
+    }
     if(ui)
         delete ui;
 

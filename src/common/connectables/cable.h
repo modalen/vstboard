@@ -37,7 +37,7 @@ namespace Connectables {
         Cable(MainHost *myHost,const ConnectionInfo &pinOut, const ConnectionInfo &pinIn);
         Cable(const Cable & c);
         virtual ~Cable();
-        void AddToParentNode(const QModelIndex &parentIndex);
+//        void AddToParentNode(const QModelIndex &parentIndex);
         void RemoveFromParentNode(const QModelIndex &parentIndex);
 
         /*!

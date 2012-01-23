@@ -117,7 +117,7 @@ QSharedPointer<Object> ObjectFactory::GetObj(const QModelIndex & index)
     return GetObjectFromId(index.data(UserRoles::value).toInt());
 }
 
-QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info)
+QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info, int containerId)
 {
     int objId = GetNewObjId();
     if(info.forcedObjId!=0) {
@@ -129,7 +129,15 @@ QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info)
 
     Object *obj=0;
 
-    obj=CreateOtherObjects(info);
+    if(containerId) {
+        MsgObject msg(containerId, objId);
+        msg.prop["actionType"]="tempObj";
+        msg.prop["name"]=info.name;
+        myHost->SendMsg(msg);
+        qApp->processEvents();
+    }
+
+    obj=CreateOtherObjects(info, objId);
 
     if(!obj) {
         switch(info.nodeType) {
@@ -165,6 +173,8 @@ QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info)
             #ifdef VSTSDK
                     case ObjType::VstPlugin:
                         obj = new VstPlugin(myHost,objId, info);
+                        break;
+                    case ObjType::Vst3Plugin:
                         break;
             #endif
 

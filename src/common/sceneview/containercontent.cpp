@@ -131,21 +131,19 @@ void ContainerContent::dragLeaveEvent( QGraphicsSceneDragDropEvent *event)
     ObjectDropZone::dragLeaveEvent(event);
 }
 
-void ContainerContent::dropEvent( QGraphicsSceneDragDropEvent *event)
-{
-    HighlightStop();
+//void ContainerContent::dropEvent( QGraphicsSceneDragDropEvent *event)
+//{
+//    HighlightStop();
 
-    MsgObject msg;
-    TranslateMimeData(event->mimeData(), msg);
+//    MsgObject msg;
+//    TranslateMimeData(event->mimeData(), msg);
 
-//    ObjectDropZone::dropEvent(event);
-    dropPos = event->scenePos();
+////    ObjectDropZone::dropEvent(event);
+//    dropPos = event->scenePos();
 
-    msg.objIndex=GetIndex();
-    msg.prop["actionType"]="addInto";
-    msgCtrl->SendMsg(msg);
-//    event->setAccepted(model->dropMimeData(event->mimeData(), event->proposedAction(), 0, 0, objIndex));
-}
+
+////    event->setAccepted(model->dropMimeData(event->mimeData(), event->proposedAction(), 0, 0, objIndex));
+//}
 
 void ContainerContent::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)
 {

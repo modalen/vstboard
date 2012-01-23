@@ -90,6 +90,12 @@ int main(int argc, char *argv[])
     Settings *set = new Settings("",qApp);
     MainHostHost host(set);
     MainWindowHost w(set, &host);
+    host.connect(&host,SIGNAL(SendMsgSignal(MsgObject)),
+                &w,SLOT(ReceiveMsgSignal(MsgObject)),
+                 Qt::QueuedConnection);
+    host.connect(&w,SIGNAL(SendMsgSignal(MsgObject)),
+                &host,SLOT(ReceiveMsgSignal(MsgObject)),
+                 Qt::QueuedConnection);
     host.Open();
     w.readSettings();
     w.show();

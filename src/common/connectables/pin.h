@@ -25,6 +25,7 @@
 #include "../globals.h"
 #include "connectioninfo.h"
 #include "msghandler.h"
+#include "pinslist.h"
 
 #ifdef _MSC_VER
 #pragma warning( push )
@@ -65,7 +66,7 @@ namespace Connectables {
           */
         const ConnectionInfo &GetConnectionInfo() const {return connectInfo;}
 
-        virtual void SetParentModelIndex(const QModelIndex &newParent);
+        virtual void SetParentModelIndex(PinsList *list, const QModelIndex &newParent);
         void SetContainerId(quint16 id);
 
         /// \return true if visible
@@ -121,6 +122,8 @@ namespace Connectables {
 
         /// true if the value changes since the laste view update
         bool valueChanged;
+
+        PinsList *pinList;
 
     public slots:
         virtual void updateView();

@@ -34,13 +34,16 @@ public:
     MainHostHost(Settings *settings, QObject *parent = 0);
     ~MainHostHost();
     void SendMsg(const MsgObject &msg);
-    void SendMsg(const QString &type, const QVariant &data);
 
     AudioDevices *audioDevices;
     MidiDevices *midiDevices;
 
+signals:
+    void SendMsgSignal(const MsgObject &msg);
+
 public slots:
     void Render();
+    void ReceiveMsgSignal(const MsgObject &msg);
 };
 
 #endif // MAINHOSTHOST_H

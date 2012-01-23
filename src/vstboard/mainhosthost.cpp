@@ -52,10 +52,11 @@ void MainHostHost::Render()
 
 void MainHostHost::SendMsg(const MsgObject &msg)
 {
-    mainWindow->ReceiveMsg(msg);
+    emit SendMsgSignal(msg);
+//    mainWindow->ReceiveMsg(msg);
 }
 
-void MainHostHost::SendMsg(const QString &type, const QVariant &data)
+void MainHostHost::ReceiveMsgSignal(const MsgObject &msg)
 {
-    mainWindow->ReceiveMsg(type,data);
+    ReceiveMsg(msg);
 }

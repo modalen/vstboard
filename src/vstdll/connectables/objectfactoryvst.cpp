@@ -32,13 +32,8 @@ ObjectFactoryVst::ObjectFactoryVst(MainHost *myHost) :
 {
 }
 
-Object *ObjectFactoryVst::CreateOtherObjects(const ObjectInfo &info)
+Object *ObjectFactoryVst::CreateOtherObjects(const ObjectInfo &info, int objId)
 {
-    int objId = GetNewObjId();
-    if(info.forcedObjId) {
-        objId = info.forcedObjId;
-    }
-
     Object *obj=0;
 
     switch(info.nodeType) {

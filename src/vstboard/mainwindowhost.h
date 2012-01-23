@@ -36,7 +36,6 @@ public:
     MainWindowHost(Settings *settings, MainHostHost * myHost, QWidget *parent = 0);
     void readSettings();
     void SendMsg(const MsgObject &msg);
-    void SendMsg(const QString &type, const QVariant &data);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -45,9 +44,13 @@ protected:
     ListToolsModel *listAudioDevModel;
     ListToolsModel *listMidiDevModel;
 
+signals:
+    void SendMsgSignal(const MsgObject &msg);
+
 public slots:
     void UpdateAudioDevices();
     void UpdateMidiDevices();
+    void ReceiveMsgSignal(const MsgObject &msg);
 
 private slots:
     void on_actionConfig_triggered();

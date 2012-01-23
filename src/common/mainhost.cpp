@@ -32,6 +32,12 @@
 #include "views/configdialog.h"
 #include "msgobject.h"
 
+#include "commands/comaddobject.h"
+#include "commands/comremoveobject.h"
+#include "commands/comaddcable.h"
+#include "commands/comdisconnectpin.h"
+#include "commands/comremovepin.h"
+
 quint32 MainHost::currentFileVersion=PROJECT_AND_SETUP_FILE_VERSION;
 
 MainHost::MainHost(Settings *settings, QObject *parent) :
@@ -203,7 +209,7 @@ void MainHost::SetupHostContainer()
 
     bridge = objFactory->NewObject(in);
     hostContainer->AddObject( bridge );
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     hostContainer->bridgeIn = bridge;
 
     //bridge out
@@ -215,7 +221,7 @@ void MainHost::SetupHostContainer()
 
     bridge = objFactory->NewObject(out);
     hostContainer->AddObject( bridge );
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     hostContainer->bridgeOut = bridge;
 
     //connect with groupContainer
@@ -233,7 +239,7 @@ void MainHost::SetupHostContainer()
 
     bridge = objFactory->NewObject(send);
     hostContainer->AddObject( bridge );
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     hostContainer->bridgeSend = bridge;
 
     //return bridge
@@ -245,7 +251,7 @@ void MainHost::SetupHostContainer()
 
     bridge = objFactory->NewObject(retrn);
     hostContainer->AddObject( bridge );
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     hostContainer->bridgeReturn = bridge;
 
     //connect with projectContainer
@@ -301,7 +307,7 @@ void MainHost::SetupProjectContainer()
 
     bridge = objFactory->NewObject(in);
     projectContainer->AddObject( bridge );
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     projectContainer->bridgeIn = bridge;
 
     //bridge out
@@ -313,7 +319,7 @@ void MainHost::SetupProjectContainer()
 
     bridge = objFactory->NewObject(out);
     projectContainer->AddObject( bridge );
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     projectContainer->bridgeOut = bridge;
 
     //connect with hostContainer
@@ -332,7 +338,7 @@ void MainHost::SetupProjectContainer()
 
     bridge = objFactory->NewObject(send);
     projectContainer->AddObject( bridge );
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     projectContainer->bridgeSend = bridge;
 
     //bridge return
@@ -344,7 +350,7 @@ void MainHost::SetupProjectContainer()
 
     bridge = objFactory->NewObject(retrn);
     projectContainer->AddObject( bridge );
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     projectContainer->bridgeReturn = bridge;
 
     //connect with programContainer
@@ -406,7 +412,7 @@ void MainHost::SetupProgramContainer()
 
     bridge = objFactory->NewObject(in);
     programContainer->AddObject( bridge );
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     programContainer->bridgeIn = bridge;
 
     //bridge out
@@ -418,7 +424,7 @@ void MainHost::SetupProgramContainer()
 
     bridge = objFactory->NewObject(out);
     programContainer->AddObject( bridge );
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     programContainer->bridgeOut = bridge;
 
     //connect with projectContainer
@@ -437,7 +443,7 @@ void MainHost::SetupProgramContainer()
 
     bridge = objFactory->NewObject(send);
     programContainer->AddObject( bridge );
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     programContainer->bridgeSend = bridge;
 
     //bridge return
@@ -449,7 +455,7 @@ void MainHost::SetupProgramContainer()
 
     bridge = objFactory->NewObject(retrn);
     programContainer->AddObject( bridge );
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     programContainer->bridgeReturn = bridge;
 
     //connect with groupContainer
@@ -513,7 +519,7 @@ void MainHost::SetupGroupContainer()
 
     bridge = objFactory->NewObject(in);
     groupContainer->AddObject( bridge );
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     groupContainer->bridgeIn = bridge;
 
     //bridge out
@@ -525,7 +531,7 @@ void MainHost::SetupGroupContainer()
 
     bridge = objFactory->NewObject(out);
     groupContainer->AddObject( bridge );
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     groupContainer->bridgeOut = bridge;
 
     //connect with programContainer
@@ -543,7 +549,7 @@ void MainHost::SetupGroupContainer()
 
     bridge = objFactory->NewObject(send);
     groupContainer->AddObject( bridge );
-    bridge->SetBridgePinsOutVisible(false);
+//    bridge->SetBridgePinsOutVisible(false);
     groupContainer->bridgeSend = bridge;
 
     //bridge return
@@ -555,7 +561,7 @@ void MainHost::SetupGroupContainer()
 
     bridge = objFactory->NewObject(retrn);
     groupContainer->AddObject( bridge );
-    bridge->SetBridgePinsInVisible(false);
+//    bridge->SetBridgePinsInVisible(false);
     groupContainer->bridgeReturn = bridge;
 
     //connect with hostContainer
@@ -842,12 +848,12 @@ void MainHost::LoadSetupFile(const QString &filename)
     }
 
 
-    if(hostContainer) {
-        MsgObject a(0, FixedObjId::hostContainer);
-        a.prop["actionType"]="add";
-        hostContainer->GetInfos(a);
-        SendMsg(a);
-    }
+//    if(hostContainer) {
+//        MsgObject a(0, FixedObjId::hostContainer);
+//        a.prop["actionType"]="add";
+//        hostContainer->GetInfos(a);
+//        SendMsg(a);
+//    }
 
     emit currentFileChanged();
 }
@@ -877,30 +883,27 @@ void MainHost::LoadProjectFile(const QString &filename)
         ClearProject();
     }
 
-    MsgObject msg;
-    if(projectContainer) {
-        MsgObject a(0, FixedObjId::projectContainer);
-        a.prop["actionType"]="add";
-        projectContainer->GetInfos(a);
-        msg.children << a;
-    }
+//    if(projectContainer) {
+//        MsgObject a(0, FixedObjId::projectContainer);
+//        a.prop["actionType"]="add";
+//        projectContainer->GetInfos(a);
+//        SendMsg(a);
+//    }
 
-    if(groupContainer) {
-        MsgObject b(0, FixedObjId::groupContainer);
-        b.prop["actionType"]="add";
-        groupContainer->GetInfos(b);
-        msg.children << b;
-    }
+//    if(groupContainer) {
+//        MsgObject b(0, FixedObjId::groupContainer);
+//        b.prop["actionType"]="add";
+//        groupContainer->GetInfos(b);
+//        SendMsg(b);
+//    }
 
 
-    if(!programContainer) {
-        MsgObject c(0, FixedObjId::programContainer);
-        c.prop["actionType"]="add";
-        programContainer->GetInfos(c);
-        msg.children << c;
-    }
-
-    SendMsg(msg);
+//    if(programContainer) {
+//        MsgObject c(0, FixedObjId::programContainer);
+//        c.prop["actionType"]="add";
+//        programContainer->GetInfos(c);
+//        SendMsg(c);
+//    }
 
     emit currentFileChanged();
 }
@@ -1044,6 +1047,33 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
         return;
     }
 
+    if(msg.prop["actionType"]=="remove") {
+        QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(msg.objIndex);
+        if(!objPtr) {
+            LOG("obj not found")
+            return;
+        }
+
+
+        undoStack.push( new ComRemoveObject(this, objPtr, static_cast<RemoveType::Enum>(msg.prop["type"].toInt()) ) );
+        return;
+    }
+
+    if(msg.prop["actionType"]=="connectPins") {
+        undoStack.push( new ComAddCable(this, msg.prop["pin1"].value<ConnectionInfo>(), msg.prop["pin2"].value<ConnectionInfo>()) );
+        return;
+    }
+
+    if(msg.prop["actionType"]=="unplugPin") {
+        undoStack.push( new ComDisconnectPin(this, msg.prop["pin"].value<ConnectionInfo>() ) );
+        return;
+    }
+
+    if(msg.prop["actionType"]=="removePin") {
+        undoStack.push( new ComRemovePin(this, msg.prop["pin"].value<ConnectionInfo>() ) );
+        return;
+    }
+
     if(msg.prop.contains("filesToLoad")) {
         QStringList lstFiles = msg.prop["filesToLoad"].toStringList();
         foreach(const QString filename, lstFiles) {
@@ -1052,17 +1082,6 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
             if ( info.isFile() && info.isReadable() ) {
                 QString fileType(info.suffix().toLower());
 
-#ifdef VSTSDK
-                //vst plugin
-                if ( fileType=="dll" ) {
-                    continue;
-                }
-                //vst3 plugin
-                if ( fileType=="vst3" ) {
-                    continue;
-                }
-
-#endif
                 //setup file
                 if ( fileType==SETUP_FILE_EXTENSION ) {
                     LoadSetupFile(filename);
@@ -1083,9 +1102,34 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
         }
     }
 
-    if(msg.objIndex!=-1 && listObj.contains(msg.objIndex)) {
-        listObj.value(msg.objIndex)->ReceiveMsg(msg);
+    if(msg.prop.contains("objToLoad")) {
+
+        int insertType = msg.prop.value("actionType",-1).toInt();
+        QSharedPointer<Connectables::Object> senderObj = objFactory->GetObjectFromId( msg.objIndex );
+        if(!senderObj) {
+            LOG("obj not found")
+            return;
+        }
+        QSharedPointer<Connectables::Container> targetContainer;
+
+        if(senderObj->info().objType==ObjType::Container)
+            targetContainer = senderObj.staticCast<Connectables::Container>();
+        else
+            targetContainer = objFactory->GetObjectFromId( senderObj->GetContainerId() ).staticCast<Connectables::Container>();
+
+        QDataStream streamObj(&msg.prop.value("objToLoad").toByteArray(), QIODevice::ReadOnly);
+        while(!streamObj.atEnd()) {
+            ObjectInfo info;
+            info.fromStream(streamObj);
+            ComAddObject *com = new ComAddObject(this, info, targetContainer, senderObj, static_cast<InsertionType::Enum>(insertType) );
+            undoStack.push( com );
+        }
     }
+
+
+//    if(msg.objIndex!=-1 && listObj.contains(msg.objIndex)) {
+//        listObj.value(msg.objIndex)->ReceiveMsg(msg);
+//    }
 }
 
 void MainHost::ReceiveMsg(const QString &type, const QVariant &data)

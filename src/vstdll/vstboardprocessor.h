@@ -58,7 +58,6 @@ public:
         tresult PLUGIN_API notify (IMessage* message);
 
         void SendMsg(const MsgObject &msg);
-        void SendMsg(const QString &type, const QVariant &data);
 
 protected:
         QApplication *myApp;
