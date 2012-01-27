@@ -2,7 +2,7 @@
 #include "connectables/objectfactory.h"
 #include "connectables/container.h"
 #include "mainhost.h"
-#include "models/programsmodel.h"
+#include "programmanager.h"
 
 ComAddCable::ComAddCable(MainHost *myHost,
                          const ConnectionInfo &outInfo,
@@ -17,8 +17,8 @@ ComAddCable::ComAddCable(MainHost *myHost,
 {
     setText(QObject::tr("Add cable"));
 
-    currentGroup = myHost->programsModel->GetCurrentMidiGroup();
-    currentProg =  myHost->programsModel->GetCurrentMidiProg();
+    currentGroup = myHost->programManager->GetCurrentMidiGroup();
+    currentProg =  myHost->programManager->GetCurrentMidiProg();
 
     if(outInfo.direction==PinDirection::Input) {
         ConnectionInfo tmp(outInfo);
@@ -29,7 +29,7 @@ ComAddCable::ComAddCable(MainHost *myHost,
 
 void ComAddCable::undo ()
 {
-    myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
+    myHost->programManager->ChangeProgNow(currentGroup,currentProg);
 
     QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( inInfo.container ).staticCast<Connectables::Container>();
     if(!cntPtr)
@@ -39,7 +39,7 @@ void ComAddCable::undo ()
 
 void ComAddCable::redo ()
 {
-    myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
+    myHost->programManager->ChangeProgNow(currentGroup,currentProg);
 
     QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( inInfo.container ).staticCast<Connectables::Container>();
     if(!cntPtr)

@@ -49,7 +49,8 @@ MainHost::MainHost(Settings *settings, QObject *parent) :
     solverUpdateEnabled(true),
 //    mutexListCables(new QMutex(QMutex::Recursive)),
     settings(settings),
-    undoProgramChangesEnabled(false)
+    undoProgramChangesEnabled(false),
+    programManager(new ProgramManager(this))
 {
     doublePrecision=settings->GetSetting("doublePrecision",false).toBool();
 
@@ -130,6 +131,7 @@ MainHost::~MainHost()
 #endif
 
 //    delete mutexListCables;
+    delete programManager;
 }
 
 void MainHost::Open()
@@ -464,10 +466,10 @@ void MainHost::SetupProgramContainer()
         mainContainer->ConnectObjects(groupContainer->bridgeOut, programContainer->bridgeReturn,true);
     }
 
-    connect(programsModel, SIGNAL(ProgChanged(QModelIndex)),
-            programContainer.data(), SLOT(SetProgram(QModelIndex)));
-    connect(programsModel, SIGNAL(ProgDelete(QModelIndex)),
-            programContainer.data(), SLOT(RemoveProgram(QModelIndex)));
+    connect(programManager, SIGNAL(ProgChanged(quint32)),
+            programContainer.data(), SLOT(SetProgram(quint32)));
+    connect(programManager, SIGNAL(ProgDelete(quint32)),
+            programContainer.data(), SLOT(RemoveProgram(quint32)));
     connect(this,SIGNAL(Rendered()),
             programContainer.data(), SLOT(PostRender()));
 
@@ -570,10 +572,10 @@ void MainHost::SetupGroupContainer()
         mainContainer->ConnectObjects(hostContainer->bridgeOut, groupContainer->bridgeReturn,true);
     }
 
-    connect(programsModel, SIGNAL(GroupChanged(QModelIndex)),
-            groupContainer.data(), SLOT(SetProgram(QModelIndex)));
-    connect(programsModel, SIGNAL(GroupDelete(QModelIndex)),
-            groupContainer.data(), SLOT(RemoveProgram(QModelIndex)));
+    connect(programManager, SIGNAL(GroupChanged(quint32)),
+            groupContainer.data(), SLOT(SetProgram(quint32)));
+    connect(programManager, SIGNAL(GroupDelete(quint32)),
+            groupContainer.data(), SLOT(RemoveProgram(quint32)));
     connect(this,SIGNAL(Rendered()),
             groupContainer.data(), SLOT(PostRender()));
 

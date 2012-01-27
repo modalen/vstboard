@@ -134,7 +134,8 @@ bool ProjectFile::ToStream(MainHost *myHost,QDataStream &out, quint32 fileKey )
             //save ProgramList
             QByteArray tmpBa;
             QDataStream tmpStream( &tmpBa, QIODevice::ReadWrite);
-            tmpStream << *myHost->programsModel;
+//            tmpStream << *myHost->programsModel;
+            tmpStream << *myHost->programManager;
             SaveChunk( "ProgramList", tmpBa, out);
         }
 
@@ -211,7 +212,8 @@ bool ProjectFile::FromStream(MainHost *myHost,QDataStream &in)
         }
 
         else if(chunkName=="ProgramList") {
-            tmpStream >> *myHost->programsModel;
+//            tmpStream >> *myHost->programsModel;
+            tmpStream >> *myHost->programManager;
         }
 
         else if(chunkName=="HostView") {

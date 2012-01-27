@@ -20,7 +20,7 @@
 
 #include "maingraphicsview.h"
 #include "globals.h"
-#include "models/programsmodel.h"
+#include "programmanager.h"
 #include "viewconfig.h"
 
 //using namespace View;
@@ -228,12 +228,7 @@ void MainGraphicsView::SaveProgram()
     listPrograms.insert(currentProgId,state);
 }
 
-void MainGraphicsView::SetViewProgram(const QModelIndex &idx)
-{
-    SetViewProgram(idx.data(ProgramsModel::ProgramId).toInt());
-}
-
-void MainGraphicsView::SetViewProgram(int progId)
+void MainGraphicsView::SetViewProgram(quint32 progId)
 {
     if(progId!=currentProgId)
         SaveProgram();
@@ -254,16 +249,11 @@ void MainGraphicsView::SetViewProgram(int progId)
     verticalScrollBar()->setValue( state.scrolly );
 }
 
-void MainGraphicsView::RemoveViewProgram(const QModelIndex &idx)
+void MainGraphicsView::RemoveViewProgram(quint32 progId)
 {
-    RemoveViewProgram(idx.data(ProgramsModel::ProgramId).toInt());
-}
-
-void MainGraphicsView::RemoveViewProgram(int prg)
-{
-    if(!listPrograms.contains(prg))
+    if(!listPrograms.contains(progId))
         return;
-    listPrograms.remove(prg);
+    listPrograms.remove(progId);
 }
 
 void MainGraphicsView::ClearViewPrograms()

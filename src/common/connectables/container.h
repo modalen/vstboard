@@ -179,8 +179,8 @@ namespace Connectables {
         void UnloadProgram();
         void LoadProgram(int prog);
 
-        void SetProgram(const QModelIndex &idx);
-        void RemoveProgram(const QModelIndex &idx = QModelIndex());
+        void SetProgram(quint32 progId);
+        void RemoveProgram(quint32 progId=0);
         void PostRender();
 
         void SetBufferSize(unsigned long size);

@@ -140,6 +140,7 @@ namespace FixedObjId {
         groupContainerSend,
         groupContainerReturn,
         parkingContainer,
+        programsManager,
         noContainer=65535
     };
 }

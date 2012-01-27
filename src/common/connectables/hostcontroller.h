@@ -61,13 +61,13 @@ namespace Connectables {
         bool tapTrigger;
 
     signals:
-        void progChange(int prog);
-        void grpChange(int grp);
+        void progChange(quint16 prog);
+        void grpChange(quint16 grp);
         void tempoChange(int tempo, int sign1=0, int sign2=0);
 
     public slots:
-        void OnHostProgChanged(const QModelIndex &idx);
-        void OnHostGroupChanged(const QModelIndex &idx);
+        void OnHostMidiProgChanged(quint16 prg);
+        void OnHostMidiGroupChanged(quint16 grp);
         void OnHostTempoChange(int tempo, int sign1, int sign2);
         void OnParameterChanged(ConnectionInfo pinInfo, float value);
         void TapTempo();

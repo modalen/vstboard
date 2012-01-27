@@ -42,9 +42,6 @@ namespace View {
         void ProgramToStream (int progId, QDataStream &out);
         void ProgramFromStream (int progId, QDataStream &in);
 
-        void SetViewProgram(int progId);
-        void RemoveViewProgram(int prg);
-
         void SetViewConfig(View::ViewConfig *conf);
 
         QAction *actZoomIn;
@@ -82,8 +79,8 @@ namespace View {
         void zoomOut();
         void zoomReset();
         void ForceResize();
-        void SetViewProgram(const QModelIndex &idx);
-        void RemoveViewProgram(const QModelIndex &idx);
+        void SetViewProgram(quint32 progId);
+        void RemoveViewProgram(quint32 progId);
         void ClearViewPrograms();
         void UpdateKeyBinding();
     };

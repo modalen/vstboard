@@ -2,7 +2,7 @@
 #include "connectables/objectfactory.h"
 #include "connectables/container.h"
 #include "mainhost.h"
-#include "models/programsmodel.h"
+#include "programmanager.h"
 
 ComDisconnectPin::ComDisconnectPin(MainHost *myHost,
                                    const ConnectionInfo &pinInfo,
@@ -15,13 +15,13 @@ ComDisconnectPin::ComDisconnectPin(MainHost *myHost,
 {
     setText(QObject::tr("Disconnect pin"));
 
-    currentGroup = myHost->programsModel->GetCurrentMidiGroup();
-    currentProg =  myHost->programsModel->GetCurrentMidiProg();
+    currentGroup = myHost->programManager->GetCurrentMidiGroup();
+    currentProg =  myHost->programManager->GetCurrentMidiProg();
 }
 
 void ComDisconnectPin::undo ()
 {
-    myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
+    myHost->programManager->ChangeProgNow(currentGroup,currentProg);
 
     QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.container ).staticCast<Connectables::Container>();
     if(!cntPtr)
@@ -38,7 +38,7 @@ void ComDisconnectPin::undo ()
 
 void ComDisconnectPin::redo ()
 {
-    myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
+    myHost->programManager->ChangeProgNow(currentGroup,currentProg);
 
     QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.container ).staticCast<Connectables::Container>();
     if(!cntPtr)

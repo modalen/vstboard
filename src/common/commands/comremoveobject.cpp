@@ -1,7 +1,7 @@
 #include "comremoveobject.h"
 #include "mainhost.h"
 #include "connectables/container.h"
-#include "models/programsmodel.h"
+#include "programmanager.h"
 
 ComRemoveObject::ComRemoveObject( MainHost *myHost,
                                   const QSharedPointer<Connectables::Object> &objPtr,
@@ -22,13 +22,13 @@ ComRemoveObject::ComRemoveObject( MainHost *myHost,
 
     objectInfo = objPtr->info();
 
-    currentGroup = myHost->programsModel->GetCurrentMidiGroup();
-    currentProg =  myHost->programsModel->GetCurrentMidiProg();
+    currentGroup = myHost->programManager->GetCurrentMidiGroup();
+    currentProg =  myHost->programManager->GetCurrentMidiProg();
 }
 
 void ComRemoveObject::undo ()
 {
-    myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
+    myHost->programManager->ChangeProgNow(currentGroup,currentProg);
 
     //get the container
     QSharedPointer<Connectables::Container> container = ContainerPtr.toStrongRef();
@@ -72,7 +72,7 @@ void ComRemoveObject::undo ()
 
 void ComRemoveObject::redo()
 {
-    myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
+    myHost->programManager->ChangeProgNow(currentGroup,currentProg);
 
     //get the object
     QSharedPointer<Connectables::Object> obj = myHost->objFactory->GetObjectFromId( objectInfo.forcedObjId );

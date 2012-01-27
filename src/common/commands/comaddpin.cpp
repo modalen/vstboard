@@ -20,7 +20,7 @@
 
 #include "comaddpin.h"
 #include "mainhost.h"
-#include "models/programsmodel.h"
+#include "programmanager.h"
 
 ComAddPin::ComAddPin(MainHost *myHost,
                      const ConnectionInfo &pinInfo,
@@ -33,13 +33,13 @@ ComAddPin::ComAddPin(MainHost *myHost,
 {
     setText(QObject::tr("Add pin"));
 
-    currentGroup = myHost->programsModel->GetCurrentMidiGroup();
-    currentProg =  myHost->programsModel->GetCurrentMidiProg();
+    currentGroup = myHost->programManager->GetCurrentMidiGroup();
+    currentProg =  myHost->programManager->GetCurrentMidiProg();
 }
 
 void ComAddPin::undo ()
 {
-    myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
+    myHost->programManager->ChangeProgNow(currentGroup,currentProg);
 
     QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.container ).staticCast<Connectables::Container>();
     if(!cntPtr)
@@ -60,7 +60,7 @@ void ComAddPin::undo ()
 
 void ComAddPin::redo ()
 {
-    myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
+    myHost->programManager->ChangeProgNow(currentGroup,currentProg);
 
     QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.container ).staticCast<Connectables::Container>();
     if(!cntPtr)

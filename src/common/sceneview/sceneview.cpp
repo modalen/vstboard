@@ -88,15 +88,15 @@ SceneView::SceneView(MainHost *myHost, MainWindow *mainWindow, MainGraphicsView 
     viewProgram->setScene(sceneProgram);
     viewGroup->setScene(sceneGroup);
 
-    connect(myHost->programsModel,SIGNAL(ProgChanged(QModelIndex)),
-            viewProgram, SLOT(SetViewProgram(QModelIndex)));
-    connect(myHost->programsModel,SIGNAL(ProgDelete(QModelIndex)),
-            viewProgram, SLOT(RemoveViewProgram(QModelIndex)));
+    connect(myHost->programManager,SIGNAL(ProgChanged(quint32)),
+            viewProgram, SLOT(SetViewProgram(quint32)));
+    connect(myHost->programManager,SIGNAL(ProgDelete(quint32)),
+            viewProgram, SLOT(RemoveViewProgram(quint32)));
 
-    connect(myHost->programsModel,SIGNAL(GroupChanged(QModelIndex)),
-            viewGroup, SLOT(SetViewProgram(QModelIndex)));
-    connect(myHost->programsModel,SIGNAL(GroupDelete(QModelIndex)),
-            viewGroup, SLOT(RemoveViewProgram(QModelIndex)));
+    connect(myHost->programManager,SIGNAL(GroupChanged(quint32)),
+            viewGroup, SLOT(SetViewProgram(quint32)));
+    connect(myHost->programManager,SIGNAL(GroupDelete(quint32)),
+            viewGroup, SLOT(RemoveViewProgram(quint32)));
 }
 
 void SceneView::SetParkings(QWidget *progPark, QWidget *groupPark)

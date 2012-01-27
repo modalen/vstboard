@@ -32,6 +32,7 @@
 #include "models/hostmodel.h"
 #include "settings.h"
 #include "msgcontroller.h"
+#include "programmanager.h"
 
 #ifdef VSTSDK
     #include "vst/cvsthost.h"
@@ -102,6 +103,7 @@ public:
 
     HostModel * GetModel() {return model;}
     ProgramsModel *programsModel;
+    ProgramManager *programManager;
     Connectables::ObjectFactory *objFactory;
     MainWindow *mainWindow;
 

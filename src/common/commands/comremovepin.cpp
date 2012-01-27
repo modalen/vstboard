@@ -20,7 +20,7 @@
 
 #include "comremovepin.h"
 #include "mainhost.h"
-#include "models/programsmodel.h"
+#include "programmanager.h"
 
 ComRemovePin::ComRemovePin(MainHost *myHost,
                            const ConnectionInfo &pinInfo,
@@ -33,13 +33,13 @@ ComRemovePin::ComRemovePin(MainHost *myHost,
 {
     setText(QObject::tr("Remove pin"));
 
-    currentGroup = myHost->programsModel->GetCurrentMidiGroup();
-    currentProg =  myHost->programsModel->GetCurrentMidiProg();
+    currentGroup = myHost->programManager->GetCurrentMidiGroup();
+    currentProg =  myHost->programManager->GetCurrentMidiProg();
 }
 
 void ComRemovePin::undo ()
 {
-    myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
+    myHost->programManager->ChangeProgNow(currentGroup,currentProg);
 
     QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.container ).staticCast<Connectables::Container>();
     if(!cntPtr)
@@ -68,7 +68,7 @@ void ComRemovePin::undo ()
 
 void ComRemovePin::redo ()
 {
-    myHost->programsModel->ChangeProgNow(currentGroup,currentProg);
+    myHost->programManager->ChangeProgNow(currentGroup,currentProg);
 
     QSharedPointer<Connectables::Container>cntPtr = myHost->objFactory->GetObjectFromId( pinInfo.container ).staticCast<Connectables::Container>();
     if(!cntPtr)

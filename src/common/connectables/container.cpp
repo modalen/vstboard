@@ -185,9 +185,9 @@ void Container::Hide()
   Will change program on the next render loop
   \param prg a program model index
   */
-void Container::SetProgram(const QModelIndex &idx)
+void Container::SetProgram(quint32 progId)
 {
-    progToSet=idx.data(ProgramsModel::ProgramId).toInt();
+    progToSet=progId;
     if(progToSet == currentProgId) {
         progToSet=-1;
         return;
@@ -359,10 +359,10 @@ void Container::UnloadProgram()
 /*!
   Try to remove the program now, retry later if we try to remove the current program
   */
-void Container::RemoveProgram(const QModelIndex &idx)
+void Container::RemoveProgram(quint32 progId)
 {
-    if(idx.isValid())
-        listProgToRemove << idx.data(ProgramsModel::ProgramId).toInt();
+    if(progId>0)
+        listProgToRemove << progId;
 
     QList<int>remainingProgs;
 
