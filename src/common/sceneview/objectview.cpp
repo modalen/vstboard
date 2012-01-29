@@ -180,7 +180,11 @@ void ObjectView::ReceiveMsg(const MsgObject &msg)
 
     UpdateKeyBinding();
 
-    UpdateTitle(msg.prop.value("name","noname").toString());
+#ifndef QT_NO_DEBUG
+    UpdateTitle( QString("%1 (%2)").arg(msg.prop.value("name","noname").toString()).arg(msg.objIndex));
+#else
+    UpdateTitle( msg.prop.value("name","noname").toString());
+#endif
 }
 
 ///*!

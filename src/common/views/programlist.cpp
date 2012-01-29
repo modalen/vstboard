@@ -21,7 +21,8 @@
 #include "programlist.h"
 #include "mainhost.h"
 #include "ui_programlist.h"
-#include "models/programsmodel.h"
+//#include "models/programsmodel.h"
+#include "models/groupsprogramsmodel.h"
 #include "settings.h"
 
 ProgramList::ProgramList(QWidget *parent) :
@@ -37,7 +38,7 @@ ProgramList::~ProgramList()
     delete ui;
 }
 
-void ProgramList::SetModel(ProgramsModel *mod)
+void ProgramList::SetModel(GroupsProgramsModel *mod)
 {
     if(!mod)
         return;
@@ -45,6 +46,9 @@ void ProgramList::SetModel(ProgramsModel *mod)
     model=mod;
     ui->listGrps->setModel(model);
     ui->listProgs->setModel(model);
+
+    connect(ui->listGrps, SIGNAL(ShowProgList(QModelIndex)),
+            ui->listProgs, SLOT(setRootIndex(QModelIndex)));
 
     //from model
     connect(model,SIGNAL(ProgAutosaveChanged(Qt::CheckState)),

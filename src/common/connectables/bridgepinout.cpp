@@ -60,7 +60,7 @@ float BridgePinOut::GetValue()
     if(valueChanged) {
         if(value==1.0f) value=0.99f;
         else value=1.0f;
-        parent->getHost()->GetModel()->setData(modelIndex, valueType, UserRoles::type);
+//        parent->getHost()->GetModel()->setData(modelIndex, valueType, UserRoles::type);
     }
     return value;
 }

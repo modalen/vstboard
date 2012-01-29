@@ -136,7 +136,7 @@ namespace Connectables {
         virtual QDataStream & toStream (QDataStream &) const;
         virtual bool fromStream (QDataStream &);
         virtual void SetContainerId(quint16 id);
-        virtual QStandardItem * UpdateModelNode();
+//        virtual QStandardItem * UpdateModelNode();
 //        virtual void SetBridgePinsInVisible(bool visible);
 //        virtual void SetBridgePinsOutVisible(bool visible);
         virtual void RemoveProgram(int prg);
@@ -160,7 +160,7 @@ namespace Connectables {
         virtual QString GetParameterName(ConnectionInfo pinInfo) {return "";}
 
         /// the current model index
-        QPersistentModelIndex modelIndex;
+//        QPersistentModelIndex modelIndex;
 
         /// true if the object is parked (no rendering)
         bool parked;

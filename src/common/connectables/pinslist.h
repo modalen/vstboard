@@ -43,12 +43,13 @@ namespace Connectables {
         PinsList(MainHost *myHost, Object *parent);
         void SetContainerId(const quint16 id);
         void Hide();
-        void SetVisible(bool visible);
+//        void SetVisible(bool visible);
+        void EnableVuUpdates(bool enab);
         void ChangeNumberOfPins(int newNbIn);
         void SetBridge(bool bridge);
         void SetInfo(Object *parent,const ConnectionInfo &connInfo, const ObjectInfo &objInfo);
         Pin * GetPin(int pinNumber, bool autoCreate=false);
-        void UpdateModelNode(QStandardItem *parentNode=0);
+//        void UpdateModelNode(QStandardItem *parentNode=0);
         void ConnectAllTo(Container* container,PinsList *other, bool hidden=false);
         void AsyncAddPin(int nb);
         void AsyncRemovePin(int nb);
@@ -73,7 +74,7 @@ namespace Connectables {
 
     protected:
         int index;
-        QPersistentModelIndex modelList;
+//        QPersistentModelIndex modelList;
         Object *parent;
         MainHost *myHost;
         bool visible;

@@ -28,7 +28,7 @@ namespace Ui {
     class ProgramList;
 }
 
-class ProgramsModel;
+class GroupsProgramsModel;
 class Settings;
 class ProgramList : public QWidget
 {
@@ -38,14 +38,14 @@ public:
     explicit ProgramList(QWidget *parent = 0);
     ~ProgramList();
 
-    void SetModel(ProgramsModel *model);
+    void SetModel(GroupsProgramsModel *model);
     void writeSettings(Settings *settings);
     void readSettings(Settings *settings);
     void resetSettings();
 
 private:
     Ui::ProgramList *ui;
-    ProgramsModel *model;
+    GroupsProgramsModel *model;
     void SetAutosaveToolTip( QCheckBox *chkBox );
 
 signals:

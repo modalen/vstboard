@@ -158,7 +158,7 @@ void ContainerProgram::Unload()
         Connectables::Pin *pin = myHost->objFactory->GetPin(cab->GetInfoOut());
         if(pin)
             pin->RemoveCable(cab);
-        cab->RemoveFromParentNode(container->GetCablesIndex());
+//        cab->RemoveFromParentNode(container->GetCablesIndex());
     }
     foreach(QSharedPointer<Object> obj, listObjects) {
         if(!obj.isNull())
@@ -360,7 +360,7 @@ void ContainerProgram::RemoveCable(QSharedPointer<Cable>cab)
     if(listRemovedCablesIds)
         *listRemovedCablesIds << cab->GetIndex();
 
-    cab->RemoveFromParentNode(container->GetCablesIndex());
+//    cab->RemoveFromParentNode(container->GetCablesIndex());
     SetDirty();
     listCables.removeAll(cab);
     //    delete cab;

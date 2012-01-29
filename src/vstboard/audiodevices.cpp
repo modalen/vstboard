@@ -162,7 +162,7 @@ void AudioDevices::OpenDevices()
             if(info.objType == ObjType::AudioInterfaceOut)
                 static_cast<Connectables::AudioDeviceOut*>(obj.data())->SetParentDevice(newDevice);
             if(obj->Open()) {
-                obj->UpdateModelNode();
+//                obj->UpdateModelNode();
             } else {
                 static_cast<Connectables::Container*>(myHost->objFactory->GetObjectFromId( obj->GetContainerId() ).data())->UserParkObject( obj );
             }

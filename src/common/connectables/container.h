@@ -38,7 +38,7 @@ namespace Connectables {
         void Hide();
         void ConnectObjects(QSharedPointer<Object> fromObjOutputs, QSharedPointer<Object> toObjInputs, bool hiddenCables);
         void SetContainerId(quint16 id);
-        const QModelIndex &GetCablesIndex();
+//        const QModelIndex &GetCablesIndex();
 
         QDataStream & toStream (QDataStream &) const;
         bool fromStream (QDataStream &);

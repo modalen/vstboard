@@ -87,7 +87,7 @@ ListMidiInterfacesModel* MidiDevices::GetModel()
         if(obj->info().objType == ObjType::MidiInterface) {
 //            if(!obj->errorMessage.isEmpty())
                 obj->Open();
-            obj->UpdateModelNode();
+//            obj->UpdateModelNode();
         }
     }
 

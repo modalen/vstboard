@@ -29,7 +29,7 @@ class ProgListView : public GroupListView
     Q_OBJECT
 public:
     explicit ProgListView(QWidget *parent = 0);
-    void setModel(ProgramsModel *model);
+    void setModel(GroupsProgramsModel *model);
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event);
@@ -39,8 +39,8 @@ protected:
 
     QStringList MimeTypes();
 
-public slots:
-    void InsertItem();
+//public slots:
+//    void InsertItem();
 };
 
 #endif // PROGLISTVIEW_H

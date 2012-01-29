@@ -20,7 +20,7 @@
 //#include "precomp.h"
 #include "grouplistview.h"
 #include "globals.h"
-#include "models/programsmodel.h"
+#include "models/groupsprogramsmodel.h"
 
 GroupListView::GroupListView(QWidget *parent) :
     QListView(parent)
@@ -81,7 +81,7 @@ void GroupListView::CreateActions()
     addAction(actCut);
 }
 
-void GroupListView::setModel(ProgramsModel *model)
+void GroupListView::setModel(GroupsProgramsModel *model)
 {
     QListView::setModel(model);
 
@@ -89,19 +89,24 @@ void GroupListView::setModel(ProgramsModel *model)
             this,SLOT(SetCurrentNoSelect(QModelIndex)));
 
     connect(this, SIGNAL(clicked(QModelIndex)),
-            model, SLOT(UserChangeGroup(QModelIndex)));
+            model, SLOT(UserChangeProg(QModelIndex)));
+    connect(this, SIGNAL(clicked(QModelIndex)),
+            this, SLOT(SetCurrentNoSelect(QModelIndex)));
 }
 
 void GroupListView::SetCurrentNoSelect(const QModelIndex &index)
 {
+    emit ShowProgList(index);
     selectionModel()->setCurrentIndex(index, QItemSelectionModel::NoUpdate);
 }
 
 void GroupListView::dragEnterEvent(QDragEnterEvent *event)
 {
-    //accept programs, will add the at the end of the list
-    if(event->mimeData()->formats().contains(MIMETYPE_PROGRAM))
+    //accept programs, will add it at the end of the list
+    if(event->source() != this && event->mimeData()->formats().contains(MIMETYPE_PROGRAM)) {
         event->accept();
+        return;
+    }
 
     //default behavior
     QListView::dragEnterEvent(event);
@@ -122,13 +127,11 @@ void GroupListView::dragMoveEvent ( QDragMoveEvent * event )
     if(i.isValid() && event->mimeData()->formats().contains(MIMETYPE_PROGRAM)) {
 
         //show the group content
-        ProgramsModel *progModel = qobject_cast<ProgramsModel*>(model());
-        if(!progModel)
-            return;
-        progModel->UserChangeGroup( i );
-
-        setDropIndicatorShown(false);
-        selectionModel()->setCurrentIndex(i, QItemSelectionModel::NoUpdate);
+//        emit clicked(i);
+        emit ShowProgList(i);
+        event->accept();
+//        setDropIndicatorShown(false);
+//        selectionModel()->setCurrentIndex(i, QItemSelectionModel::NoUpdate);
         return;
     }
 
@@ -139,16 +142,17 @@ void GroupListView::dragMoveEvent ( QDragMoveEvent * event )
 void GroupListView::dropEvent(QDropEvent *event)
 {
     //allow program drop on a group
-    if(event->mimeData()->formats().contains(MIMETYPE_PROGRAM)) {
+    if(event->source() != this && event->mimeData()->formats().contains(MIMETYPE_PROGRAM)) {
         QModelIndex i = indexAt(event->pos());
         if(i.isValid()) {
             event->accept();
-            model()->dropMimeData( event->mimeData(), event->dropAction(), i.row(), 0, QModelIndex() );
+            model()->dropMimeData( event->mimeData(), event->dropAction(), -1, 0, i );
             return;
         }
     }
 
     //default behavior (reorder groups)
+//    setDragDropMode(InternalMove);
     QListView::dropEvent(event);
 }
 
@@ -177,27 +181,42 @@ void GroupListView::EditItem()
 
 void GroupListView::DeleteItem()
 {
-    ProgramsModel *progModel = qobject_cast<ProgramsModel*>(model());
-    if(!progModel)
+    QModelIndexList indexes = selectionModel()->selectedIndexes();
+    if(!indexes.isEmpty()) {
+        qSort(indexes.begin(), indexes.end());
+        while(!indexes.isEmpty()) {
+            model()->removeRow( indexes.takeLast().row(), rootIndex() );
+        }
         return;
+    }
 
-    if(!selectedIndexes().isEmpty())
-        progModel->UserRemoveRows(selectedIndexes(),rootIndex());
-    else if(currentIndex().isValid())
-        progModel->UserRemoveRows(QModelIndexList()<<currentIndex(),rootIndex());
+    if(currentIndex().isValid())
+        model()->removeRow( currentIndex().row(), rootIndex() );
+
+//    GroupsProgramsModel *progModel = qobject_cast<GroupsProgramsModel*>(model());
+//    if(!progModel)
+//        return;
+
+//    if(!selectedIndexes().isEmpty())
+//        progModel->UserRemoveGroup(selectedIndexes());
+//    else if(currentIndex().isValid())
+//        progModel->UserRemoveGroup(QModelIndexList()<<currentIndex());
 }
 
 void GroupListView::InsertItem()
 {
-    ProgramsModel *progModel = qobject_cast<ProgramsModel*>(model());
-    if(!progModel)
-        return;
+
+//    GroupsProgramsModel *progModel = qobject_cast<GroupsProgramsModel*>(model());
+//    if(!progModel)
+//        return;
 
     int row=-1;
     if(currentIndex().isValid())
         row=currentIndex().row();
 
-    progModel->UserAddGroup( row );
+    model()->insertRow(row,rootIndex());
+
+//    progModel->UserAddGroup( row );
 }
 
 void GroupListView::Copy()

@@ -39,7 +39,7 @@
 #endif
 
 class MainWindow;
-class ProgramsModel;
+//class ProgramsModel;
 class MainHost : public QObject, public MsgController
 {
 Q_OBJECT
@@ -71,7 +71,7 @@ public:
     void SetSetupDirtyFlag() { if(hostContainer) hostContainer->SetDirty(); }
 
     void ReceiveMsg(const MsgObject &msg);
-    void ReceiveMsg(const QString &type, const QVariant &data);
+//    void ReceiveMsg(const QString &type, const QVariant &data);
 
 
     inline void UpdateSolverNow() {
@@ -102,7 +102,7 @@ public:
     QTimer *updateViewTimer;
 
     HostModel * GetModel() {return model;}
-    ProgramsModel *programsModel;
+//    ProgramsModel *programsModel;
     ProgramManager *programManager;
     Connectables::ObjectFactory *objFactory;
     MainWindow *mainWindow;

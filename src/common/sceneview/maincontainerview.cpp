@@ -49,7 +49,7 @@ MainContainerView::~MainContainerView()
 
 void MainContainerView::showEvent(QShowEvent *event)
 {
-    LOG("container show event"<<GetIndex())
+//    LOG("container show event"<<GetIndex())
 }
 
 QPointF MainContainerView::GetDropPos()

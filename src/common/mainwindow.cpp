@@ -26,7 +26,7 @@
 #include "views/aboutdialog.h"
 #include "connectables/objectinfo.h"
 #include "views/viewconfigdialog.h"
-#include "models/programsmodel.h"
+//#include "models/programsmodel.h"
 #include "views/keybindingdialog.h"
 #include "msgobject.h"
 
@@ -42,7 +42,8 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
     viewConfigDlg(0),
     actUndo(0),
     actRedo(0),
-    settings(settings)
+    settings(settings),
+    progModel(new GroupsProgramsModel(this,this))
 {
     //myHost->mainWindow=this;
 //    connect(myHost,SIGNAL(programParkingModelChanged(QStandardItemModel*)),
@@ -60,6 +61,8 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
 
     //programs
 //    ui->Programs->SetModel( myHost->programsModel );
+    ui->Programs->SetModel(progModel);
+
 
     SetupBrowsersModels( ConfigDialog::defaultVstPath(settings), ConfigDialog::defaultBankPath(settings));
 
@@ -76,8 +79,8 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
 //    ui->treeHostModel->setModel(myHost->GetModel());
 
     setPalette( viewConfig->GetPaletteFromColorGroup( ColorGroups::Window, palette() ));
-//    connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
-//             myHost->programsModel, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
+    connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
+             progModel, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)) );
     connect( viewConfig, SIGNAL(ColorChanged(ColorGroups::Enum,Colors::Enum,QColor)),
              this, SLOT(UpdateColor(ColorGroups::Enum,Colors::Enum,QColor)));
 
@@ -101,6 +104,11 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
 
 void MainWindow::ReceiveMsg(const MsgObject &msg)
 {
+    if(msg.objIndex==FixedObjId::programsManager) {
+        progModel->ReceiveMsg(msg);
+        return;
+    }
+
     if(!mySceneView)
         return;
 //    LOG("addobj"<<msg.objIndex<<msg.parentIndex<<msg.prop)
@@ -109,10 +117,10 @@ void MainWindow::ReceiveMsg(const MsgObject &msg)
         ProcessMsg(msg.children);
 }
 
-void MainWindow::ReceiveMsg(const QString &type, const QVariant &data)
-{
-    ProcessMsg( data.value< ListMsgObj >() );
-}
+//void MainWindow::ReceiveMsg(const QString &type, const QVariant &data)
+//{
+//    ProcessMsg( data.value< ListMsgObj >() );
+//}
 
 void MainWindow::ProcessMsg(const ListMsgObj &lstMsg)
 {
@@ -175,7 +183,8 @@ MainWindow::~MainWindow()
     }
     if(ui)
         delete ui;
-
+    if(progModel)
+        delete progModel;
 }
 
 void MainWindow::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)

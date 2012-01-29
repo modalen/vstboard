@@ -23,13 +23,13 @@
 
 #include <QListView>
 
-class ProgramsModel;
+class GroupsProgramsModel;
 class GroupListView : public QListView
 {
     Q_OBJECT
 public:
     explicit GroupListView(QWidget *parent = 0);
-    virtual void setModel(ProgramsModel *model);
+    virtual void setModel(GroupsProgramsModel *model);
 
 protected:
     virtual void dragEnterEvent(QDragEnterEvent *event);
@@ -48,6 +48,9 @@ protected:
 
 private:
     void CreateActions();
+
+signals:
+    void ShowProgList(const QModelIndex &index);
 
 public slots:
     virtual void SetCurrentNoSelect(const QModelIndex &index);

@@ -110,7 +110,8 @@ SOURCES += \
     msghandler.cpp \
     msgcontroller.cpp \
     connectables/cursor.cpp \
-    programmanager.cpp
+    programmanager.cpp \
+    models/groupsprogramsmodel.cpp
 
 SOURCES += \
     views/programlist.cpp \
@@ -213,7 +214,8 @@ HEADERS += \
     msghandler.h \
     msgcontroller.h \
     connectables/cursor.h \
-    programmanager.h
+    programmanager.h \
+    models/groupsprogramsmodel.h
 
 HEADERS += \
     views/configdialog.h \

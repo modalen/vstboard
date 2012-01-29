@@ -204,8 +204,8 @@ void Object::Hide() {
   */
 void Object::setObjectName(const QString &name)
 {
-    if(modelIndex.isValid())
-        myHost->GetModel()->setData(modelIndex, name, Qt::DisplayRole);
+//    if(modelIndex.isValid())
+//        myHost->GetModel()->setData(modelIndex, name, Qt::DisplayRole);
 
     QObject::setObjectName(name);
 }
@@ -257,6 +257,9 @@ void Object::OnProgramDirty()
   */
 void Object::UnloadProgram()
 {
+    foreach(PinsList *lst, pinLists) {
+        lst->EnableVuUpdates(false);
+    }
     currentProgram=0;
     currentProgId=EMPTY_PROGRAM;
 }
@@ -282,7 +285,7 @@ void Object::LoadProgram(int prog)
 {
     //if prog is already loaded, update model
     if(prog==currentProgId && currentProgram) {
-        UpdateModelNode();
+//        UpdateModelNode();
         return;
     }
 
@@ -299,7 +302,10 @@ void Object::LoadProgram(int prog)
     currentProgram=listPrograms.value(currentProgId);
     currentProgram->Load(listParameterPinIn,listParameterPinOut);
 
-    UpdateModelNode();
+//    UpdateModelNode();
+    foreach(PinsList *lst, pinLists) {
+        lst->EnableVuUpdates(true);
+    }
 
     //if the loaded program was a temporary prog, delete it
     if(progWas==TEMP_PROGRAM) {
@@ -416,26 +422,26 @@ void Object::SetContainerId(quint16 id)
 /*!
   Update the view
   */
-QStandardItem * Object::UpdateModelNode()
-{
-    if(!modelIndex.isValid())
-        return 0;
+//QStandardItem * Object::UpdateModelNode()
+//{
+//    if(!modelIndex.isValid())
+//        return 0;
 
-    QStandardItem *modelNode = myHost->GetModel()->itemFromIndex(modelIndex);
-    if(!modelNode) {
-        LOG("node not found"<<modelIndex);
-        return 0;
-    }
+//    QStandardItem *modelNode = myHost->GetModel()->itemFromIndex(modelIndex);
+//    if(!modelNode) {
+//        LOG("node not found"<<modelIndex);
+//        return 0;
+//    }
 
-    modelNode->setData(QVariant::fromValue(objInfo), UserRoles::objInfo);
-    modelNode->setData(errorMessage, UserRoles::errorMessage);
+//    modelNode->setData(QVariant::fromValue(objInfo), UserRoles::objInfo);
+//    modelNode->setData(errorMessage, UserRoles::errorMessage);
 
-    foreach(PinsList *lst, pinLists) {
-        lst->UpdateModelNode(modelNode);
-    }
+//    foreach(PinsList *lst, pinLists) {
+//        lst->UpdateModelNode(modelNode);
+//    }
 
-    return modelNode;
-}
+//    return modelNode;
+//}
 
 /*!
   Called when a parameter pin has changed
@@ -487,19 +493,19 @@ LearningMode::Enum Object::GetLearningMode()
   */
 void Object::SetContainerAttribs(const ObjectContainerAttribs &attr)
 {
-    if(!modelIndex.isValid())
-        return;
+//    if(!modelIndex.isValid())
+//        return;
 
-    QStandardItem *item = myHost->GetModel()->itemFromIndex(modelIndex);
-    if(!item)
-        return;
+//    QStandardItem *item = myHost->GetModel()->itemFromIndex(modelIndex);
+//    if(!item)
+//        return;
 
-    item->setData(attr.position, UserRoles::position);
-    item->setData(attr.editorVisible, UserRoles::editorVisible);
-    item->setData(attr.editorPosition, UserRoles::editorPos);
-    item->setData(attr.editorSize, UserRoles::editorSize);
-    item->setData(attr.editorHScroll, UserRoles::editorHScroll);
-    item->setData(attr.editorVScroll, UserRoles::editorVScroll);
+//    item->setData(attr.position, UserRoles::position);
+//    item->setData(attr.editorVisible, UserRoles::editorVisible);
+//    item->setData(attr.editorPosition, UserRoles::editorPos);
+//    item->setData(attr.editorSize, UserRoles::editorSize);
+//    item->setData(attr.editorHScroll, UserRoles::editorHScroll);
+//    item->setData(attr.editorVScroll, UserRoles::editorVScroll);
 }
 
 /*!
@@ -508,15 +514,15 @@ void Object::SetContainerAttribs(const ObjectContainerAttribs &attr)
   */
 void Object::GetContainerAttribs(ObjectContainerAttribs &attr)
 {
-    if(!modelIndex.isValid())
-        return;
+//    if(!modelIndex.isValid())
+//        return;
 
-    attr.position = modelIndex.data(UserRoles::position).toPointF();
-    attr.editorVisible = modelIndex.data(UserRoles::editorVisible).toBool();
-    attr.editorPosition = modelIndex.data(UserRoles::editorPos).toPoint();
-    attr.editorSize = modelIndex.data(UserRoles::editorSize).toSize();
-    attr.editorHScroll = modelIndex.data(UserRoles::editorHScroll).toInt();
-    attr.editorVScroll = modelIndex.data(UserRoles::editorVScroll).toInt();
+//    attr.position = modelIndex.data(UserRoles::position).toPointF();
+//    attr.editorVisible = modelIndex.data(UserRoles::editorVisible).toBool();
+//    attr.editorPosition = modelIndex.data(UserRoles::editorPos).toPoint();
+//    attr.editorSize = modelIndex.data(UserRoles::editorSize).toSize();
+//    attr.editorHScroll = modelIndex.data(UserRoles::editorHScroll).toInt();
+//    attr.editorVScroll = modelIndex.data(UserRoles::editorVScroll).toInt();
 }
 
 /*!

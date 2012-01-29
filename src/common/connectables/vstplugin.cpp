@@ -792,7 +792,7 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
             SetInitDelay(pEffect->initialDelay);
             listAudioPinIn->ChangeNumberOfPins(pEffect->numInputs);
             listAudioPinOut->ChangeNumberOfPins(pEffect->numOutputs);
-            UpdateModelNode();
+//            UpdateModelNode();
             return  1L;
 
         case audioMasterNeedIdle : //14
@@ -915,7 +915,7 @@ bool VstPlugin::LoadBank(const QString &filename)
     if(!CEffect::LoadBank(&str))
         return false;
     onVstProgramChanged();
-    myHost->GetModel()->setData( modelIndex, filename, UserRoles::bankFile);
+//    myHost->GetModel()->setData( modelIndex, filename, UserRoles::bankFile);
     return true;
 }
 
@@ -943,7 +943,7 @@ bool VstPlugin::LoadProgram(const QString &filename)
     if(!CEffect::LoadProgram(&str))
         return false;
     onVstProgramChanged();
-    myHost->GetModel()->setData( modelIndex, filename, UserRoles::programFile);
+//    myHost->GetModel()->setData( modelIndex, filename, UserRoles::programFile);
     return true;
 }
 

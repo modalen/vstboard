@@ -84,60 +84,60 @@ void ProgramsModel::UserAddProgram(const QModelIndex &grpIndex, int row)
 
 bool ProgramsModel::AddGroup(QModelIndex &index, int row)
 {
-    int groupId = myHost->programsModel->GetNextGroupId();
+//    int groupId = myHost->programsModel->GetNextGroupId();
 
-    QString name("New grp");
+//    QString name("New grp");
 
-    //create the group
-    QStandardItem *groupItem = new QStandardItem( name );
-    groupItem->setData(GroupNode,NodeType);
-    groupItem->setData(groupId,ProgramId);
-#ifndef QT_NO_DEBUG
-    groupItem->setData(groupId,Qt::ToolTipRole);
-#endif
-    groupItem->setDragEnabled(true);
-    groupItem->setDropEnabled(false);
-    groupItem->setEditable(true);
+//    //create the group
+//    QStandardItem *groupItem = new QStandardItem( name );
+//    groupItem->setData(GroupNode,NodeType);
+//    groupItem->setData(groupId,ProgramId);
+//#ifndef QT_NO_DEBUG
+//    groupItem->setData(groupId,Qt::ToolTipRole);
+//#endif
+//    groupItem->setDragEnabled(true);
+//    groupItem->setDropEnabled(false);
+//    groupItem->setEditable(true);
 
-    if(row==-1)
-        row=rowCount();
-    insertRow( row, groupItem );
+//    if(row==-1)
+//        row=rowCount();
+//    insertRow( row, groupItem );
 
-    index = groupItem->index();
+//    index = groupItem->index();
 
     return true;
 }
 
 bool ProgramsModel::AddProgram(int groupNum, QModelIndex &index, int row)
 {
-    QStandardItem *groupItem = item(groupNum);
+//    QStandardItem *groupItem = item(groupNum);
 
-    //if the group was disabled re-enable it
-    if(groupItem->rowCount()==0) {
-        groupItem->setBackground(Qt::transparent);
-        groupItem->setToolTip("");
-    }
+//    //if the group was disabled re-enable it
+//    if(groupItem->rowCount()==0) {
+//        groupItem->setBackground(Qt::transparent);
+//        groupItem->setToolTip("");
+//    }
 
-    int progId = myHost->programsModel->GetNextProgId();
+//    int progId = myHost->programsModel->GetNextProgId();
 
-    QString name("New prog");
+//    QString name("New prog");
 
-    //create the program item
-    QStandardItem *prgItem = new QStandardItem( name );
-    prgItem->setData(ProgramNode,NodeType);
-    prgItem->setData(progId,ProgramId);
-#ifndef QT_NO_DEBUG
-    prgItem->setData(progId,Qt::ToolTipRole);
-#endif
-    prgItem->setDragEnabled(true);
-    prgItem->setDropEnabled(false);
-    prgItem->setEditable(true);
+//    //create the program item
+//    QStandardItem *prgItem = new QStandardItem( name );
+//    prgItem->setData(ProgramNode,NodeType);
+//    prgItem->setData(progId,ProgramId);
+//#ifndef QT_NO_DEBUG
+//    prgItem->setData(progId,Qt::ToolTipRole);
+//#endif
+//    prgItem->setDragEnabled(true);
+//    prgItem->setDropEnabled(false);
+//    prgItem->setEditable(true);
 
-    if(row==-1)
-        row=groupItem->rowCount();
-    groupItem->insertRow(row, prgItem);
+//    if(row==-1)
+//        row=groupItem->rowCount();
+//    groupItem->insertRow(row, prgItem);
 
-    index = prgItem->index();
+//    index = prgItem->index();
 
 //    ValidateProgChange(index);
 

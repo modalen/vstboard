@@ -7,8 +7,17 @@
 class Program
 {
 public:
+    ~Program() {
+        //delete prog in container
+    }
+
     quint32 id;
     QString name;
+
+    void GetInfos(MsgObject &msg) const {
+        msg.prop["name"]=name;
+        msg.prop["id"]=id;
+    }
 };
 
 class Group
@@ -16,6 +25,21 @@ class Group
 public:
     ~Group() {
         listPrograms.clear();
+
+        //delete prog in container
+    }
+
+    void GetInfos(MsgObject &msg) const {
+        msg.prop["name"]=name;
+        msg.prop["id"]=id;
+
+        int cpt=0;
+        foreach(const Program &prg, listPrograms) {
+            MsgObject msgProg(-1,cpt);
+            prg.GetInfos(msgProg);
+            msg.children << msgProg;
+            ++cpt;
+        }
     }
 
     quint32 id;
@@ -47,8 +71,23 @@ public:
     bool ChangeProgNow(int midiGroupNum, int midiProgNum);
     bool ValidateProgChange(int midiGroupNum, int midiProgNum);
 
+    bool userWantsToUnloadGroup();
+    bool userWantsToUnloadProgram();
+    bool userWantsToUnloadProject();
+    bool userWantsToUnloadSetup();
+
+    void BuildDefaultPrograms();
+
+    void ReceiveMsg(const MsgObject &msg);
+
 private:
-    void clear();
+    void Clear();
+    void UserChangeProg(quint16 prog, quint16 grp);
+    void ValidateMidiChange(quint16 prog, quint16 grp);
+    bool FindCurrentProg();
+
+    QTimer updateTimer;
+    bool orderChanged;
 
     QDataStream & toStream (QDataStream &out);
     QDataStream & fromStream (QDataStream &in);
@@ -65,6 +104,8 @@ private:
 
     quint16 currentMidiGroup;
     quint16 currentMidiProg;
+    quint32 currentGroupId;
+    quint32 currentProgId;
 
 signals:
     void ProgChanged(quint32 progId);
@@ -76,8 +117,10 @@ signals:
 
 public slots:
     void UserChangeGroup(quint16 grp);
-    void UserChangeProg(quint16 prog, quint16 grp);
     void UserChangeProg(quint16 prog);
+
+private slots:
+    void UpdateView();
 };
 
 QDataStream & operator<< (QDataStream& out, ProgramManager& value);

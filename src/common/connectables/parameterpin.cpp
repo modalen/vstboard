@@ -328,42 +328,42 @@ void ParameterPin::SetVisible(bool vis)
 
     Pin::SetVisible(vis);
 
-    if(modelIndex.isValid() && limitsEnabled) {
-        QStandardItem *pinItem = parent->getHost()->GetModel()->itemFromIndex(modelIndex);
-        if(!pinItem)
-            return;
+    if(limitsEnabled) {
+//        QStandardItem *pinItem = parent->getHost()->GetModel()->itemFromIndex(modelIndex);
+//        if(!pinItem)
+//            return;
 
-        ObjectInfo info;
-        info.nodeType=NodeType::cursor;
+//        ObjectInfo info;
+//        info.nodeType=NodeType::cursor;
 
 
-        QStandardItem *item = new QStandardItem("limitInMin");
-        info.objType=ObjType::limitInMin;
-        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-        item->setData(limitInMin->GetValue(),UserRoles::value);
-        pinItem->appendRow(item);
-        indexLimitInMin=item->index();
+//        QStandardItem *item = new QStandardItem("limitInMin");
+//        info.objType=ObjType::limitInMin;
+//        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
+//        item->setData(limitInMin->GetValue(),UserRoles::value);
+//        pinItem->appendRow(item);
+//        indexLimitInMin=item->index();
 
-        item = new QStandardItem("limitInMax");
-        info.objType=ObjType::limitInMax;
-        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-        item->setData(limitInMax->GetValue(),UserRoles::value);
-        pinItem->appendRow(item);
-        indexLimitInMax=item->index();
+//        item = new QStandardItem("limitInMax");
+//        info.objType=ObjType::limitInMax;
+//        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
+//        item->setData(limitInMax->GetValue(),UserRoles::value);
+//        pinItem->appendRow(item);
+//        indexLimitInMax=item->index();
 
-        item = new QStandardItem("limitOutMin");
-        info.objType=ObjType::limitOutMin;
-        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-        item->setData(limitOutMin->GetValue(),UserRoles::value);
-        pinItem->appendRow(item);
-        indexLimitOutMin=item->index();
+//        item = new QStandardItem("limitOutMin");
+//        info.objType=ObjType::limitOutMin;
+//        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
+//        item->setData(limitOutMin->GetValue(),UserRoles::value);
+//        pinItem->appendRow(item);
+//        indexLimitOutMin=item->index();
 
-        item = new QStandardItem("limitOutMax");
-        info.objType=ObjType::limitOutMax;
-        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
-        item->setData(limitOutMax->GetValue(),UserRoles::value);
-        pinItem->appendRow(item);
-        indexLimitOutMax=item->index();
+//        item = new QStandardItem("limitOutMax");
+//        info.objType=ObjType::limitOutMax;
+//        item->setData(QVariant::fromValue(info),UserRoles::objInfo);
+//        item->setData(limitOutMax->GetValue(),UserRoles::value);
+//        pinItem->appendRow(item);
+//        indexLimitOutMax=item->index();
     }
 }
 

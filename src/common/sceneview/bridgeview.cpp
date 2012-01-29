@@ -27,7 +27,6 @@ BridgeView::BridgeView(MainHost *myHost,MsgController *msgCtrl, int objId, QGrap
         lLayout(0)
 {
     setObjectName("bridgeView");
-
     setGeometry(QRectF(0,0,0,0));
 
     lLayout = new QGraphicsLinearLayout(Qt::Horizontal) ;

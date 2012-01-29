@@ -101,11 +101,11 @@ const QPointF BridgePinView::pinPos() const
     }
 }
 
-void BridgePinView::UpdateModelIndex(const QModelIndex &index)
+void BridgePinView::ReceiveMsg(const MsgObject &msg)
 {
-    float newVal=index.data(UserRoles::value).toFloat();
+    float newVal=msg.prop["value"].toFloat();
     value = std::max(value,newVal);
-    valueType = (PinType::Enum)index.data(UserRoles::type).toInt();
+//    valueType = (PinType::Enum)index.data(UserRoles::type).toInt();
 }
 
 void BridgePinView::updateVu()

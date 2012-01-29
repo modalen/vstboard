@@ -130,11 +130,11 @@ tresult PLUGIN_API VstBoardProcessor::notify (IMessage* message) {
     uint32 size;
     if (message->getAttributes ()->getBinary ("data", data, size) == kResultOk)
     {
-        if (!strcmp (message->getMessageID (), "msglist")) {
-            QByteArray ba((char*)data,size);
-            ReceiveMsg(message->getMessageID(),ba);
-            return kResultOk;
-        }
+//        if (!strcmp (message->getMessageID (), "msglist")) {
+//            QByteArray ba((char*)data,size);
+//            ReceiveMsg(message->getMessageID(),ba);
+//            return kResultOk;
+//        }
 
         if (!strcmp (message->getMessageID (), "msg")) {
             QByteArray ba((char*)data,size);

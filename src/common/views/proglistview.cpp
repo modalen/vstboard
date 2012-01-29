@@ -20,7 +20,7 @@
 #include "precomp.h"
 #include "proglistview.h"
 #include "globals.h"
-#include "models/programsmodel.h"
+#include "models/groupsprogramsmodel.h"
 
 ProgListView::ProgListView(QWidget *parent) :
     GroupListView(parent)
@@ -32,12 +32,12 @@ QStringList ProgListView::MimeTypes()
     return QStringList() << MIMETYPE_PROGRAM;
 }
 
-void ProgListView::setModel(ProgramsModel *model)
+void ProgListView::setModel(GroupsProgramsModel *model)
 {
     QListView::setModel(model);
 
-    connect(model, SIGNAL(GroupChanged(QModelIndex)),
-            this, SLOT(setRootIndex(QModelIndex)));
+//    connect(model, SIGNAL(GroupChanged(QModelIndex)),
+//            this, SLOT(setRootIndex(QModelIndex)));
     connect(model, SIGNAL(ProgChanged(QModelIndex)),
             this, SLOT(SetCurrentNoSelect(QModelIndex)));
 
@@ -92,15 +92,15 @@ void ProgListView::dropEvent(QDropEvent *event)
 //    progModel->UserChangeProg( current );
 //}
 
-void ProgListView::InsertItem()
-{
-    ProgramsModel *progModel = qobject_cast<ProgramsModel*>(model());
-    if(!progModel)
-        return;
+//void ProgListView::InsertItem()
+//{
+//    GroupsProgramsModel *progModel = qobject_cast<GroupsProgramsModel*>(model());
+//    if(!progModel)
+//        return;
 
-    int row=-1;
-    if(currentIndex().isValid())
-        row=currentIndex().row();
+//    int row=-1;
+//    if(currentIndex().isValid())
+//        row=currentIndex().row();
 
-    progModel->UserAddProgram( rootIndex(), row );
-}
+//    progModel->UserAddProgram( row );
+//}

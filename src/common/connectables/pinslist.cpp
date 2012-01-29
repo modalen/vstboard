@@ -74,19 +74,28 @@ void PinsList::SetInfo(Object *parent,const ConnectionInfo &connInfo, const Obje
     this->objInfo=objInfo;
 }
 
-void PinsList::SetVisible(bool v) {
-    visible=v;
+//void PinsList::SetVisible(bool v)
+//{
+//    visible=v;
+//    foreach(Pin* pin, listPins) {
+//        pin->SetVisible(visible);
+//    }
+//}
+
+void PinsList::EnableVuUpdates(bool enab)
+{
     foreach(Pin* pin, listPins) {
-        pin->SetVisible(visible);
+        pin->EnableVuUpdates(enab);
     }
 }
 
 void PinsList::SetBridge(bool bridge)
 {
+    connInfo.bridge=bridge;
     visible=!bridge;
     foreach(Pin* pin, listPins) {
         pin->SetBridge(bridge);
-//        pin->SetVisible(!bridge);
+        pin->SetVisible(visible);
     }
 }
 
@@ -120,7 +129,7 @@ AudioBuffer *PinsList::GetBuffer(int pinNumber)
 
 void PinsList::ConnectAllTo(Container* container, PinsList *other, bool hidden)
 {
-    QSharedPointer<Object>cntPtr = myHost->objFactory->GetObj(modelList.parent().parent());
+//    QSharedPointer<Object>cntPtr = myHost->objFactory->GetObj(modelList.parent().parent());
 
     QMap<quint16,Pin*>::Iterator i = listPins.begin();
     while(i!=listPins.end()) {
@@ -131,22 +140,22 @@ void PinsList::ConnectAllTo(Container* container, PinsList *other, bool hidden)
     }
 }
 
-void PinsList::UpdateModelNode(QStandardItem *parentNode)
-{
-    if(!modelList.isValid() && parentNode) {
-        QStandardItem *item = new QStandardItem("lstPins");
-        item->setData( QVariant::fromValue(objInfo) , UserRoles::objInfo);
-        parentNode->appendRow(item);
-        modelList=item->index();
-    }
+//void PinsList::UpdateModelNode(QStandardItem *parentNode)
+//{
+//    if(!modelList.isValid() && parentNode) {
+//        QStandardItem *item = new QStandardItem("lstPins");
+//        item->setData( QVariant::fromValue(objInfo) , UserRoles::objInfo);
+//        parentNode->appendRow(item);
+//        modelList=item->index();
+//    }
 
-    if(!modelList.isValid())
-        return;
+//    if(!modelList.isValid())
+//        return;
 
-    foreach(Pin* pin, listPins) {
-        pin->SetParentModelIndex(this,modelList);
-    }
-}
+//    foreach(Pin* pin, listPins) {
+//        pin->SetParentModelIndex(this,modelList);
+//    }
+//}
 
 void PinsList::AsyncAddPin(int nb)
 {
@@ -206,8 +215,9 @@ Pin * PinsList::AddPin(int nb)
     }
     listPins.insert(nb, newPin);
 
-    if(modelList.isValid())
-        newPin->SetParentModelIndex(this,modelList);
+    newPin->SetPinList(this);
+//    if(modelList.isValid())
+//        newPin->SetParentModelIndex(this,modelList);
 
     parent->OnProgramDirty();
     return newPin;

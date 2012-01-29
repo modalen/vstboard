@@ -23,7 +23,7 @@
 #include "views/splash.h"
 #include "audiodevices.h"
 #include "mididevices.h"
-#include "models/programsmodel.h"
+#include "programmanager.h"
 
 MainWindowHost::MainWindowHost(Settings *settings, MainHostHost * myHost, QWidget *parent) :
     MainWindow(settings,myHost,parent)
@@ -70,12 +70,12 @@ MainWindowHost::MainWindowHost(Settings *settings, MainHostHost * myHost, QWidge
 
 void MainWindowHost::closeEvent(QCloseEvent *event)
 {
-    if(!myHost->programsModel->userWantsToUnloadSetup()) {
+    if(!myHost->programManager->userWantsToUnloadSetup()) {
         event->ignore();
         return;
     }
 
-    if(!myHost->programsModel->userWantsToUnloadProject()) {
+    if(!myHost->programManager->userWantsToUnloadProject()) {
         event->ignore();
         return;
     }

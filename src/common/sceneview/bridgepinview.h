@@ -34,7 +34,7 @@ namespace View {
     public:
         BridgePinView(float angle, MsgController *ctrl,int objId, QGraphicsItem *parent, const ConnectionInfo &pinInfo, ViewConfig *config);
         const QPointF pinPos() const;
-        void UpdateModelIndex(const QModelIndex &index);
+        void ReceiveMsg(const MsgObject &msg);
 
 
     protected:

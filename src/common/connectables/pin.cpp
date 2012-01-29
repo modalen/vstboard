@@ -72,10 +72,11 @@ void Pin::SendMsg(const PinMessage::Enum msgType,void *data)
 {
     cablesMutex.lock();
     foreach(QSharedPointer<Cable>c, listCables) {
-        if(c)
+        if(c) {
             c->Render(msgType,data);
-        else
+        } else {
             listCables.removeAll(c);
+        }
     }
     cablesMutex.unlock();
 }
@@ -84,20 +85,26 @@ void Pin::SendMsg(const PinMessage::Enum msgType,void *data)
   Update the view with the new parent
   \param newParent
   */
-void Pin::SetParentModelIndex(PinsList *list, const QModelIndex &newParent)
+void Pin::SetPinList(PinsList *lst)
 {
-    pinList=list;
-
-    closed=false;
-
-    //moving from another parent (when does it happen ?)
-    if(parentIndex.isValid() && parentIndex != newParent) {
-        SetVisible(false);
-    }
-
-    parentIndex=newParent;
-    SetVisible(visible);
+    pinList=lst;
+    SetVisible(true);
 }
+
+//void Pin::SetParentModelIndex(PinsList *list, const QModelIndex &newParent)
+//{
+//    pinList=list;
+
+//    closed=false;
+
+//    //moving from another parent (when does it happen ?)
+//    if(parentIndex.isValid() && parentIndex != newParent) {
+//        SetVisible(false);
+//    }
+
+//    parentIndex=newParent;
+//    SetVisible(visible);
+//}
 
 /*!
   Set the new container id
@@ -118,8 +125,8 @@ void Pin::Close()
     if(parent && parent->getHost() && parent->getHost()->updateViewTimer )
         disconnect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
             this,SLOT(updateView()));
-    parentIndex=QModelIndex();
-    modelIndex=QModelIndex();
+//    parentIndex=QModelIndex();
+//    modelIndex=QModelIndex();
     closed=true;
 }
 
@@ -130,6 +137,22 @@ void Pin::Close()
 void Pin::SetBridge(bool bridge)
 {
     connectInfo.bridge=bridge;
+}
+
+void Pin::EnableVuUpdates(bool enab)
+{
+    if(!parent->getHost()->updateViewTimer)
+        return;
+
+    if(visible && enab) {
+        connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
+                this,SLOT(updateView()),
+                Qt::UniqueConnection);
+        return;
+    }
+
+    disconnect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
+            this,SLOT(updateView()));
 }
 
 /*!
@@ -145,37 +168,39 @@ void Pin::SetVisible(bool vis)
     if(closed)
         return;
 
-    if(!parentIndex.isValid())
-        return;
+//    if(!parentIndex.isValid())
+//        return;
 
-    if(visible && !modelIndex.isValid()) {
-        QStandardItem *item = new QStandardItem("pin");
-        item->setData(objectName(),Qt::DisplayRole);
-        item->setData(GetValue(),UserRoles::value);
-        item->setData( QVariant::fromValue(ObjectInfo(NodeType::pin)),UserRoles::objInfo);
-        item->setData(QVariant::fromValue(connectInfo),UserRoles::connectionInfo);
-        item->setData(stepSize,UserRoles::stepSize);
+    if(visible && pinList) { // && !modelIndex.isValid()) {
+//        QStandardItem *item = new QStandardItem("pin");
+//        item->setData(objectName(),Qt::DisplayRole);
+//        item->setData(GetValue(),UserRoles::value);
+//        item->setData( QVariant::fromValue(ObjectInfo(NodeType::pin)),UserRoles::objInfo);
+//        item->setData(QVariant::fromValue(connectInfo),UserRoles::connectionInfo);
+//        item->setData(stepSize,UserRoles::stepSize);
 
-        QStandardItem *parentItem = parent->getHost()->GetModel()->itemFromIndex(parentIndex);
-        parentItem->appendRow(item);
-        modelIndex = item->index();
+//        QStandardItem *parentItem = parent->getHost()->GetModel()->itemFromIndex(parentIndex);
+//        parentItem->appendRow(item);
+//        modelIndex = item->index();
 
         MsgObject msg(pinList->GetIndex(),GetIndex());
         msg.prop["actionType"]="add";
         GetInfos(msg);
         msgCtrl->SendMsg(msg);
 
-        connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
-                this,SLOT(updateView()),
-                Qt::UniqueConnection);
+        EnableVuUpdates(true);
+
+//        connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
+//                this,SLOT(updateView()),
+//                Qt::UniqueConnection);
     }
 
-    if(!visible && modelIndex.isValid()) {
+    if(!visible) {// && modelIndex.isValid()) {
         //        if(connectInfo.type!=PinType::Bridge) {
-                    disconnect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
-                            this,SLOT(updateView()));
+//                    disconnect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
+//                            this,SLOT(updateView()));
         //        }
-
+        EnableVuUpdates(false);
         //remove cables from pin
         QSharedPointer<Object> cnt = parent->getHost()->objFactory->GetObjectFromId(connectInfo.container);
         if(!cnt.isNull()) {
@@ -183,14 +208,15 @@ void Pin::SetVisible(bool vis)
         }
 
         //remove pin
-        if(modelIndex.isValid())
-            parent->getHost()->GetModel()->removeRow(modelIndex.row(), modelIndex.parent());
-        modelIndex=QModelIndex();
+//        if(modelIndex.isValid())
+//            parent->getHost()->GetModel()->removeRow(modelIndex.row(), modelIndex.parent());
+//        modelIndex=QModelIndex();
 
-        MsgObject msg(pinList->GetIndex(),GetIndex());
-        msg.prop["actionType"]="remove";
-        msgCtrl->SendMsg(msg);
-
+        if(pinList) {
+            MsgObject msg(pinList->GetIndex(),GetIndex());
+            msg.prop["actionType"]="remove";
+            msgCtrl->SendMsg(msg);
+        }
     }
 }
 
@@ -198,32 +224,32 @@ void Pin::SetVisible(bool vis)
   Update the view model
   Used when moved to a new container
   */
-void Pin::UpdateModelNode()
-{
-    QStandardItem *item = parent->getHost()->GetModel()->itemFromIndex(modelIndex);
-    if(!item) {
-        LOG("item not found"<<modelIndex);
-        return;
-    }
-    item->setData(objectName(),Qt::DisplayRole);
-    item->setData(GetValue(),UserRoles::value);
-    item->setData(QVariant::fromValue(ObjectInfo(NodeType::pin)),UserRoles::objInfo);
-    item->setData(QVariant::fromValue(connectInfo),UserRoles::connectionInfo);
-    item->setData(stepSize,UserRoles::stepSize);
-    modelIndex = item->index();
-    if(connectInfo.type!=PinType::Bridge) {
-        connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
-                this,SLOT(updateView()),
-                Qt::UniqueConnection);
-    }
-}
+//void Pin::UpdateModelNode()
+//{
+//    QStandardItem *item = parent->getHost()->GetModel()->itemFromIndex(modelIndex);
+//    if(!item) {
+//        LOG("item not found"<<modelIndex);
+//        return;
+//    }
+//    item->setData(objectName(),Qt::DisplayRole);
+//    item->setData(GetValue(),UserRoles::value);
+//    item->setData(QVariant::fromValue(ObjectInfo(NodeType::pin)),UserRoles::objInfo);
+//    item->setData(QVariant::fromValue(connectInfo),UserRoles::connectionInfo);
+//    item->setData(stepSize,UserRoles::stepSize);
+//    modelIndex = item->index();
+//    if(connectInfo.type!=PinType::Bridge) {
+//        connect(parent->getHost()->updateViewTimer,SIGNAL(timeout()),
+//                this,SLOT(updateView()),
+//                Qt::UniqueConnection);
+//    }
+//}
 
 /*!
   Update view values
   */
 void Pin::updateView()
 {
-    if(closed || !visible | !modelIndex.isValid()) {
+    if(closed || !visible) {
         return;
     }
 

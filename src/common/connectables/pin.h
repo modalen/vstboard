@@ -66,14 +66,16 @@ namespace Connectables {
           */
         const ConnectionInfo &GetConnectionInfo() const {return connectInfo;}
 
-        virtual void SetParentModelIndex(PinsList *list, const QModelIndex &newParent);
+        void SetPinList(PinsList *lst);
+//        virtual void SetParentModelIndex(PinsList *list, const QModelIndex &newParent);
         void SetContainerId(quint16 id);
 
         /// \return true if visible
         inline bool GetVisible() {return visible;}
         virtual void SetVisible(bool vis);
+        void EnableVuUpdates(bool enab);
         void SetBridge(bool bridge);
-        void UpdateModelNode();
+//        void UpdateModelNode();
         void Close();
 
         /*!
@@ -106,10 +108,10 @@ namespace Connectables {
         bool visible;
 
         /// index of the parent in the model
-        QPersistentModelIndex parentIndex;
+//        QPersistentModelIndex parentIndex;
 
         /// index of this pin in the model
-        QPersistentModelIndex modelIndex;
+//        QPersistentModelIndex modelIndex;
 
         /// global pin mutex
         QMutex objMutex;

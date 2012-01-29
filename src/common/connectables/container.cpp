@@ -67,29 +67,29 @@ Container::~Container()
   Get the cables model node (cables are in a child node)
   \return the node or an invalid index
   */
-const QModelIndex &Container::GetCablesIndex()
-{
-    // the node exists, return it
-    if(cablesNode.isValid())
-        return cablesNode;
+//const QModelIndex &Container::GetCablesIndex()
+//{
+//    // the node exists, return it
+//    if(cablesNode.isValid())
+//        return cablesNode;
 
-    // the container is parked or the node is not valid, return an invalid index
-    if(parked || !modelIndex.isValid()) {
-        cablesNode = QModelIndex();
-        return cablesNode;
-    }
+//    // the container is parked or the node is not valid, return an invalid index
+//    if(parked || !modelIndex.isValid()) {
+//        cablesNode = QModelIndex();
+//        return cablesNode;
+//    }
 
-    //create the cables node
-    QStandardItem *item = myHost->GetModel()->itemFromIndex(modelIndex);
-    if(!item) {
-        LOG("modelindex not found");
-        return cablesNode;
-    }
-    QStandardItem *cab = new QStandardItem("cables");
-    item->appendRow(cab);
-    cablesNode = cab->index();
-    return cablesNode;
-}
+//    //create the cables node
+//    QStandardItem *item = myHost->GetModel()->itemFromIndex(modelIndex);
+//    if(!item) {
+//        LOG("modelindex not found");
+//        return cablesNode;
+//    }
+//    QStandardItem *cab = new QStandardItem("cables");
+//    item->appendRow(cab);
+//    cablesNode = cab->index();
+//    return cablesNode;
+//}
 
 void Container::SetContainerId(quint16 id)
 {
@@ -205,9 +205,9 @@ void Container::NewRenderLoop()
 {
     Object::NewRenderLoop();
 
-    foreach(QSharedPointer<Object> obj, listStaticObjects) {
-        obj->NewRenderLoop();
-    }
+//    foreach(QSharedPointer<Object> obj, listStaticObjects) {
+//        obj->NewRenderLoop();
+//    }
 }
 
 void Container::PostRender()
@@ -245,7 +245,7 @@ void Container::LoadProgram(int prog)
 
     //if prog is already loaded, update model
     if(prog==currentProgId && currentContainerProgram) {
-        UpdateModelNode();
+//        UpdateModelNode();
         return;
     }
 
@@ -300,8 +300,8 @@ void Container::LoadProgram(int prog)
     if(optimizerFlag)
         currentContainerProgram->LoadRendererState();
 
-    if(modelIndex.isValid())
-        UpdateModelNode();
+//    if(modelIndex.isValid())
+//        UpdateModelNode();
 
     if(oldProg) {
         delete oldProg;
@@ -398,7 +398,7 @@ void Container::RemoveProgram(quint32 progId)
 void Container::AddObject(QSharedPointer<Object> objPtr)
 {
     objPtr->SetContainerId(GetIndex());
-    objPtr->UnloadProgram();
+//    objPtr->UnloadProgram();
 
     //bridges are not stored in program
     if(objPtr->info().nodeType == NodeType::bridge) {
@@ -629,18 +629,18 @@ void Container::GetListOfConnectedPinsTo(const ConnectionInfo &pin, QList<Connec
   */
 void Container::AddChildObject(QSharedPointer<Object> objPtr)
 {
-    if(!modelIndex.isValid()) {
-        LOG("index not valid");
-        return;
-    }
+//    if(!modelIndex.isValid()) {
+//        LOG("index not valid");
+//        return;
+//    }
 
-    if(objPtr->modelIndex.isValid() && objPtr->modelIndex.model()==&parkModel)
-        parkModel.removeRow(objPtr->modelIndex.row());
+//    if(objPtr->modelIndex.isValid() && objPtr->modelIndex.model()==&parkModel)
+//        parkModel.removeRow(objPtr->modelIndex.row());
 
-    QStandardItem *item = objPtr->GetFullItem();
+//    QStandardItem *item = objPtr->GetFullItem();
 
-    myHost->GetModel()->itemFromIndex( modelIndex )->appendRow(item);
-    objPtr->modelIndex=item->index();
+//    myHost->GetModel()->itemFromIndex( modelIndex )->appendRow(item);
+//    objPtr->modelIndex=item->index();
     objPtr->parked=false;
 
     if(objPtr->GetInitDelay()>0)
@@ -664,12 +664,12 @@ void Container::ParkChildObject(QSharedPointer<Object> objPtr)
 
     myHost->objFactory->listDelayObj.removeAll(objPtr->GetIndex());
 
-    if(objPtr->modelIndex.isValid() && objPtr->modelIndex.model()==myHost->GetModel())
-        myHost->GetModel()->removeRow(objPtr->modelIndex.row(), objPtr->modelIndex.parent());
+//    if(objPtr->modelIndex.isValid() && objPtr->modelIndex.model()==myHost->GetModel())
+//        myHost->GetModel()->removeRow(objPtr->modelIndex.row(), objPtr->modelIndex.parent());
 
-    QStandardItem *item = objPtr->GetParkingItem();
-    parkModel.invisibleRootItem()->appendRow(item);
-    objPtr->modelIndex=item->index();
+//    QStandardItem *item = objPtr->GetParkingItem();
+//    parkModel.invisibleRootItem()->appendRow(item);
+//    objPtr->modelIndex=item->index();
     objPtr->parked=true;
 
 
@@ -685,16 +685,16 @@ void Container::OnChildDeleted(QSharedPointer<Object>obj)
 {
     listLoadedObjects.removeAll(obj);
 
-    if(!obj->modelIndex.isValid())
-        return;
+//    if(!obj->modelIndex.isValid())
+//        return;
 
-    if(obj->parked) {
-        if(obj->modelIndex.model()==&parkModel)
-            parkModel.removeRow(obj->modelIndex.row());
-    } else {
-        if(obj->modelIndex.model()==myHost->GetModel())
-            myHost->GetModel()->removeRow(obj->modelIndex.row(), obj->modelIndex.parent());
-    }
+//    if(obj->parked) {
+//        if(obj->modelIndex.model()==&parkModel)
+//            parkModel.removeRow(obj->modelIndex.row());
+//    } else {
+//        if(obj->modelIndex.model()==myHost->GetModel())
+//            myHost->GetModel()->removeRow(obj->modelIndex.row(), obj->modelIndex.parent());
+//    }
 }
 
 void Container::UserAddCable(const ConnectionInfo &outputPin, const ConnectionInfo &inputPin)

@@ -33,7 +33,10 @@ namespace View {
         QGraphicsLinearLayout *layout;
         void UpdateCablesPosition();
         int GetPinPosition(int newPinNumber);
-        virtual void ReceiveMsg(const MsgObject &) {}
+        void ReceiveMsg(const MsgObject &msg) {}
+#ifndef QT_NO_DEBUG
+        void SetIndex(int id);
+#endif
     };
 }
 

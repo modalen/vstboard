@@ -85,11 +85,11 @@ tresult PLUGIN_API VstBoardController::notify (IMessage* message)
         if(!mainWindow)
             return kResultOk;
 
-        if (!strcmp (message->getMessageID (), "msglist")) {
-            QByteArray ba((char*)data,size);
-            mainWindow->ReceiveMsg(message->getMessageID(),ba);
-            return kResultOk;
-        }
+//        if (!strcmp (message->getMessageID (), "msglist")) {
+//            QByteArray ba((char*)data,size);
+//            mainWindow->ReceiveMsg(message->getMessageID(),ba);
+//            return kResultOk;
+//        }
 
         if (!strcmp (message->getMessageID (), "msg")) {
             QByteArray ba((char*)data,size);

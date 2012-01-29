@@ -29,6 +29,7 @@
 #include "views/keybind.h"
 #include "settings.h"
 #include "msgcontroller.h"
+#include "models/groupsprogramsmodel.h"
 
 namespace Ui {
     class MainWindow;
@@ -48,7 +49,7 @@ public:
     virtual void readSettings();
     void writeSettings();
     void ReceiveMsg(const MsgObject &msg);
-    void ReceiveMsg(const QString &type, const QVariant &data);
+//    void ReceiveMsg(const QString &type, const QVariant &data);
     void ProcessMsg(const ListMsgObj &lstMsg);
 
     View::SceneView *mySceneView;
@@ -82,6 +83,7 @@ protected:
     View::ViewConfigDialog *viewConfigDlg;
 
     QList<QWeakPointer<Connectables::Object> >listClosedEditors;
+    GroupsProgramsModel *progModel;
 
 public slots:
     void programParkingModelChanges(QStandardItemModel *model);

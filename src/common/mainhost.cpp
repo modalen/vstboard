@@ -19,7 +19,7 @@
 **************************************************************************/
 #include "mainhost.h"
 #include "mainwindow.h"
-#include "models/programsmodel.h"
+//#include "models/programsmodel.h"
 #include "connectables/container.h"
 
 #ifdef VSTSDK
@@ -84,7 +84,7 @@ MainHost::MainHost(Settings *settings, QObject *parent) :
 
     renderer = new Renderer(this);
 
-    programsModel = new ProgramsModel(this);
+//    programsModel = new ProgramsModel(this);
 
     //timer
     timeFromStart.start();
@@ -145,7 +145,7 @@ void MainHost::Open()
     SetupGroupContainer();
 
     EnableSolverUpdate(true);
-    programsModel->BuildDefaultModel();
+    programManager->BuildDefaultPrograms();
 }
 
 void MainHost::SetupMainContainer()
@@ -165,7 +165,7 @@ void MainHost::SetupMainContainer()
     mainContainer->LoadProgram(0);
     QStandardItem *item = mainContainer->GetFullItem();
     model->invisibleRootItem()->appendRow(item);
-    mainContainer->modelIndex=item->index();
+//    mainContainer->modelIndex=item->index();
     mainContainer->parked=false;
     mainContainer->listenProgramChanges=false;
 
@@ -196,7 +196,7 @@ void MainHost::SetupHostContainer()
 
     hostContainer->SetLoadingMode(true);
 
-    hostContainer->LoadProgram(0);
+//    hostContainer->LoadProgram(0);
     mainContainer->AddObject(hostContainer);
 
     QSharedPointer<Connectables::Object> bridge;
@@ -266,6 +266,11 @@ void MainHost::SetupHostContainer()
     if(projectContainer)
         hostContainer->childContainer=projectContainer;
 
+    MsgObject msg(0, FixedObjId::hostContainer);
+    msg.prop["actionType"]="add";
+    hostContainer->GetInfos(msg);
+    SendMsg(msg);
+
     hostContainer->SetLoadingMode(false);
     hostContainer->UpdateModificationTime();
     SetSolverUpdateNeeded();
@@ -295,7 +300,7 @@ void MainHost::SetupProjectContainer()
 
     projectContainer->SetLoadingMode(true);
 
-    projectContainer->LoadProgram(0);
+//    projectContainer->LoadProgram(0);
     mainContainer->AddObject(projectContainer);
 
     QSharedPointer<Connectables::Object> bridge;
@@ -372,6 +377,11 @@ void MainHost::SetupProjectContainer()
     if(groupContainer)
         projectContainer->childContainer=groupContainer;
 
+    MsgObject msg(0, FixedObjId::projectContainer);
+    msg.prop["actionType"]="add";
+    projectContainer->GetInfos(msg);
+    SendMsg(msg);
+
     projectContainer->SetLoadingMode(false);
     projectContainer->UpdateModificationTime();
     SetSolverUpdateNeeded();
@@ -400,7 +410,7 @@ void MainHost::SetupProgramContainer()
     programContainer->SetLoadingMode(true);
 
     programContainer->SetOptimizerFlag(true);
-    programContainer->LoadProgram(0);
+//    programContainer->LoadProgram(0);
     mainContainer->AddObject(programContainer);
 
     QSharedPointer<Connectables::Object> bridge;
@@ -480,6 +490,11 @@ void MainHost::SetupProgramContainer()
         programContainer->parentContainer=groupContainer;
     }
 
+    MsgObject msg(0, FixedObjId::programContainer);
+    msg.prop["actionType"]="add";
+    programContainer->GetInfos(msg);
+    SendMsg(msg);
+
     programContainer->SetLoadingMode(false);
     programContainer->UpdateModificationTime();
     SetSolverUpdateNeeded();
@@ -507,7 +522,7 @@ void MainHost::SetupGroupContainer()
 
     groupContainer->SetLoadingMode(true);
 
-    groupContainer->LoadProgram(0);
+//    groupContainer->LoadProgram(0);
     mainContainer->AddObject(groupContainer);
 
     QSharedPointer<Connectables::Object> bridge;
@@ -587,6 +602,11 @@ void MainHost::SetupGroupContainer()
         groupContainer->childContainer=programContainer;
         programContainer->parentContainer=groupContainer;
     }
+
+    MsgObject msg(0, FixedObjId::groupContainer);
+    msg.prop["actionType"]="add";
+    groupContainer->GetInfos(msg);
+    SendMsg(msg);
 
     groupContainer->SetLoadingMode(false);
     groupContainer->UpdateModificationTime();
@@ -826,7 +846,7 @@ void MainHost::LoadFile(const QString &filename)
 
 void MainHost::LoadSetupFile(const QString &filename)
 {
-    if(!programsModel->userWantsToUnloadSetup())
+    if(!programManager->userWantsToUnloadSetup())
         return;
 
     QString name = filename;
@@ -862,7 +882,7 @@ void MainHost::LoadSetupFile(const QString &filename)
 
 void MainHost::LoadProjectFile(const QString &filename)
 {
-    if(!programsModel->userWantsToUnloadProject())
+    if(!programManager->userWantsToUnloadProject())
         return;
 
     QString name = filename;
@@ -932,7 +952,7 @@ void MainHost::ReloadSetup()
 
 void MainHost::ClearSetup()
 {
-    if(!programsModel->userWantsToUnloadSetup())
+    if(!programManager->userWantsToUnloadSetup())
         return;
 
     undoStack.clear();
@@ -950,7 +970,7 @@ void MainHost::ClearSetup()
 
 void MainHost::ClearProject()
 {
-    if(!programsModel->userWantsToUnloadProject())
+    if(!programManager->userWantsToUnloadProject())
         return;
 
     undoStack.clear();
@@ -961,7 +981,7 @@ void MainHost::ClearProject()
     SetupGroupContainer();
     EnableSolverUpdate(true);
 
-    programsModel->BuildDefaultModel();
+    programManager->BuildDefaultPrograms();
 
     ConfigDialog::AddRecentProjectFile("",settings);
     currentProjectFile = "";
@@ -1025,6 +1045,11 @@ void MainHost::SaveProjectFile(bool saveAs)
 void MainHost::ReceiveMsg(const MsgObject &msg)
 {
 //    LOG(msg.objIndex << msg.prop)
+
+    if(msg.objIndex==FixedObjId::programsManager) {
+        programManager->ReceiveMsg(msg);
+        return;
+    }
 
     if(msg.prop["actionType"]=="getWithChildren") {
         QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(msg.objIndex);
@@ -1134,8 +1159,8 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
 //    }
 }
 
-void MainHost::ReceiveMsg(const QString &type, const QVariant &data)
-{
+//void MainHost::ReceiveMsg(const QString &type, const QVariant &data)
+//{
 //    if(type=="GetObjWithChildren") {
 //        QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(data.toInt());
 //        if(!objPtr) {
@@ -1152,6 +1177,5 @@ void MainHost::ReceiveMsg(const QString &type, const QVariant &data)
 //        SendMsg("ObjWithChildren",QVariant::fromValue(l));
 //        return;
 //    }
-
-}
+//}
 
