@@ -23,11 +23,11 @@
 
 #include <QUndoCommand>
 
-class ProgramsModel;
+class ProgramManager;
 class ComChangeAutosave : public QUndoCommand
 {
 public:
-    ComChangeAutosave(ProgramsModel *model,
+    ComChangeAutosave(ProgramManager *model,
                       int type,
                       Qt::CheckState newState,
                       QUndoCommand *parent=0);
@@ -36,7 +36,7 @@ public:
     void redo();
 
 private:
-    ProgramsModel *model;
+    ProgramManager *model;
     int type;
     Qt::CheckState oldState;
     Qt::CheckState newState;

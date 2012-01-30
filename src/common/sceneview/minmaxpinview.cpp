@@ -235,7 +235,7 @@ void MinMaxPinView::mousePressEvent(QGraphicsSceneMouseEvent *event)
         changingValue=true;
         startDragPos=event->pos();
         startDragValue=value;//pinIndex.data(UserRoles::value).toFloat();
-        grabMouse();
+//        grabMouse();
         return;
     }
 

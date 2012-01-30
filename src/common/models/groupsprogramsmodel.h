@@ -33,6 +33,8 @@ private:
 signals:
     void GroupChanged(const QModelIndex &idx);
     void ProgChanged(const QModelIndex &idx);
+    void ProgAutosaveChanged(const Qt::CheckState state);
+    void GroupAutosaveChanged(const Qt::CheckState state);
 
 public slots:
     void UserChangeProg(const QModelIndex &idx);
@@ -41,6 +43,8 @@ public slots:
 //    void UserAddGroup(const int row);
 //    void UserAddProgram(const int row);
     void UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color);
+    void UserChangeProgAutosave(const Qt::CheckState state);
+    void UserChangeGroupAutosave(const Qt::CheckState state);
 
 private slots:
     void SendUpdateToHost();

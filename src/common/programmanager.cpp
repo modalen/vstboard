@@ -2,6 +2,7 @@
 #include "mainhost.h"
 #include "commands/comdiscardchanges.h"
 #include "commands/comchangeprogram.h"
+#include "commands/comchangeautosave.h"
 
 ProgramManager::ProgramManager(MainHost *myHost) :
     QObject(myHost),
@@ -13,7 +14,8 @@ ProgramManager::ProgramManager(MainHost *myHost) :
     currentProgId(0),
     currentMidiGroup(0),
     currentMidiProg(0),
-    dirtyFlag(false)
+    dirtyFlag(false),
+    promptAnswer(-1)
 {
     updateTimer.setInterval(20);
     updateTimer.setSingleShot(true);
@@ -35,6 +37,14 @@ void ProgramManager::Clear()
 
 void ProgramManager::ReceiveMsg(const MsgObject &msg)
 {
+    if(msg.prop["actionType"]=="getFullState") {
+//        MsgObject msg(-1,GetIndex());
+
+//        msgCtrl->SendMsg(msg);
+//        updateTimer.start();
+//        return;
+    }
+
     if(msg.prop["actionType"]=="fullUpdate") {
 
         QList<Group> oldListGroups = listGroups;
@@ -91,6 +101,57 @@ void ProgramManager::ReceiveMsg(const MsgObject &msg)
     if(msg.prop.contains("currentProg")) {
         int prg = msg.prop["currentProg"].toInt();
         UserChangeProg(prg);
+    }
+
+    if(msg.prop.contains("promptAnswer")) {
+        promptAnswer=msg.prop["promptAnswer"].toInt();
+//        LOG(msg.prop)
+//        switch(msg.prop["answer"].toInt()) {
+//            case QMessageBox::Save:
+//                SetDirty();
+//                if(msg.prop["type"]=="group") {
+//                    myHost->groupContainer->SaveProgram();
+//                    ValidateProgChange(msg.prop["nextgroup"].toInt(),msg.prop["nextprog"].toInt());
+//                }
+//                if(msg.prop["type"]=="program") {
+//                    myHost->programContainer->SaveProgram();
+//                    ValidateProgChange(msg.prop["nextgroup"].toInt(),msg.prop["nextprog"].toInt());
+//                }
+//                if(msg.prop["type"]=="project") {
+//                    myHost->SaveProjectFile();
+//                }
+//                if(msg.prop["type"]=="setup") {
+//                    myHost->SaveSetupFile();
+//                }
+
+//                break;
+//            case QMessageBox::Discard:
+//                if(msg.prop["type"]=="group") {
+//                    myHost->groupContainer->SetDirty(false);
+//                    ValidateProgChange(msg.prop["nextgroup"].toInt(),msg.prop["nextprog"].toInt());
+//                }
+//                if(msg.prop["type"]=="program") {
+//                    myHost->programContainer->SetDirty(false);
+//                    ValidateProgChange(msg.prop["nextgroup"].toInt(),msg.prop["nextprog"].toInt());
+//                }
+//                if(msg.prop["type"]=="project") {
+//                    SetDirty(false);
+//                }
+//                if(msg.prop["type"]=="setup") {
+//                    myHost->hostContainer->SetDirty(false);
+//                }
+
+//                break;
+//            case QMessageBox::Cancel:
+//                break;
+//        }
+    }
+
+    if(msg.prop.contains("progAutosave")) {
+        myHost->undoStack.push( new ComChangeAutosave(this,1,static_cast<Qt::CheckState>(msg.prop["progAutosave"].toInt())) );
+    }
+    if(msg.prop.contains("groupAutosave")) {
+        myHost->undoStack.push( new ComChangeAutosave(this,0,static_cast<Qt::CheckState>(msg.prop["groupAutosave"].toInt())) );
     }
 
 //    if(msg.prop.contains("removeProg")) {
@@ -163,6 +224,9 @@ void ProgramManager::UpdateView()
             msg.children << msgGrp;
             ++cpt;
         }
+
+        msg.prop["groupAutosave"] = groupAutosaveState;
+        msg.prop["progAutosave"] = progAutosaveState;
     }
 
     msg.prop["currentGroup"]=currentMidiGroup;
@@ -219,7 +283,16 @@ bool ProgramManager::userWantsToUnloadGroup()
     }
 
     //prompt user
-
+    switch(WaitPromptAnswer(tr("group"))) {
+        case QMessageBox::Cancel:
+            return false;
+        case QMessageBox::Save:
+            myHost->groupContainer->SaveProgram();
+            SetDirty();
+            return true;
+        case QMessageBox::Discard:
+            return true;
+    }
     return true;
 }
 
@@ -241,7 +314,16 @@ bool ProgramManager::userWantsToUnloadProgram()
     }
 
     //prompt user
-
+    switch(WaitPromptAnswer(tr("program"))) {
+        case QMessageBox::Cancel:
+            return false;
+        case QMessageBox::Save:
+            myHost->programContainer->SaveProgram();
+            SetDirty();
+            return true;
+        case QMessageBox::Discard:
+            return true;
+    }
     return true;
 }
 
@@ -272,7 +354,14 @@ bool ProgramManager::userWantsToUnloadProject()
     }
 
     //prompt user
-
+    switch(WaitPromptAnswer(tr("project"))) {
+        case QMessageBox::Cancel:
+            return false;
+        case QMessageBox::Save:
+            return myHost->SaveProjectFile();
+        case QMessageBox::Discard:
+            return true;
+    }
     return true;
 }
 
@@ -295,9 +384,36 @@ bool ProgramManager::userWantsToUnloadSetup()
     }
 
     //prompt user
-
-
+    switch(WaitPromptAnswer(tr("setup"))) {
+        case QMessageBox::Cancel:
+            return false;
+        case QMessageBox::Save:
+            return myHost->SaveSetupFile();
+        case QMessageBox::Discard:
+            return true;
+    }
     return true;
+}
+
+int ProgramManager::WaitPromptAnswer(const QString &type)
+{
+    //prompt already opened
+    if(promptAnswer!=-1)
+        return QMessageBox::Cancel;
+
+    //ask
+    MsgObject msg(-1,GetIndex());
+    msg.prop["promptType"]=type;
+    msgCtrl->SendMsg(msg);
+
+    //wait for answer
+    while(promptAnswer==-1) {
+        qApp->processEvents();
+    }
+
+    int r=promptAnswer;
+    promptAnswer=-1;
+    return r;
 }
 
 void ProgramManager::UserChangeGroup(quint16 grp)
@@ -358,6 +474,9 @@ bool ProgramManager::ChangeProgNow(int midiGroupNum, int midiProgNum)
 
 bool ProgramManager::ValidateProgChange(int midiGroupNum, int midiProgNum)
 {
+    if(midiGroupNum<0 || midiProgNum<0)
+        return false;
+
     if(listGroups.count()<=midiGroupNum)
         midiGroupNum=0;
 
@@ -373,17 +492,17 @@ bool ProgramManager::ValidateProgChange(int midiGroupNum, int midiProgNum)
     if(listGroups[midiGroupNum].id==currentGroupId && listGroups[midiGroupNum].listPrograms[midiProgNum].id==currentProgId)
         return false;
 
-//    if(!userWantsToUnloadProgram()) {
+    if(!userWantsToUnloadProgram()) {
 //        emit ProgChanged( currentPrg );
-//        return false;
-//    }
+        return false;
+    }
 
     if(listGroups[midiGroupNum].id!=currentGroupId) {
 
-//        if(!userWantsToUnloadGroup()) {
+        if(!userWantsToUnloadGroup()) {
 //            emit ProgChanged( currentPrg );
-//            return false;
-//        }
+            return false;
+        }
 
         currentGroupId = listGroups[midiGroupNum].id;
         emit GroupChanged( currentGroupId );
@@ -453,8 +572,8 @@ QDataStream & ProgramManager::toStream (QDataStream &out)
 
     out << (quint16)currentMidiGroup;
     out << (quint16)currentMidiProg;
-    out << groupAutosaveState;
-    out << progAutosaveState;
+    out << (quint8)groupAutosaveState;
+    out << (quint8)progAutosaveState;
 
     SetDirty(false);
     return out;

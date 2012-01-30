@@ -185,8 +185,8 @@ public slots:
     void ReloadSetup();
     void ClearSetup();
     void ClearProject();
-    void SaveSetupFile(bool saveAs=false);
-    void SaveProjectFile(bool saveAs=false);
+    bool SaveSetupFile(bool saveAs=false);
+    bool SaveProjectFile(bool saveAs=false);
     void ChangeNbThreads(int nbThreads);
     void ResetDelays();
 

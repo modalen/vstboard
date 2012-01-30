@@ -38,7 +38,7 @@ public:
 
     tresult PLUGIN_API initialize (FUnknown* context);
     IPlugView* PLUGIN_API createView (const char* name);
-    void editorDestroyed (EditorView* editor) {}
+    void editorDestroyed (EditorView* ) {}
     void editorAttached (EditorView* editor);
     void editorRemoved (EditorView* editor);
     tresult PLUGIN_API notify (IMessage* message);

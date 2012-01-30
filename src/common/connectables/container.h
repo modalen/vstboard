@@ -66,8 +66,8 @@ namespace Connectables {
         bool IsDirty() {
             return currentContainerProgram->IsDirty();
         }
-        inline void SetDirty() {
-            currentContainerProgram->SetDirty();
+        inline void SetDirty(bool d=true) {
+            currentContainerProgram->SetDirty(d);
         }
         void SetSleep(bool sleeping);
 

@@ -128,6 +128,25 @@ void GroupsProgramsModel::ReceiveMsg(const MsgObject &msg)
         }
     }
 
+    if(msg.prop.contains("promptType")) {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Question);
+        msgBox.setText(tr("The %1 has been modified.").arg(msg.prop["promptType"].toString()));
+        msgBox.setInformativeText(tr("Do you want to save your changes?"));
+        msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Save);
+        MsgObject answer(-1,GetIndex());
+        answer.prop["promptAnswer"] = msgBox.exec();
+        msgCtrl->SendMsg(answer);
+    }
+
+    if(msg.prop.contains("progAutosave")) {
+        emit ProgAutosaveChanged( static_cast<Qt::CheckState>(msg.prop["progAutosave"].toInt()) );
+    }
+    if(msg.prop.contains("groupAutosave")) {
+        emit GroupAutosaveChanged( static_cast<Qt::CheckState>(msg.prop["groupAutosave"].toInt()) );
+    }
+
 //    if(msg.prop.contains("name")) {
 //        if(msg.prop.contains("prog")) {
 //            item( msg.prop["group"].toInt() )->child( msg.prop["prog"].toInt() )->setText( msg.prop["name"].toString() );
@@ -308,4 +327,18 @@ void GroupsProgramsModel::UpdateColor(ColorGroups::Enum groupId, Colors::Enum co
 QStringList GroupsProgramsModel::mimeTypes () const
 {
     return QStandardItemModel::mimeTypes() << MIMETYPE_PROGRAM << MIMETYPE_GROUP;
+}
+
+void GroupsProgramsModel::UserChangeProgAutosave(const Qt::CheckState state)
+{
+    MsgObject msg(-1,GetIndex());
+    msg.prop["progAutosave"]=state;
+    msgCtrl->SendMsg(msg);
+}
+
+void GroupsProgramsModel::UserChangeGroupAutosave(const Qt::CheckState state)
+{
+    MsgObject msg(-1,GetIndex());
+    msg.prop["groupAutosave"]=state;
+    msgCtrl->SendMsg(msg);
 }

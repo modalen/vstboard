@@ -65,8 +65,8 @@ namespace Connectables {
 //        void SendMsg(const ConnectionInfo &senderPin,const PinMessage::Enum msgType,void *data);
 
         bool IsDirty();
-        inline void SetDirty() {
-            dirty=true;
+        inline void SetDirty(bool d=true) {
+            dirty=d;
         }
 
         void SaveRendererState();

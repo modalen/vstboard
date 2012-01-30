@@ -626,7 +626,7 @@ void ProgramsModel::UserChangeProgAutosave(const Qt::CheckState state)
         SetDirty();
         emit ProgAutosaveChanged(progAutosaveState);
     } else {
-        myHost->undoStack.push( new ComChangeAutosave(this,1,state) );
+//        myHost->undoStack.push( new ComChangeAutosave(this,1,state) );
     }
 }
 
@@ -637,7 +637,7 @@ void ProgramsModel::UserChangeGroupAutosave(const Qt::CheckState state)
         SetDirty();
         emit GroupAutosaveChanged(groupAutosaveState);
     } else {
-        myHost->undoStack.push( new ComChangeAutosave(this,0,state) );
+//        myHost->undoStack.push( new ComChangeAutosave(this,0,state) );
     }
 }
 

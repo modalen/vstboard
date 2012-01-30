@@ -19,9 +19,9 @@
 **************************************************************************/
 
 #include "comchangeautosave.h"
-#include "models/programsmodel.h"
+#include "programmanager.h"
 
-ComChangeAutosave::ComChangeAutosave(ProgramsModel *model,
+ComChangeAutosave::ComChangeAutosave(ProgramManager *model,
                                      int type,
                                      Qt::CheckState newState,
                                      QUndoCommand *parent) :
@@ -42,24 +42,33 @@ ComChangeAutosave::ComChangeAutosave(ProgramsModel *model,
 
 void ComChangeAutosave::undo()
 {
-    model->fromCom=true;
+    MsgObject msg(-1,model->GetIndex());
+
     if(type==0) {
-        model->UserChangeGroupAutosave(oldState);
+        model->groupAutosaveState = oldState;
+        msg.prop["groupAutosave"] = oldState;
     }
     if(type==1) {
-        model->UserChangeProgAutosave(oldState);
+        model->progAutosaveState = oldState;
+        msg.prop["progAutosave"] = oldState;
     }
-    model->fromCom=false;
+
+    model->msgCtrl->SendMsg(msg);
 }
 
 void ComChangeAutosave::redo()
 {
-    model->fromCom=true;
+    MsgObject msg(-1,model->GetIndex());
+    msg.prop["state"]=newState;
+
     if(type==0) {
-        model->UserChangeGroupAutosave(newState);
+        model->groupAutosaveState = newState;
+        msg.prop["actionType"]="groupAutosave";
     }
     if(type==1) {
-        model->UserChangeProgAutosave(newState);
+        model->progAutosaveState = newState;
+        msg.prop["actionType"]="progAutosave";
     }
-    model->fromCom=false;
+
+    model->msgCtrl->SendMsg(msg);
 }

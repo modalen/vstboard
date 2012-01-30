@@ -99,13 +99,17 @@ private:
     quint16 nextGroupId;
     quint16 nextProgId;
     bool dirtyFlag;
-    quint8 groupAutosaveState;
-    quint8 progAutosaveState;
+    Qt::CheckState groupAutosaveState;
+    Qt::CheckState progAutosaveState;
 
     quint16 currentMidiGroup;
     quint16 currentMidiProg;
     quint32 currentGroupId;
     quint32 currentProgId;
+
+    int promptAnswer;
+
+    int WaitPromptAnswer(const QString &type);
 
 signals:
     void ProgChanged(quint32 progId);
@@ -121,6 +125,8 @@ public slots:
 
 private slots:
     void UpdateView();
+
+friend class ComChangeAutosave;
 };
 
 QDataStream & operator<< (QDataStream& out, ProgramManager& value);

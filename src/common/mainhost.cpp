@@ -988,7 +988,7 @@ void MainHost::ClearProject()
     emit currentFileChanged();
 }
 
-void MainHost::SaveSetupFile(bool saveAs)
+bool MainHost::SaveSetupFile(bool saveAs)
 {
     QString filename;
 
@@ -997,7 +997,7 @@ void MainHost::SaveSetupFile(bool saveAs)
         filename = QFileDialog::getSaveFileName(mainWindow, tr("Save Setup"), lastDir, tr("Setup Files (*.%1)").arg(SETUP_FILE_EXTENSION));
 
         if(filename.isEmpty())
-            return;
+            return false;
 
         if(!filename.endsWith(SETUP_FILE_EXTENSION, Qt::CaseInsensitive)) {
             filename += ".";
@@ -1013,9 +1013,11 @@ void MainHost::SaveSetupFile(bool saveAs)
         currentSetupFile = filename;
         emit currentFileChanged();
     }
+
+    return true;
 }
 
-void MainHost::SaveProjectFile(bool saveAs)
+bool MainHost::SaveProjectFile(bool saveAs)
 {
     QString filename;
 
@@ -1024,7 +1026,7 @@ void MainHost::SaveProjectFile(bool saveAs)
         filename = QFileDialog::getSaveFileName(mainWindow, tr("Save Project"), lastDir, tr("Project Files (*.%1)").arg(PROJECT_FILE_EXTENSION));
 
         if(filename.isEmpty())
-            return;
+            return false;
 
         if(!filename.endsWith(PROJECT_FILE_EXTENSION, Qt::CaseInsensitive)) {
             filename += ".";
@@ -1040,6 +1042,7 @@ void MainHost::SaveProjectFile(bool saveAs)
         currentProjectFile = filename;
         emit currentFileChanged();
     }
+    return true;
 }
 
 void MainHost::ReceiveMsg(const MsgObject &msg)
