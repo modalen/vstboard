@@ -47,6 +47,13 @@ PinsList::PinsList(MainHost *myHost, Object *parent) :
 //            this,SLOT(SetNbPins(int)));
 }
 
+PinsList::~PinsList()
+{
+    foreach(Pin* pin, listPins) {
+        pin->SetPinList(0);
+    }
+}
+
 void PinsList::SetContainerId(quint16 id)
 {
     connInfo.container=id;

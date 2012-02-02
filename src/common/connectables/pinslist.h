@@ -41,6 +41,7 @@ namespace Connectables {
 
     public:
         PinsList(MainHost *myHost, Object *parent);
+        virtual ~PinsList();
         void SetContainerId(const quint16 id);
         void Hide();
 //        void SetVisible(bool visible);

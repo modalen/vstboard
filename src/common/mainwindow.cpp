@@ -43,7 +43,9 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
     actUndo(0),
     actRedo(0),
     settings(settings),
-    progModel(new GroupsProgramsModel(this,this))
+    progModel(new GroupsProgramsModel(this,this)),
+    groupParking(0),
+    programParking(0)
 {
     //myHost->mainWindow=this;
 //    connect(myHost,SIGNAL(programParkingModelChanged(QStandardItemModel*)),
@@ -69,6 +71,11 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
     mySceneView = new View::SceneView(myHost, this, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
     mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
 //    mySceneView->setModel(myHost->GetModel());
+
+    groupParking = new ParkingModel(this, FixedObjId::groupParking);
+    ui->groupParkList->setModel(groupParking);
+    programParking = new ParkingModel(this, FixedObjId::programParking);
+    ui->programParkList->setModel(programParking);
 
 //    ui->solverView->setModel(myHost->GetRendererModel());
 //    connect(myHost->GetRendererModel(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
@@ -104,8 +111,18 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
 
 void MainWindow::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.objIndex==FixedObjId::programsManager) {
+    if(progModel && msg.objIndex==FixedObjId::programsManager) {
         progModel->ReceiveMsg(msg);
+        return;
+    }
+
+    if(groupParking && msg.objIndex==FixedObjId::groupParking) {
+        groupParking->ReceiveMsg(msg);
+        return;
+    }
+
+    if(programParking && msg.objIndex==FixedObjId::programParking) {
+        programParking->ReceiveMsg(msg);
         return;
     }
 
@@ -185,6 +202,10 @@ MainWindow::~MainWindow()
         delete ui;
     if(progModel)
         delete progModel;
+    if(groupParking)
+        delete groupParking;
+    if(programParking)
+        delete programParking;
 }
 
 void MainWindow::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color)
@@ -586,15 +607,15 @@ void MainWindow::openRecentProject()
     myHost->LoadProjectFile( action->data().toString() );
 }
 
-void MainWindow::programParkingModelChanges(QStandardItemModel *model)
-{
-    ui->programParkList->setModel(model);
-}
+//void MainWindow::programParkingModelChanges(QStandardItemModel *model)
+//{
+//    ui->programParkList->setModel(model);
+//}
 
-void MainWindow::groupParkingModelChanges(QStandardItemModel *model)
-{
-    ui->groupParkList->setModel(model);
-}
+//void MainWindow::groupParkingModelChanges(QStandardItemModel *model)
+//{
+//    ui->groupParkList->setModel(model);
+//}
 
 void MainWindow::on_actionRestore_default_layout_triggered()
 {

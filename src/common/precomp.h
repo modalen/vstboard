@@ -101,6 +101,7 @@
     #include <QtGui/QSplitter>
     #include <QStandardItemModel>
     #include <QStringList>
+    #include <QStringListModel>
     #include <QStyledItemDelegate>
     #include <QThread>
     #include <QTime>

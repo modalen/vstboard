@@ -111,7 +111,8 @@ SOURCES += \
     msgcontroller.cpp \
     connectables/cursor.cpp \
     programmanager.cpp \
-    models/groupsprogramsmodel.cpp
+    models/groupsprogramsmodel.cpp \
+    models/parkingmodel.cpp
 
 SOURCES += \
     views/programlist.cpp \
@@ -215,7 +216,8 @@ HEADERS += \
     msgcontroller.h \
     connectables/cursor.h \
     programmanager.h \
-    models/groupsprogramsmodel.h
+    models/groupsprogramsmodel.h \
+    models/parkingmodel.h
 
 HEADERS += \
     views/configdialog.h \

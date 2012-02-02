@@ -45,7 +45,8 @@ Container::Container(MainHost *myHost,int index, const ObjectInfo &info) :
     currentContainerProgram(0),
     cablesNode(QModelIndex()),
     progToSet(-1),
-    loadingMode(false)
+    loadingMode(false),
+    parkingId(-1)
 {
     parkModel.setObjectName("parkModel"%objectName());
     LoadProgram(TEMP_PROGRAM);
@@ -162,24 +163,24 @@ void Container::SetSleep(bool sleeping)
     }
 }
 
-void Container::Hide()
-{
-    cablesNode=QModelIndex();
+//void Container::Hide()
+//{
+//    cablesNode=QModelIndex();
 
-    if(currentContainerProgram) {
-        foreach(QSharedPointer<Object> objPtr, currentContainerProgram->listObjects) {
-            if(!objPtr.isNull())
-                objPtr->Hide();
-        }
-    }
-    foreach(QSharedPointer<Object> objPtr, listStaticObjects) {
-        if(!objPtr.isNull())
-            objPtr->Hide();
-    }
+//    if(currentContainerProgram) {
+//        foreach(QSharedPointer<Object> objPtr, currentContainerProgram->listObjects) {
+//            if(!objPtr.isNull())
+//                objPtr->Hide();
+//        }
+//    }
+//    foreach(QSharedPointer<Object> objPtr, listStaticObjects) {
+//        if(!objPtr.isNull())
+//            objPtr->Hide();
+//    }
 
-    Object::Hide();
+//    Object::Hide();
 
-}
+//}
 
 /*!
   Will change program on the next render loop
@@ -641,6 +642,13 @@ void Container::AddChildObject(QSharedPointer<Object> objPtr)
 
 //    myHost->GetModel()->itemFromIndex( modelIndex )->appendRow(item);
 //    objPtr->modelIndex=item->index();
+
+    if(parkingId!=-1) {
+        MsgObject msg(GetIndex(),parkingId);
+        msg.prop["removeObject"]=objPtr->GetIndex();
+        msgCtrl->SendMsg(msg);
+    }
+
     objPtr->parked=false;
 
     if(objPtr->GetInitDelay()>0)
@@ -663,6 +671,14 @@ void Container::ParkChildObject(QSharedPointer<Object> objPtr)
         return;
 
     myHost->objFactory->listDelayObj.removeAll(objPtr->GetIndex());
+
+    if(parkingId!=-1) {
+        MsgObject msg(GetIndex(),parkingId);
+        msg.prop["addObject"]=objPtr->GetIndex();
+//        msg.prop["name"]=objPtr->info().name;
+        msg.prop["objInfo"]=QVariant::fromValue(objPtr->info());
+        msgCtrl->SendMsg(msg);
+    }
 
 //    if(objPtr->modelIndex.isValid() && objPtr->modelIndex.model()==myHost->GetModel())
 //        myHost->GetModel()->removeRow(objPtr->modelIndex.row(), objPtr->modelIndex.parent());

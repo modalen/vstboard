@@ -183,8 +183,11 @@ bool ObjectDropZone::TranslateMimeData( const QMimeData * data, MsgObject &msg )
         int a=mod.rowCount();
         for(int i=0;i<a;i++) {
             QStandardItem *it = mod.invisibleRootItem()->child(i);
-            if(it->data(UserRoles::value).isValid()) {
-                stream << it->data(UserRoles::value).toInt();
+
+            if(it->data(UserRoles::objInfo).isValid()) {
+                ObjectInfo inf = it->data(UserRoles::objInfo).value<ObjectInfo>();
+                streamObj << inf;
+//                stream << it->data().toInt();
             }
         }
     }

@@ -160,7 +160,7 @@ bool Object::Close()
         return false;
 
     SetSleep(true);
-    Hide();
+//    Hide();
     closed=true;
 
     foreach(ObjectProgram *prg, listPrograms) {
@@ -175,11 +175,11 @@ bool Object::Close()
   Hide the object and all its pins
   \todo not used anymore except for bridges
   */
-void Object::Hide() {
-    foreach(PinsList *lst, pinLists) {
-        lst->Hide();
-    }
-}
+//void Object::Hide() {
+//    foreach(PinsList *lst, pinLists) {
+//        lst->Hide();
+//    }
+//}
 
 /*!
   Toggle visibility of input bridges pins

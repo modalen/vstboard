@@ -30,6 +30,7 @@
 #include "settings.h"
 #include "msgcontroller.h"
 #include "models/groupsprogramsmodel.h"
+#include "models/parkingmodel.h"
 
 namespace Ui {
     class MainWindow;
@@ -85,9 +86,12 @@ protected:
     QList<QWeakPointer<Connectables::Object> >listClosedEditors;
     GroupsProgramsModel *progModel;
 
+    ParkingModel *groupParking;
+    ParkingModel *programParking;
+
 public slots:
-    void programParkingModelChanges(QStandardItemModel *model);
-    void groupParkingModelChanges(QStandardItemModel *model);
+//    void programParkingModelChanges(QStandardItemModel *model);
+//    void groupParkingModelChanges(QStandardItemModel *model);
     void currentFileChanged();
     void OnViewConfigClosed();
     void LoadDefaultFiles();

@@ -130,7 +130,7 @@ namespace Connectables {
 
         virtual bool Open();
         virtual bool Close();
-        virtual void Hide();
+//        virtual void Hide();
         virtual Pin * GetPin(const ConnectionInfo &pinInfo);
         virtual void SetSleep(bool sleeping);
         virtual QDataStream & toStream (QDataStream &) const;

@@ -390,6 +390,10 @@ void MainHost::SetupProjectContainer()
 void MainHost::SetupProgramContainer()
 {
     if(!programContainer.isNull()) {
+        MsgObject msg(FixedObjId::programContainer, FixedObjId::programParking);
+        msg.prop["clear"]=1;
+        SendMsg(msg);
+
         mainContainer->ParkObject( programContainer );
         programContainer.clear();
         UpdateSolver(true);
@@ -407,6 +411,7 @@ void MainHost::SetupProgramContainer()
     if(programContainer.isNull())
         return;
 
+    programContainer->parkingId = FixedObjId::programParking;
     programContainer->SetLoadingMode(true);
 
     programContainer->SetOptimizerFlag(true);
@@ -483,7 +488,7 @@ void MainHost::SetupProgramContainer()
     connect(this,SIGNAL(Rendered()),
             programContainer.data(), SLOT(PostRender()));
 
-    emit programParkingModelChanged(&programContainer->parkModel);
+//    emit programParkingModelChanged(&programContainer->parkModel);
 
     if(groupContainer) {
         groupContainer->childContainer=programContainer;
@@ -503,6 +508,11 @@ void MainHost::SetupProgramContainer()
 void MainHost::SetupGroupContainer()
 {
     if(!groupContainer.isNull()) {
+        MsgObject msg(FixedObjId::groupContainer, FixedObjId::groupParking);
+        msg.prop["clear"]=1;
+        SendMsg(msg);
+
+
         mainContainer->ParkObject( groupContainer );
         groupContainer.clear();
         UpdateSolver(true);
@@ -520,6 +530,7 @@ void MainHost::SetupGroupContainer()
     if(groupContainer.isNull())
         return;
 
+    groupContainer->parkingId = FixedObjId::groupParking;
     groupContainer->SetLoadingMode(true);
 
 //    groupContainer->LoadProgram(0);
@@ -594,7 +605,7 @@ void MainHost::SetupGroupContainer()
     connect(this,SIGNAL(Rendered()),
             groupContainer.data(), SLOT(PostRender()));
 
-    emit groupParkingModelChanged(&groupContainer->parkModel);
+//    emit groupParkingModelChanged(&groupContainer->parkModel);
 
     if(projectContainer)
         projectContainer->childContainer=groupContainer;
@@ -1155,7 +1166,6 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
             undoStack.push( com );
         }
     }
-
 
 //    if(msg.objIndex!=-1 && listObj.contains(msg.objIndex)) {
 //        listObj.value(msg.objIndex)->ReceiveMsg(msg);

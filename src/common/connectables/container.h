@@ -35,7 +35,7 @@ namespace Connectables {
         Container(MainHost *myHost,int index, const ObjectInfo &info);
         virtual ~Container();
 
-        void Hide();
+//        void Hide();
         void ConnectObjects(QSharedPointer<Object> fromObjOutputs, QSharedPointer<Object> toObjInputs, bool hiddenCables);
         void SetContainerId(quint16 id);
 //        const QModelIndex &GetCablesIndex();
@@ -115,6 +115,8 @@ namespace Connectables {
         void NewRenderLoop();
 
         void GetInfos(MsgObject &msg);
+
+        int parkingId;
 
     protected:
         void AddChildObject(QSharedPointer<Object> objPtr);
