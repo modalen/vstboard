@@ -30,6 +30,7 @@ class AudioBuffer
 public:
         AudioBuffer(bool doublePrecision, bool externAlloc);
         ~AudioBuffer();
+        void SetBufferPointer(void *pt) {if(!externAlloc)return; pBuffer=pt;}
         bool SetSize(long size, bool forceRealloc=false);
         void AddToStack(const AudioBuffer * buff);
         void SetBufferContent(float *buff, int count);

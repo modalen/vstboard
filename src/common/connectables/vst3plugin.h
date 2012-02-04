@@ -5,7 +5,9 @@
 #include "pluginterfaces/base/ipluginbase.h"
 #include "pluginterfaces/vst/ivstcomponent.h"
 #include "pluginterfaces/vst/ivsteditcontroller.h"
+#include "pluginterfaces/vst/ivstaudioprocessor.h"
 #include "public.sdk/source/vst/hosting/processdata.h"
+#include "public.sdk/source/vst/hosting/parameterchanges.h"
 
 namespace Connectables {
 
@@ -26,13 +28,19 @@ private:
     Steinberg::Vst::IComponent* processorComponent;
     Steinberg::Vst::IEditController* editController;
     Steinberg::Vst::IAudioProcessor* audioEffect;
-    bool hasEditor;
     Steinberg::Vst::HostProcessData processData;
+    Steinberg::Vst::ParameterChanges vstParamChanges;
+    QMap<qint32,qint32>listParamQueue;
+
+    bool hasEditor;
 
     QList<QVariant>listEditorVisible;
     QList<QVariant>listIsLearning;
     QList<QVariant>listBypass;
     QList<QVariant>listValues;
+
+public slots:
+    void OnParameterChanged(ConnectionInfo pinInfo, float value);
 };
 }
 #endif // VST3PLUGIN_H

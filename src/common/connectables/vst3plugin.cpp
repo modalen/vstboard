@@ -1,5 +1,4 @@
 #include "vst3plugin.h"
-#include "pluginterfaces/vst/ivstaudioprocessor.h"
 #include "pluginterfaces/vst/ivsthostapplication.h"
 #include "mainhost.h"
 
@@ -141,6 +140,7 @@ bool Vst3Plugin::Open()
             for(qint32 j=0; j<busInfo.channelCount; j++) {
                 Pin *p = listAudioPinIn->AddPin(cpt++);
                 p->setObjectName( QString::fromUtf16(busInfo.name) );
+                static_cast<AudioPin*>(p)->GetBuffer()->SetBufferPointer(processData.inputs[i].channelBuffers32[j]);
             }
         }
     }
@@ -153,6 +153,7 @@ bool Vst3Plugin::Open()
             for(qint32 j=0; j<busInfo.channelCount; j++) {
                 Pin *p = listAudioPinOut->AddPin(cpt++);
                 p->setObjectName( QString::fromUtf16(busInfo.name) );
+                static_cast<AudioPin*>(p)->GetBuffer()->SetBufferPointer(processData.outputs[i].channelBuffers32[j]);
             }
         }
     }
@@ -189,10 +190,11 @@ bool Vst3Plugin::Open()
             if (result == kResultOk) {
                 Pin *p=0;
                 if(paramInfo.flags & Vst::ParameterInfo::kIsReadOnly) {
-                    p = listParameterPinOut->AddPin(paramInfo.id);
+                    p = listParameterPinOut->AddPin(cpt++);
                 } else {
-                    p = listParameterPinIn->AddPin(paramInfo.id);
+                    p = listParameterPinIn->AddPin(cpt++);
                 }
+                p->setObjectName( QString::fromUtf16(paramInfo.title) );
             }
         }
     }
@@ -222,6 +224,8 @@ bool Vst3Plugin::Close()
 
 void Vst3Plugin::Unload()
 {
+    processData.unprepare();
+
     if(processorComponent) {
         processorComponent->setActive(false);
         processorComponent->terminate();
@@ -257,43 +261,56 @@ void Vst3Plugin::Render()
     if(!audioEffect)
         return;
 
+    QMutexLocker lock(&objMutex);
 
-    //input buffers
-    qint32 cpt=0;
-    qint32 numBusIn = processorComponent->getBusCount(Vst::kAudio, Vst::kInput);
-    for (qint32 busIndex = 0; busIndex < numBusIn; busIndex++) {
-        Vst::BusInfo busInfo = {0};
-        if(processorComponent->getBusInfo(Vst::kAudio, Vst::kInput, busIndex, busInfo) == kResultTrue) {
-            for(qint32 channelIndex=0; channelIndex<busInfo.channelCount; channelIndex++) {
-                Pin *pin = listAudioPinIn->GetPin(cpt++);
-                float *buf = (float*)static_cast<AudioPin*>(pin)->GetBuffer()->ConsumeStack();
-                processData.inputs[busIndex].channelBuffers32[channelIndex] = buf;
-            }
-        }
+    foreach(Pin *pin, listAudioPinIn->listPins) {
+        static_cast<AudioPin*>(pin)->GetBuffer()->ConsumeStack();
     }
+    foreach(Pin *pin, listAudioPinOut->listPins) {
+        static_cast<AudioPin*>(pin)->GetBuffer()->GetPointerWillBeFilled();
+    }
+
+//    qint32 cpt=0;
+//    qint32 numBusIn = processorComponent->getBusCount(Vst::kAudio, Vst::kInput);
+//    for (qint32 busIndex = 0; busIndex < numBusIn; busIndex++) {
+//        Vst::BusInfo busInfo = {0};
+//        if(processorComponent->getBusInfo(Vst::kAudio, Vst::kInput, busIndex, busInfo) == kResultTrue) {
+//            for(qint32 channelIndex=0; channelIndex<busInfo.channelCount; channelIndex++) {
+//                Pin *pin = listAudioPinIn->GetPin(cpt++);
+//                float *buf = (float*)static_cast<AudioPin*>(pin)->GetBuffer()->ConsumeStack();
+//                processData.inputs[busIndex].channelBuffers32[channelIndex] = buf;
+//            }
+//        }
+//    }
 
     //output buffers
-    cpt=0;
-    qint32 numBusOut = processorComponent->getBusCount(Vst::kAudio, Vst::kOutput);
-    for (qint32 busIndex = 0; busIndex < numBusOut; busIndex++) {
-        Vst::BusInfo busInfo = {0};
-        if(processorComponent->getBusInfo(Vst::kAudio, Vst::kOutput, busIndex, busInfo) == kResultTrue) {
-            for(qint32 channelIndex=0; channelIndex<busInfo.channelCount; channelIndex++) {
-                Pin *pin = listAudioPinOut->GetPin(cpt++);
-                float *buf = (float*)static_cast<AudioPin*>(pin)->GetBuffer()->GetPointerWillBeFilled();
-                processData.outputs[busIndex].channelBuffers32[channelIndex] = buf;
-            }
-        }
-    }
+//    cpt=0;
+//    qint32 numBusOut = processorComponent->getBusCount(Vst::kAudio, Vst::kOutput);
+//    for (qint32 busIndex = 0; busIndex < numBusOut; busIndex++) {
+//        Vst::BusInfo busInfo = {0};
+//        if(processorComponent->getBusInfo(Vst::kAudio, Vst::kOutput, busIndex, busInfo) == kResultTrue) {
+//            for(qint32 channelIndex=0; channelIndex<busInfo.channelCount; channelIndex++) {
+//                Pin *pin = listAudioPinOut->GetPin(cpt++);
+//                float *buf = (float*)static_cast<AudioPin*>(pin)->GetBuffer()->GetPointerWillBeFilled();
+//                processData.outputs[busIndex].channelBuffers32[channelIndex] = buf;
+//            }
+//        }
+//    }
 
-
+    processData.inputParameterChanges = &vstParamChanges;
 
     audioEffect->setProcessing (true);
     tresult result = audioEffect->process (processData);
     if (result != kResultOk) {
-        LOG("error processing")
+        LOG("error while processing")
     }
     audioEffect->setProcessing (false);
+
+//    for(int32 i=0; i<vstParamChanges.getParameterCount(); i++) {
+//        delete vstParamChanges.getParameterData(i);
+//    }
+    vstParamChanges.clearQueue();
+    listParamQueue.clear();
 
     //send result
     //=========================
@@ -303,8 +320,48 @@ void Vst3Plugin::Render()
     }
 }
 
+void Vst3Plugin::OnParameterChanged(ConnectionInfo pinInfo, float value)
+{
+    Object::OnParameterChanged(pinInfo,value);
+
+    if(closed)
+        return;
+
+    if(pinInfo.direction == PinDirection::Input) {
+        if(pinInfo.pinNumber==FixedPinNumber::vstProgNumber) {
+            return;
+        }
+        if(pinInfo.pinNumber==FixedPinNumber::bypass) {
+            return;
+        }
+
+        objMutex.lock();
+        Vst::IParamValueQueue* queue=0;
+        if(listParamQueue.contains(pinInfo.pinNumber)) {
+            queue = vstParamChanges.getParameterData( listParamQueue[pinInfo.pinNumber] );
+        } else {
+            int32 idx=0;
+
+            Vst::ParameterInfo paramInfo = {0};
+            tresult result = editController->getParameterInfo (pinInfo.pinNumber, paramInfo);
+            if(result==kResultOk) {
+                queue = vstParamChanges.addParameterData(paramInfo.id, idx);
+                listParamQueue.insert(pinInfo.pinNumber,idx);
+            }
+        }
+
+        int32 pIdx=0;
+        queue->addPoint(0, value, pIdx);
+        objMutex.unlock();
+    }
+}
+
 Pin* Vst3Plugin::CreatePin(const ConnectionInfo &info)
 {
+    if(info.type == PinType::Audio) {
+        return new AudioPin(this,info.direction,info.pinNumber,myHost->GetBufferSize(),doublePrecision,true);
+    }
+
     Pin *newPin = Object::CreatePin(info);
     if(newPin)
         return newPin;
@@ -325,12 +382,12 @@ Pin* Vst3Plugin::CreatePin(const ConnectionInfo &info)
                 return new ParameterPinIn(this,info.pinNumber,"On",&listBypass);
             default : {
                 ParameterPin *pin=0;
-                Vst::ParameterInfo paramInfo = {0};
-                tresult result = editController->getParameterInfo (info.pinNumber, paramInfo);
-                if(closed || result!=kResultOk) {
-                    pin = new ParameterPinIn(this,info.pinNumber,0,"",true,hasEditor);
+//                Vst::ParameterInfo paramInfo = {0};
+//                tresult result = editController->getParameterInfo (info.pinNumber, paramInfo);
+                if(info.direction==PinDirection::Output) {
+                    pin = new ParameterPinOut(this,info.pinNumber,0,"",hasEditor,hasEditor);
                 } else {
-                    pin = new ParameterPinIn(this,paramInfo.id,paramInfo.defaultNormalizedValue,QString::fromUtf16(paramInfo.title),hasEditor,hasEditor);
+                    pin = new ParameterPinIn(this,info.pinNumber,0,"",hasEditor,hasEditor);
                 }
                 pin->SetDefaultVisible(!hasEditor);
                 return pin;

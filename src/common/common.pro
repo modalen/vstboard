@@ -49,7 +49,8 @@ vstsdk {
         $$VSTSDK_PATH/public.sdk/source/vst/vsteditcontroller.cpp \
         $$VSTSDK_PATH/public.sdk/source/vst/vstinitiids.cpp \
         $$VSTSDK_PATH/public.sdk/source/vst/hosting/hostclasses.cpp \
-        $$VSTSDK_PATH/public.sdk/source/vst/hosting/processdata.cpp
+        $$VSTSDK_PATH/public.sdk/source/vst/hosting/processdata.cpp \
+        $$VSTSDK_PATH/public.sdk/source/vst/hosting/parameterchanges.cpp
 
     FORMS += views/vstpluginwindow.ui \
         views/vstshellselect.ui

@@ -1171,7 +1171,7 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
         else
             targetContainer = objFactory->GetObjectFromId( senderObj->GetContainerId() ).staticCast<Connectables::Container>();
 
-        QDataStream streamObj(&(msg.prop.value("objToLoad").toByteArray()), QIODevice::ReadOnly);
+        QDataStream streamObj(&msg.prop.value("objToLoad").toByteArray(), QIODevice::ReadOnly);
         while(!streamObj.atEnd()) {
             ObjectInfo info;
             info.fromStream(streamObj);
