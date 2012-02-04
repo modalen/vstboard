@@ -28,7 +28,9 @@ namespace Ui {
 }
 
 namespace Connectables {
+    class Object;
     class VstPlugin;
+    class Vst3Plugin;
 }
 
 namespace View {
@@ -51,7 +53,7 @@ namespace View {
         void resizeEvent ( QResizeEvent * event );
         void showEvent ( QShowEvent * event );
         void closeEvent ( QCloseEvent * event );
-        Connectables::VstPlugin *plugin;
+        Connectables::Object *plugin;
 
         QModelIndex modelIndex;
 

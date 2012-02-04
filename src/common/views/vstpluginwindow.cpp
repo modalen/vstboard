@@ -20,16 +20,19 @@
 
 #include "vstpluginwindow.h"
 #include "ui_vstpluginwindow.h"
-#include "../connectables/vstplugin.h"
-#include "../mainhost.h"
+#include "connectables/vstplugin.h"
+//#include "connectables/vst3plugin.h"
+#include "mainhost.h"
 
 using namespace View;
 
 VstPluginWindow::VstPluginWindow(QWidget *parent) :
     QFrame(parent),
-    ui(new Ui::VstPluginWindow)
+    ui(new Ui::VstPluginWindow),
+    plugin(0)
 {
     setAttribute(Qt::WA_DeleteOnClose);
+    setWindowFlags(Qt::Tool);
     ui->setupUi(this);
 }
 

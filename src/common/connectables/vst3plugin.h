@@ -6,8 +6,13 @@
 #include "pluginterfaces/vst/ivstcomponent.h"
 #include "pluginterfaces/vst/ivsteditcontroller.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
+#include "pluginterfaces/gui/iplugview.h"
 #include "public.sdk/source/vst/hosting/processdata.h"
 #include "public.sdk/source/vst/hosting/parameterchanges.h"
+
+namespace View {
+    class VstPluginWindow;
+}
 
 namespace Connectables {
 
@@ -21,8 +26,11 @@ public:
     bool Close();
     void Render();
     Pin* CreatePin(const ConnectionInfo &info);
+    View::VstPluginWindow *editorWnd;
 private:
     void Unload();
+    void CreateEditorWindow();
+
     QLibrary *pluginLib;
     Steinberg::IPluginFactory* factory;
     Steinberg::Vst::IComponent* processorComponent;
@@ -33,14 +41,22 @@ private:
     QMap<qint32,qint32>listParamQueue;
 
     bool hasEditor;
+    Steinberg::IPlugView *pView;
 
     QList<QVariant>listEditorVisible;
     QList<QVariant>listIsLearning;
     QList<QVariant>listBypass;
     QList<QVariant>listValues;
 
+signals:
+    void WindowSizeChange(int newWidth, int newHeight);
+
 public slots:
     void OnParameterChanged(ConnectionInfo pinInfo, float value);
+    void EditorDestroyed();
+    void OnEditorClosed();
+    void OnShowEditor();
+    void OnHideEditor();
 };
 }
 #endif // VST3PLUGIN_H

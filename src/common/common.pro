@@ -41,6 +41,7 @@ vstsdk {
         $$VSTSDK_PATH/pluginterfaces/base/conststringtable.cpp \
         $$VSTSDK_PATH/public.sdk/source/main/pluginfactoryvst3.cpp \
         $$VSTSDK_PATH/public.sdk/source/common/pluginview.cpp \
+        $$VSTSDK_PATH/public.sdk/source/common/memorystream.h \
         $$VSTSDK_PATH/public.sdk/source/vst/vstaudioeffect.cpp \
         $$VSTSDK_PATH/public.sdk/source/vst/vstcomponent.cpp \
         $$VSTSDK_PATH/public.sdk/source/vst/vstcomponentbase.cpp \
@@ -51,6 +52,7 @@ vstsdk {
         $$VSTSDK_PATH/public.sdk/source/vst/hosting/hostclasses.cpp \
         $$VSTSDK_PATH/public.sdk/source/vst/hosting/processdata.cpp \
         $$VSTSDK_PATH/public.sdk/source/vst/hosting/parameterchanges.cpp
+
 
     FORMS += views/vstpluginwindow.ui \
         views/vstshellselect.ui

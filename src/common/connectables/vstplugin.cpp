@@ -19,11 +19,11 @@
 **************************************************************************/
 
 #include "vstplugin.h"
-#include "../globals.h"
-#include "../audiobuffer.h"
-#include "../mainwindow.h"
-#include "../vst/cvsthost.h"
-#include "../views/vstpluginwindow.h"
+#include "globals.h"
+#include "audiobuffer.h"
+#include "mainwindow.h"
+#include "vst/cvsthost.h"
+#include "views/vstpluginwindow.h"
 #include "commands/comaddpin.h"
 #include "commands/comremovepin.h"
 
