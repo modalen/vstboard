@@ -36,6 +36,7 @@
 
 #ifdef VSTSDK
     #include "vst/cvsthost.h"
+    #include "vst/vst3host.h"
 #endif
 
 class MainWindow;
@@ -110,6 +111,7 @@ public:
 #ifdef VSTSDK
     vst::CVSTHost *vstHost;
     static int vstUsersCounter;
+    Vst3Host *vst3Host;
 #endif
 
     static quint32 currentFileVersion;

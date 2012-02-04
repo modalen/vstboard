@@ -52,26 +52,8 @@ SOURCES += \
     factory.cpp \
     vstboardcontroller.cpp \
     vstboardprocessor.cpp \
-    vsttest.cpp \
-    ../../libs/VST3SDK/base/source/fobject.cpp \
-    ../../libs/VST3SDK/base/source/fstring.cpp \
-    ../../libs/VST3SDK/base/source/fatomic.cpp \
-    ../../libs/VST3SDK/base/source/updatehandler.cpp \
-    ../../libs/VST3SDK/base/source/fdebug.cpp \
-    ../../libs/VST3SDK/base/source/fthread.cpp \
-    ../../libs/VST3SDK/base/source/baseiids.cpp \
-    ../../libs/VST3SDK/pluginterfaces/base/ustring.cpp \
-    ../../libs/VST3SDK/pluginterfaces/base/funknown.cpp \
-    ../../libs/VST3SDK/pluginterfaces/base/conststringtable.cpp \
-    ../../libs/VST3SDK/public.sdk/source/vst/vstaudioeffect.cpp \
-    ../../libs/VST3SDK/public.sdk/source/vst/vstcomponent.cpp \
-    ../../libs/VST3SDK/public.sdk/source/vst/vstcomponentbase.cpp \
-    ../../libs/VST3SDK/public.sdk/source/vst/vstparameters.cpp \
-    ../../libs/VST3SDK/public.sdk/source/main/pluginfactoryvst3.cpp \
-    ../../libs/VST3SDK/public.sdk/source/vst/vstbus.cpp \
-    ../../libs/VST3SDK/public.sdk/source/common/pluginview.cpp \
-    ../../libs/VST3SDK/public.sdk/source/vst/vsteditcontroller.cpp \
-    ../../libs/VST3SDK/public.sdk/source/vst/vstinitiids.cpp
+    vsttest.cpp
+
 
 
 HEADERS  += \

@@ -25,7 +25,6 @@
 #include "../globals.h"
 #include "object.h"
 #include "objectinfo.h"
-
 class MainHost;
 
 namespace Connectables {

@@ -63,10 +63,13 @@ MainHost::MainHost(Settings *settings, QObject *parent) :
 #endif
 
 #ifdef VSTSDK
-    if(!vst::CVSTHost::Get())
+    if(!vst::CVSTHost::Get()) {
         vstHost = new vst::CVSTHost();
-    else
+    } else {
         vstHost = vst::CVSTHost::Get();
+    }
+
+    vst3Host = new Vst3Host();
 
     vstUsersCounter++;
 #endif
@@ -128,6 +131,9 @@ MainHost::~MainHost()
     vstUsersCounter--;
     if(vstUsersCounter==0)
         delete vstHost;
+
+    if(vst3Host)
+        delete vst3Host;
 #endif
 
 //    delete mutexListCables;
@@ -1065,6 +1071,14 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
         return;
     }
 
+    if(msg.objIndex==FixedObjId::undoRedoStack) {
+        if(msg.prop["actionType"]=="undo")
+            undoStack.undo();
+        if(msg.prop["actionType"]=="redo")
+            undoStack.redo();
+        return;
+    }
+
     if(msg.prop["actionType"]=="getWithChildren") {
         QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(msg.objIndex);
         if(!objPtr) {
@@ -1094,7 +1108,6 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
             LOG("obj not found")
             return;
         }
-
 
         undoStack.push( new ComRemoveObject(this, objPtr, static_cast<RemoveType::Enum>(msg.prop["type"].toInt()) ) );
         return;
@@ -1158,7 +1171,7 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
         else
             targetContainer = objFactory->GetObjectFromId( senderObj->GetContainerId() ).staticCast<Connectables::Container>();
 
-        QDataStream streamObj(&msg.prop.value("objToLoad").toByteArray(), QIODevice::ReadOnly);
+        QDataStream streamObj(&(msg.prop.value("objToLoad").toByteArray()), QIODevice::ReadOnly);
         while(!streamObj.atEnd()) {
             ObjectInfo info;
             info.fromStream(streamObj);

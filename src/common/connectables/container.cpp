@@ -743,10 +743,9 @@ void Container::UserRemoveCableFromPin(const ConnectionInfo &pin)
 {
     QList<int>removedCables;
     currentContainerProgram->CollectCableUpdatesIds( 0, &removedCables );
-
     RemoveCableFromPin(pin);
-
     currentContainerProgram->CollectCableUpdatesIds();
+
     foreach(int id, removedCables) {
         MsgObject msg(GetIndex(),id);
         msg.prop["actionType"]="remove";
@@ -761,7 +760,16 @@ void Container::UserRemoveCableFromPin(const ConnectionInfo &pin)
 
 void  Container::UserRemoveCable(const ConnectionInfo &outputPin, const ConnectionInfo &inputPin)
 {
+    QList<int>removedCables;
+    currentContainerProgram->CollectCableUpdatesIds( 0, &removedCables );
     RemoveCable(outputPin,inputPin);
+    currentContainerProgram->CollectCableUpdatesIds();
+
+    foreach(int id, removedCables) {
+        MsgObject msg(GetIndex(),id);
+        msg.prop["actionType"]="remove";
+        msgCtrl->SendMsg(msg);
+    }
 
     if(!loadingMode) {
         myHost->SetSolverUpdateNeeded();

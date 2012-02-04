@@ -143,6 +143,7 @@ namespace FixedObjId {
         programsManager,
         groupParking,
         programParking,
+        undoRedoStack,
         noContainer=65535
     };
 }

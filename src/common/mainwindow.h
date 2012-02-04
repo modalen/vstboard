@@ -124,6 +124,8 @@ private slots:
     void on_actionKeyBinding_triggered();
     void on_actionHide_all_editors_triggered(bool checked);
     void on_actionAutoShowGui_triggered(bool checked);
+    void on_actionUndo_triggered();
+    void on_actionRedo_triggered();
 };
 
 #endif // MAINWINDOW_H

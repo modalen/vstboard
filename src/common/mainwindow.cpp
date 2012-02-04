@@ -339,10 +339,6 @@ void MainWindow::on_actionConfig_triggered()
 
 void MainWindow::UpdateKeyBinding()
 {
-    if(actUndo)
-        actUndo->setShortcut( viewConfig->keyBinding->GetMainShortcut(KeyBind::undo) );
-    if(actRedo)
-        actRedo->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::redo));
     ui->actionLoad->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::openProject));
     ui->actionSave->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::saveProject));
     ui->actionSave_Project_As->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::saveProjectAs));
@@ -368,6 +364,8 @@ void MainWindow::UpdateKeyBinding()
     ui->dockHostModel->toggleViewAction()->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::hostModel));
     ui->actionHide_all_editors->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::hideAllEditors));
     ui->actionAutoShowGui->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::autoOpenEditors));
+    ui->actionUndo->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::undo));
+    ui->actionRedo->setShortcut(viewConfig->keyBinding->GetMainShortcut(KeyBind::redo));
 }
 
 void MainWindow::writeSettings()
@@ -719,4 +717,18 @@ void MainWindow::on_actionHide_all_editors_triggered(bool checked)
 void MainWindow::on_actionAutoShowGui_triggered(bool checked)
 {
     viewConfig->AutoOpenGui=checked;
+}
+
+void MainWindow::on_actionUndo_triggered()
+{
+    MsgObject msg(-1,FixedObjId::undoRedoStack);
+    msg.prop["actionType"]="undo";
+    SendMsg(msg);
+}
+
+void MainWindow::on_actionRedo_triggered()
+{
+    MsgObject msg(-1,FixedObjId::undoRedoStack);
+    msg.prop["actionType"]="redo";
+    SendMsg(msg);
 }

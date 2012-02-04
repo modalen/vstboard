@@ -25,7 +25,31 @@ vstsdk {
         views/vstpluginwindow.cpp \
         views/vstshellselect.cpp \
         $$VSTSDK_PATH/public.sdk/source/vst2.x/audioeffectx.cpp \
-        $$VSTSDK_PATH/public.sdk/source/vst2.x/audioeffect.cpp
+        $$VSTSDK_PATH/public.sdk/source/vst2.x/audioeffect.cpp \
+
+    SOURCES += vst/vst3host.cpp \
+        connectables/vst3plugin.cpp \
+        $$VSTSDK_PATH/base/source/fobject.cpp \
+        $$VSTSDK_PATH/base/source/fstring.cpp \
+        $$VSTSDK_PATH/base/source/fatomic.cpp \
+        $$VSTSDK_PATH/base/source/updatehandler.cpp \
+        $$VSTSDK_PATH/base/source/fdebug.cpp \
+        $$VSTSDK_PATH/base/source/fthread.cpp \
+        $$VSTSDK_PATH/base/source/baseiids.cpp \
+        $$VSTSDK_PATH/pluginterfaces/base/ustring.cpp \
+        $$VSTSDK_PATH/pluginterfaces/base/funknown.cpp \
+        $$VSTSDK_PATH/pluginterfaces/base/conststringtable.cpp \
+        $$VSTSDK_PATH/public.sdk/source/main/pluginfactoryvst3.cpp \
+        $$VSTSDK_PATH/public.sdk/source/common/pluginview.cpp \
+        $$VSTSDK_PATH/public.sdk/source/vst/vstaudioeffect.cpp \
+        $$VSTSDK_PATH/public.sdk/source/vst/vstcomponent.cpp \
+        $$VSTSDK_PATH/public.sdk/source/vst/vstcomponentbase.cpp \
+        $$VSTSDK_PATH/public.sdk/source/vst/vstparameters.cpp \
+        $$VSTSDK_PATH/public.sdk/source/vst/vstbus.cpp \
+        $$VSTSDK_PATH/public.sdk/source/vst/vsteditcontroller.cpp \
+        $$VSTSDK_PATH/public.sdk/source/vst/vstinitiids.cpp \
+        $$VSTSDK_PATH/public.sdk/source/vst/hosting/hostclasses.cpp \
+        $$VSTSDK_PATH/public.sdk/source/vst/hosting/processdata.cpp
 
     FORMS += views/vstpluginwindow.ui \
         views/vstshellselect.ui
@@ -113,6 +137,7 @@ SOURCES += \
     programmanager.cpp \
     models/groupsprogramsmodel.cpp \
     models/parkingmodel.cpp
+
 
 SOURCES += \
     views/programlist.cpp \
@@ -217,7 +242,9 @@ HEADERS += \
     connectables/cursor.h \
     programmanager.h \
     models/groupsprogramsmodel.h \
-    models/parkingmodel.h
+    models/parkingmodel.h \
+    connectables/vst3plugin.h \
+    vst/vst3host.h
 
 HEADERS += \
     views/configdialog.h \

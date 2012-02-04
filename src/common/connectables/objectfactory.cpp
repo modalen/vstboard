@@ -35,6 +35,7 @@
 #ifdef VSTSDK
     #include "vstplugin.h"
     #include "../vst/cvsthost.h"
+    #include "vst3plugin.h"
 #endif
 
 /*!
@@ -175,6 +176,7 @@ QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info, int cont
                         obj = new VstPlugin(myHost,objId, info);
                         break;
                     case ObjType::Vst3Plugin:
+                        obj = new Vst3Plugin(myHost,objId, info);
                         break;
             #endif
 
