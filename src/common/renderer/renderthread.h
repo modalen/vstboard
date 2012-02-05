@@ -36,6 +36,7 @@ protected:
 
     QMutex mutexRender;
 
+
 #ifdef WIN32
     HMODULE DllAvRt;
     HANDLE hMmTask;

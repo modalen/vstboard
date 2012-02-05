@@ -67,6 +67,7 @@ protected:
     QList<SolverNode*>listNodes;
     QMutex mutex;
 
+    QList<QSharedPointer<Connectables::Object> >listAciveObjects;
 };
 
 #endif // PATHSOLVER_H

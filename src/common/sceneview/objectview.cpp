@@ -415,8 +415,8 @@ void ObjectView::ShrinkNow()
 
 void ObjectView::SetEditorPin(MinMaxPinView *pin, float value)
 {
-    if(editorPin==pin)
-        return;
+//    if(editorPin==pin)
+//        return;
     editorPin = pin;
     actShowEditor->setEnabled(editorPin);
     actShowEditor->setChecked(value>.5f);

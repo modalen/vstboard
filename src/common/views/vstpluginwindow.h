@@ -22,6 +22,7 @@
 #define VSTPLUGINWINDOW_H
 
 #include "../precomp.h"
+#include "pluginterfaces/gui/iplugview.h"
 
 namespace Ui {
     class VstPluginWindow;
@@ -33,21 +34,31 @@ namespace Connectables {
     class Vst3Plugin;
 }
 
+using namespace Steinberg;
+
 namespace View {
 
 
-    class VstPluginWindow : public QFrame {
+    class VstPluginWindow : public QFrame, public IPlugFrame
+    {
         Q_OBJECT
     public:
         VstPluginWindow(QWidget *parent = 0);
         ~VstPluginWindow();
 
+        bool SetPlugin(Connectables::Vst3Plugin *plugin);
         bool SetPlugin(Connectables::VstPlugin *plugin);
+        void UnsetPlugin();
         WId GetWinId();
 //        const QPixmap GetScreenshot();
 
         void LoadAttribs();
         void SaveAttribs();
+
+        tresult PLUGIN_API queryInterface (const TUID iid, void** obj);
+        uint32 PLUGIN_API addRef ();
+        uint32 PLUGIN_API release ();
+        tresult PLUGIN_API resizeView (IPlugView* view, ViewRect* newSize);
 
     protected:
         void resizeEvent ( QResizeEvent * event );

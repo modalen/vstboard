@@ -45,6 +45,7 @@ void PathSolver::Clear()
         delete line;
     }
     listNodes.clear();
+    listAciveObjects.clear();
     mutex.unlock();
 
 }
@@ -69,6 +70,13 @@ void PathSolver::Resolve(hashCables cables, Renderer *renderer)
     while(ChainNodes() && cpt<100) { ++cpt; }
     RemoveUnusedNodes();
     SetMinAndMaxStep();
+
+    //keep a reference, avoid deletion by the renderer thread
+    foreach(SolverNode *n, listNodes) {
+        foreach(QSharedPointer<Connectables::Object>obj, n->listOfObj) {
+            listAciveObjects << obj;
+        }
+    }
 
     renderer->OnNewRenderingOrder(listNodes);
 

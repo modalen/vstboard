@@ -21,13 +21,14 @@
 #include "vstpluginwindow.h"
 #include "ui_vstpluginwindow.h"
 #include "connectables/vstplugin.h"
-//#include "connectables/vst3plugin.h"
+#include "connectables/vst3plugin.h"
 #include "mainhost.h"
 
 using namespace View;
 
 VstPluginWindow::VstPluginWindow(QWidget *parent) :
     QFrame(parent),
+    IPlugFrame(),
     ui(new Ui::VstPluginWindow),
     plugin(0)
 {
@@ -56,6 +57,17 @@ VstPluginWindow::~VstPluginWindow()
 WId VstPluginWindow::GetWinId()
 {
     return ui->scrollAreaWidgetContents->winId();
+}
+
+void  VstPluginWindow::UnsetPlugin()
+{
+    this->plugin = 0;
+}
+
+bool VstPluginWindow::SetPlugin(Connectables::Vst3Plugin *plug)
+{
+    plugin = plug;
+    return true;
 }
 
 bool VstPluginWindow::SetPlugin(Connectables::VstPlugin *plugin)
@@ -187,3 +199,28 @@ void VstPluginWindow::resizeEvent ( QResizeEvent * event )
 //    p.fillRect(pix.rect(), QColor(255,255,255,150));
 //    return pix;
 //}
+
+tresult PLUGIN_API VstPluginWindow::resizeView (IPlugView* view, ViewRect* newSize)
+{
+    LOG("resize view")
+    SetWindowSize(newSize->getWidth(), newSize->getHeight());
+    return kResultOk;
+}
+
+tresult PLUGIN_API VstPluginWindow::queryInterface (const TUID iid, void** obj)
+{
+    QUERY_INTERFACE (iid, obj, IPlugFrame::iid, IPlugFrame)
+//    QUERY_INTERFACE (iid, obj, Vst::IComponentHandler2::iid, Vst::IComponentHandler2)
+//    QUERY_INTERFACE (iid, obj, FUnknown::iid, Vst::IComponentHandler)
+    *obj = 0;
+    return kNoInterface;
+}
+
+uint32 PLUGIN_API VstPluginWindow::addRef ()
+{
+    return 0;
+}
+uint32 PLUGIN_API VstPluginWindow::release ()
+{
+    return 0;
+}

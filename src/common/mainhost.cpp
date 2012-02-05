@@ -119,11 +119,11 @@ MainHost::~MainHost()
 //    solver->Resolve(workingListOfCables, renderer);
     delete renderer;
 
-    mainContainer.clear();
     hostContainer.clear();
     projectContainer.clear();
     groupContainer.clear();
     programContainer.clear();
+    mainContainer.clear();
 
     delete objFactory;
 

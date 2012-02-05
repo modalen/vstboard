@@ -64,7 +64,7 @@ bool VstPlugin::Close()
 {
     if(editorWnd) {
         editorWnd->disconnect();
-        editorWnd->SetPlugin(0);
+        editorWnd->UnsetPlugin();
         disconnect(editorWnd);
         QTimer::singleShot(0,editorWnd,SLOT(close()));
         editorWnd=0;
@@ -579,7 +579,7 @@ void VstPlugin::OnHideEditor()
         emit HideEditorWindow();
     } else {
         editorWnd->disconnect();
-        editorWnd->SetPlugin(0);
+        editorWnd->UnsetPlugin();
         disconnect(editorWnd);
         QTimer::singleShot(0,editorWnd,SLOT(close()));
         editorWnd=0;

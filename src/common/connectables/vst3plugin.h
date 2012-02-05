@@ -14,9 +14,11 @@ namespace View {
     class VstPluginWindow;
 }
 
+using namespace Steinberg;
+
 namespace Connectables {
 
-class Vst3Plugin : public Object
+class Vst3Plugin : public Object, public Vst::IComponentHandler
 {
     Q_OBJECT
 public:
@@ -26,27 +28,41 @@ public:
     bool Close();
     void Render();
     Pin* CreatePin(const ConnectionInfo &info);
+    void SetSleep(bool sleeping);
     View::VstPluginWindow *editorWnd;
+
+    tresult PLUGIN_API queryInterface (const TUID iid, void** obj);
+    uint32 PLUGIN_API addRef ();
+    uint32 PLUGIN_API release ();
+    tresult PLUGIN_API beginEdit (Vst::ParamID id);
+    tresult PLUGIN_API performEdit (Vst::ParamID id, Vst::ParamValue valueNormalized);
+    tresult PLUGIN_API endEdit (Vst::ParamID id);
+    tresult PLUGIN_API restartComponent (int32 flags);
+//    tresult PLUGIN_API setDirty (TBool state);
+//    tresult PLUGIN_API requestOpenEditor (FIDString name=Vst::ViewType::kEditor);
+//    tresult PLUGIN_API startGroupEdit ();
+//    tresult PLUGIN_API finishGroupEdit ();
 private:
     void Unload();
     void CreateEditorWindow();
 
     QLibrary *pluginLib;
-    Steinberg::IPluginFactory* factory;
-    Steinberg::Vst::IComponent* processorComponent;
-    Steinberg::Vst::IEditController* editController;
-    Steinberg::Vst::IAudioProcessor* audioEffect;
-    Steinberg::Vst::HostProcessData processData;
-    Steinberg::Vst::ParameterChanges vstParamChanges;
-    QMap<qint32,qint32>listParamQueue;
-
+    IPluginFactory* factory;
+    Vst::IComponent* processorComponent;
+    Vst::IEditController* editController;
+    Vst::IAudioProcessor* audioEffect;
+    Vst::HostProcessData processData;
+//    Vst::ParameterChanges vstParamChanges;
+//    QMap<qint32,qint32>listParamQueue;
     bool hasEditor;
-    Steinberg::IPlugView *pView;
+    IPlugView *pView;
+    QMap<qint32,float>listParamChanged;
 
     QList<QVariant>listEditorVisible;
     QList<QVariant>listIsLearning;
     QList<QVariant>listBypass;
     QList<QVariant>listValues;
+
 
 signals:
     void WindowSizeChange(int newWidth, int newHeight);
@@ -57,6 +73,8 @@ public slots:
     void OnEditorClosed();
     void OnShowEditor();
     void OnHideEditor();
+    void UserRemovePin(const ConnectionInfo &info);
+    void UserAddPin(const ConnectionInfo &info);
 };
 }
 #endif // VST3PLUGIN_H

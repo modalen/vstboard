@@ -5,6 +5,8 @@
 #include "views/vstpluginwindow.h"
 #include "public.sdk/source/common/memorystream.h"
 //#include "public.sdk/source/common/pluginview.h"
+#include "commands/comaddpin.h"
+#include "commands/comremovepin.h"
 
 namespace Steinberg {
     FUnknown* gStandardPluginContext = 0;
@@ -77,30 +79,36 @@ bool Vst3Plugin::Open()
         PClassInfo classInfo;
         factory->getClassInfo(i, &classInfo);
 
-//        char8 cidString[50];
-//        FUID(classInfo.cid).toRegistryString (cidString);
-//        QString cidStr(cidString);
-//        LOG("  Class Info " << i << ":\n\tname = " << classInfo.name << "\n\tcategory = " << classInfo.category << "\n\tcid = " << cidStr);
+        char8 cidString[50];
+        FUID(classInfo.cid).toRegistryString (cidString);
+        QString cidStr(cidString);
+        LOG("  Class Info " << i << ":\n\tname = " << classInfo.name << "\n\tcategory = " << classInfo.category << "\n\tcid = " << cidStr);
+
+        bool res=false;
 
         if (strcmp(kVstAudioEffectClass, classInfo.category)==0)
         {
-            tresult result;
-            result = factory->createInstance (classInfo.cid, Vst::IComponent::iid, (void**)&processorComponent);
-
+            tresult result = factory->createInstance (classInfo.cid, Vst::IComponent::iid, (void**)&processorComponent);
             if (!processorComponent || (result != kResultOk)) {
                 errorMessage = tr("Processor not created");
                 return true;
             }
-            result = (processorComponent->initialize(myHost->vst3Host) == kResultOk);
+
+            res = (processorComponent->initialize(myHost->vst3Host) == kResultOk);
 
             if (processorComponent->queryInterface (Vst::IEditController::iid, (void**)&editController) != kResultTrue) {
                 FUID controllerCID;
                 if (processorComponent->getControllerClassId (controllerCID) == kResultTrue && controllerCID.isValid ()) {
                     result = factory->createInstance (controllerCID, Vst::IEditController::iid, (void**)&editController);
                     if (editController && (result == kResultOk)) {
-                        result = (editController->initialize (myHost->vst3Host) == kResultOk);
+                        res = (editController->initialize (myHost->vst3Host) == kResultOk);
                     }
                 }
+            }
+
+            if(!res) {
+                LOG("not initialized")
+                return false;
             }
 
             tresult check = processorComponent->queryInterface (Vst::IAudioProcessor::iid, (void**)&audioEffect);
@@ -126,9 +134,11 @@ bool Vst3Plugin::Open()
                 processData.prepare (*processorComponent, myHost->GetBufferSize(), processSetup.symbolicSampleSize);
 
                 if(audioEffect->setupProcessing(processSetup) == kResultOk) {
-                    if (processorComponent->setActive(true) != kResultTrue) {
-                        LOG("not activated")
-                    }
+//                    if (processorComponent->setActive(true) != kResultTrue) {
+//                        LOG("not activated")
+//                    }
+                } else {
+                    LOG("process setup not accepted")
                 }
             }
 
@@ -188,22 +198,24 @@ bool Vst3Plugin::Open()
     }
 
     if(editController) {
+        hasEditor=true;
+
         qint32 numParameters = editController->getParameterCount ();
         for (qint32 i = 0; i < numParameters; i++) {
             Vst::ParameterInfo paramInfo = {0};
             tresult result = editController->getParameterInfo (i, paramInfo);
             if (result == kResultOk) {
                  if(paramInfo.flags & Vst::ParameterInfo::kIsReadOnly) {
-                    listParameterPinOut->AddPin(cpt++);
+                    listParameterPinOut->AddPin(i);
                 } else {
-                    listParameterPinIn->AddPin(cpt++);
+                    listParameterPinIn->AddPin(i);
                 }
             }
         }
 
         // set the host handler
         // the host set its handler to the controller
-//        editController->setComponentHandler (myHost->vst3Host);
+        editController->setComponentHandler(this);
 
         // connect the 2 components
         Vst::IConnectionPoint* iConnectionPointComponent = 0;
@@ -230,7 +242,7 @@ bool Vst3Plugin::Open()
         CreateEditorWindow();
     }
 
-    hasEditor=(editController?true:false);
+
 
     if(hasEditor) {
         //editor pin
@@ -251,15 +263,31 @@ bool Vst3Plugin::Open()
 
 void Vst3Plugin::CreateEditorWindow()
 {
-    editorWnd = new View::VstPluginWindow(myHost->mainWindow);
-    pView = (editController->createView("editor"));
-    if(!pView)
+    QMutexLocker l(&objMutex);
+
+    //already done
+    if(editorWnd)
         return;
 
-    pView->attached(editorWnd->GetWinId(),"");
-    ViewRect size;
-    pView->getSize(&size);
-    editorWnd->SetWindowSize(size.getWidth(),size.getHeight());
+    editorWnd = new View::VstPluginWindow(myHost->mainWindow);
+
+    pView = editController->createView("editor");
+    if(!pView) {
+        LOG("view not created")
+        return;
+    }
+
+    editorWnd->SetPlugin(this);
+
+    tresult result;
+    result = pView->setFrame(editorWnd);
+    if(result!=kResultOk) {
+        LOG("frame not set")
+    }
+    result = pView->attached(editorWnd->GetWinId(),kPlatformString);
+    if(result!=kResultOk) {
+        LOG("editor not attached")
+    }
 
     connect(this,SIGNAL(HideEditorWindow()),
             editorWnd,SLOT(hide()),
@@ -270,7 +298,6 @@ void Vst3Plugin::CreateEditorWindow()
             this,SLOT(EditorDestroyed()));
     connect(this,SIGNAL(WindowSizeChange(int,int)),
             editorWnd,SLOT(SetWindowSize(int,int)));
-//    editorWnd->show();
 
     hasEditor=true;
 }
@@ -299,15 +326,24 @@ void Vst3Plugin::OnHideEditor()
             this,SLOT(EditIdle()));
         emit HideEditorWindow();
     } else {
+//        objMutex.lock();
+        tresult result = pView->removed();
+        if(result!=kResultOk) {
+            LOG("view not removed")
+        }
+
+        uint32 r = pView->release();
+        LOG("view release"<<r)
+
+        pView=0;
+//        objMutex.unlock();
+
         editorWnd->disconnect();
-        editorWnd->SetPlugin(0);
+        editorWnd->UnsetPlugin();
         disconnect(editorWnd);
         QTimer::singleShot(0,editorWnd,SLOT(close()));
         editorWnd=0;
-//        objMutex.lock();
-        pView->removed();
-        pView=0;
-//        objMutex.unlock();
+
     }
 }
 
@@ -318,38 +354,80 @@ void Vst3Plugin::OnEditorClosed()
 
 void Vst3Plugin::EditorDestroyed()
 {
-    editorWnd = 0;
+    objMutex.lock();
+    if(pView) {
+        pView->removed();
+        pView->release();
+        pView=0;
+    }
+    if(editorWnd) {
+        editorWnd->disconnect();
+        disconnect(editorWnd);
+        editorWnd=0;
+    }
+    objMutex.lock();
 //    MainHost::GetModel()->setData(modelIndex, false, UserRoles::editorVisible);
     listParameterPinIn->listPins.value(FixedPinNumber::editorVisible)->SetVisible(false);
 }
 
+void Vst3Plugin::SetSleep(bool sleeping)
+{
+    if(closed)
+        return;
+
+    Lock();
+
+    if(sleeping) {
+        processorComponent->setActive(false);
+    } else {
+        foreach(Pin *in, listAudioPinIn->listPins ) {
+            AudioPin *audioIn = static_cast<AudioPin*>(in);
+            audioIn->GetBuffer()->ResetStackCounter();
+        }
+        processorComponent->setActive(true);
+    }
+
+    Unlock();
+
+    Object::SetSleep(sleeping);
+}
+
 bool Vst3Plugin::Close()
 {
+    closed=true;
+    SetSleep(true);
     Unload();
     return true;
 }
 
 void Vst3Plugin::Unload()
 {
+    if(pView) {
+        pView->removed();
+        pView->release();
+        pView=0;
+    }
     if(editorWnd) {
         editorWnd->disconnect();
-        editorWnd->SetPlugin(0);
+        editorWnd->UnsetPlugin();
         disconnect(editorWnd);
-        QTimer::singleShot(0,editorWnd,SLOT(close()));
+//        QTimer::singleShot(0,editorWnd,SLOT(close()));
         editorWnd=0;
-//        objMutex.lock();
-        pView->removed();
-        pView=0;
-//        objMutex.unlock();
     }
 
     processData.unprepare();
 
     if(processorComponent) {
         processorComponent->setActive(false);
-        processorComponent->terminate();
         processorComponent->release();
+        processorComponent->terminate();
         processorComponent=0;
+    }
+
+    if(editController) {
+        editController->release();
+        editController->terminate();
+        editController=0;
     }
 
     if(factory) {
@@ -365,7 +443,7 @@ void Vst3Plugin::Unload()
     if(pluginLib) {
         if(pluginLib->isLoaded())
             if(!pluginLib->unload()) {
-                LOG("can't unload plugin"<< objInfo.filename);
+//                LOG("can't unload plugin"<< objInfo.filename);
             }
         delete pluginLib;
         pluginLib=0;
@@ -416,6 +494,16 @@ void Vst3Plugin::Render()
 //        }
 //    }
 
+    Vst::ParameterChanges vstParamChanges;
+    QMap<qint32,float>::const_iterator i = listParamChanged.constBegin();
+    while(i!=listParamChanged.constEnd()) {
+        int32 idx=0;
+        Vst::IParamValueQueue* queue = vstParamChanges.addParameterData(i.key(), idx);
+        int32 pIdx=0;
+        queue->addPoint(0, i.value(), pIdx);
+        ++i;
+    }
+    listParamChanged.clear();
     processData.inputParameterChanges = &vstParamChanges;
 
     audioEffect->setProcessing (true);
@@ -428,8 +516,8 @@ void Vst3Plugin::Render()
 //    for(int32 i=0; i<vstParamChanges.getParameterCount(); i++) {
 //        delete vstParamChanges.getParameterData(i);
 //    }
-    vstParamChanges.clearQueue();
-    listParamQueue.clear();
+//    vstParamChanges.clearQueue();
+//    listParamQueue.clear();
 
     //send result
     //=========================
@@ -454,28 +542,33 @@ void Vst3Plugin::OnParameterChanged(ConnectionInfo pinInfo, float value)
             return;
         }
 
-        QMutexLocker l(&objMutex);
-        Vst::IParamValueQueue* queue=0;
-        if(listParamQueue.contains(pinInfo.pinNumber)) {
-            queue = vstParamChanges.getParameterData( listParamQueue[pinInfo.pinNumber] );
-        } else {
-            int32 idx=0;
+        if(pinInfo.pinNumber<FIXED_PIN_STARTINDEX)
+            listParamChanged.insert(pinInfo.pinNumber,value);
 
-            Vst::ParameterInfo paramInfo = {0};
-            tresult result = editController->getParameterInfo (pinInfo.pinNumber, paramInfo);
-            if(result==kResultOk) {
-                queue = vstParamChanges.addParameterData(paramInfo.id, idx);
-                listParamQueue.insert(pinInfo.pinNumber,idx);
-            }
-        }
 
-        if(!queue) {
-            LOG("no param queue ?")
-            return;
-        }
 
-        int32 pIdx=0;
-        queue->addPoint(0, value, pIdx);
+//        QMutexLocker l(&objMutex);
+//        Vst::IParamValueQueue* queue=0;
+//        if(listParamQueue.contains(pinInfo.pinNumber)) {
+//            queue = vstParamChanges.getParameterData( listParamQueue[pinInfo.pinNumber] );
+//        } else {
+//            int32 idx=0;
+
+//            Vst::ParameterInfo paramInfo = {0};
+//            tresult result = editController->getParameterInfo (pinInfo.pinNumber, paramInfo);
+//            if(result==kResultOk) {
+//                queue = vstParamChanges.addParameterData(paramInfo.id, idx);
+//                listParamQueue.insert(pinInfo.pinNumber,idx);
+//            }
+//        }
+
+//        if(!queue) {
+//            LOG("no param queue ?")
+//            return;
+//        }
+
+//        int32 pIdx=0;
+//        queue->addPoint(0, value, pIdx);
     }
 }
 
@@ -496,7 +589,7 @@ Pin* Vst3Plugin::CreatePin(const ConnectionInfo &info)
             case FixedPinNumber::editorVisible :
                 if(!hasEditor)
                     return 0;
-                return new ParameterPinIn(this,info.pinNumber,"show",&listEditorVisible,tr("Editor"));
+                return new ParameterPinIn(this,info.pinNumber,"hide",&listEditorVisible,tr("Editor"));
             case FixedPinNumber::learningMode :
                 if(!hasEditor)
                     return 0;
@@ -507,14 +600,19 @@ Pin* Vst3Plugin::CreatePin(const ConnectionInfo &info)
                 ParameterPin *pin=0;
                 Vst::ParameterInfo paramInfo = {0};
                 tresult result = editController->getParameterInfo (info.pinNumber, paramInfo);
-                if(result) {
-                    if(info.direction==PinDirection::Output) {
-                        pin = new ParameterPinOut(this,info.pinNumber,paramInfo.defaultNormalizedValue,QString::fromUtf16(paramInfo.title),hasEditor,hasEditor);
-                    } else {
-                        pin = new ParameterPinIn(this,info.pinNumber,paramInfo.defaultNormalizedValue,QString::fromUtf16(paramInfo.title),hasEditor,hasEditor);
-                    }
-                    pin->SetDefaultVisible(!hasEditor);
+                if(result != kResultOk)
+                    return 0;
+
+                if(info.direction==PinDirection::Output) {
+                    pin = new ParameterPinOut(this,info.pinNumber,paramInfo.defaultNormalizedValue,QString::fromUtf16(paramInfo.title),hasEditor,hasEditor);
+                } else {
+                    pin = new ParameterPinIn(this,info.pinNumber,paramInfo.defaultNormalizedValue,QString::fromUtf16(paramInfo.title),hasEditor,hasEditor);
                 }
+                if(!hasEditor || (paramInfo.flags & Vst::ParameterInfo::kIsReadOnly))
+                    pin->SetDefaultVisible(true);
+                else
+                    pin->SetDefaultVisible(false);
+
                 return pin;
             }
         }
@@ -522,3 +620,114 @@ Pin* Vst3Plugin::CreatePin(const ConnectionInfo &info)
 
     return 0;
 }
+
+
+void Vst3Plugin::UserRemovePin(const ConnectionInfo &info)
+{
+    if(info.type!=PinType::Parameter)
+        return;
+
+    if(info.direction!=PinDirection::Input)
+        return;
+
+    if(!info.isRemoveable)
+        return;
+
+    if(listParameterPinIn->listPins.contains(info.pinNumber))
+        static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(info.pinNumber))->SetVisible(false);
+    OnProgramDirty();
+}
+
+void Vst3Plugin::UserAddPin(const ConnectionInfo &info)
+{
+    if(info.type!=PinType::Parameter)
+        return;
+
+    if(info.direction!=PinDirection::Input)
+        return;
+
+    if(listParameterPinIn->listPins.contains(info.pinNumber))
+        static_cast<ParameterPinIn*>(listParameterPinIn->listPins.value(info.pinNumber))->SetVisible(true);
+    OnProgramDirty();
+}
+
+tresult PLUGIN_API Vst3Plugin::queryInterface (const TUID iid, void** obj)
+{
+    QUERY_INTERFACE (iid, obj, Vst::IComponentHandler::iid, Vst::IComponentHandler)
+//    QUERY_INTERFACE (iid, obj, Vst::IComponentHandler2::iid, Vst::IComponentHandler2)
+//    QUERY_INTERFACE (iid, obj, FUnknown::iid, Vst::IComponentHandler)
+    *obj = 0;
+    return kNoInterface;
+}
+
+uint32 PLUGIN_API Vst3Plugin::addRef ()
+{
+    return 0;
+}
+uint32 PLUGIN_API Vst3Plugin::release ()
+{
+    return 0;
+}
+tresult PLUGIN_API Vst3Plugin::beginEdit (Vst::ParamID id)
+{
+    return kResultOk;
+}
+tresult PLUGIN_API Vst3Plugin::performEdit (Vst::ParamID id, Vst::ParamValue valueNormalized)
+{
+    ParameterPin *pin = 0;
+    if(listParameterPinIn->GetPin(id)) {
+        pin = static_cast<ParameterPin*>(listParameterPinIn->GetPin(id));
+    }
+//    if(listParameterPinOut->GetPin(id)) {
+//        pin = static_cast<ParameterPin*>(listParameterPinOut->GetPin(id));
+//    }
+    if(!pin) {
+        LOG("parameter not found")
+        return kInvalidArgument;
+    }
+
+    switch(GetLearningMode()) {
+        case LearningMode::unlearn :
+            if(pin->GetVisible())
+                myHost->undoStack.push( new ComRemovePin(myHost, pin->GetConnectionInfo()) );
+            break;
+
+        case LearningMode::learn :
+            if(!pin->GetVisible())
+                myHost->undoStack.push( new ComAddPin(myHost, pin->GetConnectionInfo()) );
+
+        case LearningMode::off :
+            pin->ChangeValue(static_cast<float>(valueNormalized));
+
+    }
+
+    return kResultOk;
+}
+tresult PLUGIN_API Vst3Plugin::endEdit (Vst::ParamID id)
+{
+    return kResultOk;
+}
+tresult PLUGIN_API Vst3Plugin::restartComponent (int32 flags)
+{
+    return kResultOk;
+}
+
+//tresult PLUGIN_API Vst3Plugin::setDirty (TBool state)
+//{
+
+//}
+
+//tresult PLUGIN_API Vst3Plugin::requestOpenEditor (FIDString name)
+//{
+
+//}
+
+//tresult PLUGIN_API Vst3Plugin::startGroupEdit ()
+//{
+
+//}
+
+//tresult PLUGIN_API Vst3Plugin::finishGroupEdit ()
+//{
+
+//}
