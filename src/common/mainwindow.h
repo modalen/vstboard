@@ -47,6 +47,7 @@ class MainWindow : public QMainWindow , public MsgController
 public:
     MainWindow(Settings *settings, MainHost * myHost=0, QWidget *parent = 0);
     virtual ~MainWindow();
+    virtual void Init();
     virtual void readSettings();
     void writeSettings();
     void ReceiveMsg(const MsgObject &msg);

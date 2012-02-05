@@ -27,6 +27,7 @@
 
 #include "mainwindow.h"
 #include "../common/ui_mainwindow.h"
+#include "models/listaudiointerfacesmodel.h"
 
 class MainHostHost;
 class MainWindowHost : public MainWindow {
@@ -34,6 +35,7 @@ class MainWindowHost : public MainWindow {
 
 public:
     MainWindowHost(Settings *settings, MainHostHost * myHost, QWidget *parent = 0);
+    void Init();
     void readSettings();
     void SendMsg(const MsgObject &msg);
 
@@ -41,13 +43,14 @@ protected:
     void closeEvent(QCloseEvent *event);
     void resetSettings();
 
-    ListToolsModel *listAudioDevModel;
+    ListAudioInterfacesModel *listAudioDevModel;
     ListToolsModel *listMidiDevModel;
 
 signals:
     void SendMsgSignal(const MsgObject &msg);
 
 public slots:
+    void Kill();
     void UpdateAudioDevices();
     void UpdateMidiDevices();
     void ReceiveMsgSignal(const MsgObject &msg);

@@ -50,8 +50,57 @@ MainHost::MainHost(Settings *settings, QObject *parent) :
 //    mutexListCables(new QMutex(QMutex::Recursive)),
     settings(settings),
     undoProgramChangesEnabled(false),
-    programManager(new ProgramManager(this))
+    programManager(0)
 {
+
+}
+
+MainHost::~MainHost()
+{
+    EnableSolverUpdate(false);
+
+    updateViewTimer->stop();
+    delete updateViewTimer;
+    updateViewTimer=0;
+
+//    mutexListCables->lock();
+//    workingListOfCables.clear();
+//    mutexListCables->unlock();
+
+    hashCables lstCables;
+    solver->Resolve(lstCables, renderer);
+//    solver->Resolve(workingListOfCables, renderer);
+    delete renderer;
+
+    hostContainer.clear();
+    projectContainer.clear();
+    groupContainer.clear();
+    programContainer.clear();
+    mainContainer.clear();
+
+    delete objFactory;
+
+#ifdef VSTSDK
+    vstUsersCounter--;
+    if(vstUsersCounter==0)
+        delete vstHost;
+
+    if(vst3Host)
+        delete vst3Host;
+#endif
+
+//    delete mutexListCables;
+    delete programManager;
+}
+
+void MainHost::Kill()
+{
+    delete this;
+}
+
+void MainHost::Init()
+{
+    programManager =new ProgramManager(this);
     doublePrecision=settings->GetSetting("doublePrecision",false).toBool();
 
     setObjectName("MainHost");
@@ -99,49 +148,11 @@ MainHost::MainHost(Settings *settings, QObject *parent) :
             this,SLOT(UpdateSolver()),
             Qt::QueuedConnection);
 
-
-}
-
-MainHost::~MainHost()
-{
-    EnableSolverUpdate(false);
-
-    updateViewTimer->stop();
-    delete updateViewTimer;
-    updateViewTimer=0;
-
-//    mutexListCables->lock();
-//    workingListOfCables.clear();
-//    mutexListCables->unlock();
-
-    hashCables lstCables;
-    solver->Resolve(lstCables, renderer);
-//    solver->Resolve(workingListOfCables, renderer);
-    delete renderer;
-
-    hostContainer.clear();
-    projectContainer.clear();
-    groupContainer.clear();
-    programContainer.clear();
-    mainContainer.clear();
-
-    delete objFactory;
-
-#ifdef VSTSDK
-    vstUsersCounter--;
-    if(vstUsersCounter==0)
-        delete vstHost;
-
-    if(vst3Host)
-        delete vst3Host;
-#endif
-
-//    delete mutexListCables;
-    delete programManager;
 }
 
 void MainHost::Open()
 {
+
     EnableSolverUpdate(false);
 
     SetupMainContainer();
@@ -1066,6 +1077,13 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
 {
 //    LOG(msg.objIndex << msg.prop)
 
+    if(msg.objIndex == FixedObjId::audioDevices) {
+        if(listObj.contains(msg.objIndex)) {
+            listObj[msg.objIndex]->ReceiveMsg(msg);
+        }
+        return;
+    }
+
     if(msg.objIndex==FixedObjId::programsManager) {
         programManager->ReceiveMsg(msg);
         return;
@@ -1079,7 +1097,7 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
         return;
     }
 
-    if(msg.prop["actionType"]=="getWithChildren") {
+    if(msg.prop.contains("getWithChildren")) {
         QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(msg.objIndex);
         if(!objPtr) {
             LOG("obj not found")

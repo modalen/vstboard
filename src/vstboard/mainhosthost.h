@@ -42,6 +42,7 @@ signals:
     void SendMsgSignal(const MsgObject &msg);
 
 public slots:
+    void Init();
     void Render();
     void ReceiveMsgSignal(const MsgObject &msg);
 };

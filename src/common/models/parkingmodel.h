@@ -6,7 +6,6 @@
 
 class ParkingModel : public QStandardItemModel, public MsgHandler
 {
-    Q_OBJECT
 public:
     explicit ParkingModel( MsgController *msgCtrl, int objId, QObject *parent=0);
     void ReceiveMsg(const MsgObject &msg);

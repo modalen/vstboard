@@ -48,7 +48,6 @@ public:
     MainHost( Settings *settings, QObject *parent = 0);
     virtual ~MainHost();
 
-    void Open();
 
 //    void SendMsg(const ConnectionInfo &senderPin,const PinMessage::Enum msgType,void *data);
 
@@ -178,6 +177,9 @@ signals:
     void DelayChanged(long samples);
 
 public slots:
+    virtual void Init();
+    void Open();
+    virtual void Kill();
     void SetTempo(int tempo=120, int sign1=0, int sign2=0);
     virtual void Render();
     void LoadFile(const QString &filename);

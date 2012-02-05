@@ -45,13 +45,13 @@ private:
 };
 
 
-class AudioDevices : public QObject
+class AudioDevices : public QObject, public MsgHandler
 {
     Q_OBJECT
 public:
-    explicit AudioDevices(MainHostHost *myHost);
+    explicit AudioDevices(MainHostHost *myHost, MsgController *msgCtrl, int objId);
     ~AudioDevices();
-    ListAudioInterfacesModel * GetModel();
+//    ListAudioInterfacesModel * GetModel();
     Connectables::AudioDevice * AddDevice(ObjectInfo &objInfo, QString *errMsg=0);
     void RemoveDevice(PaDeviceIndex devId);
 
@@ -66,6 +66,8 @@ public:
     QPersistentModelIndex AsioIndex;
 
     bool FindPortAudioDevice(ObjectInfo &objInfo, PaDeviceInfo *dInfo);
+    void ReceiveMsg(const MsgObject &msg);
+
 private:
     void CloseDevices(bool close=false);
     void OpenDevices();
@@ -77,10 +79,11 @@ private:
     QHash<qint32,Connectables::AudioDevice* >listAudioDevices;
 
     /// model pointer
-    ListAudioInterfacesModel *model;
+//    ListAudioInterfacesModel *model;
+    bool paOpened;
 
     /// number of opened devices
-    int countActiveDevices;
+//    int countActiveDevices;
 
     /// pointer to the MainHost
     MainHostHost *myHost;
@@ -88,6 +91,7 @@ private:
     QMutex mutexDevices;
 
     QMutex mutexClosing;
+    QList<qint32>listOpenedDevces;
 
 public slots:
     void OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId, bool inUse, PaTime inLatency=0, PaTime outLatency=0, double sampleRate=0);

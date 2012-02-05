@@ -144,6 +144,9 @@ namespace FixedObjId {
         groupParking,
         programParking,
         undoRedoStack,
+        audioDevices,
+        midiDevices,
+        tools,
         noContainer=65535
     };
 }

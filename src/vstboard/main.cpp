@@ -33,22 +33,26 @@
     void myMessageOutput(QtMsgType type, const char *msg)
      {
         qInstallMsgHandler(0);
-        qDebug(msg);
-        qInstallMsgHandler(myMessageOutput);
 
-         switch (type) {
+        switch (type) {
 
-         case QtWarningMsg:
-             break;
-         case QtCriticalMsg:
-         case QtFatalMsg:
+            case QtWarningMsg:
+                qDebug(msg);
+                break;
 
-             abort();
-             break;
+            case QtCriticalMsg:
+            case QtFatalMsg:
+                qDebug(msg);
+                abort();
+                break;
 
-         case QtDebugMsg:
-             break;
-         }
+            default:
+                qDebug(msg);
+                break;
+
+        }
+
+         qInstallMsgHandler(myMessageOutput);
      }
 #endif
 
@@ -88,19 +92,33 @@ int main(int argc, char *argv[])
 #endif
 
     Settings *set = new Settings("",qApp);
+
     MainHostHost host(set);
+//    QThread th;
+//    host.moveToThread(&th);
+//    th.start();
+
     MainWindowHost w(set, &host);
+
     host.connect(&host,SIGNAL(SendMsgSignal(MsgObject)),
                 &w,SLOT(ReceiveMsgSignal(MsgObject)),
                  Qt::QueuedConnection);
     host.connect(&w,SIGNAL(SendMsgSignal(MsgObject)),
                 &host,SLOT(ReceiveMsgSignal(MsgObject)),
                  Qt::QueuedConnection);
+//    QTimer::singleShot(0,&host, SLOT(Init()));
+    host.Init();
+    w.Init();
+//    QTimer::singleShot(0,&host, SLOT(Open()));
     host.Open();
     w.readSettings();
     w.show();
     w.LoadDefaultFiles();
 
     app.exec();
+
+//    QTimer::singleShot(0,&host, SLOT(Kill()));
+    qApp->processEvents();
+//    th.quit();
     return 0;
 }

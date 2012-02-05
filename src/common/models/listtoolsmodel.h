@@ -21,13 +21,17 @@
 #ifndef LISTTOOLSMODEL_H
 #define LISTTOOLSMODEL_H
 
-#include "../precomp.h"
+#include "precomp.h"
+#include "msghandler.h"
 
-class ListToolsModel : public QStandardItemModel
+class ListToolsModel : public QStandardItemModel, public MsgHandler
 {
 public:
-    ListToolsModel(QObject *parent=0);
+    ListToolsModel(MsgController *msgCtrl, int objId, QObject *parent=0);
     QMimeData  * mimeData ( const QModelIndexList  & indexes ) const ;
+    void ReceiveMsg(const MsgObject &msg);
+    void Update();
+    void Rescan();
 };
 
 #endif // LISTTOOLSMODEL_H

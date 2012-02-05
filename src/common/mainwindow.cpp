@@ -47,6 +47,10 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
     groupParking(0),
     programParking(0)
 {
+}
+
+void MainWindow::Init()
+{
     //myHost->mainWindow=this;
 //    connect(myHost,SIGNAL(programParkingModelChanged(QStandardItemModel*)),
 //            this,SLOT(programParkingModelChanges(QStandardItemModel*)));
@@ -111,6 +115,13 @@ MainWindow::MainWindow(Settings *settings, MainHost * myHost, QWidget *parent) :
 
 void MainWindow::ReceiveMsg(const MsgObject &msg)
 {
+    if(msg.objIndex == FixedObjId::audioDevices) {
+        if(listObj.contains(msg.objIndex)) {
+            listObj[msg.objIndex]->ReceiveMsg(msg);
+        }
+        return;
+    }
+
     if(progModel && msg.objIndex==FixedObjId::programsManager) {
         progModel->ReceiveMsg(msg);
         return;
@@ -151,7 +162,7 @@ void MainWindow::showEvent(QShowEvent *event)
     LOG("window show event")
 
     MsgObject msg;
-    msg.prop["actionType"]="getWithChildren";
+    msg.prop["getWithChildren"]=1;
     msg.objIndex=FixedObjId::hostContainer;
     SendMsg(msg);
     msg.objIndex=FixedObjId::projectContainer;
@@ -241,7 +252,7 @@ void MainWindow::BuildListTools()
     QStandardItem *item=0;
     ObjectInfo info;
 
-    listToolsModel = new ListToolsModel(this);
+    listToolsModel = new ListToolsModel(this,FixedObjId::tools,this);
     listToolsModel->setHorizontalHeaderLabels(headerLabels);
     parentItem = listToolsModel->invisibleRootItem();
 

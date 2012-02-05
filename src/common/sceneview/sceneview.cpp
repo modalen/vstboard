@@ -487,7 +487,7 @@ void SceneView::AddObject(const MsgObject &msg)
             {
                 ListPinsView *parentList = static_cast<ListPinsView*>(mainWindow->listObj.value(msg.parentIndex,0));
                 if(!parentList) {
-                    LOG("NodeType::pin list not found"<<msg.parentIndex<<msg.prop);
+//                    LOG("NodeType::pin list not found"<<msg.parentIndex<<msg.prop);
                     return;
                 }
                 ConnectionInfo pinInfo = msg.prop.value("connectionInfo").value<ConnectionInfo>();
@@ -545,7 +545,7 @@ void SceneView::AddObject(const MsgObject &msg)
             {
                 MinMaxPinView* pinView = static_cast<MinMaxPinView*>(mainWindow->listObj.value(msg.parentIndex,0));
                 if(!pinView) {
-                    LOG("add pinLimit, pin not found");
+//                    LOG("add pinLimit, pin not found");
                     return;
                 }
                 pinView->ReceiveMsg(msg);

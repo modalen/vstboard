@@ -21,14 +21,19 @@
 #ifndef AUDIOINTERFACESMODEL_H
 #define AUDIOINTERFACESMODEL_H
 
-//#include "precomp.h"
+#include "precomp.h"
+#include "msghandler.h"
 
-class ListAudioInterfacesModel : public QStandardItemModel 
+class ListAudioInterfacesModel : public QStandardItemModel , public MsgHandler
 {
 public:
-    ListAudioInterfacesModel(QObject *parent=0);
+    ListAudioInterfacesModel(MsgController *msgCtrl, int objId, QObject *parent=0);
     Qt::ItemFlags flags ( const QModelIndex & index ) const;
     QMimeData  * mimeData ( const QModelIndexList  & indexes ) const ;
+    void ReceiveMsg(const MsgObject &msg);
+    void Update();
+    void Rescan();
+    QModelIndexList expandedIndex;
 };
 
 #endif // AUDIOINTERFACESMODEL_H

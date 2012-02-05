@@ -19,11 +19,13 @@
 **************************************************************************/
 
 #include "listtoolsmodel.h"
-#include "../connectables/objectinfo.h"
+#include "connectables/objectinfo.h"
 
-ListToolsModel::ListToolsModel(QObject *parent) :
-        QStandardItemModel(parent)
+ListToolsModel::ListToolsModel(MsgController *msgCtrl, int objId, QObject *parent) :
+    QStandardItemModel(parent),
+    MsgHandler(msgCtrl, objId)
 {
+
 }
 
 QMimeData  * ListToolsModel::mimeData ( const QModelIndexList  & indexes ) const
@@ -40,4 +42,26 @@ QMimeData  * ListToolsModel::mimeData ( const QModelIndexList  & indexes ) const
 
     data->setData("application/x-tools",b);
     return data;
+}
+
+void ListToolsModel::ReceiveMsg(const MsgObject &msg)
+{
+    if(msg.prop.contains("fullUpdate")) {
+        clear();
+
+    }
+}
+
+void ListToolsModel::Update()
+{
+    MsgObject msg(-1,GetIndex());
+    msg.prop["fullUpdate"]=1;
+    msgCtrl->SendMsg(msg);
+}
+
+void ListToolsModel::Rescan()
+{
+    MsgObject msg(-1,GetIndex());
+    msg.prop["rescan"]=1;
+    msgCtrl->SendMsg(msg);
 }

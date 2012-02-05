@@ -9,6 +9,7 @@ class MsgController
 {
 public:
     MsgController();
+    ~MsgController();
     virtual void SendMsg(const MsgObject &msg)=0;
     virtual void ReceiveMsg(const MsgObject &msg)=0;
 

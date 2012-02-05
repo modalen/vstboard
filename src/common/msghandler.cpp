@@ -16,7 +16,8 @@ MsgHandler::MsgHandler(MsgController *msgCtrl, int objId) :
 
 MsgHandler::~MsgHandler()
 {
-    msgCtrl->listObj.remove(objId);
+    if(msgCtrl)
+        msgCtrl->listObj.remove(objId);
 }
 
 bool MsgHandler::SetIndex(int id)
