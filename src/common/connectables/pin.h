@@ -39,6 +39,7 @@ namespace Connectables {
     class Pin : public QObject, public MsgHandler
     {
     Q_OBJECT
+        Q_PROPERTY(float value READ GetValNoReset)
     public:
         Pin(Object *parent,PinType::Enum type, PinDirection::Enum direction, int number, bool bridge=false );
         virtual ~Pin();
@@ -60,6 +61,10 @@ namespace Connectables {
           */
         virtual float GetValue() {return value;}
 
+        /*!
+          Get the current value, don't reset vumeter counter
+          */
+        float GetValNoReset() {return value;}
         /*!
           get the pin infos
           \return ConnectionInfo

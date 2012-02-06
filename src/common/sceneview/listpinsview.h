@@ -34,9 +34,9 @@ namespace View {
         void UpdateCablesPosition();
         int GetPinPosition(int newPinNumber);
         void ReceiveMsg(const MsgObject &) {}
-#ifndef QT_NO_DEBUG
-        void SetIndex(int id);
-#endif
+//#ifndef QT_NO_DEBUG
+//        void SetIndex(int id);
+//#endif
     };
 }
 

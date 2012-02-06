@@ -53,10 +53,10 @@ int ListPinsView::GetPinPosition(int newPinNumber)
     return layout->count();
 }
 
-#ifndef QT_NO_DEBUG
-void ListPinsView::SetIndex(int id)
-{
-    MsgHandler::SetIndex(id);
-    new QGraphicsSimpleTextItem(QString("pinLst %1").arg(id),this);
-}
-#endif
+//#ifndef QT_NO_DEBUG
+//void ListPinsView::SetIndex(int id)
+//{
+//    MsgHandler::SetIndex(id);
+//    new QGraphicsSimpleTextItem(QString("pinLst %1").arg(id),this);
+//}
+//#endif

@@ -62,7 +62,7 @@ private:
     QList<QVariant>listIsLearning;
     QList<QVariant>listBypass;
     QList<QVariant>listValues;
-
+    QMutex paramLock;
 
 signals:
     void WindowSizeChange(int newWidth, int newHeight);

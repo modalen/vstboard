@@ -31,7 +31,8 @@ ConnectablePinView::ConnectablePinView(float angle, MsgController *msgCtrl, int 
     textItem(0),
     rectVu(0),
     colorGroupId(ColorGroups::ND),
-    vuColor(Qt::gray)
+    vuColor(Qt::gray),
+    vuFall(.01f)
 {
     outline = new QGraphicsRectItem(rect(), this);
     highlight = new QGraphicsRectItem(rect(), this);
@@ -151,7 +152,10 @@ void ConnectablePinView::ReceiveMsg(const MsgObject &msg)
             rectVu->setRect(0,0, newVu, size().height());
         } else {
             float newVal = msg.prop.value("value",.0).toFloat();
-            value = std::max(value,newVal);
+            if(newVal>value) {
+                vuFall=.002f;
+                value=newVal;
+            }
         }
     }
 }
@@ -193,8 +197,8 @@ void ConnectablePinView::updateVu()
         return;
 
     if(connectInfo.type==PinType::Audio) {
-        value-=.05f;
-
+        value-=vuFall;
+        vuFall*=2.0f;
         if(value>1.0f) {
             if(overload==0) {
                 rectVu->setBrush(Qt::red);

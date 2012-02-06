@@ -494,6 +494,7 @@ void Vst3Plugin::Render()
 //        }
 //    }
 
+    paramLock.lock();
     Vst::ParameterChanges vstParamChanges;
     QMap<qint32,float>::const_iterator i = listParamChanged.constBegin();
     while(i!=listParamChanged.constEnd()) {
@@ -504,6 +505,7 @@ void Vst3Plugin::Render()
         ++i;
     }
     listParamChanged.clear();
+    paramLock.unlock();
     processData.inputParameterChanges = &vstParamChanges;
 
     audioEffect->setProcessing (true);
@@ -542,9 +544,10 @@ void Vst3Plugin::OnParameterChanged(ConnectionInfo pinInfo, float value)
             return;
         }
 
+        paramLock.lock();
         if(pinInfo.pinNumber<FIXED_PIN_STARTINDEX)
             listParamChanged.insert(pinInfo.pinNumber,value);
-
+        paramLock.unlock();
 
 
 //        QMutexLocker l(&objMutex);

@@ -135,13 +135,14 @@ void AudioPin::SetBufferSize(unsigned long size)
 
 float AudioPin::GetValue()
 {
-    float newVu=.0f;
-    newVu=buffer->GetVu();
+//    float newVu=.0f;
+    value=buffer->GetVu();
 
-    if(newVu != value) {
+    if(value>0.1) {
+//        value=newVu;
         valueChanged=true;
     }
-    return newVu;
+    return value;
 }
 
 void AudioPin::ReceiveMsg(const PinMessage::Enum msgType,void *data)

@@ -77,10 +77,15 @@ void ViewConfigDialog::InitDialog()
     }
     ui->fontProgFamily->setCurrentIndex( ui->fontProgFamily->findText(myHost->settings->GetSetting("fontProgFamily","Default").toString()) );
 
-    ui->fontProgSize->setValue( myHost->settings->GetSetting("fontProgSize",0).toInt() );
+    int s = myHost->settings->GetSetting("fontProgSize",10).toInt();
+    if(s<=0) s=8;
+    ui->fontProgSize->setValue( s );
     ui->fontProgBold->setChecked( myHost->settings->GetSetting("fontProgbold",false).toBool() );
     ui->fontProgItalic->setChecked( myHost->settings->GetSetting("fontProgItalic",false).toBool() );
-    ui->fontProgStretch->setValue( myHost->settings->GetSetting("fontProgStretch",100).toInt() );
+
+    s = myHost->settings->GetSetting("fontProgStretch",100).toInt();
+    if(s<=0) s=100;
+    ui->fontProgStretch->setValue( s );
     UpdateProgramsFont();
 }
 
@@ -453,6 +458,8 @@ void ViewConfigDialog::UpdateProgramsFont()
         b,
         ui->fontProgItalic->isChecked()
             );
+    if(ui->fontProgSize->value()<=0 || ui->fontProgStretch->value()<=0)
+        return;
     f.setPointSize(ui->fontProgSize->value());
     f.setStretch(ui->fontProgStretch->value());
     myHost->mainWindow->SetProgramsFont(f);
