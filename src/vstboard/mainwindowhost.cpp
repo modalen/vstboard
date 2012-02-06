@@ -163,8 +163,9 @@ void MainWindowHost::on_actionRefresh_Midi_devices_triggered()
 
 void MainWindowHost::on_actionConfig_triggered()
 {
-    ConfigDialogHost conf(settings,myHost,this);
-    conf.exec();
+    LOG("dialog")
+//    ConfigDialogHost conf(settings,myHost,this);
+//    conf.exec();
 }
 
 void MainWindowHost::SendMsg(const MsgObject &msg)
