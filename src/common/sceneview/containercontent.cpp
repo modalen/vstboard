@@ -30,11 +30,11 @@
 
 using namespace View;
 
-ContainerContent::ContainerContent(MainHost *myHost, MsgController *msgCtrl, int objId, MainContainerView * parent ) :
+ContainerContent::ContainerContent(ViewConfig *config, MsgController *msgCtrl, int objId, MainContainerView * parent ) :
     ObjectDropZone(msgCtrl,objId,parent),
     rectAttachLeft(0),
     rectAttachRight(0),
-    config(myHost->mainWindow->viewConfig)
+    config(config)
 {
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     setGeometry(0,0,50,50);

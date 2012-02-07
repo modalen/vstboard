@@ -32,13 +32,13 @@ using namespace View;
   */
 
 /*!
-  \param myHost pointer to the MainHost
+  \param config pointer to the config object
   \param model pointer to the model
   \param parent the parent graphic item
   \param wFlags window flags
   \todo the model parameter can be removed
   */
-ObjectView::ObjectView(MainHost *myHost, MsgController *msgCtrl, int objId, QGraphicsItem * parent) :
+ObjectView::ObjectView(ViewConfig *config, MsgController *msgCtrl, int objId, QGraphicsItem * parent) :
     QGraphicsWidget(parent),
     MsgHandler(msgCtrl,objId),
     listAudioIn(0),
@@ -59,9 +59,8 @@ ObjectView::ObjectView(MainHost *myHost, MsgController *msgCtrl, int objId, QGra
     actLearnSwitch(0),
     actToggleBypass(0),
     shrinkAsked(false),
-    myHost(myHost),
     highlighted(false),
-    config(myHost->mainWindow->viewConfig),
+    config(config),
     editorPin(0),
     learnPin(0),
     bypassPin(0),
@@ -327,8 +326,6 @@ void ObjectView::closeEvent ( QCloseEvent * event )
     msg.prop["actionType"]="remove";
     msg.prop["type"]=RemoveType::RemoveWithCables;
     msgCtrl->SendMsg(msg);
-
-//    myHost->undoStack.push( new ComRemoveObject(myHost, objIndex , RemoveType::RemoveWithCables) );
     event->ignore();
 }
 
@@ -339,7 +336,6 @@ void ObjectView::RemoveWithBridge()
     msg.prop["actionType"]="remove";
     msg.prop["type"]=RemoveType::BridgeCables;
     msgCtrl->SendMsg(msg);
-//    myHost->undoStack.push( new ComRemoveObject(myHost, objIndex, RemoveType::BridgeCables) );
 }
 
 /*!

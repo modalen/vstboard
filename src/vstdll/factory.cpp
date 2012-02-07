@@ -35,7 +35,7 @@ BEGIN_FACTORY_DEF ("CtrlBrk",
                                 kVstAudioEffectClass,
                                 stringPluginName,
                                 Vst::kDistributable,
-                                "Fx|Delay",
+                                "Fx|Other",
                                 "FULL_VERSION_STR",
                                 kVstVersionString,
                                 Steinberg::Vst::VstBoardProcessor::createInstance)

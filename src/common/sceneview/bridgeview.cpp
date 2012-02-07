@@ -22,8 +22,8 @@
 
 using namespace View;
 
-BridgeView::BridgeView(MainHost *myHost,MsgController *msgCtrl, int objId, QGraphicsItem * parent) :
-        ObjectView(myHost,msgCtrl,objId,parent),
+BridgeView::BridgeView(ViewConfig *config,MsgController *msgCtrl, int objId, QGraphicsItem * parent) :
+        ObjectView(config,msgCtrl,objId,parent),
         lLayout(0)
 {
     setObjectName("bridgeView");

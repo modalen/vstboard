@@ -41,6 +41,7 @@ namespace Connectables {
 
         virtual ~ParameterPin();
 
+        void ChangeOutputValue(float val, bool fromObj=false);
         void ChangeValue(float val, bool fromObj=false);
         void ChangeValue(int index, bool fromObj=false);
         void ChangeValue(const QVariant &variant, bool fromObj=false);

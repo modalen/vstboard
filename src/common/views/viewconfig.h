@@ -108,6 +108,7 @@ namespace View {
 
         KeyBind *keyBinding;
         bool AutoOpenGui;
+        Settings *settings;
 
     protected:
         ///list of presets in registry
@@ -129,7 +130,7 @@ namespace View {
 
         QString currentPresetName;
 
-        Settings *settings;
+
 
     signals:
         /*!

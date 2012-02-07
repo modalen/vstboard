@@ -66,6 +66,8 @@ protected:
 //        float** buffer;
 //        int32 bufferPos;
 
+public slots:
+        void Init();
 };
 
 }}

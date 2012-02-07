@@ -40,7 +40,7 @@
 
 using namespace View;
 
-SceneView::SceneView(MainHost *myHost, MainWindow *mainWindow, MainGraphicsView *viewHost, MainGraphicsView *viewProject, MainGraphicsView *viewProgram, MainGraphicsView *viewGroup,QWidget *parent) :
+SceneView::SceneView(MainWindow *mainWindow, MainGraphicsView *viewHost, MainGraphicsView *viewProject, MainGraphicsView *viewProgram, MainGraphicsView *viewGroup,QWidget *parent) :
     QAbstractItemView(parent),
     viewHost(viewHost),
     viewProject(viewProject),
@@ -60,7 +60,6 @@ SceneView::SceneView(MainHost *myHost, MainWindow *mainWindow, MainGraphicsView 
     progParking(0),
     groupParking(0),
     timerFalloff(0),
-    myHost(myHost),
     mainWindow(mainWindow)
 {
     setHidden(true);
@@ -88,15 +87,15 @@ SceneView::SceneView(MainHost *myHost, MainWindow *mainWindow, MainGraphicsView 
     viewProgram->setScene(sceneProgram);
     viewGroup->setScene(sceneGroup);
 
-    connect(myHost->programManager,SIGNAL(ProgChanged(quint32)),
-            viewProgram, SLOT(SetViewProgram(quint32)));
-    connect(myHost->programManager,SIGNAL(ProgDelete(quint32)),
-            viewProgram, SLOT(RemoveViewProgram(quint32)));
+//    connect(myHost->programManager,SIGNAL(ProgChanged(quint32)),
+//            viewProgram, SLOT(SetViewProgram(quint32)));
+//    connect(myHost->programManager,SIGNAL(ProgDelete(quint32)),
+//            viewProgram, SLOT(RemoveViewProgram(quint32)));
 
-    connect(myHost->programManager,SIGNAL(GroupChanged(quint32)),
-            viewGroup, SLOT(SetViewProgram(quint32)));
-    connect(myHost->programManager,SIGNAL(GroupDelete(quint32)),
-            viewGroup, SLOT(RemoveViewProgram(quint32)));
+//    connect(myHost->programManager,SIGNAL(GroupChanged(quint32)),
+//            viewGroup, SLOT(SetViewProgram(quint32)));
+//    connect(myHost->programManager,SIGNAL(GroupDelete(quint32)),
+//            viewGroup, SLOT(RemoveViewProgram(quint32)));
 }
 
 void SceneView::SetParkings(QWidget *progPark, QWidget *groupPark)
@@ -304,7 +303,7 @@ void SceneView::AddObject(const MsgObject &msg)
             return;
         }
 
-        objView = new ConnectableObjectView(myHost, mainWindow, msg.objIndex, parentView);
+        objView = new ConnectableObjectView(mainWindow->viewConfig, mainWindow, msg.objIndex, parentView);
         objView->ReceiveMsg(msg);
 
         QPointF pos = parentView->GetDropPos();
@@ -326,7 +325,7 @@ void SceneView::AddObject(const MsgObject &msg)
                 if(msg.objIndex == FixedObjId::hostContainer) {
                     if(hostContainerView)
                         delete hostContainerView;
-                    hostContainerView = new MainContainerView(myHost, mainWindow, msg.objIndex);
+                    hostContainerView = new MainContainerView(mainWindow->viewConfig, mainWindow, msg.objIndex);
                     objView=hostContainerView;
                     hostContainerView->setParentItem(rootObjHost);
                     connect(viewHost,SIGNAL(viewResized(QRectF)),
@@ -337,7 +336,7 @@ void SceneView::AddObject(const MsgObject &msg)
                 if(msg.objIndex == FixedObjId::projectContainer) {
                     if(projectContainerView)
                         delete projectContainerView;
-                    projectContainerView = new MainContainerView(myHost, mainWindow, msg.objIndex);
+                    projectContainerView = new MainContainerView(mainWindow->viewConfig, mainWindow, msg.objIndex);
                     objView=projectContainerView;
                     projectContainerView->setParentItem(rootObjProject);
                     connect(viewProject,SIGNAL(viewResized(QRectF)),
@@ -348,7 +347,7 @@ void SceneView::AddObject(const MsgObject &msg)
                 if(msg.objIndex == FixedObjId::programContainer) {
                     if(programContainerView)
                         delete programContainerView;
-                    programContainerView = new MainContainerView(myHost, mainWindow, msg.objIndex);
+                    programContainerView = new MainContainerView(mainWindow->viewConfig, mainWindow, msg.objIndex);
                     objView=programContainerView;
                     programContainerView->setParentItem(rootObjProgram);
                     connect(viewProgram,SIGNAL(viewResized(QRectF)),
@@ -360,7 +359,7 @@ void SceneView::AddObject(const MsgObject &msg)
                 if(msg.objIndex == FixedObjId::groupContainer) {
                     if(groupContainerView)
                         delete groupContainerView;
-                    groupContainerView = new MainContainerView(myHost, mainWindow, msg.objIndex);
+                    groupContainerView = new MainContainerView(mainWindow->viewConfig, mainWindow, msg.objIndex);
                     objView=groupContainerView;
                     groupContainerView->setParentItem(rootObjInsert);
                     connect(viewGroup,SIGNAL(viewResized(QRectF)),
@@ -421,9 +420,9 @@ void SceneView::AddObject(const MsgObject &msg)
                 }
 
                 if(msg.prop.value("objType",0).toInt() == ObjType::VstPlugin) {
-                    objView = new VstPluginView(myHost, mainWindow, msg.objIndex, parentView);
+                    objView = new VstPluginView(mainWindow->viewConfig, mainWindow, msg.objIndex, parentView);
                 } else {
-                    objView = new ConnectableObjectView(myHost, mainWindow, msg.objIndex, parentView);
+                    objView = new ConnectableObjectView(mainWindow->viewConfig, mainWindow, msg.objIndex, parentView);
                 }
                 objView->ReceiveMsg(msg);
 

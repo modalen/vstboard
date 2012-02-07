@@ -37,11 +37,19 @@ VstBoardProcessor::VstBoardProcessor (Settings *settings,QObject *parent) :
     AudioEffect()
 {
         setControllerClass (VstBoardControllerUID);
-        objFactory = new Connectables::ObjectFactoryVst(this);
+
+}
+
+void VstBoardProcessor::Init()
+{
+    MainHost::Init();
+    objFactory = new Connectables::ObjectFactoryVst(this);
 }
 
 tresult PLUGIN_API VstBoardProcessor::initialize (FUnknown* context)
 {
+    Init();
+
     tresult result = AudioEffect::initialize (context);
     if (result != kResultTrue)
         return result;

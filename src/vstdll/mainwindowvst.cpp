@@ -25,6 +25,7 @@ MainWindowVst::MainWindowVst(Steinberg::Vst::VstBoardController *controller,Sett
     MainWindow(settings,0,parent),
     controller(controller)
 {
+    Init();
 
 #ifdef QT_NO_DEBUG
     if(qtTranslator.load("qt_" + QLocale::system().name(), ":/translations/"))

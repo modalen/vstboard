@@ -207,20 +207,25 @@ tresult PLUGIN_API VstPluginWindow::resizeView (IPlugView* view, ViewRect* newSi
     return kResultOk;
 }
 
-tresult PLUGIN_API VstPluginWindow::queryInterface (const TUID iid, void** obj)
-{
-    QUERY_INTERFACE (iid, obj, IPlugFrame::iid, IPlugFrame)
-//    QUERY_INTERFACE (iid, obj, Vst::IComponentHandler2::iid, Vst::IComponentHandler2)
-//    QUERY_INTERFACE (iid, obj, FUnknown::iid, Vst::IComponentHandler)
-    *obj = 0;
-    return kNoInterface;
-}
+//tresult PLUGIN_API VstPluginWindow::queryInterface (const TUID iid, void** obj)
+//{
+//    char8 cidString[50];
+//    FUID(iid).toRegistryString (cidString);
+//    QString cidStr(cidString);
+//    LOG(cidStr)
 
-uint32 PLUGIN_API VstPluginWindow::addRef ()
-{
-    return 0;
-}
-uint32 PLUGIN_API VstPluginWindow::release ()
-{
-    return 0;
-}
+//    QUERY_INTERFACE (iid, obj, IPlugFrame::iid, IPlugFrame)
+////    QUERY_INTERFACE (iid, obj, Vst::IComponentHandler2::iid, Vst::IComponentHandler2)
+////    QUERY_INTERFACE (iid, obj, FUnknown::iid, Vst::IComponentHandler)
+//    *obj = 0;
+//    return kNoInterface;
+//}
+
+//uint32 PLUGIN_API VstPluginWindow::addRef ()
+//{
+//    return 0;
+//}
+//uint32 PLUGIN_API VstPluginWindow::release ()
+//{
+//    return 0;
+//}

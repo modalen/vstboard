@@ -23,18 +23,18 @@
 
 using namespace View;
 
-MainContainerView::MainContainerView(MainHost *myHost, MsgController *msgCtrl, int objId) :
-        ObjectView(myHost,msgCtrl,objId)
+MainContainerView::MainContainerView(ViewConfig *config, MsgController *msgCtrl, int objId) :
+        ObjectView(config,msgCtrl,objId)
 {
-    content = new ContainerContent(myHost,msgCtrl,-1,this);
+    content = new ContainerContent(config,msgCtrl,-1,this);
     content->setAcceptDrops(true);
     connect(content, SIGNAL(ObjectDropped(QGraphicsSceneDragDropEvent*,MsgObject)),
             this,SLOT(ObjectDropped(QGraphicsSceneDragDropEvent*,MsgObject)));
 
-    bridgeIn = new BridgeView(myHost, msgCtrl, -1, this);
-    bridgeOut = new BridgeView(myHost, msgCtrl, -1, this);
-    bridgeSend = new BridgeView(myHost, msgCtrl, -1, this);
-    bridgeReturn = new BridgeView(myHost, msgCtrl, -1, this);
+    bridgeIn = new BridgeView(config, msgCtrl, -1, this);
+    bridgeOut = new BridgeView(config, msgCtrl, -1, this);
+    bridgeSend = new BridgeView(config, msgCtrl, -1, this);
+    bridgeReturn = new BridgeView(config, msgCtrl, -1, this);
 
     setGeometry(0,0,0,0);
 }

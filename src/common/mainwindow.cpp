@@ -72,7 +72,7 @@ void MainWindow::Init()
 
     SetupBrowsersModels( ConfigDialog::defaultVstPath(settings), ConfigDialog::defaultBankPath(settings));
 
-    mySceneView = new View::SceneView(myHost, this, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
+    mySceneView = new View::SceneView(this, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
     mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
 //    mySceneView->setModel(myHost->GetModel());
 
@@ -342,11 +342,11 @@ void MainWindow::on_actionSave_Setup_As_triggered()
     myHost->SaveSetupFile(true);
 }
 
-void MainWindow::on_actionConfig_triggered()
-{
-    ConfigDialog conf(settings,0,this);
-    conf.exec();
-}
+//void MainWindow::on_actionConfig_triggered()
+//{
+//    ConfigDialog conf(settings,0,this);
+//    conf.exec();
+//}
 
 void MainWindow::UpdateKeyBinding()
 {

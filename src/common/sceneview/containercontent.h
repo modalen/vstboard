@@ -32,7 +32,7 @@ namespace View {
     {
     Q_OBJECT
     public:
-        explicit ContainerContent(MainHost *myHost, MsgController *msgCtrl, int objId, MainContainerView *parent);
+        explicit ContainerContent(ViewConfig *config, MsgController *msgCtrl, int objId, MainContainerView *parent);
         virtual void ReceiveMsg(const MsgObject &msg);
 //        void SetModelIndex(QPersistentModelIndex index);
         QPointF GetDropPos();
@@ -48,9 +48,6 @@ namespace View {
 
         QPersistentModelIndex objIndex;
         QPointF dropPos;
-
-        /// pointer to the MainHost
-        MainHost *myHost;
 
         QPersistentModelIndex attachLeft;
         QPersistentModelIndex attachRight;

@@ -49,8 +49,7 @@ IPlugView* PLUGIN_API VstBoardController::createView (const char* name)
 {
     if (name && strcmp (name, "editor") == 0)
     {
-        ViewRect viewRect (0, 0, 850, 600);
-        Gui* view = new Gui(&viewRect);
+        Gui* view = new Gui();
         Settings *set = new Settings("plugin/",qApp);
         mainWindow = new MainWindowVst(this,set);
         view->SetMainWindow(mainWindow);
@@ -71,6 +70,11 @@ void VstBoardController::editorRemoved (EditorView* editor)
     Gui* view = dynamic_cast<Gui*> (editor);
     if (view)
         listGui.removeAll(view);
+}
+
+void VstBoardController::editorDestroyed (EditorView* editor)
+{
+
 }
 
 tresult PLUGIN_API VstBoardController::notify (IMessage* message)

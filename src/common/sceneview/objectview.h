@@ -21,16 +21,14 @@
 #ifndef OBJECTVIEW_H
 #define OBJECTVIEW_H
 
-#include "../precomp.h"
-#include "../globals.h"
-#include "../connectables/object.h"
+#include "precomp.h"
+#include "globals.h"
+#include "connectables/object.h"
 #include "listpinsview.h"
 //#include "textbutton.h"
-#include "../mainhost.h"
-#include "../mainwindow.h"
+#include "mainwindow.h"
 #include "msghandler.h"
 
-class MainHost;
 namespace View {
 
     class MinMaxPinView;
@@ -39,7 +37,7 @@ namespace View {
     {
     Q_OBJECT
     public:
-        explicit ObjectView(MainHost *myHost, MsgController *msgCtrl, int objId, QGraphicsItem * parent = 0);
+        explicit ObjectView(ViewConfig *config, MsgController *msgCtrl, int objId, QGraphicsItem * parent = 0);
         virtual ~ObjectView();
 
 //        virtual void SetModelIndex(QPersistentModelIndex index);
@@ -117,9 +115,6 @@ namespace View {
 
         /// true if a shrink is already in progress
         bool shrinkAsked;
-
-        /// pointer to the MainHost
-        MainHost *myHost;
 
         bool highlighted;
 

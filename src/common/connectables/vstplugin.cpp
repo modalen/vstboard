@@ -746,7 +746,7 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
                         myHost->undoStack.push( new ComAddPin(myHost, pin->GetConnectionInfo()) );
 
                 case LearningMode::off :
-                    pin->ChangeValue(opt);
+                    pin->ChangeOutputValue(opt,true);
 
                 }
             }
@@ -819,7 +819,7 @@ VstIntPtr VstPlugin::OnMasterCallback(long opcode, long index, long value, void 
             while(i!=listParameterPinIn->listPins.end()) {
                 if(i.key()<pEffect->numParams) {
                     ParameterPin *pin = static_cast<ParameterPin*>(i.value());
-                    pin->ChangeValue( EffGetParameter(i.key()), true );
+                    pin->ChangeOutputValue( EffGetParameter(i.key()), true );
                     pin->setObjectName( EffGetParamName(i.key()) );
                 }
                 ++i;

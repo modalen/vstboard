@@ -2,13 +2,14 @@
 #define VST3PLUGIN_H
 
 #include "object.h"
+#include "public.sdk/source/common/memorystream.h"
+#include "public.sdk/source/vst/hosting/processdata.h"
+#include "public.sdk/source/vst/hosting/parameterchanges.h"
 #include "pluginterfaces/base/ipluginbase.h"
 #include "pluginterfaces/vst/ivstcomponent.h"
 #include "pluginterfaces/vst/ivsteditcontroller.h"
 #include "pluginterfaces/vst/ivstaudioprocessor.h"
 #include "pluginterfaces/gui/iplugview.h"
-#include "public.sdk/source/vst/hosting/processdata.h"
-#include "public.sdk/source/vst/hosting/parameterchanges.h"
 
 namespace View {
     class VstPluginWindow;
@@ -45,6 +46,7 @@ public:
 private:
     void Unload();
     void CreateEditorWindow();
+    void RemoveGui();
 
     QLibrary *pluginLib;
     IPluginFactory* factory;

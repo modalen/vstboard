@@ -22,8 +22,8 @@
 
 using namespace View;
 
-VstPluginView::VstPluginView(MainHost *myHost,MsgController *msgCtrl,int objId, MainContainerView *parent) :
-    ConnectableObjectView(myHost,msgCtrl,objId,parent),
+VstPluginView::VstPluginView(ViewConfig *config,MsgController *msgCtrl,int objId, MainContainerView *parent) :
+    ConnectableObjectView(config,msgCtrl,objId,parent),
     actSaveBank(0),
     actSaveBankAs(0),
     actSaveProgram(0),
@@ -162,7 +162,7 @@ void VstPluginView::UpdateModelIndex()
 
 void VstPluginView::SaveBankAs()
 {
-    QString lastDir = myHost->settings->GetSetting("lastBankPath").toString();
+    QString lastDir = config->settings->GetSetting("lastBankPath").toString();
     QString filename = QFileDialog::getSaveFileName(0, tr("Save Bank"), lastDir, tr("Bank File (*.%1)").arg(VST_BANK_FILE_EXTENSION) );
     if(filename.isEmpty())
         return;
@@ -171,7 +171,7 @@ void VstPluginView::SaveBankAs()
         filename.append( QString(".")+VST_BANK_FILE_EXTENSION );
     }
 
-    myHost->settings->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
+    config->settings->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
 //    model->setData(objIndex,filename,UserRoles::bankFile);
 }
 
@@ -186,7 +186,7 @@ void VstPluginView::SaveBank()
 
 void VstPluginView::SaveProgramAs()
 {
-    QString lastDir = myHost->settings->GetSetting("lastBankPath").toString();
+    QString lastDir = config->settings->GetSetting("lastBankPath").toString();
     QString filename = QFileDialog::getSaveFileName(0, tr("Save Program"), lastDir, tr("Program File (*.%1)").arg(VST_PROGRAM_FILE_EXTENSION) );
     if(filename.isEmpty())
         return;
@@ -195,7 +195,7 @@ void VstPluginView::SaveProgramAs()
         filename.append(QString(".")+VST_PROGRAM_FILE_EXTENSION);
     }
 
-    myHost->settings->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
+    config->settings->SetSetting("lastBankPath",QFileInfo(filename).absolutePath());
 //    model->setData(objIndex,filename,UserRoles::programFile);
 }
 

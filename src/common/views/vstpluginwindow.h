@@ -21,7 +21,8 @@
 #ifndef VSTPLUGINWINDOW_H
 #define VSTPLUGINWINDOW_H
 
-#include "../precomp.h"
+#include "precomp.h"
+#include "base/source/fobject.h"
 #include "pluginterfaces/gui/iplugview.h"
 
 namespace Ui {
@@ -39,7 +40,7 @@ using namespace Steinberg;
 namespace View {
 
 
-    class VstPluginWindow : public QFrame, public IPlugFrame
+    class VstPluginWindow : public QFrame, public FObject, public IPlugFrame
     {
         Q_OBJECT
     public:
@@ -55,10 +56,18 @@ namespace View {
         void LoadAttribs();
         void SaveAttribs();
 
-        tresult PLUGIN_API queryInterface (const TUID iid, void** obj);
-        uint32 PLUGIN_API addRef ();
-        uint32 PLUGIN_API release ();
+//        tresult PLUGIN_API queryInterface (const TUID iid, void** obj);
+//        uint32 PLUGIN_API addRef ();
+//        uint32 PLUGIN_API release ();
         tresult PLUGIN_API resizeView (IPlugView* view, ViewRect* newSize);
+
+
+        //---Interface------
+        OBJ_METHODS (VstPluginWindow, FObject)
+        DEFINE_INTERFACES
+            DEF_INTERFACE (IPlugFrame)
+        END_DEFINE_INTERFACES (FObject)
+        REFCOUNT_METHODS(FObject)
 
     protected:
         void resizeEvent ( QResizeEvent * event );

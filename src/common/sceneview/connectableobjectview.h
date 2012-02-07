@@ -33,7 +33,7 @@ namespace View {
     {
     Q_OBJECT
     public:
-        ConnectableObjectView(MainHost *myHost,MsgController *msgCtrl,int objId, MainContainerView *parent);
+        ConnectableObjectView(ViewConfig *config,MsgController *msgCtrl,int objId, MainContainerView *parent);
 
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent *event);

@@ -26,43 +26,62 @@
 
 //#include "aeffeditor.h"
 #include "mainwindowvst.h"
-#include "resizehandle.h"
+//#include "resizehandle.h"
 #include <qwinwidget.h>
-#include "public.sdk/source/common/pluginview.h"
+#include "pluginterfaces/gui/iplugview.h"
 
 namespace Steinberg
 {
 
-class Gui : public QObject, public CPluginView
+class Gui : public QObject, public FObject, public IPlugView
 {
     Q_OBJECT
     QWinWidget *widget;
 //    AudioEffectX* effect;
 
 public:
-    Gui(ViewRect* size = 0);
+    Gui();
     ~Gui();
 
-    bool getRect (ERect** rect);
+//    bool getRect (ERect** rect);
     void SetMainWindow(MainWindowVst *win);
 
     tresult PLUGIN_API isPlatformTypeSupported (FIDString type);
-    virtual void attachedToParent();
-    virtual void removedFromParent();
+    tresult PLUGIN_API attached (void* parent, FIDString type);
+    tresult PLUGIN_API removed ();
+
+    tresult PLUGIN_API onWheel (float /*distance*/) { return kResultFalse; }
+    tresult PLUGIN_API onKeyDown (char16 /*key*/, int16 /*keyMsg*/, int16 /*modifiers*/) { return kResultFalse; }
+    tresult PLUGIN_API onKeyUp (char16 /*key*/, int16 /*keyMsg*/, int16 /*modifiers*/) { return kResultFalse; }
+    tresult PLUGIN_API getSize (ViewRect* size);
+    tresult PLUGIN_API onSize (ViewRect* newSize);
+
+    tresult PLUGIN_API onFocus (TBool /*state*/) { return kResultFalse; }
+    tresult PLUGIN_API setFrame (IPlugFrame* frame);
+
+    tresult PLUGIN_API canResize () { return kResultTrue; }
+    tresult PLUGIN_API checkSizeConstraint (ViewRect* /*rect*/) { return kResultTrue; }
+
+    //---Interface------
+    OBJ_METHODS (Gui, FObject)
+    DEFINE_INTERFACES
+        DEF_INTERFACE (IPlugView)
+    END_DEFINE_INTERFACES (FObject)
+    REFCOUNT_METHODS(FObject)
 
 protected:
-    bool hostCanSizeWindow;
-    ERect rectangle;
+//    bool hostCanSizeWindow;
     MainWindowVst *myWindow;
-    ResizeHandle *resizeH;
-    QPoint widgetOffset;
+//    ResizeHandle *resizeH;
+//    QPoint widgetOffset;
+    IPlugFrame* plugFrame;
 
 signals:
     void update(float value);
 
 public slots:
     void UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId, const QColor &color);
-    void OnResizeHandleMove(const QPoint &pt);
+//    void OnResizeHandleMove(const QPoint &pt);
 
 };
 }

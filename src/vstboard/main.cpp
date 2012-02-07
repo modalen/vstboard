@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     app.exec();
 
 //    QTimer::singleShot(0,&host, SLOT(Kill()));
-    qApp->processEvents();
+//    qApp->processEvents();
 //    th.quit();
     return 0;
 }

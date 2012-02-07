@@ -143,6 +143,28 @@ void ParameterPin::GetValues(ObjectParameter &param)
     param.limitOutMax=limitOutMax->GetValue();
 }
 
+void ParameterPin::ChangeOutputValue(float val, bool fromObj)
+{
+    val = std::min(val,1.0f);
+    val = std::max(val,.0f);
+
+    //scale value
+    val-=limitOutMin->GetValue();
+    val/=(limitOutMax->GetValue()-limitOutMin->GetValue());
+    if(limitInMax->GetValue()!=limitInMin->GetValue())
+        val*=(limitInMax->GetValue()-limitInMin->GetValue());
+    val+=limitInMin->GetValue();
+
+//    if(val>limitInMax->GetValue())
+//        val=limitInMax->GetValue();
+//    if(val<limitInMin->GetValue())
+//        val=limitInMin->GetValue();
+
+    ChangeValue(val,fromObj);
+
+
+}
+
 //from float
 void ParameterPin::ChangeValue(float val, bool fromObj)
 {

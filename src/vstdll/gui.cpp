@@ -22,17 +22,14 @@
 
 namespace Steinberg
 {
-Gui::Gui(ViewRect* size) :
-    CPluginView(size),
+Gui::Gui() :
     widget(0),
     myWindow(0),
+    plugFrame(0)
 //    effect(effect),
-    resizeH(0)
+//    resizeH(0)
 {
-    rectangle.top = 0;
-    rectangle.left = 0;
-    rectangle.bottom = 600;
-    rectangle.right = 800;
+
 
     //reaper needs an offset.. can't find a good solution
 //    char str[64];
@@ -58,27 +55,6 @@ Gui::~Gui()
     }
 }
 
-tresult PLUGIN_API Gui::isPlatformTypeSupported (FIDString type)
-{
-#if WINDOWS
-        if (strcmp (type, kPlatformTypeHWND) == 0)
-                return kResultTrue;
-
-#elif MAC
-        #if MAC_CARBON
-        if (strcmp (type, kPlatformTypeHIView) == 0)
-                return kResultTrue;
-        #endif
-
-        #if MAC_COCOA
-        if (strcmp (type, kPlatformTypeNSView) == 0)
-                return kResultTrue;
-        #endif
-#endif
-
-        return kInvalidArgument;
-}
-
 void Gui::UpdateColor(ColorGroups::Enum groupId, Colors::Enum /*colorId*/, const QColor & /*color*/)
 {
     if(groupId!=ColorGroups::Window)
@@ -102,13 +78,49 @@ void Gui::SetMainWindow(MainWindowVst *win)
              Qt::UniqueConnection);
 }
 
-void Gui::attachedToParent()
+//void Gui::OnResizeHandleMove(const QPoint &pt)
+//{
+//    widget->resize( pt.x(), pt.y() );
+//    widget->move(widgetOffset);
+
+//    if(myWindow)
+//        myWindow->resize(pt.x(), pt.y());
+
+////    if(effect)
+////        effect->sizeWindow(pt.x(), pt.y());
+
+//    rectangle.right = pt.x();
+//    rectangle.bottom = pt.y();
+//}
+
+tresult PLUGIN_API Gui::isPlatformTypeSupported (FIDString type)
+{
+#if WINDOWS
+        if (strcmp (type, kPlatformTypeHWND) == 0)
+                return kResultTrue;
+
+#elif MAC
+        #if MAC_CARBON
+        if (strcmp (type, kPlatformTypeHIView) == 0)
+                return kResultTrue;
+        #endif
+
+        #if MAC_COCOA
+        if (strcmp (type, kPlatformTypeNSView) == 0)
+                return kResultTrue;
+        #endif
+#endif
+
+        return kInvalidArgument;
+}
+
+tresult PLUGIN_API Gui::attached (void* parent, FIDString /*type*/)
 {
     if(!myWindow)
-        return;
+        return kInternalError;
 
 //    AEffEditor::open(ptr);
-    widget = new QWinWidget(static_cast<HWND>(systemWindow));
+    widget = new QWinWidget(static_cast<HWND>(parent));
     widget->setAutoFillBackground(false);
     widget->setObjectName("QWinWidget");
 
@@ -116,45 +128,25 @@ void Gui::attachedToParent()
     myWindow->readSettings();
     myWindow->move(0,0);
 
-    rectangle.bottom = myWindow->height();
-    rectangle.right = myWindow->width();
-
     widget->move( 0, 0 );
-    widget->resize( rectangle.right, rectangle.bottom );
+    widget->resize( myWindow->size() );
     widget->setPalette( myWindow->palette() );
 
-    resizeH = new ResizeHandle(widget);
-    QPoint pos( widget->geometry().bottomRight() );
-    pos.rx()-=resizeH->width();
-    pos.ry()-=resizeH->height();
-    resizeH->move(pos);
-    resizeH->show();
+//    resizeH = new ResizeHandle(widget);
+//    QPoint pos( widget->geometry().bottomRight() );
+//    pos.rx()-=resizeH->width();
+//    pos.ry()-=resizeH->height();
+//    resizeH->move(pos);
+//    resizeH->show();
 
-    connect(resizeH, SIGNAL(Moved(QPoint)),
-            this, SLOT(OnResizeHandleMove(QPoint)));
+//    connect(resizeH, SIGNAL(Moved(QPoint)),
+//            this, SLOT(OnResizeHandleMove(QPoint)));
 
     widget->show();
-    return;
+    return kResultOk;
 }
 
-
-
-void Gui::OnResizeHandleMove(const QPoint &pt)
-{
-    widget->resize( pt.x(), pt.y() );
-    widget->move(widgetOffset);
-
-    if(myWindow)
-        myWindow->resize(pt.x(), pt.y());
-
-//    if(effect)
-//        effect->sizeWindow(pt.x(), pt.y());
-
-    rectangle.right = pt.x();
-    rectangle.bottom = pt.y();
-}
-
-void Gui::removedFromParent()
+tresult PLUGIN_API Gui::removed ()
 {
     if(myWindow) {
         myWindow->writeSettings();
@@ -164,15 +156,59 @@ void Gui::removedFromParent()
         delete widget;
         widget=0;
     }
+
+    return kResultOk;
 }
 
-bool Gui::getRect (ERect** rect)
+tresult PLUGIN_API Gui::getSize (ViewRect* size)
 {
-    if(!widget || !rect)
-        return false;
+    if (!size)
+        return kInvalidArgument;
 
-    *rect = &rectangle;
-    return true;
+    if(widget) {
+        size->left=0;
+        size->top=0;
+        size->right=widget->width();
+        size->bottom=widget->height();
+        return kResultTrue;
+    }
+
+    size->right = 600;
+    size->bottom = 400;
+    return kResultFalse;
 }
+
+tresult PLUGIN_API Gui::onSize (ViewRect* newSize)
+{
+    if (!newSize)
+        return kInvalidArgument;
+
+    if(myWindow) {
+        myWindow->resize(newSize->getWidth(),newSize->getHeight());
+    }
+    if(widget) {
+        widget->resize(newSize->getWidth(),newSize->getHeight());
+//        widget->move(widgetOffset);
+    }
+
+    return kResultTrue;
+}
+
+//bool Gui::getRect (ERect** rect)
+//{
+//    if(!widget || !rect)
+//        return false;
+
+//    *rect = &rectangle;
+//    return true;
+//}
+
+tresult PLUGIN_API Gui::setFrame (IPlugFrame* frame)
+{
+    plugFrame = frame;
+    return kResultTrue;
+}
+
+
 
 }

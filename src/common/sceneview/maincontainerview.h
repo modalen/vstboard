@@ -26,14 +26,13 @@
 #include "cableview.h"
 #include "bridgeview.h"
 
-class MainHost;
 namespace View {
 
     class MainContainerView : public ObjectView
     {
     Q_OBJECT
     public:
-        explicit MainContainerView(MainHost *myHost,MsgController *msgCtrl, int objId);
+        explicit MainContainerView(ViewConfig *config,MsgController *msgCtrl, int objId);
         virtual ~MainContainerView();
         void ReceiveMsg(const MsgObject &msg);
 //        void SetModelIndex(QPersistentModelIndex index);
