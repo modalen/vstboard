@@ -34,18 +34,21 @@ ListMidiInterfacesModel::ListMidiInterfacesModel(MsgController *msgCtrl, int obj
 
 QMimeData  * ListMidiInterfacesModel::mimeData ( const QModelIndexList  & indexes ) const
 {
-    QMimeData  *data = new QMimeData();
     QByteArray b;
     QDataStream stream(&b,QIODevice::WriteOnly);
 
     foreach(QModelIndex idx, indexes) {
-        if(idx.column()!=0)
+        if(!idx.isValid() || !idx.data(UserRoles::objInfo).isValid())
             continue;
-        stream << itemFromIndex(idx)->data(UserRoles::objInfo).value<ObjectInfo>();
+        stream << idx.data(UserRoles::objInfo).value<ObjectInfo>();
     }
 
-    data->setData("application/x-midiinterface",b);
-    return data;
+    if(b.length()>0) {
+        QMimeData  *data = new QMimeData();
+        data->setData("application/x-midiinterface",b);
+        return data;
+    }
+    return 0;
 }
 
 void ListMidiInterfacesModel::ReceiveMsg(const MsgObject &msg)

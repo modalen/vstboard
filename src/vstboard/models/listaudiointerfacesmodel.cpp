@@ -43,23 +43,21 @@ Qt::ItemFlags ListAudioInterfacesModel::flags ( const QModelIndex & index ) cons
 
 QMimeData  * ListAudioInterfacesModel::mimeData ( const QModelIndexList  & indexes ) const
 {
-    QMimeData  *data = new QMimeData();
     QByteArray b;
     QDataStream stream(&b,QIODevice::WriteOnly);
 
-    QStandardItem *item = itemFromIndex(indexes.first());
-
     foreach(QModelIndex idx, indexes) {
-        //don't drag api
-        if(item->parent()==0)
+        if(!idx.isValid() || !idx.data(UserRoles::objInfo).isValid())
             continue;
-        if(idx.column()!=0)
-            continue;
-        stream << itemFromIndex(idx)->data(UserRoles::objInfo).value<ObjectInfo>();
+        stream << idx.data(UserRoles::objInfo).value<ObjectInfo>();
     }
 
-    data->setData("application/x-audiointerface",b);
-    return data;
+    if(b.length()>0) {
+        QMimeData  *data = new QMimeData();
+        data->setData("application/x-audiointerface",b);
+        return data;
+    }
+    return 0;
 }
 
 void ListAudioInterfacesModel::ReceiveMsg(const MsgObject &msg)
