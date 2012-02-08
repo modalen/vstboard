@@ -19,17 +19,18 @@
 **************************************************************************/
 #include "mididevices.h"
 #include "connectables/objectinfo.h"
-#include "mainhost.h"
+#include "mainhosthost.h"
 
 //QList< QSharedPointer<Connectables::MidiDevice> >MidiDevices::listOpenedMidiDevices;
 //QMutex MidiDevices::mutexListMidi;
 
-MidiDevices::MidiDevices(MainHost *myHost) :
-        QObject(myHost),
-        model(0),
-        myHost(myHost)
+MidiDevices::MidiDevices(MainHostHost *myHost, MsgController *msgCtrl, int objId) :
+    QObject(myHost),
+    MsgHandler(msgCtrl, objId),
+    pmOpened(false),
+    myHost(myHost)
 {
-    //GetModel();
+    OpenDevices();
 }
 
 MidiDevices::~MidiDevices()
@@ -37,27 +38,27 @@ MidiDevices::~MidiDevices()
     if(Pt_Started())
         Pt_Stop();
 
-//    if(model) {
-//        model->deleteLater();
+    if(pmOpened)
         Pm_Terminate();
-//    }
+
 }
 
-ListMidiInterfacesModel* MidiDevices::GetModel()
+void MidiDevices::OpenDevices()
 {
-//    mutexListMidi.lock();
-
+    mutexListMidi.lock();
     foreach(Connectables::MidiDevice* md, listOpenedMidiDevices) {
         md->SetSleep(true);
         md->CloseStream();
     }
+    mutexListMidi.unlock();
 
     if(Pt_Started())
         Pt_Stop();
 
-    if(model) {
+    if(pmOpened) {
         Pm_Terminate();
-        model->deleteLater();
+//        model->deleteLater();
+        pmOpened=false;
     }
 
     PmError pmRet = Pm_Initialize();
@@ -66,7 +67,7 @@ ListMidiInterfacesModel* MidiDevices::GetModel()
         msgBox.setText(tr("Unable to initialize midi engine : %1").arg( Pm_GetErrorText(pmRet) ));
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.exec();
-        return 0;
+        return;
     }
 
     PtError ptRet = Pt_Start(1, MidiDevices::MidiReceive_poll,this);
@@ -75,8 +76,9 @@ ListMidiInterfacesModel* MidiDevices::GetModel()
         msgBox.setText(tr("Unable to start midi engine"));
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.exec();
-        return 0;
+        return;
     }
+    pmOpened=true;
 
     BuildModel();
 
@@ -91,48 +93,64 @@ ListMidiInterfacesModel* MidiDevices::GetModel()
         }
     }
 
+    mutexListMidi.lock();
     foreach(Connectables::MidiDevice* md, listOpenedMidiDevices) {
         if(md->OpenStream())
             md->SetSleep(false);
     }
+    mutexListMidi.unlock();
 
-//    mutexListMidi.unlock();
-
-    return model;
 }
 
 void MidiDevices::OpenDevice(Connectables::MidiDevice* objPtr)
 {
-//    mutexListMidi.lock();
+    mutexListMidi.lock();
     listOpenedMidiDevices << objPtr;
-//    mutexListMidi.unlock();
+    mutexListMidi.unlock();
+
+    listOpenedDevices << objPtr->info().id;
+
+    MsgObject msg(-1,GetIndex());
+    msg.prop["state"]=true;
+    msg.prop["dev"]=objPtr->info().id;
+    msgCtrl->SendMsg(msg);
 }
 
 void MidiDevices::CloseDevice(Connectables::MidiDevice* objPtr)
 {
-//    mutexListMidi.lock();
+    listOpenedDevices.removeAll(objPtr->info().id);
+
+    MsgObject msg(-1,GetIndex());
+    msg.prop["state"]=false;
+    msg.prop["dev"]=objPtr->info().id;
+    msgCtrl->SendMsg(msg);
+
+    mutexListMidi.lock();
     listOpenedMidiDevices.removeAll( objPtr );
-//    mutexListMidi.unlock();
+    mutexListMidi.unlock();
 }
 
 void MidiDevices::BuildModel()
 {
-    QStringList headerLabels;
-    headerLabels << "Name";
-    headerLabels << "In";
-    headerLabels << "Out";
+//    QStringList headerLabels;
+//    headerLabels << "Name";
+//    headerLabels << "In";
+//    headerLabels << "Out";
 
-    if(model)
-        model->deleteLater();
-    model = new ListMidiInterfacesModel(this);
-    model->setHorizontalHeaderLabels(  headerLabels );
-    QStandardItem *parentItem = model->invisibleRootItem();
+//    if(model)
+//        model->deleteLater();
+//    model = new ListMidiInterfacesModel(this);
+//    model->setHorizontalHeaderLabels(  headerLabels );
+//    QStandardItem *parentItem = model->invisibleRootItem();
+
+    MsgObject msg(-1,GetIndex());
+    msg.prop["fullUpdate"]=1;
 
     QString lastName;
     int cptDuplicateNames=0;
 
     for(int i=0;i<Pm_CountDevices();i++) {
-        QList<QStandardItem *>  items;
+//        QList<QStandardItem *>  items;
         const PmDeviceInfo *devInfo = Pm_GetDeviceInfo(i);
 
         QString devName= QString::fromLocal8Bit(devInfo->name);
@@ -153,19 +171,34 @@ void MidiDevices::BuildModel()
         obj.inputs = devInfo->input;
         obj.outputs = devInfo->output;
 
-        items << new QStandardItem(devName);
-        items << new QStandardItem(QString::number(devInfo->input));
-        items << new QStandardItem(QString::number(devInfo->output));
+//        items << new QStandardItem(devName);
+//        items << new QStandardItem(QString::number(devInfo->input));
+//        items << new QStandardItem(QString::number(devInfo->output));
 
-        items[0]->setData(QVariant::fromValue(obj), UserRoles::objInfo);
+//        items[0]->setData(QVariant::fromValue(obj), UserRoles::objInfo);
 
-        parentItem->appendRow(items);
+//        parentItem->appendRow(items);
+        MsgObject msgDevice;
+        msgDevice.prop["name"]=devName;
+        msgDevice.prop["objInfo"]=QVariant::fromValue(obj);
+        msgDevice.prop["state"]=(bool)listOpenedDevices.contains(obj.id);
+        msg.children << msgDevice;
     }
-
+    msgCtrl->SendMsg(msg);
 }
 
-//midi interfaces entry point
-//===============================
+void MidiDevices::ReceiveMsg(const MsgObject &msg)
+{
+    if(msg.prop.contains("rescan")) {
+        OpenDevices();
+        return;
+    }
+    if(msg.prop.contains("fullUpdate")) {
+        BuildModel();
+        return;
+    }
+}
+
 void MidiDevices::MidiReceive_poll(PtTimestamp timestamp, void *userData)
 {
     PmEvent buffer;
@@ -173,7 +206,8 @@ void MidiDevices::MidiReceive_poll(PtTimestamp timestamp, void *userData)
 
     MidiDevices *devices = static_cast<MidiDevices*>(userData);
 
-//    devices->mutexListMidi.lock();
+    QMutexLocker l(&devices->mutexListMidi);
+
     foreach(Connectables::MidiDevice* device, devices->listOpenedMidiDevices) {
         if(device->GetSleep())
             continue;
@@ -181,7 +215,6 @@ void MidiDevices::MidiReceive_poll(PtTimestamp timestamp, void *userData)
         if(!device->stream || !device->queue)
            continue;
 
-        //lock device while processing (no rendering, no delete)
         device->Lock();
 
         //it's a midi input
@@ -214,5 +247,4 @@ void MidiDevices::MidiReceive_poll(PtTimestamp timestamp, void *userData)
 
         device->Unlock();
     }
-//    devices->mutexListMidi.unlock();
 }

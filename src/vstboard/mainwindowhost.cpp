@@ -58,12 +58,15 @@ void MainWindowHost::Init()
 //    listAudioDevModel->Update();
 
     //midi devices
-//    ui->treeMidiInterfaces->setModel(myHost->midiDevices->GetModel());
-//    ui->treeMidiInterfaces->header()->setResizeMode(0,QHeaderView::Stretch);
-//    ui->treeMidiInterfaces->header()->setResizeMode(1,QHeaderView::Fixed);
-//    ui->treeMidiInterfaces->header()->setResizeMode(2,QHeaderView::Fixed);
-//    ui->treeMidiInterfaces->header()->resizeSection(1,30);
-//    ui->treeMidiInterfaces->header()->resizeSection(2,30);
+    listMidiDevModel = new ListMidiInterfacesModel(this,FixedObjId::midiDevices,this);
+    ui->treeMidiInterfaces->setModel(listMidiDevModel);
+    ui->treeMidiInterfaces->header()->setResizeMode(0,QHeaderView::Stretch);
+    ui->treeMidiInterfaces->header()->setResizeMode(1,QHeaderView::Fixed);
+    ui->treeMidiInterfaces->header()->setResizeMode(2,QHeaderView::Fixed);
+    ui->treeMidiInterfaces->header()->setResizeMode(3,QHeaderView::Fixed);
+    ui->treeMidiInterfaces->header()->resizeSection(1,30);
+    ui->treeMidiInterfaces->header()->resizeSection(2,30);
+    ui->treeMidiInterfaces->header()->resizeSection(3,40);
 
     BuildListTools();
 
@@ -148,7 +151,8 @@ void MainWindowHost::UpdateAudioDevices()
 
 void MainWindowHost::UpdateMidiDevices()
 {
-    ui->treeMidiInterfaces->setModel(static_cast<MainHostHost*>(myHost)->midiDevices->GetModel());
+//    ui->treeMidiInterfaces->setModel(static_cast<MainHostHost*>(myHost)->midiDevices->GetModel());
+    listMidiDevModel->Rescan();
 }
 
 void MainWindowHost::on_actionRefresh_Audio_devices_triggered()

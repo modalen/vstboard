@@ -20,9 +20,16 @@
 #include "listmidiinterfacesmodel.h"
 #include "connectables/objectinfo.h"
 
-ListMidiInterfacesModel::ListMidiInterfacesModel(QObject *parent):
-        QStandardItemModel(parent)
+ListMidiInterfacesModel::ListMidiInterfacesModel(MsgController *msgCtrl, int objId, QObject *parent):
+    QStandardItemModel(parent),
+    MsgHandler(msgCtrl, objId)
 {
+    QStringList headerLabels;
+    headerLabels << "Name";
+    headerLabels << "In";
+    headerLabels << "Out";
+    headerLabels << "InUse";
+    setHorizontalHeaderLabels(  headerLabels );
 }
 
 QMimeData  * ListMidiInterfacesModel::mimeData ( const QModelIndexList  & indexes ) const
@@ -39,4 +46,70 @@ QMimeData  * ListMidiInterfacesModel::mimeData ( const QModelIndexList  & indexe
 
     data->setData("application/x-midiinterface",b);
     return data;
+}
+
+void ListMidiInterfacesModel::ReceiveMsg(const MsgObject &msg)
+{
+    if(msg.prop.contains("state")) {
+        for(int i=0; i<rowCount(); i++) {
+            if(index(i,0).data(UserRoles::value).toInt() == msg.prop["dev"].toInt()) {
+                if(msg.prop["state"].toBool())
+                    item(i,3)->setCheckState(Qt::Checked);
+                else
+                    item(i,3)->setCheckState(Qt::Unchecked);
+
+                return;
+            }
+        }
+        return;
+    }
+
+    if(msg.prop.contains("fullUpdate")) {
+        invisibleRootItem()->removeRows(0, rowCount());
+
+        foreach(const MsgObject &msgDevice, msg.children) {
+            QList<QStandardItem *> listItems;
+            QStandardItem *devItem = new QStandardItem(msgDevice.prop["name"].toString());
+            devItem->setEditable(false);
+            ObjectInfo obj = msgDevice.prop["objInfo"].value<ObjectInfo>();
+            devItem->setData(QVariant::fromValue(obj), UserRoles::objInfo);
+            devItem->setData(obj.id, UserRoles::value);
+            devItem->setDragEnabled(true);
+            listItems << devItem;
+
+            QStandardItem *inputItem = new QStandardItem( QString::number(obj.inputs));
+            inputItem->setEditable(false);
+            listItems << inputItem;
+
+            QStandardItem *outputItem = new QStandardItem( QString::number(obj.outputs));
+            outputItem->setEditable(false);
+            listItems << outputItem;
+
+            QStandardItem *inUseItem = new QStandardItem(false);
+            inUseItem->setEditable(false);
+            if(msgDevice.prop["state"].toBool())
+                inUseItem->setCheckState(Qt::Checked);
+            else
+                inUseItem->setCheckState(Qt::Unchecked);
+
+            listItems << inUseItem;
+
+            invisibleRootItem()->appendRow(listItems);
+        }
+    }
+}
+
+
+void ListMidiInterfacesModel::Update()
+{
+    MsgObject msg(-1,GetIndex());
+    msg.prop["fullUpdate"]=1;
+    msgCtrl->SendMsg(msg);
+}
+
+void ListMidiInterfacesModel::Rescan()
+{
+    MsgObject msg(-1,GetIndex());
+    msg.prop["rescan"]=1;
+    msgCtrl->SendMsg(msg);
 }

@@ -28,6 +28,7 @@
 #include "mainwindow.h"
 #include "../common/ui_mainwindow.h"
 #include "models/listaudiointerfacesmodel.h"
+#include "models/listmidiinterfacesmodel.h"
 
 class MainHostHost;
 class MainWindowHost : public MainWindow {
@@ -44,7 +45,7 @@ protected:
     void resetSettings();
 
     ListAudioInterfacesModel *listAudioDevModel;
-    ListToolsModel *listMidiDevModel;
+    ListMidiInterfacesModel *listMidiDevModel;
 
 signals:
     void SendMsgSignal(const MsgObject &msg);

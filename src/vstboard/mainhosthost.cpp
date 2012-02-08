@@ -33,7 +33,7 @@ void MainHostHost::Init()
 {
     MainHost::Init();
     objFactory = new Connectables::ObjectFactoryHost(this);
-    midiDevices = new MidiDevices(this);
+    midiDevices = new MidiDevices(this,this,FixedObjId::midiDevices);
     audioDevices = new AudioDevices(this,this,FixedObjId::audioDevices);
 }
 

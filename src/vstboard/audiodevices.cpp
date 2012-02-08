@@ -297,7 +297,7 @@ void AudioDevices::BuildModel()
             MsgObject msgDevice;
             msgDevice.prop["name"]=devName;
             msgDevice.prop["objInfo"]=QVariant::fromValue(obj);
-            msgDevice.prop["state"]=(bool)listOpenedDevces.contains(obj.api*1000+obj.id);
+            msgDevice.prop["state"]=(bool)listOpenedDevices.contains(obj.api*1000+obj.id);
             msgApi.children << msgDevice;
         }
         msg.children << msgApi;
@@ -348,12 +348,12 @@ void AudioDevices::OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId
     //change status
 //    QStandardItem *chk = apiItem->child( devItem->row(), 3);
 
-    bool oldState = listOpenedDevces.contains(apiId*1000+devId);
+    bool oldState = listOpenedDevices.contains(apiId*1000+devId);
     if(oldState == inUse)
         return;
 
     if(inUse) {
-        listOpenedDevces << apiId*1000+devId;
+        listOpenedDevices << apiId*1000+devId;
 
 //        if(chk->checkState()!=Qt::Checked) {
 //            apiItem->child( devItem->row(), 3)->setCheckState(Qt::Checked);
@@ -364,7 +364,7 @@ void AudioDevices::OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId
 //        devItem->setToolTip( QString("Input latency %1ms\nOutput latency %2ms\nSample rate %3Hz")
 //                             .arg(inL).arg(outL).arg(sampleRate) );
     } else {
-        listOpenedDevces.removeAll(apiId*1000+devId);
+        listOpenedDevices.removeAll(apiId*1000+devId);
 //        if(chk->checkState()==Qt::Checked) {
 //            chk->setCheckState(Qt::Unchecked);
 //            countActiveDevices--;
@@ -376,7 +376,7 @@ void AudioDevices::OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId
 
     //the renderer is normally launched when all the audio devices are ready,
     //if there is no audio device we have to run a timer
-    if(!listOpenedDevces.isEmpty()) {
+    if(!listOpenedDevices.isEmpty()) {
         myHost->SetBufferSize(1);
         if(fakeRenderTimer) {
             delete fakeRenderTimer;

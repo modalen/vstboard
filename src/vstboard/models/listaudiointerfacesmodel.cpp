@@ -30,7 +30,6 @@ ListAudioInterfacesModel::ListAudioInterfacesModel(MsgController *msgCtrl, int o
     headerLabels << "Out";
     headerLabels << "InUse";
     setHorizontalHeaderLabels(  headerLabels );
-
 }
 
 Qt::ItemFlags ListAudioInterfacesModel::flags ( const QModelIndex & index ) const
@@ -75,8 +74,9 @@ void ListAudioInterfacesModel::ReceiveMsg(const MsgObject &msg)
                             itemFromIndex(index(j,3,apiIdx))->setCheckState(Qt::Checked);
                         else
                             itemFromIndex(index(j,3,apiIdx))->setCheckState(Qt::Unchecked);
+
+                        return;
                     }
-                    return;
                 }
             }
         }
@@ -86,12 +86,6 @@ void ListAudioInterfacesModel::ReceiveMsg(const MsgObject &msg)
     if(msg.prop.contains("fullUpdate")) {
         invisibleRootItem()->removeRows(0, rowCount());
         expandedIndex.clear();
-//        QStringList headerLabels;
-//        headerLabels << "Name";
-//        headerLabels << "In";
-//        headerLabels << "Out";
-//        headerLabels << "InUse";
-//        setHorizontalHeaderLabels(  headerLabels );
 
         foreach(const MsgObject &msgApi, msg.children) {
             QStandardItem *apiItem = new QStandardItem(msgApi.prop["name"].toString());
@@ -119,8 +113,7 @@ void ListAudioInterfacesModel::ReceiveMsg(const MsgObject &msg)
                 outputItem->setEditable(false);
                 listItems << outputItem;
 
-                QStandardItem *inUseItem = new QStandardItem();
-                inUseItem->setCheckable(true);
+                QStandardItem *inUseItem = new QStandardItem( false );
                 inUseItem->setEditable(false);
                 if(msgDevice.prop["state"].toBool())
                     inUseItem->setCheckState(Qt::Checked);

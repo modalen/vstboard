@@ -1084,6 +1084,13 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
         return;
     }
 
+    if(msg.objIndex == FixedObjId::audioDevices) {
+        if(listObj.contains(msg.objIndex)) {
+            listObj[msg.objIndex]->ReceiveMsg(msg);
+        }
+        return;
+    }
+
     if(msg.objIndex==FixedObjId::programsManager) {
         programManager->ReceiveMsg(msg);
         return;

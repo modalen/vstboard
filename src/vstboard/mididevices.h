@@ -27,28 +27,32 @@
 #include "models/listmidiinterfacesmodel.h"
 #include "connectables/mididevice.h"
 
-class MainHost;
-class MidiDevices : public QObject
+class MainHostHost;
+class MidiDevices : public QObject, public MsgHandler
 {
 Q_OBJECT
 public:
-    explicit MidiDevices(MainHost *myHost);
+    explicit MidiDevices(MainHostHost *myHost, MsgController *msgCtrl, int objId);
     ~MidiDevices();
 
-    ListMidiInterfacesModel* GetModel();
+//    ListMidiInterfacesModel* GetModel();
 
     void OpenDevice(Connectables::MidiDevice* objPtr);
     void CloseDevice(Connectables::MidiDevice* objPtr);
 
+    void ReceiveMsg(const MsgObject &msg);
 private:
+    void OpenDevices();
     void BuildModel();
     static void MidiReceive_poll(PtTimestamp timestamp, void *userData);
     QList< Connectables::MidiDevice* >listOpenedMidiDevices;
 
-    ListMidiInterfacesModel *model;
+//    ListMidiInterfacesModel *model;
+    bool pmOpened;
 
     QMutex mutexListMidi;
-    MainHost *myHost;
+    MainHostHost *myHost;
+    QList<qint32>listOpenedDevices;
 };
 
 #endif // MIDIDEVICES_H

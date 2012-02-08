@@ -21,13 +21,17 @@
 #ifndef LISTMIDIINTERFACESMODEL_H
 #define LISTMIDIINTERFACESMODEL_H
 
-//#include "precomp.h"
+#include "precomp.h"
+#include "msghandler.h"
 
-class ListMidiInterfacesModel : public QStandardItemModel
+class ListMidiInterfacesModel : public QStandardItemModel, public MsgHandler
 {
 public:
-    ListMidiInterfacesModel(QObject *parent=0);
+    ListMidiInterfacesModel(MsgController *msgCtrl, int objId, QObject *parent=0);
     QMimeData  * mimeData ( const QModelIndexList  & indexes ) const ;
+    void ReceiveMsg(const MsgObject &msg);
+    void Update();
+    void Rescan();
 };
 
 #endif // LISTMIDIINTERFACESMODEL_H

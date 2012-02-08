@@ -122,6 +122,13 @@ void MainWindow::ReceiveMsg(const MsgObject &msg)
         return;
     }
 
+    if(msg.objIndex == FixedObjId::midiDevices) {
+        if(listObj.contains(msg.objIndex)) {
+            listObj[msg.objIndex]->ReceiveMsg(msg);
+        }
+        return;
+    }
+
     if(progModel && msg.objIndex==FixedObjId::programsManager) {
         progModel->ReceiveMsg(msg);
         return;

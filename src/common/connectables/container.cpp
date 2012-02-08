@@ -478,11 +478,17 @@ void Container::UserAddObject(const QSharedPointer<Object> &objPtr,
             case InsertionType::AddAfter:
                 ConnectObjects(targetPtr, objPtr, false);
                 break;
-            case InsertionType::Replace:
+            case InsertionType::Replace: {
                 CopyCablesFromObj(objPtr, targetPtr);
                 (targetPtr)->CopyStatusTo(objPtr);
                 ParkObject(targetPtr);
+
+                MsgObject msg(GetIndex(), targetPtr->GetIndex());
+                msg.prop["actionType"]="remove";
+                msgCtrl->SendMsg(msg);
+
                 break;
+            }
             case InsertionType::NoInsertion:
                 break;
         }

@@ -496,8 +496,8 @@
        <property name="showDropIndicator" stdset="0">
         <bool>false</bool>
        </property>
-       <property name="dragDropMode">
-        <enum>QAbstractItemView::DragOnly</enum>
+       <property name="dragEnabled">
+        <bool>true</bool>
        </property>
        <property name="selectionMode">
         <enum>QAbstractItemView::ExtendedSelection</enum>
@@ -596,6 +596,9 @@
        </property>
        <property name="horizontalScrollBarPolicy">
         <enum>Qt::ScrollBarAlwaysOff</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
        </property>
        <property name="showDropIndicator" stdset="0">
         <bool>false</bool>

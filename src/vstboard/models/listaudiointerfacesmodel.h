@@ -24,7 +24,7 @@
 #include "precomp.h"
 #include "msghandler.h"
 
-class ListAudioInterfacesModel : public QStandardItemModel , public MsgHandler
+class ListAudioInterfacesModel : public QStandardItemModel, public MsgHandler
 {
 public:
     ListAudioInterfacesModel(MsgController *msgCtrl, int objId, QObject *parent=0);

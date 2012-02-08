@@ -91,7 +91,7 @@ private:
     QMutex mutexDevices;
 
     QMutex mutexClosing;
-    QList<qint32>listOpenedDevces;
+    QList<qint32>listOpenedDevices;
 
 public slots:
     void OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId, bool inUse, PaTime inLatency=0, PaTime outLatency=0, double sampleRate=0);
