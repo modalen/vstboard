@@ -26,27 +26,27 @@
 
 class MainWindowVst;
 namespace Steinberg {
-class Gui;
+    class Gui;
+}
 
-namespace Vst {
+using namespace Steinberg;
 
 //-----------------------------------------------------------------------------
-class VstBoardController : public EditController
+class VstBoardController : public Vst::EditController
 {
 public:
     static FUnknown* createInstance (void*) { return (IEditController*)new VstBoardController (); }
 
     tresult PLUGIN_API initialize (FUnknown* context);
     IPlugView* PLUGIN_API createView (const char* name);
-    void editorAttached (EditorView* editor);
-    void editorRemoved (EditorView* editor);
-    void editorDestroyed (EditorView* editor);
-    tresult PLUGIN_API notify (IMessage* message);
+    void editorAttached (Vst::EditorView* editor);
+    void editorRemoved (Vst::EditorView* editor);
+    void editorDestroyed (Vst::EditorView* editor);
+    tresult PLUGIN_API notify (Vst::IMessage* message);
 private:
     QList<Gui*> listGui;
     MainWindowVst *mainWindow;
 };
 
-}}
 
 #endif // VSTBOARDCONTROLLER_H

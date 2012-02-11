@@ -30,14 +30,17 @@
 #include "connectables/objectfactoryvst.h"
 #include "msgobject.h"
 
-namespace Steinberg {
-namespace Vst {
 VstBoardProcessor::VstBoardProcessor (Settings *settings,QObject *parent) :
     MainHost(settings,parent),
-    AudioEffect()
+    Vst::AudioEffect()
 {
         setControllerClass (VstBoardControllerUID);
 
+}
+
+VstBoardProcessor::~VstBoardProcessor()
+{
+    Close();
 }
 
 void VstBoardProcessor::Init()
@@ -82,10 +85,39 @@ tresult PLUGIN_API VstBoardProcessor::initialize (FUnknown* context)
             currentProjectFile = "";
     }
 
-    addAudioInput (STR16 ("AudioInput"), SpeakerArr::kStereo);
-    addAudioOutput (STR16 ("AudioOutput"), SpeakerArr::kStereo);
+    for(int i=0; i<NB_MAIN_BUSES_IN; i++) {
+        addAudioInput(QString("AudioIn%1").arg(i+1).utf16(), Vst::SpeakerArr::kStereo, Vst::kMain, 0);
+    }
+    for(int i=0; i<NB_MAIN_BUSES_OUT; i++) {
+        addAudioOutput(QString("AudioOut%1").arg(i+1).utf16(), Vst::SpeakerArr::kStereo, Vst::kMain, 0);
+    }
+
+    for(int i=0; i<NB_AUX_BUSES_IN; i++) {
+        addAudioInput(QString("AuxIn%1").arg(i+1).utf16(), Vst::SpeakerArr::kStereo, Vst::kAux, 0);
+    }
+    for(int i=0; i<NB_AUX_BUSES_OUT; i++) {
+        addAudioOutput(QString("AuxOut%1").arg(i+1).utf16(), Vst::SpeakerArr::kStereo, Vst::kAux, 0);
+    }
 
     return kResultTrue;
+}
+
+tresult PLUGIN_API VstBoardProcessor::setupProcessing (Vst::ProcessSetup& newSetup)
+{
+    unsigned long bSize = (unsigned long)newSetup.maxSamplesPerBlock;
+    if(bufferSize != bSize) {
+        SetBufferSize(bSize);
+    }
+
+    float sRate = static_cast<float>(newSetup.sampleRate);
+    if(sampleRate != sRate)
+        SetSampleRate(sRate);
+
+    if(newSetup.symbolicSampleSize!=32 && newSetup.symbolicSampleSize!=64) {
+        return kResultFalse;
+    }
+
+    return kResultOk;
 }
 
 tresult PLUGIN_API VstBoardProcessor::terminate ()
@@ -97,19 +129,19 @@ tresult PLUGIN_API VstBoardProcessor::terminate ()
     return result;
 }
 
-tresult PLUGIN_API VstBoardProcessor::setBusArrangements (SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts)
+tresult PLUGIN_API VstBoardProcessor::setBusArrangements (Vst::SpeakerArrangement* inputs, int32 numIns, Vst::SpeakerArrangement* outputs, int32 numOuts)
 {
-        if (numIns == 1 && numOuts == 1 && inputs[0] == outputs[0])
+//        if (numIns == 1 && numOuts == 1 && inputs[0] == outputs[0])
                 return AudioEffect::setBusArrangements (inputs, numIns, outputs, numOuts);
-        return kResultFalse;
+//        return kResultFalse;
 }
 
 tresult PLUGIN_API VstBoardProcessor::setActive (TBool state)
 {
-        SpeakerArrangement arr;
-        if (getBusArrangement (kOutput, 0, arr) != kResultTrue)
+        Vst::SpeakerArrangement arr;
+        if (getBusArrangement (Vst::kOutput, 0, arr) != kResultTrue)
                 return kResultFalse;
-        int32 numChannels = SpeakerArr::getChannelCount (arr);
+        int32 numChannels = Vst::SpeakerArr::getChannelCount (arr);
         if (numChannels == 0)
                 return kResultFalse;
 
@@ -124,13 +156,35 @@ tresult PLUGIN_API VstBoardProcessor::setActive (TBool state)
         return AudioEffect::setActive (state);
 }
 
-tresult PLUGIN_API VstBoardProcessor::process (ProcessData& data)
+tresult PLUGIN_API VstBoardProcessor::process (Vst::ProcessData& data)
 {
+    unsigned long bSize = (unsigned long)data.numSamples;
+    if(bufferSize != bSize) {
+        SetBufferSize(bSize);
+    }
+
+    int cpt=0;
+    Vst::AudioBusBuffers *buf = data.inputs;
+    foreach(Connectables::VstAudioDeviceIn* dev, lstAudioIn) {
+        dev->SetBuffers(buf,data.numSamples);
+        ++buf;
+        ++cpt;
+    }
+
     Render();
+
+    cpt=0;
+    buf = data.outputs;
+    foreach(Connectables::VstAudioDeviceOut* dev, lstAudioOut) {
+        dev->GetBuffers(buf,data.numSamples);
+        ++buf;
+        ++cpt;
+    }
+
     return kResultTrue;
 }
 
-tresult PLUGIN_API VstBoardProcessor::notify (IMessage* message) {
+tresult PLUGIN_API VstBoardProcessor::notify (Vst::IMessage* message) {
     if (!message)
         return kInvalidArgument;
 
@@ -173,5 +227,44 @@ void VstBoardProcessor::SendMsg(const MsgObject &msg)
     }
 }
 
+bool VstBoardProcessor::addAudioIn(Connectables::VstAudioDeviceIn *dev)
+{
+    QMutexLocker l(&mutexDevices);
 
-}}
+    if(lstAudioIn.contains(dev))
+        return false;
+
+    dev->setObjectName( QString("Audio in %1").arg( lstAudioIn.count()+1 ) );
+    activateBus(Vst::kAudio, Vst::kInput, lstAudioIn.count(), true);
+    lstAudioIn << dev;
+    return true;
+}
+
+bool VstBoardProcessor::addAudioOut(Connectables::VstAudioDeviceOut *dev)
+{
+    QMutexLocker l(&mutexDevices);
+
+    if(lstAudioOut.contains(dev))
+        return false;
+
+    dev->setObjectName( QString("Audio out %1").arg( lstAudioOut.count()+1 ) );
+    activateBus(Vst::kAudio, Vst::kOutput, lstAudioOut.count(), true);
+    lstAudioOut << dev;
+    return true;
+}
+
+bool VstBoardProcessor::removeAudioIn(Connectables::VstAudioDeviceIn *dev)
+{
+    QMutexLocker l(&mutexDevices);
+    int id = lstAudioIn.indexOf(dev);
+    lstAudioIn.removeAt(id);
+    return true;
+}
+
+bool VstBoardProcessor::removeAudioOut(Connectables::VstAudioDeviceOut *dev)
+{
+    QMutexLocker l(&mutexDevices);
+    int id = lstAudioOut.indexOf(dev);
+    lstAudioOut.removeAt(id);
+    return true;
+}

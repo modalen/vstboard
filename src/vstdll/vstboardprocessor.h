@@ -33,34 +33,54 @@
 #include "mainhost.h"
 #include "settings.h"
 
-namespace Steinberg {
-namespace Vst {
+#define NB_MAIN_BUSES_IN 8
+#define NB_AUX_BUSES_IN 8
+#define NB_MAIN_BUSES_OUT 8
+#define NB_AUX_BUSES_OUT 8
+
+using namespace Steinberg;
 
 class MainHostVst;
-class VstBoardProcessor : public MainHost, public AudioEffect
+class VstBoardProcessor : public MainHost, public Vst::AudioEffect
 {
     Q_OBJECT
 public:
         VstBoardProcessor (Settings *settings, QObject *parent = 0);
+        virtual ~VstBoardProcessor();
 
         tresult PLUGIN_API initialize (FUnknown* context);
         tresult PLUGIN_API terminate ();
-        tresult PLUGIN_API setBusArrangements (SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts);
+        tresult PLUGIN_API setBusArrangements (Vst::SpeakerArrangement* inputs, int32 numIns, Vst::SpeakerArrangement* outputs, int32 numOuts);
 
         tresult PLUGIN_API setActive (TBool state);
-        tresult PLUGIN_API process (ProcessData& data);
+        tresult PLUGIN_API process (Vst::ProcessData& data);
 
         static FUnknown* createInstance (void*) {
             Settings *set = new Settings("plugin/",qApp);
-            return (IAudioProcessor*)new VstBoardProcessor (set);
+            return (Vst::IAudioProcessor*)new VstBoardProcessor (set);
         }
 
-        tresult PLUGIN_API notify (IMessage* message);
+        tresult PLUGIN_API notify (Vst::IMessage* message);
 
         void SendMsg(const MsgObject &msg);
 
+        bool addAudioIn(Connectables::VstAudioDeviceIn *dev);
+        bool addAudioOut(Connectables::VstAudioDeviceOut *dev);
+        bool removeAudioIn(Connectables::VstAudioDeviceIn *dev);
+        bool removeAudioOut(Connectables::VstAudioDeviceOut *dev);
+
+        tresult PLUGIN_API setupProcessing (Vst::ProcessSetup& setup);
+
 protected:
         QApplication *myApp;
+
+        QList<Connectables::VstAudioDeviceIn*>lstAudioIn;
+        QList<Connectables::VstAudioDeviceOut*>lstAudioOut;
+        QList<Connectables::VstMidiDevice*>lstMidiIn;
+        QList<Connectables::VstMidiDevice*>lstMidiOut;
+        QList<Connectables::VstAutomation*>lstVstAutomation;
+
+        QMutex mutexDevices;
 
 //        ParamValue delay;
 //        float** buffer;
@@ -69,7 +89,5 @@ protected:
 public slots:
         void Init();
 };
-
-}}
 
 #endif // VSTBOARDPROCESSOR_H

@@ -46,7 +46,7 @@ class MainHost : public QObject, public MsgController
 Q_OBJECT
 public:
     MainHost( Settings *settings, QObject *parent = 0);
-    virtual ~MainHost();
+    ~MainHost();
 
 
 //    void SendMsg(const ConnectionInfo &senderPin,const PinMessage::Enum msgType,void *data);
@@ -129,6 +129,7 @@ public:
     Settings *settings;
 
 protected:
+    void Close();
     QTime timeFromStart;
     float sampleRate;
     unsigned long bufferSize;

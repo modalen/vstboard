@@ -24,6 +24,7 @@
 //#include "precomp.h"
 #include "connectables/object.h"
 #include "connectables/objectinfo.h"
+#include "pluginterfaces/vst/ivstaudioprocessor.h"
 
 class AudioBuffer;
 
@@ -41,6 +42,7 @@ namespace Connectables {
 
         void GetBuffers(float **buf, int &cpt, int sampleFrames);
         void GetBuffersD(double **buf, int &cpt, int sampleFrames);
+        void GetBuffers(Steinberg::Vst::AudioBusBuffers *buf, int sampleFrames);
         QStandardItem *GetFullItem();
 
     public slots:

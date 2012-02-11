@@ -25,9 +25,6 @@
 #include "mainwindowvst.h"
 #include "settings.h"
 
-namespace Steinberg {
-namespace Vst {
-
 //-----------------------------------------------------------------------------
 tresult PLUGIN_API VstBoardController::initialize (FUnknown* context)
 {
@@ -40,7 +37,7 @@ tresult PLUGIN_API VstBoardController::initialize (FUnknown* context)
     QCoreApplication::setOrganizationName("CtrlBrk");
     QCoreApplication::setApplicationName("VstBoard");
 
-    parameters.addParameter (STR16 ("Delay"), STR16 ("sec"), 0, 1, ParameterInfo::kCanAutomate, kDelayTag);
+    parameters.addParameter (STR16 ("Delay"), STR16 ("sec"), 0, 1, Vst::ParameterInfo::kCanAutomate, kDelayTag);
 
     return kResultTrue;
 }
@@ -58,26 +55,26 @@ IPlugView* PLUGIN_API VstBoardController::createView (const char* name)
     return 0;
 }
 
-void VstBoardController::editorAttached (EditorView* editor)
+void VstBoardController::editorAttached (Vst::EditorView* editor)
 {
     Gui* view = dynamic_cast<Gui*> (editor);
     if (view)
         listGui << view;
 }
 
-void VstBoardController::editorRemoved (EditorView* editor)
+void VstBoardController::editorRemoved (Vst::EditorView* editor)
 {
     Gui* view = dynamic_cast<Gui*> (editor);
     if (view)
         listGui.removeAll(view);
 }
 
-void VstBoardController::editorDestroyed (EditorView* editor)
+void VstBoardController::editorDestroyed (Vst::EditorView* editor)
 {
 
 }
 
-tresult PLUGIN_API VstBoardController::notify (IMessage* message)
+tresult PLUGIN_API VstBoardController::notify (Vst::IMessage* message)
 {
     if (!message)
         return kInvalidArgument;
@@ -108,4 +105,3 @@ tresult PLUGIN_API VstBoardController::notify (IMessage* message)
 
     return EditController::notify(message);
 }
-}}

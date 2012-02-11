@@ -37,7 +37,7 @@ VstAudioDeviceIn::~VstAudioDeviceIn()
 
 bool VstAudioDeviceIn::Close()
 {
-//    static_cast<MainHostVst*>(myHost)->myVstPlugin->removeAudioIn(this);
+    static_cast<VstBoardProcessor*>(myHost)->removeAudioIn(this);
     if(!Object::Close())
         return false;
     return true;
@@ -60,8 +60,8 @@ void VstAudioDeviceIn::SetBufferSize(unsigned long size)
 
 bool VstAudioDeviceIn::Open()
 {
-//    if(!static_cast<MainHostVst*>(myHost)->myVstPlugin->addAudioIn(this))
-//        return false;
+    if(!static_cast<VstBoardProcessor*>(myHost)->addAudioIn(this))
+        return false;
 
     listAudioPinOut->ChangeNumberOfPins(2);
     SetBufferSize(myHost->GetBufferSize());
@@ -84,6 +84,24 @@ void VstAudioDeviceIn::SetBuffersD(double **buf, int &cpt, int sampleFrames)
         AudioBuffer *abuf= static_cast<AudioPin*>(pin)->GetBuffer();
         abuf->SetBufferContent(buf[cpt],sampleFrames);
         cpt++;
+    }
+}
+
+void VstAudioDeviceIn::SetBuffers(Steinberg::Vst::AudioBusBuffers *buf, int sampleFrames)
+{
+    int cpt=0;
+    foreach(Pin *pin, listAudioPinOut->listPins) {
+
+        AudioBuffer *abuf= static_cast<AudioPin*>(pin)->GetBuffer();
+        if(doublePrecision)
+            abuf->SetBufferContent(buf->channelBuffers64[cpt],sampleFrames);
+        else
+            abuf->SetBufferContent(buf->channelBuffers32[cpt],sampleFrames);
+
+        ++cpt;
+
+        if(cpt==buf->numChannels)
+            return;
     }
 }
 

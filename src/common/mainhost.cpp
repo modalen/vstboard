@@ -57,20 +57,34 @@ MainHost::MainHost(Settings *settings, QObject *parent) :
 
 MainHost::~MainHost()
 {
+    Close();
+}
+
+void MainHost::Close()
+{
+    static bool closed=false;
+    if(closed)
+        return;
+    closed=true;
+
     EnableSolverUpdate(false);
 
-    updateViewTimer->stop();
-    delete updateViewTimer;
-    updateViewTimer=0;
+    if(updateViewTimer) {
+        updateViewTimer->stop();
+        delete updateViewTimer;
+        updateViewTimer=0;
+    }
 
 //    mutexListCables->lock();
 //    workingListOfCables.clear();
 //    mutexListCables->unlock();
 
-    hashCables lstCables;
-    solver->Resolve(lstCables, renderer);
-//    solver->Resolve(workingListOfCables, renderer);
-    delete renderer;
+    if(renderer) {
+        hashCables lstCables;
+        solver->Resolve(lstCables, renderer);
+    //    solver->Resolve(workingListOfCables, renderer);
+        delete renderer;
+    }
 
     hostContainer.clear();
     projectContainer.clear();
@@ -78,7 +92,10 @@ MainHost::~MainHost()
     programContainer.clear();
     mainContainer.clear();
 
-    delete objFactory;
+    if(objFactory) {
+        delete objFactory;
+        objFactory=0;
+    }
 
 #ifdef VSTSDK
     vstUsersCounter--;
@@ -90,7 +107,10 @@ MainHost::~MainHost()
 #endif
 
 //    delete mutexListCables;
-    delete programManager;
+    if(programManager) {
+        delete programManager;
+        programManager=0;
+    }
 }
 
 void MainHost::Kill()

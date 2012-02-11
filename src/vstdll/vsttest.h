@@ -25,14 +25,18 @@
 #include "pluginterfaces/test/itest.h"
 
 namespace Steinberg {
-namespace Vst {
-class IPlugProvider;
+    namespace Vst {
+        class IPlugProvider;
+    }
+}
+
+using namespace Steinberg;
 
 //-----------------------------------------------------------------------------
 class VstBoardTest : public ITest, public FObject
 {
 public:
-        VstBoardTest (IPlugProvider* plugProvider);
+        VstBoardTest (Vst::IPlugProvider* plugProvider);
 
         //--ITest
         virtual bool PLUGIN_API setup ();
@@ -44,7 +48,7 @@ public:
         DEF_INTERFACES_1(ITest, FObject)
         REFCOUNT_METHODS(FObject)
 protected:
-        IPlugProvider* plugProvider;
+        Vst::IPlugProvider* plugProvider;
 };
 
 //-----------------------------------------------------------------------------
@@ -62,7 +66,5 @@ public:
         DEF_INTERFACES_1(ITestFactory, FObject)
         REFCOUNT_METHODS(FObject)
 };
-
-}}
 
 #endif // VSTTEST_H

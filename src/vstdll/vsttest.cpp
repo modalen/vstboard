@@ -26,20 +26,23 @@
 
 namespace Steinberg {
 
-DEF_CLASS_IID(ITest)
-DEF_CLASS_IID(ITestSuite)
-DEF_CLASS_IID(ITestFactory)
+    DEF_CLASS_IID(ITest)
+    DEF_CLASS_IID(ITestSuite)
+    DEF_CLASS_IID(ITestFactory)
 
-namespace Vst {
-DEF_CLASS_IID(IPlugProvider)
+    namespace Vst {
+        DEF_CLASS_IID(IPlugProvider)
+    }
+}
 
-//-----------------------------------------------------------------------------
 FUID VstBoardTestFactory::cid (0x03574CA9, 0x0ADB4c80, 0xB2B7D80B, 0x417D227D);
+
+using namespace Steinberg;
 
 //-----------------------------------------------------------------------------
 tresult PLUGIN_API VstBoardTestFactory::createTests (FUnknown* context, ITestSuite* parentSuite)
 {
-        FUnknownPtr<IPlugProvider> plugProvider (context);
+        FUnknownPtr<Vst::IPlugProvider> plugProvider (context);
         if (plugProvider)
         {
                 parentSuite->addTest ("VstBoardTest", new VstBoardTest (plugProvider));
@@ -50,7 +53,7 @@ tresult PLUGIN_API VstBoardTestFactory::createTests (FUnknown* context, ITestSui
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-VstBoardTest::VstBoardTest (IPlugProvider* plugProvider)
+VstBoardTest::VstBoardTest (Vst::IPlugProvider* plugProvider)
 : plugProvider (plugProvider)
 {
 }
@@ -89,5 +92,3 @@ const tchar* PLUGIN_API VstBoardTest::getDescription ()
         static String description ("VstBoard Test");
         return description.text16 ();
 }
-
-}}

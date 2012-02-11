@@ -21,7 +21,7 @@
 #include "views/configdialogvst.h"
 #include "vstboardcontroller.h"
 
-MainWindowVst::MainWindowVst(Steinberg::Vst::VstBoardController *controller,Settings *settings, QWidget *parent) :
+MainWindowVst::MainWindowVst(VstBoardController *controller,Settings *settings, QWidget *parent) :
     MainWindow(settings,0,parent),
     controller(controller)
 {
@@ -45,7 +45,7 @@ MainWindowVst::MainWindowVst(Steinberg::Vst::VstBoardController *controller,Sett
 
 void MainWindowVst::SendMsg(const MsgObject &msg)
 {
-    Steinberg::OPtr<Steinberg::Vst::IMessage> message = controller->allocateMessage();
+    OPtr<Vst::IMessage> message = controller->allocateMessage();
     if (message)
     {
         message->setMessageID("msg");

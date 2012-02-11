@@ -30,17 +30,17 @@ BEGIN_FACTORY_DEF ("CtrlBrk",
                    "http://vstboard.blogspot.com",
                    "mailto:ctrlbrk76@gmail.com")
 
-        DEF_CLASS2 (INLINE_UID_FROM_FUID(Steinberg::Vst::VstBoardProcessorUID),
+        DEF_CLASS2 (INLINE_UID_FROM_FUID(VstBoardProcessorUID),
                                 PClassInfo::kManyInstances,
                                 kVstAudioEffectClass,
                                 stringPluginName,
                                 Vst::kDistributable,
-                                "Fx|Other",
+                                "Fx",
                                 "FULL_VERSION_STR",
                                 kVstVersionString,
-                                Steinberg::Vst::VstBoardProcessor::createInstance)
+                                VstBoardProcessor::createInstance)
 
-        DEF_CLASS2 (INLINE_UID_FROM_FUID(Steinberg::Vst::VstBoardControllerUID),
+        DEF_CLASS2 (INLINE_UID_FROM_FUID(VstBoardControllerUID),
                                 PClassInfo::kManyInstances,
                                 kVstComponentControllerClass,
                                 stringPluginName "Controller",	// controller name (could be the same than component name)
@@ -48,10 +48,10 @@ BEGIN_FACTORY_DEF ("CtrlBrk",
                                 "",						// not used here
                                 "FULL_VERSION_STR",		// Plug-in version (to be changed)
                                 kVstVersionString,
-                                Steinberg::Vst::VstBoardController::createInstance)
+                                VstBoardController::createInstance)
 
         // add Test Factory
-        DEF_CLASS2 (INLINE_UID_FROM_FUID(Steinberg::Vst::VstBoardTestFactory::cid),
+        DEF_CLASS2 (INLINE_UID_FROM_FUID(VstBoardTestFactory::cid),
                                 PClassInfo::kManyInstances,
                                 kTestClass,
                                 stringPluginName "Test Factory",
@@ -59,7 +59,7 @@ BEGIN_FACTORY_DEF ("CtrlBrk",
                                 "",
                                 "",
                                 "",
-                                Steinberg::Vst::VstBoardTestFactory::createInstance)
+                                VstBoardTestFactory::createInstance)
 
 END_FACTORY
 
