@@ -82,26 +82,28 @@ tresult PLUGIN_API VstBoardController::notify (IMessage* message)
     if (!message)
         return kInvalidArgument;
 
-    const void* data;
-    uint32 size;
-    if (message->getAttributes ()->getBinary ("data", data, size) == kResultOk)
+    if (!strcmp (message->getMessageID (), "msg"))
     {
-        if(!mainWindow)
-            return kResultOk;
+        const void* data;
+        uint32 size;
+        if (message->getAttributes ()->getBinary ("data", data, size) == kResultOk)
+        {
+            if(!mainWindow)
+                return kResultOk;
 
-//        if (!strcmp (message->getMessageID (), "msglist")) {
-//            QByteArray ba((char*)data,size);
-//            mainWindow->ReceiveMsg(message->getMessageID(),ba);
-//            return kResultOk;
-//        }
+    //        if (!strcmp (message->getMessageID (), "msglist")) {
+    //            QByteArray ba((char*)data,size);
+    //            mainWindow->ReceiveMsg(message->getMessageID(),ba);
+    //            return kResultOk;
+    //        }
 
-        if (!strcmp (message->getMessageID (), "msg")) {
-            QByteArray ba((char*)data,size);
-            mainWindow->ReceiveMsg( QVariant(ba).value<MsgObject>() );
+            QByteArray br((char*)data,size);
+            QDataStream str(&br, QIODevice::ReadOnly);
+            MsgObject msg;
+            str >> msg;
+            mainWindow->ReceiveMsg( msg );
             return kResultOk;
         }
-
-        return kResultOk;
     }
 
     return EditController::notify(message);

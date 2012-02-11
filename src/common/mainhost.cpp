@@ -1077,6 +1077,42 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
 {
 //    LOG(msg.objIndex << msg.prop)
 
+    if(msg.objIndex == FixedObjId::mainHost) {
+        if(msg.prop.contains("loadProject")) {
+            LoadProjectFile();
+            return;
+        }
+        if(msg.prop.contains("clearProject")) {
+            ClearProject();
+            return;
+        }
+        if(msg.prop.contains("saveProject")) {
+            SaveProjectFile();
+            return;
+        }
+        if(msg.prop.contains("saveProjectAs")) {
+            SaveProjectFile(true);
+            return;
+        }
+        if(msg.prop.contains("loadSetup")) {
+            LoadSetupFile();
+            return;
+        }
+        if(msg.prop.contains("clearSetup")) {
+            ClearSetup();
+            return;
+        }
+        if(msg.prop.contains("saveSetup")) {
+            SaveSetupFile();
+            return;
+        }
+        if(msg.prop.contains("saveSetupAs")) {
+            SaveSetupFile(true);
+            return;
+        }
+        return;
+    }
+
     if(msg.objIndex == FixedObjId::audioDevices) {
         if(listObj.contains(msg.objIndex)) {
             listObj[msg.objIndex]->ReceiveMsg(msg);
@@ -1139,17 +1175,21 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
     }
 
     if(msg.prop["actionType"]=="connectPins") {
-        undoStack.push( new ComAddCable(this, msg.prop["pin1"].value<ConnectionInfo>(), msg.prop["pin2"].value<ConnectionInfo>()) );
+        ConnectionInfo cPin1(msg.children.value(0));
+        ConnectionInfo cPin2(msg.children.value(1));
+        undoStack.push( new ComAddCable(this, cPin1, cPin2) );
         return;
     }
 
     if(msg.prop["actionType"]=="unplugPin") {
-        undoStack.push( new ComDisconnectPin(this, msg.prop["pin"].value<ConnectionInfo>() ) );
+        ConnectionInfo cPin(msg);
+        undoStack.push( new ComDisconnectPin(this, cPin) );
         return;
     }
 
     if(msg.prop["actionType"]=="removePin") {
-        undoStack.push( new ComRemovePin(this, msg.prop["pin"].value<ConnectionInfo>() ) );
+        ConnectionInfo cPin(msg);
+        undoStack.push( new ComRemovePin(this, cPin) );
         return;
     }
 

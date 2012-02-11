@@ -219,14 +219,14 @@ bool Vst3Plugin::Open()
         }
 
 ////         connect the 2 components
-//        Vst::IConnectionPoint* iConnectionPointComponent = 0;
-//        Vst::IConnectionPoint* iConnectionPointController = 0;
-//        processorComponent->queryInterface (Vst::IConnectionPoint::iid, (void**)&iConnectionPointComponent);
-//        editController->queryInterface (Vst::IConnectionPoint::iid, (void**)&iConnectionPointController);
-//        if (iConnectionPointComponent && iConnectionPointController) {
-//            iConnectionPointComponent->connect (iConnectionPointController);
-//            iConnectionPointController->connect (iConnectionPointComponent);
-//        }
+        Vst::IConnectionPoint* iConnectionPointComponent = 0;
+        Vst::IConnectionPoint* iConnectionPointController = 0;
+        processorComponent->queryInterface (Vst::IConnectionPoint::iid, (void**)&iConnectionPointComponent);
+        editController->queryInterface (Vst::IConnectionPoint::iid, (void**)&iConnectionPointController);
+        if (iConnectionPointComponent && iConnectionPointController) {
+            iConnectionPointComponent->connect (iConnectionPointController);
+            iConnectionPointController->connect (iConnectionPointComponent);
+        }
 
 //         synchronize controller to component by using setComponentState
         MemoryStream stream;
@@ -274,10 +274,28 @@ void Vst3Plugin::CreateEditorWindow()
         return;
     }
 //    uint32 r1 = pView->addRef();
-    if(pView->isPlatformTypeSupported(kPlatformString)!=kResultTrue) {
-        LOG("platform not supported")
-//        return;
+
+#if WINDOWS
+    if(pView->isPlatformTypeSupported(kPlatformTypeHWND)!=kResultTrue) {
+        LOG("platform not supported (HWND)")
+        return;
     }
+
+#elif MAC
+        #if MAC_CARBON
+    if(pView->isPlatformTypeSupported(kPlatformTypeHIView)!=kResultTrue) {
+        LOG("platform not supported (HIView)")
+        return;
+    }
+        #endif
+
+        #if MAC_COCOA
+    if(pView->isPlatformTypeSupported(kPlatformTypeNSView)!=kResultTrue) {
+        LOG("platform not supported (NSView)")
+        return;
+    }
+        #endif
+#endif
 
     editorWnd = new View::VstPluginWindow(myHost->mainWindow);
     editorWnd->SetPlugin(this);

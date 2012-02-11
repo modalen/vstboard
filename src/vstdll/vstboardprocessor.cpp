@@ -134,19 +134,23 @@ tresult PLUGIN_API VstBoardProcessor::notify (IMessage* message) {
     if (!message)
         return kInvalidArgument;
 
-    const void* data;
-    uint32 size;
-    if (message->getAttributes ()->getBinary ("data", data, size) == kResultOk)
+    if (!strcmp (message->getMessageID (), "msg"))
     {
-//        if (!strcmp (message->getMessageID (), "msglist")) {
-//            QByteArray ba((char*)data,size);
-//            ReceiveMsg(message->getMessageID(),ba);
-//            return kResultOk;
-//        }
+        const void* data;
+        uint32 size;
+        if (message->getAttributes ()->getBinary ("data", data, size) == kResultOk)
+        {
+    //        if (!strcmp (message->getMessageID (), "msglist")) {
+    //            QByteArray ba((char*)data,size);
+    //            ReceiveMsg(message->getMessageID(),ba);
+    //            return kResultOk;
+    //        }
 
-        if (!strcmp (message->getMessageID (), "msg")) {
-            QByteArray ba((char*)data,size);
-            ReceiveMsg( QVariant(ba).value<MsgObject>() );
+            QByteArray br((char*)data,size);
+            QDataStream str(&br, QIODevice::ReadOnly);
+            MsgObject msg;
+            str >> msg;
+            ReceiveMsg( msg );
             return kResultOk;
         }
     }
@@ -156,11 +160,14 @@ tresult PLUGIN_API VstBoardProcessor::notify (IMessage* message) {
 
 void VstBoardProcessor::SendMsg(const MsgObject &msg)
 {
-    Steinberg::Vst::IMessage* message = allocateMessage();
+    Steinberg::OPtr<Steinberg::Vst::IMessage> message = allocateMessage();
     if (message)
     {
         message->setMessageID("msg");
-        QByteArray br( QVariant::fromValue(msg).toByteArray() );
+        QByteArray br;
+        QDataStream str(&br, QIODevice::WriteOnly);
+        LOG(msg.prop)
+        str << msg;
         message->getAttributes ()->setBinary ("data", br.data(), br.size());
         sendMessage(message);
     }

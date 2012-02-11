@@ -307,46 +307,70 @@ void MainWindow::BuildListTools()
 
 void MainWindow::on_actionLoad_triggered()
 {
-    myHost->LoadProjectFile();
+//    myHost->LoadProjectFile();
+    MsgObject msg(-1,FixedObjId::mainHost);
+    msg.prop["loadProject"]=1;
+    SendMsg(msg);
 }
 
 void MainWindow::on_actionNew_triggered()
 {
-    myHost->ClearProject();
+//    myHost->ClearProject();
+    MsgObject msg(-1,FixedObjId::mainHost);
+    msg.prop["clearProject"]=1;
+    SendMsg(msg);
 }
 
 void MainWindow::on_actionSave_triggered()
 {
-    myHost->SaveProjectFile();
+//    myHost->SaveProjectFile();
+    MsgObject msg(-1,FixedObjId::mainHost);
+    msg.prop["saveProject"]=1;
+    SendMsg(msg);
 }
 
 void MainWindow::on_actionSave_Project_As_triggered()
 {
-    myHost->SaveProjectFile(true);
+//    myHost->SaveProjectFile(true);
+    MsgObject msg(-1,FixedObjId::mainHost);
+    msg.prop["saveProjectAs"]=1;
+    SendMsg(msg);
 }
 
 void MainWindow::on_actionLoad_Setup_triggered()
 {
-    myHost->LoadSetupFile();
+//    myHost->LoadSetupFile();
+    MsgObject msg(-1,FixedObjId::mainHost);
+    msg.prop["loadSetup"]=1;
+    SendMsg(msg);
 }
 
 void MainWindow::on_actionNew_Setup_triggered()
 {
-    myHost->ClearSetup();
+//    myHost->ClearSetup();
+    MsgObject msg(-1,FixedObjId::mainHost);
+    msg.prop["clearSetup"]=1;
+    SendMsg(msg);
 }
 
 void MainWindow::on_actionSave_Setup_triggered()
 {
-    if(myHost->currentSetupFile.isEmpty()) {
-        on_actionSave_Setup_As_triggered();
-        return;
-    }
-    myHost->SaveSetupFile();
+//    if(myHost->currentSetupFile.isEmpty()) {
+//        on_actionSave_Setup_As_triggered();
+//        return;
+//    }
+//    myHost->SaveSetupFile();
+    MsgObject msg(-1,FixedObjId::mainHost);
+    msg.prop["saveSetup"]=1;
+    SendMsg(msg);
 }
 
 void MainWindow::on_actionSave_Setup_As_triggered()
 {
-    myHost->SaveSetupFile(true);
+//    myHost->SaveSetupFile(true);
+    MsgObject msg(-1,FixedObjId::mainHost);
+    msg.prop["saveSetupAs"]=1;
+    SendMsg(msg);
 }
 
 //void MainWindow::on_actionConfig_triggered()

@@ -167,3 +167,25 @@ QDataStream & operator>> (QDataStream& in, ConnectionInfo& connInfo)
     return connInfo.fromStream(in);
 }
 
+ConnectionInfo::ConnectionInfo(const MsgObject &msg) :
+    myHost(0)
+{
+    container = msg.prop.value("container").toInt();
+    objId = msg.prop.value("objId").toInt();
+    type = static_cast<PinType::Enum>(msg.prop.value("type").toInt());
+    direction = static_cast<PinDirection::Enum>(msg.prop.value("direction").toInt());
+    pinNumber = msg.prop.value("pinNumber").toInt();
+    bridge = msg.prop.value("bridge").toBool();
+    isRemoveable = msg.prop.value("isRemoveable").toBool();
+}
+
+void ConnectionInfo::GetInfos(MsgObject &msg)
+{
+    msg.prop["container"]=container;
+    msg.prop["objId"]=objId;
+    msg.prop["type"]=type;
+    msg.prop["direction"]=direction;
+    msg.prop["pinNumber"]=pinNumber;
+    msg.prop["bridge"]=bridge;
+    msg.prop["isRemoveable"]=isRemoveable;
+}

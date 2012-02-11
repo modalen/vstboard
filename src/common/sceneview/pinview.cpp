@@ -189,9 +189,8 @@ void PinView::Unplug()
 {
     MsgObject msg;
     msg.prop["actionType"]="unplugPin";
-    msg.prop["pin"]=QVariant::fromValue(connectInfo);
+    connectInfo.GetInfos(msg);
     msgCtrl->SendMsg(msg);
-//    emit RemoveCablesFromPin(connectInfo);
 }
 
 void PinView::RemovePin()
@@ -201,9 +200,8 @@ void PinView::RemovePin()
 
     MsgObject msg;
     msg.prop["actionType"]="removePin";
-    msg.prop["pin"]=QVariant::fromValue(connectInfo);
+    connectInfo.GetInfos(msg);
     msgCtrl->SendMsg(msg);
-//    emit RemovePin(connectInfo);
 }
 
 /*!
@@ -267,8 +265,15 @@ void PinView::dropEvent ( QGraphicsSceneDragDropEvent  * event )
 
     MsgObject msg;
     msg.prop["actionType"]="connectPins";
-    msg.prop["pin1"]=QVariant::fromValue(connectInfo);
-    msg.prop["pin2"]=QVariant::fromValue(connInfo);
+
+    MsgObject msgPin1;
+    connectInfo.GetInfos(msgPin1);
+    msg.children << msgPin1;
+
+    MsgObject msgPin2;
+    connInfo.GetInfos(msgPin2);
+    msg.children << msgPin2;
+
     msgCtrl->SendMsg(msg);
 
 //    emit ConnectPins(connectInfo, connInfo);

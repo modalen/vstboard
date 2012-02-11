@@ -21,7 +21,9 @@
 #ifndef CONNECTIONINFO_H
 #define CONNECTIONINFO_H
 
-#include "../globals.h"
+#include "globals.h"
+#include "msgobject.h"
+
 class MainHost;
 class ConnectionInfo
 {
@@ -29,11 +31,13 @@ public:
     ConnectionInfo();
     ConnectionInfo(MainHost *myHost,quint16 objId, PinType::Enum type, PinDirection::Enum direction, quint16 pinNumber, bool bridge, bool removeable=false);
     ConnectionInfo(const ConnectionInfo &c);
-
+    ConnectionInfo(const MsgObject &msg);
     bool CanConnectTo(const ConnectionInfo &c) const;
 
     QDataStream & toStream(QDataStream& out) const;
     QDataStream & fromStream(QDataStream& in);
+
+    void GetInfos(MsgObject &msg);
 
     /// the Connectables::Container id (can connect to other pins in the same container)
     quint16 container;
@@ -108,6 +112,7 @@ inline bool operator<(const ConnectionInfo &c1, const ConnectionInfo &c2)
 
     return false;
 }
+
 
 QDataStream & operator<< (QDataStream& out, const ConnectionInfo& connInfo);
 QDataStream & operator>> (QDataStream& in, ConnectionInfo& connInfo);

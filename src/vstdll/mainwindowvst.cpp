@@ -45,11 +45,14 @@ MainWindowVst::MainWindowVst(Steinberg::Vst::VstBoardController *controller,Sett
 
 void MainWindowVst::SendMsg(const MsgObject &msg)
 {
-    Steinberg::Vst::IMessage* message = controller->allocateMessage();
+    Steinberg::OPtr<Steinberg::Vst::IMessage> message = controller->allocateMessage();
     if (message)
     {
         message->setMessageID("msg");
-        QByteArray br( QVariant::fromValue(msg).toByteArray() );
+
+        QByteArray br;
+        QDataStream str(&br, QIODevice::WriteOnly);
+        str << msg;
         message->getAttributes ()->setBinary ("data", br.data(), br.size());
         controller->sendMessage(message);
     }

@@ -282,5 +282,6 @@ void Pin::GetInfos(MsgObject &msg)
 
     msg.prop["value"]=value;
     msg.prop["nodeType"]=NodeType::pin;
-    msg.prop["connectionInfo"]=QVariant::fromValue(connectInfo);
+    connectInfo.GetInfos(msg);
+//    msg.prop["connectionInfo"]=QVariant::fromValue(connectInfo);
 }

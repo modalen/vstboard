@@ -489,7 +489,7 @@ void SceneView::AddObject(const MsgObject &msg)
 //                    LOG("NodeType::pin list not found"<<msg.parentIndex<<msg.prop);
                     return;
                 }
-                ConnectionInfo pinInfo = msg.prop.value("connectionInfo").value<ConnectionInfo>();
+                ConnectionInfo pinInfo(msg);// = msg.prop.value("connectionInfo").value<ConnectionInfo>();
 
                 PinView *pinView;
                 float angle=.0f;
