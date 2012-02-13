@@ -140,7 +140,7 @@ void ContainerProgram::Load(int progId)
     QMap<int,ObjectContainerAttribs>::Iterator i = mapObjAttribs.begin();
     while(i!=mapObjAttribs.end()) {
         QSharedPointer<Object> obj = myHost->objFactory->GetObjectFromId(i.key());
-        if(!obj.isNull()) {
+        if(obj) {
             obj->SetContainerAttribs(i.value());
         } else {
             //delete attrib if object not found
@@ -161,7 +161,7 @@ void ContainerProgram::Unload()
 //        cab->RemoveFromParentNode(container->GetCablesIndex());
     }
     foreach(QSharedPointer<Object> obj, listObjects) {
-        if(!obj.isNull())
+        if(obj)
             obj->UnloadProgram();
     }
 }
@@ -170,8 +170,7 @@ void ContainerProgram::GetInfos(MsgObject &msg)
 {
     foreach(QSharedPointer<Object> obj, listObjects) {
         if(obj) {
-            MsgObject a(container->GetIndex(), obj->GetIndex());
-            a.prop["actionType"]="add";
+            MsgObject a(container->GetIndex());
             obj->GetInfos(a);
             msg.children << a;
         }
@@ -179,10 +178,24 @@ void ContainerProgram::GetInfos(MsgObject &msg)
 
     foreach(QSharedPointer<Cable>cab, listCables) {
         if(cab) {
-            MsgObject a(container->GetIndex(), cab->GetIndex());
-            a.prop["actionType"]="add";
+            MsgObject a(container->GetIndex());
             cab->GetInfos(a);
             msg.children << a;
+        }
+    }
+}
+
+void ContainerProgram::SetMsgEnabled(bool enab)
+{
+    foreach(QSharedPointer<Object> obj, listObjects) {
+        if(obj) {
+            obj->SetMsgEnabled(enab);
+        }
+    }
+
+    foreach(QSharedPointer<Cable>cab, listCables) {
+        if(cab) {
+            cab->SetMsgEnabled(enab);
         }
     }
 }
@@ -238,7 +251,7 @@ bool ContainerProgram::IsDirty()
         return true;
 
     foreach(QSharedPointer<Object> obj, listObjects) {
-        if(!obj.isNull()) {
+        if(obj) {
             if(obj->IsDirty())
                 return true;
 
@@ -262,7 +275,7 @@ void ContainerProgram::Save(bool saveChildPrograms)
 
     mapObjAttribs.clear();
     foreach(QSharedPointer<Object> obj, listObjects) {
-        if(!obj.isNull()) {
+        if(obj) {
             ObjectContainerAttribs attr;
             obj->GetContainerAttribs(attr);
             mapObjAttribs.insert(obj->GetIndex(),attr);
@@ -270,7 +283,7 @@ void ContainerProgram::Save(bool saveChildPrograms)
     }
 
     foreach(QSharedPointer<Object> obj, container->listStaticObjects) {
-        if(!obj.isNull() ) {
+        if(obj) {
             //don't save bridges position
             if(obj->info().nodeType==NodeType::bridge) {
                 continue;

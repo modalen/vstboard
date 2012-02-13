@@ -46,7 +46,14 @@ namespace View {
         BridgeView *bridgeSend;
         BridgeView *bridgeReturn;
 
-    protected:
+    private:
+        void AddBridge(const MsgObject &msg);
+        void AddObject(const MsgObject &msg);
+        void AddCable(const MsgObject &msg);
+        void AddTempObj(const MsgObject &msg);
+
+        QMap<QPersistentModelIndex,QObject*>hashItems;
+
         void showEvent(QShowEvent *event);
         ContainerContent *content;
         QList<CableView*>listCables;

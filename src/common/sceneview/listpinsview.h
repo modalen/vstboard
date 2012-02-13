@@ -23,20 +23,20 @@
 
 #include "../precomp.h"
 #include "msghandler.h"
-
+#include "views/viewconfig.h"
 namespace View {
     class PinView;
     class ListPinsView : public QGraphicsWidget, public MsgHandler
     {
     public:
-        ListPinsView(MsgController *msgCtrl, int objId, QGraphicsItem * parent = 0);
+        ListPinsView(ViewConfig *config, MsgController *msgCtrl, int objId, QGraphicsItem * parent = 0);
         QGraphicsLinearLayout *layout;
         void UpdateCablesPosition();
         int GetPinPosition(int newPinNumber);
-        void ReceiveMsg(const MsgObject &) {}
-//#ifndef QT_NO_DEBUG
-//        void SetIndex(int id);
-//#endif
+        void ReceiveMsg(const MsgObject &msg);
+        ViewConfig *config;
+    private:
+        void AddPin(const MsgObject &msg);
     };
 }
 

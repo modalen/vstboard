@@ -62,13 +62,13 @@ QMimeData  * ListAudioInterfacesModel::mimeData ( const QModelIndexList  & index
 
 void ListAudioInterfacesModel::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop.contains("state")) {
+    if(msg.prop.contains(MsgObject::State)) {
         for(int i=0; i<rowCount(); i++) {
-            if(index(i,0).data(UserRoles::value).toInt() == msg.prop["api"].toInt()) {
+            if(index(i,0).data(UserRoles::value).toInt() == msg.prop[MsgObject::Group].toInt()) {
                 QModelIndex apiIdx = index(i,0);
                 for(int j=0; j<rowCount(apiIdx); j++) {
-                    if(index(j,0,apiIdx).data(UserRoles::value).toInt() == msg.prop["dev"].toInt()) {
-                        if(msg.prop["state"].toBool())
+                    if(index(j,0,apiIdx).data(UserRoles::value).toInt() == msg.prop[MsgObject::Id].toInt()) {
+                        if(msg.prop[MsgObject::State].toBool())
                             itemFromIndex(index(j,3,apiIdx))->setCheckState(Qt::Checked);
                         else
                             itemFromIndex(index(j,3,apiIdx))->setCheckState(Qt::Unchecked);
@@ -81,12 +81,12 @@ void ListAudioInterfacesModel::ReceiveMsg(const MsgObject &msg)
         return;
     }
 
-    if(msg.prop.contains("fullUpdate")) {
+    if(msg.prop.contains(MsgObject::Update)) {
         invisibleRootItem()->removeRows(0, rowCount());
         expandedIndex.clear();
 
         foreach(const MsgObject &msgApi, msg.children) {
-            QStandardItem *apiItem = new QStandardItem(msgApi.prop["name"].toString());
+            QStandardItem *apiItem = new QStandardItem(msgApi.prop[MsgObject::Name].toString());
             apiItem->setData( msgApi.objIndex, UserRoles::value );
             apiItem->setDragEnabled(false);
             apiItem->setSelectable(false);
@@ -95,9 +95,9 @@ void ListAudioInterfacesModel::ReceiveMsg(const MsgObject &msg)
 
             foreach(const MsgObject &msgDevice, msgApi.children) {
                 QList<QStandardItem *> listItems;
-                QStandardItem *devItem = new QStandardItem(msgDevice.prop["name"].toString());
+                QStandardItem *devItem = new QStandardItem(msgDevice.prop[MsgObject::Name].toString());
                 devItem->setEditable(false);
-                ObjectInfo obj = msgDevice.prop["objInfo"].value<ObjectInfo>();
+                ObjectInfo obj = msgDevice.prop[MsgObject::ObjInfo].value<ObjectInfo>();
                 devItem->setData(QVariant::fromValue(obj), UserRoles::objInfo);
                 devItem->setData(obj.id, UserRoles::value);
                 devItem->setDragEnabled(true);
@@ -113,7 +113,7 @@ void ListAudioInterfacesModel::ReceiveMsg(const MsgObject &msg)
 
                 QStandardItem *inUseItem = new QStandardItem( false );
                 inUseItem->setEditable(false);
-                if(msgDevice.prop["state"].toBool())
+                if(msgDevice.prop[MsgObject::State].toBool())
                     inUseItem->setCheckState(Qt::Checked);
                 else
                     inUseItem->setCheckState(Qt::Unchecked);
@@ -129,14 +129,14 @@ void ListAudioInterfacesModel::ReceiveMsg(const MsgObject &msg)
 
 void ListAudioInterfacesModel::Update()
 {
-    MsgObject msg(-1,GetIndex());
-    msg.prop["fullUpdate"]=1;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::GetUpdate]=1;
     msgCtrl->SendMsg(msg);
 }
 
 void ListAudioInterfacesModel::Rescan()
 {
-    MsgObject msg(-1,GetIndex());
-    msg.prop["rescan"]=1;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Rescan]=1;
     msgCtrl->SendMsg(msg);
 }

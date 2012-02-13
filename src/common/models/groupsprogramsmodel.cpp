@@ -16,29 +16,29 @@ GroupsProgramsModel::GroupsProgramsModel( MsgController *msgCtrl, QObject *paren
 
 void GroupsProgramsModel::SendUpdateToHost()
 {
-    MsgObject msg(-1,GetIndex());
+    MsgObject msg(GetIndex());
 
     if(orderChanged) {
         orderChanged=false;
-        msg.prop["actionType"]="fullUpdate";
+        msg.prop[MsgObject::Update]=1;
 
         int nbGrp = rowCount();
         for(int i=0; i<nbGrp; ++i) {
             QStandardItem *grp = item(i);
 
-            MsgObject msgGrp(GetIndex(),i);
+            MsgObject msgGrp(i);
             if(grp) {
-                msgGrp.prop["id"]=grp->data().toInt();
-                msgGrp.prop["name"]=grp->text();
+                msgGrp.prop[MsgObject::Id]=grp->data().toInt();
+                msgGrp.prop[MsgObject::Name]=grp->text();
 
                 int nbPrg = grp->rowCount();
                 for(int j=0; j<nbPrg; ++j) {
                     QStandardItem *prg = grp->child(j);
 
-                    MsgObject msgPrg(i,j);
+                    MsgObject msgPrg(j);
                     if(prg) {
-                        msgPrg.prop["id"]=prg->data().toInt();
-                        msgPrg.prop["name"]=prg->text();
+                        msgPrg.prop[MsgObject::Id]=prg->data().toInt();
+                        msgPrg.prop[MsgObject::Name]=prg->text();
                     }
 
                     msgGrp.children << msgPrg;
@@ -49,23 +49,23 @@ void GroupsProgramsModel::SendUpdateToHost()
         }
     }
 
-    msg.prop["currentGroup"]=currentMidiGroup;
-    msg.prop["currentProg"]=currentMidiProgram;
+    msg.prop[MsgObject::Group]=currentMidiGroup;
+    msg.prop[MsgObject::Program]=currentMidiProgram;
 
     msgCtrl->SendMsg(msg);
 }
 
 void GroupsProgramsModel::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop["actionType"]=="fullUpdate") {
+    if(msg.prop.contains(MsgObject::Update)) {
         QStandardItemModel::clear();
         foreach(const MsgObject &msgGrp, msg.children) {
 #ifndef QT_NO_DEBUG
-            QStandardItem *itemGrp = new QStandardItem( QString("(%1)%2").arg(msgGrp.prop["id"].toInt()).arg(msgGrp.prop["name"].toString()));
+            QStandardItem *itemGrp = new QStandardItem( QString("(%1)%2").arg(msgGrp.prop[MsgObject::Id].toInt()).arg(msgGrp.prop[MsgObject::Name].toString()));
 #else
-            QStandardItem *itemGrp = new QStandardItem(msgGrp.prop["name"].toString());
+            QStandardItem *itemGrp = new QStandardItem(msgGrp.prop[MsgObject::Name].toString());
 #endif
-            itemGrp->setData(msgGrp.prop["id"]);
+            itemGrp->setData(msgGrp.prop[MsgObject::Id]);
             itemGrp->setDragEnabled(true);
             itemGrp->setDropEnabled(false);
             itemGrp->setEditable(true);
@@ -73,15 +73,14 @@ void GroupsProgramsModel::ReceiveMsg(const MsgObject &msg)
 
             foreach(const MsgObject &msgPrg, msgGrp.children) {
 #ifndef QT_NO_DEBUG
-                QStandardItem *itemPrg = new QStandardItem( QString("(%1)%2").arg(msgPrg.prop["id"].toInt()).arg(msgPrg.prop["name"].toString()));
+                QStandardItem *itemPrg = new QStandardItem( QString("(%1)%2").arg(msgPrg.prop[MsgObject::Id].toInt()).arg(msgPrg.prop[MsgObject::Name].toString()));
 #else
-                QStandardItem *itemPrg = new QStandardItem(msgPrg.prop["name"].toString());
+                QStandardItem *itemPrg = new QStandardItem(msgPrg.prop[MsgObject::Name].toString());
 #endif
-                itemPrg->setData(msgPrg.prop["id"]);
+                itemPrg->setData(msgPrg.prop[MsgObject::Id]);
                 itemPrg->setDragEnabled(true);
                 itemPrg->setDropEnabled(false);
                 itemPrg->setEditable(true);
-//                itemPrg->setCheckState(Qt::Unchecked);
 
                 itemGrp->appendRow(itemPrg);
             }
@@ -89,13 +88,12 @@ void GroupsProgramsModel::ReceiveMsg(const MsgObject &msg)
         }
     }
 
-    if(msg.prop.contains("currentGroup")) {
+    if(msg.prop.contains(MsgObject::Group)) {
         if(currentGroup.isValid()) {
             itemFromIndex(currentGroup)->setBackground(Qt::transparent);
-//            itemFromIndex(currentGroup)->setCheckState(Qt::Unchecked);
         }
 
-        currentMidiGroup = msg.prop["currentGroup"].toUInt();
+        currentMidiGroup = msg.prop[MsgObject::Group].toUInt();
         QModelIndex idx = index(currentMidiGroup,0);
         if(idx.isValid()) {
             currentGroup=idx;
@@ -104,16 +102,14 @@ void GroupsProgramsModel::ReceiveMsg(const MsgObject &msg)
 
         if(currentGroup.isValid()) {
             itemFromIndex(currentGroup)->setBackground(currentProgColor);
-//            itemFromIndex(currentGroup)->setCheckState(Qt::Checked);
         }
     }
-    if(msg.prop.contains("currentProg")) {
+    if(msg.prop.contains(MsgObject::Program)) {
         if(currentProg.isValid()) {
             itemFromIndex(currentProg)->setBackground(Qt::transparent);
-//            itemFromIndex(currentProg)->setCheckState(Qt::Unchecked);
         }
 
-        currentMidiProgram = msg.prop["currentProg"].toUInt();
+        currentMidiProgram = msg.prop[MsgObject::Program].toUInt();
         if(currentGroup.isValid()) {
             QModelIndex idx = index(currentMidiProgram,0, currentGroup);
             if(idx.isValid()) {
@@ -124,27 +120,26 @@ void GroupsProgramsModel::ReceiveMsg(const MsgObject &msg)
 
         if(currentProg.isValid()) {
             itemFromIndex(currentProg)->setBackground(currentProgColor);
-//            itemFromIndex(currentProg)->setCheckState(Qt::Checked);
         }
     }
 
-    if(msg.prop.contains("promptType")) {
+    if(msg.prop.contains(MsgObject::Message)) {
         QMessageBox msgBox;
         msgBox.setIcon(QMessageBox::Question);
-        msgBox.setText(tr("The %1 has been modified.").arg(msg.prop["promptType"].toString()));
+        msgBox.setText(tr("The %1 has been modified.").arg(msg.prop[MsgObject::Message].toString()));
         msgBox.setInformativeText(tr("Do you want to save your changes?"));
         msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
         msgBox.setDefaultButton(QMessageBox::Save);
-        MsgObject answer(-1,GetIndex());
-        answer.prop["promptAnswer"] = msgBox.exec();
+        MsgObject answer(GetIndex());
+        answer.prop[MsgObject::Answer] = msgBox.exec();
         msgCtrl->SendMsg(answer);
     }
 
-    if(msg.prop.contains("progAutosave")) {
-        emit ProgAutosaveChanged( static_cast<Qt::CheckState>(msg.prop["progAutosave"].toInt()) );
+    if(msg.prop.contains(MsgObject::ProgAutosave)) {
+        emit ProgAutosaveChanged( static_cast<Qt::CheckState>(msg.prop[MsgObject::ProgAutosave].toInt()) );
     }
-    if(msg.prop.contains("groupAutosave")) {
-        emit GroupAutosaveChanged( static_cast<Qt::CheckState>(msg.prop["groupAutosave"].toInt()) );
+    if(msg.prop.contains(MsgObject::GroupAutosave)) {
+        emit GroupAutosaveChanged( static_cast<Qt::CheckState>(msg.prop[MsgObject::GroupAutosave].toInt()) );
     }
 
 //    if(msg.prop.contains("name")) {
@@ -260,11 +255,11 @@ QMimeData * GroupsProgramsModel::mimeData ( const QModelIndexList & indexes ) co
 
 void GroupsProgramsModel::UserChangeProg(const QModelIndex &idx)
 {
-    MsgObject msg(-1,GetIndex());
+    MsgObject msg(GetIndex());
     if(idx.parent().isValid())
-        msg.prop["currentProg"]=idx.row();
+        msg.prop[MsgObject::Program]=idx.row();
     else
-        msg.prop["currentGroup"]=idx.row();
+        msg.prop[MsgObject::Group]=idx.row();
     msgCtrl->SendMsg(msg);
 
 //    if(idx.parent().isValid())
@@ -331,21 +326,21 @@ QStringList GroupsProgramsModel::mimeTypes () const
 
 void GroupsProgramsModel::UserChangeProgAutosave(const Qt::CheckState state)
 {
-    MsgObject msg(-1,GetIndex());
-    msg.prop["progAutosave"]=state;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::ProgAutosave]=state;
     msgCtrl->SendMsg(msg);
 }
 
 void GroupsProgramsModel::UserChangeGroupAutosave(const Qt::CheckState state)
 {
-    MsgObject msg(-1,GetIndex());
-    msg.prop["groupAutosave"]=state;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::GroupAutosave]=state;
     msgCtrl->SendMsg(msg);
 }
 
 void GroupsProgramsModel::Update()
 {
-    MsgObject msg(-1,GetIndex());
-    msg.prop["fullUpdate"]=1;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::GetUpdate]=1;
     msgCtrl->SendMsg(msg);
 }

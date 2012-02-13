@@ -3,7 +3,8 @@
 
 MsgHandler::MsgHandler(MsgController *msgCtrl, int objId) :
     msgCtrl(msgCtrl),
-    objId(objId)
+    objId(objId),
+    msgEnabled(false)
 {
     if(objId==-1)
         return;

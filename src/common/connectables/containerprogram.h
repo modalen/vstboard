@@ -93,6 +93,7 @@ namespace Connectables {
         static QTime unsavedTime;
 
         void GetInfos(MsgObject &msg);
+        void SetMsgEnabled(bool enab);
 
     protected:
         inline void ResetDirty() {

@@ -130,7 +130,7 @@ void CableView::ReceiveMsg(const MsgObject &msg)
 {
     QPen p = pen();
 
-    if(msg.prop.value("delay",0).toInt()>0) {
+    if(msg.prop.contains(MsgObject::Delay) && msg.prop[MsgObject::Delay].toInt()>0) {
         p.setWidth(3);
     } else {
         p.setWidth(0);

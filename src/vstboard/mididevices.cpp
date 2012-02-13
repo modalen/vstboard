@@ -80,10 +80,11 @@ void MidiDevices::OpenDevices()
     }
     pmOpened=true;
 
-    BuildModel();
+    if(MsgEnabled())
+        BuildModel();
 
     foreach(QSharedPointer<Connectables::Object>obj, myHost->objFactory->GetListObjects()) {
-        if(obj.isNull())
+        if(!obj)
             continue;
 
         if(obj->info().objType == ObjType::MidiInterface) {
@@ -110,9 +111,9 @@ void MidiDevices::OpenDevice(Connectables::MidiDevice* objPtr)
 
     listOpenedDevices << objPtr->info().id;
 
-    MsgObject msg(-1,GetIndex());
-    msg.prop["state"]=true;
-    msg.prop["dev"]=objPtr->info().id;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::State]=true;
+    msg.prop[MsgObject::Id]=objPtr->info().id;
     msgCtrl->SendMsg(msg);
 }
 
@@ -120,9 +121,9 @@ void MidiDevices::CloseDevice(Connectables::MidiDevice* objPtr)
 {
     listOpenedDevices.removeAll(objPtr->info().id);
 
-    MsgObject msg(-1,GetIndex());
-    msg.prop["state"]=false;
-    msg.prop["dev"]=objPtr->info().id;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::State]=false;
+    msg.prop[MsgObject::Id]=objPtr->info().id;
     msgCtrl->SendMsg(msg);
 
     mutexListMidi.lock();
@@ -132,25 +133,13 @@ void MidiDevices::CloseDevice(Connectables::MidiDevice* objPtr)
 
 void MidiDevices::BuildModel()
 {
-//    QStringList headerLabels;
-//    headerLabels << "Name";
-//    headerLabels << "In";
-//    headerLabels << "Out";
-
-//    if(model)
-//        model->deleteLater();
-//    model = new ListMidiInterfacesModel(this);
-//    model->setHorizontalHeaderLabels(  headerLabels );
-//    QStandardItem *parentItem = model->invisibleRootItem();
-
-    MsgObject msg(-1,GetIndex());
-    msg.prop["fullUpdate"]=1;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Update]=1;
 
     QString lastName;
     int cptDuplicateNames=0;
 
     for(int i=0;i<Pm_CountDevices();i++) {
-//        QList<QStandardItem *>  items;
         const PmDeviceInfo *devInfo = Pm_GetDeviceInfo(i);
 
         QString devName= QString::fromLocal8Bit(devInfo->name);
@@ -171,17 +160,10 @@ void MidiDevices::BuildModel()
         obj.inputs = devInfo->input;
         obj.outputs = devInfo->output;
 
-//        items << new QStandardItem(devName);
-//        items << new QStandardItem(QString::number(devInfo->input));
-//        items << new QStandardItem(QString::number(devInfo->output));
-
-//        items[0]->setData(QVariant::fromValue(obj), UserRoles::objInfo);
-
-//        parentItem->appendRow(items);
         MsgObject msgDevice;
-        msgDevice.prop["name"]=devName;
-        msgDevice.prop["objInfo"]=QVariant::fromValue(obj);
-        msgDevice.prop["state"]=(bool)listOpenedDevices.contains(obj.id);
+        msgDevice.prop[MsgObject::Name]=devName;
+        msgDevice.prop[MsgObject::ObjInfo]=QVariant::fromValue(obj);
+        msgDevice.prop[MsgObject::State]=(bool)listOpenedDevices.contains(obj.id);
         msg.children << msgDevice;
     }
     msgCtrl->SendMsg(msg);
@@ -189,11 +171,13 @@ void MidiDevices::BuildModel()
 
 void MidiDevices::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop.contains("rescan")) {
+    SetMsgEnabled(true);
+
+    if(msg.prop.contains(MsgObject::Rescan)) {
         OpenDevices();
         return;
     }
-    if(msg.prop.contains("fullUpdate")) {
+    if(msg.prop.contains(MsgObject::GetUpdate)) {
         BuildModel();
         return;
     }

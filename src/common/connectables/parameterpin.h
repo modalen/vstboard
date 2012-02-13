@@ -68,6 +68,7 @@ namespace Connectables {
 
         void ReceiveMsg(const MsgObject &msg);
         void GetInfos(MsgObject &msg);
+        void SetMsgEnabled(bool enab);
 
     protected:
         void InitCursors();

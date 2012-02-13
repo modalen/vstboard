@@ -40,40 +40,40 @@ class MsgObject;
 namespace View {
     class MainContainerView;
     class ViewConfig;
-    class SceneView : public QAbstractItemView
+    class SceneView : public QObject, public MsgHandler
     {
         Q_OBJECT
     public:
-        explicit SceneView(MainWindow *mainWindow, MainGraphicsView *viewHost, MainGraphicsView *viewProject, MainGraphicsView *viewProgram, MainGraphicsView *viewGroup,QWidget *parent = 0);
+        explicit SceneView(MainWindow *mainWindow, MsgController *msgCtrl, int objId, MainGraphicsView *viewHost, MainGraphicsView *viewProject, MainGraphicsView *viewProgram, MainGraphicsView *viewGroup,QWidget *parent = 0);
 
-        QRect visualRect(const QModelIndex &index) const {return QRect();}
-        void scrollTo(const QModelIndex &index, ScrollHint hint = EnsureVisible) {}
-        QModelIndex indexAt(const QPoint &point) const {return QModelIndex();}
+//        QRect visualRect(const QModelIndex &index) const {return QRect();}
+//        void scrollTo(const QModelIndex &index, ScrollHint hint = EnsureVisible) {}
+//        QModelIndex indexAt(const QPoint &point) const {return QModelIndex();}
 
         void SetParkings(QWidget *progPark, QWidget *groupPark);
-        void AddObject(const MsgObject &msg);
+        void ReceiveMsg(const MsgObject &msg);
 
         MainGraphicsView *viewHost;
         MainGraphicsView *viewProject;
         MainGraphicsView *viewProgram;
         MainGraphicsView *viewGroup;
 
-    protected:
+    private:
+
+        void AddContainer(const MsgObject &msg);
 
         //we need parent objects to avoid a bug in qgraphicssene
         QGraphicsRectItem *rootObjHost;
         QGraphicsRectItem *rootObjProject;
         QGraphicsRectItem *rootObjProgram;
-        QGraphicsRectItem *rootObjInsert;
+        QGraphicsRectItem *rootObjGroup;
 
-        QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers) {return QModelIndex();}
-        int horizontalOffset() const {return 0;}
-        int verticalOffset() const {return 0;}
-        bool isIndexHidden(const QModelIndex &index) const {return false;}
-        void setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command) {}
-        QRegion visualRegionForSelection(const QItemSelection &selection) const {return QRegion();}
-
-        QModelIndex traverseTroughIndexes ( QModelIndex index );
+//        QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers) {return QModelIndex();}
+//        int horizontalOffset() const {return 0;}
+//        int verticalOffset() const {return 0;}
+//        bool isIndexHidden(const QModelIndex &index) const {return false;}
+//        void setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command) {}
+//        QRegion visualRegionForSelection(const QItemSelection &selection) const {return QRegion();}
 
         QHash<QPersistentModelIndex,QObject*>hashItems;
         QMap<ConnectionInfo,QPersistentModelIndex>mapConnectionInfo;
@@ -91,7 +91,6 @@ namespace View {
         QWidget *progParking;
         QWidget *groupParking;
 
-        QTimer *timerFalloff;
         MainWindow *mainWindow;
 
     signals:
@@ -101,19 +100,11 @@ namespace View {
 //        void insertShown(bool shown);
 
     public slots:
-//        void ConnectPins(const ConnectionInfo &pinOut, const ConnectionInfo &pinIn);
-//        void RemoveCablesFromPin(const ConnectionInfo &pin);
-//        void RemovePin(const ConnectionInfo &pin);
         void ToggleHostView(bool show);
         void ToggleProjectView(bool show);
         void ToggleProgramView(bool show);
         void ToggleInsertView(bool show);
 
-    protected slots:
-        void dataChanged ( const QModelIndex & topLeft, const QModelIndex & bottomRight  );
-        void rowsAboutToBeRemoved ( const QModelIndex & parent, int start, int end  );
-        void rowsInserted ( const QModelIndex & parent, int start, int end  );
-//        void graphicObjectRemoved ( QObject* obj);
     };
 }
 

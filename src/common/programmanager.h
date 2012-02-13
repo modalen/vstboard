@@ -15,8 +15,8 @@ public:
     QString name;
 
     void GetInfos(MsgObject &msg) const {
-        msg.prop["name"]=name;
-        msg.prop["id"]=id;
+        msg.prop[MsgObject::Name]=name;
+        msg.prop[MsgObject::Id]=id;
     }
 };
 
@@ -30,12 +30,12 @@ public:
     }
 
     void GetInfos(MsgObject &msg) const {
-        msg.prop["name"]=name;
-        msg.prop["id"]=id;
+        msg.prop[MsgObject::Name]=name;
+        msg.prop[MsgObject::Id]=id;
 
         int cpt=0;
         foreach(const Program &prg, listPrograms) {
-            MsgObject msgProg(-1,cpt);
+            MsgObject msgProg(cpt);
             prg.GetInfos(msgProg);
             msg.children << msgProg;
             ++cpt;

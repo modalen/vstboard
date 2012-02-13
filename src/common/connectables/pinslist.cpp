@@ -29,16 +29,17 @@
 #include "bridgepinout.h"
 #include "mainhost.h"
 
+#include "commands/comremovepin.h"
+
 using namespace Connectables;
 
-PinsList::PinsList(MainHost *myHost, Object *parent) :
+PinsList::PinsList(MainHost *myHost, Object *parent, MsgController *msgCtrl, int objId) :
     QObject(parent),
+    MsgHandler(msgCtrl,objId),
     parent(parent),
     myHost(myHost),
     visible(true)
 {
-    index = myHost->objFactory->GetNewObjId();
-
     connect(this,SIGNAL(PinAdded(int)),
             this,SLOT(AddPin(int)));
     connect(this,SIGNAL(PinRemoved(int)),
@@ -220,6 +221,7 @@ Pin * PinsList::AddPin(int nb)
         LOG("pin not created"<<nb);
         return 0;
     }
+    newPin->SetMsgEnabled(MsgEnabled());
     listPins.insert(nb, newPin);
 
     newPin->SetPinList(this);
@@ -273,6 +275,7 @@ QDataStream & PinsList::fromStream(QDataStream & in)
         in >> value;
         connInfo.pinNumber=id;
         Pin *newPin = parent->CreatePin(connInfo);
+        newPin->SetMsgEnabled(MsgEnabled());
         if(!newPin) {
             LOG("pin not created"<<id);
             return in;
@@ -296,9 +299,10 @@ QDataStream & operator>> (QDataStream & in, Connectables::PinsList& value)
 
 void PinsList::GetInfos(MsgObject &msg)
 {
-    msg.prop["nodeType"]=NodeType::listPin;
-    msg.prop["objType"]=objInfo.objType;
-    msg.prop["name"]=objectName();
+    msg.prop[MsgObject::Id]=GetIndex();
+    msg.prop[MsgObject::Add]=NodeType::listPin;
+    msg.prop[MsgObject::Type]=objInfo.objType;
+    msg.prop[MsgObject::Name]=objectName();
 
     QMap<quint16,Pin*>::iterator i = listPins.constBegin();
     while(i!=listPins.constEnd()) {
@@ -307,12 +311,28 @@ void PinsList::GetInfos(MsgObject &msg)
             ++i;
             continue;
         }
-        MsgObject a(GetIndex(), p->GetIndex());
-        a.prop["actionType"]="add";
-        a.prop["parentNodeType"]=parent->info().nodeType;
-        a.prop["parentObjType"]=parent->info().objType;
-        p->GetInfos(a);
-        msg.children << a;
+        MsgObject msgPin(GetIndex());
+        msgPin.prop[MsgObject::ParentNodeType]=parent->info().nodeType;
+        msgPin.prop[MsgObject::ParentObjType]=parent->info().objType;
+        p->GetInfos(msgPin);
+        msg.children << msgPin;
         ++i;
+    }
+}
+
+void PinsList::ReceiveMsg(const MsgObject &msg)
+{
+    if(msg.prop.contains(MsgObject::RemovePin)) {
+        ConnectionInfo cPin(msg);
+        myHost->undoStack.push( new ComRemovePin(myHost, cPin) );
+        return;
+    }
+}
+
+void PinsList::SetMsgEnabled(bool enab)
+{
+    MsgHandler::SetMsgEnabled(enab);
+    foreach(Pin *pin, listPins) {
+        pin->SetMsgEnabled(enab);
     }
 }

@@ -116,7 +116,10 @@ namespace Connectables {
 
         void GetInfos(MsgObject &msg);
 
-        int parkingId;
+        quint16 containersParkingId;
+
+        void ReceiveMsg(const MsgObject &msg);
+        void SetMsgEnabled(bool enab);
 
     protected:
         void AddChildObject(QSharedPointer<Object> objPtr);

@@ -42,15 +42,15 @@ ComChangeAutosave::ComChangeAutosave(ProgramManager *model,
 
 void ComChangeAutosave::undo()
 {
-    MsgObject msg(-1,model->GetIndex());
+    MsgObject msg(model->GetIndex());
 
     if(type==0) {
         model->groupAutosaveState = oldState;
-        msg.prop["groupAutosave"] = oldState;
+        msg.prop[MsgObject::GroupAutosave] = oldState;
     }
     if(type==1) {
         model->progAutosaveState = oldState;
-        msg.prop["progAutosave"] = oldState;
+        msg.prop[MsgObject::ProgAutosave] = oldState;
     }
 
     model->msgCtrl->SendMsg(msg);
@@ -58,16 +58,15 @@ void ComChangeAutosave::undo()
 
 void ComChangeAutosave::redo()
 {
-    MsgObject msg(-1,model->GetIndex());
-    msg.prop["state"]=newState;
+    MsgObject msg(model->GetIndex());
 
     if(type==0) {
         model->groupAutosaveState = newState;
-        msg.prop["actionType"]="groupAutosave";
+        msg.prop[MsgObject::GroupAutosave]=newState;
     }
     if(type==1) {
         model->progAutosaveState = newState;
-        msg.prop["actionType"]="progAutosave";
+        msg.prop[MsgObject::ProgAutosave] = newState;
     }
 
     model->msgCtrl->SendMsg(msg);

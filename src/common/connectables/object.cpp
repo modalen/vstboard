@@ -25,6 +25,9 @@
 #include "../renderer/pathsolver.h"
 #include "container.h"
 
+#include "commands/comaddobject.h"
+#include "commands/comremoveobject.h"
+
 using namespace Connectables;
 
 /*!
@@ -41,17 +44,17 @@ using namespace Connectables;
 Object::Object(MainHost *host, int index, const ObjectInfo &info) :
     QObject(),
     MsgHandler(host,index),
-    parked(false),
+    parkingId(FixedObjId::ND),
     listenProgramChanges(true),
     myHost(host),
-    listAudioPinIn(new PinsList(host,this)),
-    listAudioPinOut(new PinsList(host,this)),
-    listMidiPinIn(new PinsList(host,this)),
-    listMidiPinOut(new PinsList(host,this)),
-    listBridgePinIn(new PinsList(host,this)),
-    listBridgePinOut(new PinsList(host,this)),
-    listParameterPinIn(new PinsList(host,this)),
-    listParameterPinOut(new PinsList(host,this)),
+    listAudioPinIn(new PinsList(host, this, msgCtrl, myHost->objFactory->GetNewObjId()) ),
+    listAudioPinOut(new PinsList(host, this, msgCtrl, myHost->objFactory->GetNewObjId()) ),
+    listMidiPinIn(new PinsList(host, this, msgCtrl, myHost->objFactory->GetNewObjId()) ),
+    listMidiPinOut(new PinsList(host, this, msgCtrl, myHost->objFactory->GetNewObjId()) ),
+    listBridgePinIn(new PinsList(host, this, msgCtrl, myHost->objFactory->GetNewObjId()) ),
+    listBridgePinOut(new PinsList(host, this, msgCtrl, myHost->objFactory->GetNewObjId()) ),
+    listParameterPinIn(new PinsList(host, this, msgCtrl, myHost->objFactory->GetNewObjId()) ),
+    listParameterPinOut(new PinsList(host, this, msgCtrl, myHost->objFactory->GetNewObjId()) ),
     solverNode(0),
     savedIndex(-2),
     sleep(true),
@@ -160,6 +163,19 @@ bool Object::Close()
         return false;
 
     SetSleep(true);
+
+    if(MsgEnabled()) {
+        if(parkingId==FixedObjId::ND) {
+            MsgObject msg(containerId);
+            msg.prop[MsgObject::Remove]=GetIndex();
+            msgCtrl->SendMsg(msg);
+        } else {
+            MsgObject msg(parkingId);
+            msg.prop[MsgObject::Remove]=GetIndex();
+            msgCtrl->SendMsg(msg);
+        }
+    }
+
 //    Hide();
     closed=true;
 
@@ -778,12 +794,14 @@ QDataStream & operator<< (QDataStream & out, const Connectables::Object& value)
 
 void Object::GetInfos(MsgObject &msg)
 {
-    msg.prop["nodeType"]=info().nodeType;
-    msg.prop["objType"]=info().objType;
-    msg.prop["name"]=info().name;
+    msg.prop[MsgObject::Id] = GetIndex();
+
+    msg.prop[MsgObject::Add]=info().nodeType;
+    msg.prop[MsgObject::Type]=info().objType;
+    msg.prop[MsgObject::Name]=info().name;
 
     if(!errorMessage.isEmpty()) {
-        msg.prop["errorMsg"]=errorMessage;
+        msg.prop[MsgObject::Message]=errorMessage;
         return;
     }
 
@@ -794,10 +812,74 @@ void Object::GetInfos(MsgObject &msg)
             ++i;
             continue;
         }
-        MsgObject a(GetIndex(), lst->GetIndex());
-        a.prop["actionType"]="add";
-        lst->GetInfos(a);
-        msg.children << a;
+        MsgObject lstPinMsg(GetIndex());
+        lst->GetInfos(lstPinMsg);
+        msg.children << lstPinMsg;
         ++i;
+    }
+}
+
+void Object::ReceiveMsg(const MsgObject &msg)
+{
+    if(msg.prop.contains(MsgObject::Remove)) {
+        QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->GetObjectFromId( GetIndex() );
+        if(!objPtr) {
+            LOG("obj not found")
+            return;
+        }
+
+        int removeType = msg.prop[MsgObject::Type].toInt();
+        myHost->undoStack.push( new ComRemoveObject(myHost, objPtr, static_cast<RemoveType::Enum>(removeType) ) );
+        return;
+    }
+
+    if(msg.prop.contains(MsgObject::ObjectsToLoad)) {
+
+        int insertType = msg.prop[MsgObject::Type].toInt();
+        QSharedPointer<Object> targetObj = myHost->objFactory->GetObjectFromId( GetIndex() );
+        if(!targetObj) {
+            LOG("obj not found")
+            return;
+        }
+        QSharedPointer<Container> targetContainer = myHost->objFactory->GetObjectFromId( containerId ).staticCast<Container>();;
+        if(!targetContainer) {
+            LOG("obj not found")
+            return;
+        }
+
+        QDataStream streamObj(&msg.prop[MsgObject::ObjectsToLoad].toByteArray(), QIODevice::ReadOnly);
+        while(!streamObj.atEnd()) {
+            ObjectInfo newInfo;
+            newInfo.fromStream(streamObj);
+            ComAddObject *com = new ComAddObject(myHost, newInfo, targetContainer, targetObj, static_cast<InsertionType::Enum>(insertType) );
+            myHost->undoStack.push( com );
+        }
+
+        return;
+    }
+
+    if(msg.prop.contains(MsgObject::FilesToLoad)) {
+        QStringList lstFiles = msg.prop[MsgObject::FilesToLoad].toStringList();
+        foreach(const QString filename, lstFiles) {
+            QFileInfo info;
+            info.setFile( filename );
+            if ( info.isFile() && info.isReadable() ) {
+                QString fileType(info.suffix().toLower());
+
+                //fxb file
+                if( fileType == VST_BANK_FILE_EXTENSION || fileType == VST_PROGRAM_FILE_EXTENSION) {
+                    continue;
+                }
+            }
+        }
+        return;
+    }
+}
+
+void Object::SetMsgEnabled(bool enab)
+{
+    MsgHandler::SetMsgEnabled(enab);
+    foreach(PinsList *lst, pinLists) {
+        lst->SetMsgEnabled(enab);
     }
 }

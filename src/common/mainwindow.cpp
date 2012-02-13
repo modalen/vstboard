@@ -72,7 +72,7 @@ void MainWindow::Init()
 
     SetupBrowsersModels( ConfigDialog::defaultVstPath(settings), ConfigDialog::defaultBankPath(settings));
 
-    mySceneView = new View::SceneView(this, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
+    mySceneView = new View::SceneView(this, this, FixedObjId::mainContainer, ui->hostView, ui->projectView, ui->programView, ui->groupView, this);
     mySceneView->SetParkings(ui->programParkList, ui->groupParkList);
 //    mySceneView->setModel(myHost->GetModel());
 
@@ -115,41 +115,69 @@ void MainWindow::Init()
 
 void MainWindow::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.objIndex == FixedObjId::audioDevices) {
-        if(listObj.contains(msg.objIndex)) {
-            listObj[msg.objIndex]->ReceiveMsg(msg);
+    if(!listObj.contains(msg.objIndex)) {
+        LOG("obj not found"<<msg.objIndex<<msg.prop)
+        return;
+    }
+
+    if(msg.prop.contains(MsgObject::Remove)) {
+        if(!listObj.contains(msg.prop[MsgObject::Remove].toInt())) {
+            LOG("obj not found"<<msg.prop)
+            return;
         }
+        delete listObj[msg.prop[MsgObject::Remove].toInt()];
         return;
     }
 
-    if(msg.objIndex == FixedObjId::midiDevices) {
-        if(listObj.contains(msg.objIndex)) {
-            listObj[msg.objIndex]->ReceiveMsg(msg);
-        }
+    listObj[msg.objIndex]->ReceiveMsg(msg);
+
+    //some objects take care of the children
+    if(msg.objIndex==FixedObjId::programsManager ||
+        msg.objIndex==FixedObjId::audioDevices ||
+        msg.objIndex==FixedObjId::midiDevices) {
         return;
     }
 
-    if(progModel && msg.objIndex==FixedObjId::programsManager) {
-        progModel->ReceiveMsg(msg);
-        return;
+    foreach(const MsgObject &cMsg, msg.children) {
+        ReceiveMsg(cMsg);
     }
 
-    if(groupParking && msg.objIndex==FixedObjId::groupParking) {
-        groupParking->ReceiveMsg(msg);
-        return;
-    }
 
-    if(programParking && msg.objIndex==FixedObjId::programParking) {
-        programParking->ReceiveMsg(msg);
-        return;
-    }
+//    if(msg.objIndex == FixedObjId::audioDevices) {
+//        if(listObj.contains(msg.objIndex)) {
+//            listObj[msg.objIndex]->ReceiveMsg(msg);
+//        }
+//        return;
+//    }
 
-    if(!mySceneView)
-        return;
-//    LOG("addobj"<<msg.objIndex<<msg.parentIndex<<msg.prop)
-    mySceneView->AddObject(msg);
-    if(!msg.children.isEmpty())
-        ProcessMsg(msg.children);
+//    if(msg.objIndex == FixedObjId::midiDevices) {
+//        if(listObj.contains(msg.objIndex)) {
+//            listObj[msg.objIndex]->ReceiveMsg(msg);
+//        }
+//        return;
+//    }
+
+//    if(progModel && msg.objIndex==FixedObjId::programsManager) {
+//        progModel->ReceiveMsg(msg);
+//        return;
+//    }
+
+//    if(groupParking && msg.objIndex==FixedObjId::groupParking) {
+//        groupParking->ReceiveMsg(msg);
+//        return;
+//    }
+
+//    if(programParking && msg.objIndex==FixedObjId::programParking) {
+//        programParking->ReceiveMsg(msg);
+//        return;
+//    }
+
+//    if(!mySceneView)
+//        return;
+////    LOG("addobj"<<msg.objIndex<<msg.parentIndex<<msg.prop)
+//    mySceneView->ReceiveMsg(msg);
+//    if(!msg.children.isEmpty())
+//        ProcessMsg(msg.children);
 }
 
 //void MainWindow::ReceiveMsg(const QString &type, const QVariant &data)
@@ -157,19 +185,19 @@ void MainWindow::ReceiveMsg(const MsgObject &msg)
 //    ProcessMsg( data.value< ListMsgObj >() );
 //}
 
-void MainWindow::ProcessMsg(const ListMsgObj &lstMsg)
-{
-    foreach(MsgObject msg, lstMsg) {
-        ReceiveMsg(msg);
-    }
-}
+//void MainWindow::ProcessMsg(const ListMsgObj &lstMsg)
+//{
+//    foreach(MsgObject msg, lstMsg) {
+//        ReceiveMsg(msg);
+//    }
+//}
 
 void MainWindow::showEvent(QShowEvent *event)
 {
     LOG("window show event")
 
     MsgObject msg;
-    msg.prop["getWithChildren"]=1;
+    msg.prop[MsgObject::Update]=1;
     msg.objIndex=FixedObjId::hostContainer;
     SendMsg(msg);
     msg.objIndex=FixedObjId::projectContainer;
@@ -307,77 +335,59 @@ void MainWindow::BuildListTools()
 
 void MainWindow::on_actionLoad_triggered()
 {
-//    myHost->LoadProjectFile();
-    MsgObject msg(-1,FixedObjId::mainHost);
-    msg.prop["loadProject"]=1;
+    MsgObject msg(FixedObjId::mainHost);
+    msg.prop[MsgObject::Project]=MsgObject::Load;
     SendMsg(msg);
 }
 
 void MainWindow::on_actionNew_triggered()
 {
-//    myHost->ClearProject();
-    MsgObject msg(-1,FixedObjId::mainHost);
-    msg.prop["clearProject"]=1;
+    MsgObject msg(FixedObjId::mainHost);
+    msg.prop[MsgObject::Project]=MsgObject::Clear;
     SendMsg(msg);
 }
 
 void MainWindow::on_actionSave_triggered()
 {
-//    myHost->SaveProjectFile();
-    MsgObject msg(-1,FixedObjId::mainHost);
-    msg.prop["saveProject"]=1;
+    MsgObject msg(FixedObjId::mainHost);
+    msg.prop[MsgObject::Project]=MsgObject::Save;
     SendMsg(msg);
 }
 
 void MainWindow::on_actionSave_Project_As_triggered()
 {
-//    myHost->SaveProjectFile(true);
-    MsgObject msg(-1,FixedObjId::mainHost);
-    msg.prop["saveProjectAs"]=1;
+    MsgObject msg(FixedObjId::mainHost);
+    msg.prop[MsgObject::Project]=MsgObject::SaveAs;
     SendMsg(msg);
 }
 
 void MainWindow::on_actionLoad_Setup_triggered()
 {
-//    myHost->LoadSetupFile();
-    MsgObject msg(-1,FixedObjId::mainHost);
-    msg.prop["loadSetup"]=1;
+    MsgObject msg(FixedObjId::mainHost);
+    msg.prop[MsgObject::Setup]=MsgObject::Load;
     SendMsg(msg);
 }
 
 void MainWindow::on_actionNew_Setup_triggered()
 {
-//    myHost->ClearSetup();
-    MsgObject msg(-1,FixedObjId::mainHost);
-    msg.prop["clearSetup"]=1;
+    MsgObject msg(FixedObjId::mainHost);
+    msg.prop[MsgObject::Setup]=MsgObject::Clear;
     SendMsg(msg);
 }
 
 void MainWindow::on_actionSave_Setup_triggered()
 {
-//    if(myHost->currentSetupFile.isEmpty()) {
-//        on_actionSave_Setup_As_triggered();
-//        return;
-//    }
-//    myHost->SaveSetupFile();
-    MsgObject msg(-1,FixedObjId::mainHost);
-    msg.prop["saveSetup"]=1;
+    MsgObject msg(FixedObjId::mainHost);
+    msg.prop[MsgObject::Setup]=MsgObject::Save;
     SendMsg(msg);
 }
 
 void MainWindow::on_actionSave_Setup_As_triggered()
 {
-//    myHost->SaveSetupFile(true);
-    MsgObject msg(-1,FixedObjId::mainHost);
-    msg.prop["saveSetupAs"]=1;
+    MsgObject msg(FixedObjId::mainHost);
+    msg.prop[MsgObject::Setup]=MsgObject::SaveAs;
     SendMsg(msg);
 }
-
-//void MainWindow::on_actionConfig_triggered()
-//{
-//    ConfigDialog conf(settings,0,this);
-//    conf.exec();
-//}
 
 void MainWindow::UpdateKeyBinding()
 {
@@ -747,7 +757,7 @@ void MainWindow::on_actionHide_all_editors_triggered(bool checked)
         }
     } else {
         foreach(QSharedPointer<Connectables::Object>obj, listClosedEditors) {
-            if(!obj || obj->parked)
+            if(obj || obj->parkingId!=FixedObjId::ND)
                 listClosedEditors.removeAll(obj);
             else
                 obj->ToggleEditor(true);
@@ -763,14 +773,14 @@ void MainWindow::on_actionAutoShowGui_triggered(bool checked)
 
 void MainWindow::on_actionUndo_triggered()
 {
-    MsgObject msg(-1,FixedObjId::undoRedoStack);
-    msg.prop["actionType"]="undo";
+    MsgObject msg(FixedObjId::mainHost);
+    msg.prop[MsgObject::Undo]=1;
     SendMsg(msg);
 }
 
 void MainWindow::on_actionRedo_triggered()
 {
-    MsgObject msg(-1,FixedObjId::undoRedoStack);
-    msg.prop["actionType"]="redo";
+    MsgObject msg(FixedObjId::mainHost);
+    msg.prop[MsgObject::Redo]=1;
     SendMsg(msg);
 }

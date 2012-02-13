@@ -23,8 +23,8 @@
 
 using namespace View;
 
-MinMaxPinView::MinMaxPinView(float angle, MsgController *msgCtrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
-    ConnectablePinView(angle,msgCtrl,objId,parent,pinInfo,config),
+MinMaxPinView::MinMaxPinView(int listPinId, float angle, MsgController *msgCtrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
+    ConnectablePinView(listPinId,angle,msgCtrl,objId,parent,pinInfo,config),
     changingValue(false),
     startDragValue(.0f),
     inMin(0),
@@ -38,31 +38,17 @@ MinMaxPinView::MinMaxPinView(float angle, MsgController *msgCtrl, int objId, QGr
 
 void MinMaxPinView::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop.value("nodeType",0).toInt()==NodeType::cursor) {
-        switch(msg.prop.value("objType",0).toInt()) {
-            case ObjType::limitInMin :
-                inMin->SetIndex(msg.objIndex);
-                inMin->SetValue(msg.prop.value("value",.0f).toFloat());
-                break;
-            case ObjType::limitInMax :
-                inMax->SetIndex(msg.objIndex);
-                inMax->SetValue(msg.prop.value("value",1.0f).toFloat());
-                break;
-            case ObjType::limitOutMin :
-                outMin->SetIndex(msg.objIndex);
-                outMin->SetValue(msg.prop.value("value",.0f).toFloat());
-                break;
-            case ObjType::limitOutMax :
-                outMax->SetIndex(msg.objIndex);
-                outMax->SetValue(msg.prop.value("value",1.0f).toFloat());
-                break;
+    if(msg.prop.contains(MsgObject::Add)) {
+        switch(msg.prop[MsgObject::Add].toInt()) {
+        case NodeType::cursor :
+            AddCursor(msg);
+            return;
         }
-        return;
     }
 
     ConnectablePinView::ReceiveMsg(msg);
 
-    if(msg.prop.contains("value")) {
+    if(msg.prop.contains(MsgObject::Value)) {
         UpdateScaleView();
 
         ObjectView *parentObj = static_cast<ObjectView*>(parentWidget()->parentWidget());
@@ -77,6 +63,28 @@ void MinMaxPinView::ReceiveMsg(const MsgObject &msg)
                 parentObj->SetBypassPin(this, value);
             }
         }
+    }
+}
+
+void MinMaxPinView::AddCursor(const MsgObject &msg)
+{
+    switch(msg.prop[MsgObject::Type].toInt()) {
+        case ObjType::limitInMin :
+            inMin->SetIndex(msg.prop[MsgObject::Id].toInt());
+            inMin->SetValue(msg.prop[MsgObject::Value].toFloat());
+            break;
+        case ObjType::limitInMax :
+            inMax->SetIndex(msg.prop[MsgObject::Id].toInt());
+            inMax->SetValue(msg.prop[MsgObject::Value].toFloat());
+            break;
+        case ObjType::limitOutMin :
+            outMin->SetIndex(msg.prop[MsgObject::Id].toInt());
+            outMin->SetValue(msg.prop[MsgObject::Value].toFloat());
+            break;
+        case ObjType::limitOutMax :
+            outMax->SetIndex(msg.prop[MsgObject::Id].toInt());
+            outMax->SetValue(msg.prop[MsgObject::Value].toFloat());
+            break;
     }
 }
 
@@ -161,35 +169,6 @@ void MinMaxPinView::UpdateLimitModelIndex(const QModelIndex &index)
     UpdateScaleView();
 }
 
-void MinMaxPinView::UpdateModelIndex(const QModelIndex &index)
-{
-    ConnectablePinView::UpdateModelIndex(index);
-
-    //avoid "jumps"
-    if(changingValue)
-        value = startDragValue;
-    else
-        value = index.data(UserRoles::value).toFloat();
-
-    float newVu = geometry().width() * value;
-    rectVu->setRect(0,0, newVu, geometry().height());
-
-    UpdateScaleView();
-
-    ObjectView *parentObj = static_cast<ObjectView*>(parentWidget()->parentWidget());
-    if(parentObj) {
-        if(connectInfo.pinNumber == FixedPinNumber::editorVisible) {
-            parentObj->SetEditorPin(this, value);
-        }
-        if(connectInfo.pinNumber == FixedPinNumber::learningMode) {
-            parentObj->SetLearnPin(this, value);
-        }
-        if(connectInfo.pinNumber == FixedPinNumber::bypass) {
-            parentObj->SetBypassPin(this, value);
-        }
-    }
-}
-
 void MinMaxPinView::UpdateScaleView()
 {
     float limitVal=value;
@@ -221,11 +200,9 @@ void MinMaxPinView::ValueChanged(float newVal)
     if(newVal>1.0f) newVal=1.0f;
     if(newVal<0.0f) newVal=0.0f;
 
-    MsgObject msg(-1,objId);
-    msg.prop["actionType"]="update";
-    msg.prop["value"]=newVal;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Value]=newVal;
     msgCtrl->SendMsg(msg);
-//    model->setData(pinIndex,newVal,UserRoles::value);
 }
 
 void MinMaxPinView::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -293,8 +270,11 @@ void MinMaxPinView::wheelEvent ( QGraphicsSceneWheelEvent * event )
         if(event->delta()<0)
             increm=-1;
 
-        ValueChanged( pinIndex.data(UserRoles::value).toFloat()
-                      + pinIndex.data(UserRoles::stepSize).toFloat()*increm);
+        MsgObject msg(GetIndex());
+        msg.prop[MsgObject::Increment]=increm;
+        msgCtrl->SendMsg(msg);
+//        ValueChanged( pinIndex.data(UserRoles::value).toFloat()
+//                      + pinIndex.data(UserRoles::stepSize).toFloat()*increm);
     }
 }
 

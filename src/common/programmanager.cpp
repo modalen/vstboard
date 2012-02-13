@@ -42,27 +42,29 @@ void ProgramManager::Clear()
 
 void ProgramManager::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop.contains("fullUpdate")) {
+    SetMsgEnabled(true);
+
+    if(msg.prop.contains(MsgObject::GetUpdate)) {
         orderChanged=true;
         updateTimer.start();
         return;
     }
 
-    if(msg.prop["actionType"]=="fullUpdate") {
+    if(msg.prop.contains(MsgObject::Update)) {
 
         QList<Group> oldListGroups = listGroups;
         listGroups.clear();
 
         foreach(const MsgObject &msgGrp, msg.children) {
             Group grp;
-            if(msgGrp.prop.contains("id"))
-                grp.id = msgGrp.prop["id"].toInt();
+            if(msgGrp.prop.contains(MsgObject::Id))
+                grp.id = msgGrp.prop[MsgObject::Id].toInt();
             else {
                 orderChanged=true;
                 updateTimer.start();
                 grp.id = GetNextGroupId();
             }
-            grp.name = msgGrp.prop["name"].toString();
+            grp.name = msgGrp.prop[MsgObject::Name].toString();
 
 
             if(msgGrp.children.isEmpty()) {
@@ -75,14 +77,14 @@ void ProgramManager::ReceiveMsg(const MsgObject &msg)
             } else {
                 foreach(const MsgObject &msgPrg, msgGrp.children) {
                     Program prg;
-                    if(msgPrg.prop.contains("id"))
-                        prg.id = msgPrg.prop["id"].toInt();
+                    if(msgPrg.prop.contains(MsgObject::Id))
+                        prg.id = msgPrg.prop[MsgObject::Id].toInt();
                     else {
                         orderChanged=true;
                         updateTimer.start();
                         prg.id = GetNextProgId();
                     }
-                    prg.name = msgPrg.prop["name"].toString();
+                    prg.name = msgPrg.prop[MsgObject::Name].toString();
                     grp.listPrograms << prg;
                 }
             }
@@ -97,143 +99,52 @@ void ProgramManager::ReceiveMsg(const MsgObject &msg)
             return;
     }
 
-    if(msg.prop.contains("currentGroup")) {
-        int grp = msg.prop["currentGroup"].toInt();
+    if(msg.prop.contains(MsgObject::Group)) {
+        int grp = msg.prop[MsgObject::Group].toInt();
         UserChangeGroup(grp);
     }
-    if(msg.prop.contains("currentProg")) {
-        int prg = msg.prop["currentProg"].toInt();
+    if(msg.prop.contains(MsgObject::Program)) {
+        int prg = msg.prop[MsgObject::Program].toInt();
         UserChangeProg(prg);
     }
 
-    if(msg.prop.contains("promptAnswer")) {
-        promptAnswer=msg.prop["promptAnswer"].toInt();
-//        LOG(msg.prop)
-//        switch(msg.prop["answer"].toInt()) {
-//            case QMessageBox::Save:
-//                SetDirty();
-//                if(msg.prop["type"]=="group") {
-//                    myHost->groupContainer->SaveProgram();
-//                    ValidateProgChange(msg.prop["nextgroup"].toInt(),msg.prop["nextprog"].toInt());
-//                }
-//                if(msg.prop["type"]=="program") {
-//                    myHost->programContainer->SaveProgram();
-//                    ValidateProgChange(msg.prop["nextgroup"].toInt(),msg.prop["nextprog"].toInt());
-//                }
-//                if(msg.prop["type"]=="project") {
-//                    myHost->SaveProjectFile();
-//                }
-//                if(msg.prop["type"]=="setup") {
-//                    myHost->SaveSetupFile();
-//                }
-
-//                break;
-//            case QMessageBox::Discard:
-//                if(msg.prop["type"]=="group") {
-//                    myHost->groupContainer->SetDirty(false);
-//                    ValidateProgChange(msg.prop["nextgroup"].toInt(),msg.prop["nextprog"].toInt());
-//                }
-//                if(msg.prop["type"]=="program") {
-//                    myHost->programContainer->SetDirty(false);
-//                    ValidateProgChange(msg.prop["nextgroup"].toInt(),msg.prop["nextprog"].toInt());
-//                }
-//                if(msg.prop["type"]=="project") {
-//                    SetDirty(false);
-//                }
-//                if(msg.prop["type"]=="setup") {
-//                    myHost->hostContainer->SetDirty(false);
-//                }
-
-//                break;
-//            case QMessageBox::Cancel:
-//                break;
-//        }
+    if(msg.prop.contains(MsgObject::Answer)) {
+        promptAnswer=msg.prop[MsgObject::Answer].toInt();
     }
 
-    if(msg.prop.contains("progAutosave")) {
-        myHost->undoStack.push( new ComChangeAutosave(this,1,static_cast<Qt::CheckState>(msg.prop["progAutosave"].toInt())) );
+    if(msg.prop.contains(MsgObject::ProgAutosave)) {
+        myHost->undoStack.push( new ComChangeAutosave(this,1,static_cast<Qt::CheckState>(msg.prop[MsgObject::ProgAutosave].toInt())) );
     }
-    if(msg.prop.contains("groupAutosave")) {
-        myHost->undoStack.push( new ComChangeAutosave(this,0,static_cast<Qt::CheckState>(msg.prop["groupAutosave"].toInt())) );
+    if(msg.prop.contains(MsgObject::GroupAutosave)) {
+        myHost->undoStack.push( new ComChangeAutosave(this,0,static_cast<Qt::CheckState>(msg.prop[MsgObject::GroupAutosave].toInt())) );
     }
-
-//    if(msg.prop.contains("removeProg")) {
-//        int prg = msg.prop["removeProg"].toInt();
-//        int grp = msg.prop["group"].toInt();
-
-//        if(listGroups[grp].listPrograms.count()<=1)
-//            return;
-
-//        if(listGroups.count()>grp && listGroups[grp].listPrograms.count()>prg) {
-//            listGroups[grp].listPrograms.removeAt( prg );
-//            msgCtrl->SendMsg(msg);
-
-//            if(grp==currentMidiGroup && prg==currentMidiProg)
-//                ValidateProgChange(grp,prg);
-//        }
-//    }
-//    if(msg.prop.contains("removeGroup")) {
-//        if(listGroups.count()<=1)
-//            return;
-
-//        int grp = msg.prop["removeGroup"].toInt();
-//        if(listGroups.count()>grp) {
-//            listGroups.removeAt(grp);
-//            msgCtrl->SendMsg(msg);
-
-//            if(grp==currentMidiGroup)
-//                ValidateProgChange(grp,currentMidiProg);
-//        }
-//    }
-
-//    if(msg.prop.contains("addProg")) {
-//        Program newPrg;
-//        newPrg.id=GetNextProgId();
-//        newPrg.name=tr("new prog");
-//        listGroups[currentMidiGroup].listPrograms.insert( msg.prop["addProg"].toInt(), newPrg );
-//    }
-//    if(msg.prop.contains("addGroup")) {
-//        Group newGroup;
-//        newGroup.id=GetNextGroupId();
-//        newGroup.name=tr("new grp");
-//        listGroups.insert( msg.prop["addGroup"].toInt(), newGroup );
-//    }
-
-//    if(msg.prop.contains("name")) {
-//        if(msg.prop.contains("prog")) {
-//            int grp = msg.prop["group"].toInt();
-//            int prg = msg.prop["prog"].toInt();
-//            listGroups[grp].listPrograms[prg].name = msg.prop["name"].toString();
-//        } else {
-//            int grp = msg.prop["group"].toInt();
-//            listGroups[grp].name = msg.prop["name"].toString();
-//        }
-//        msgCtrl->SendMsg(msg);
-//    }
 }
 
 void ProgramManager::UpdateView()
 {
-    MsgObject msg(-1,GetIndex());
+    if(!MsgEnabled())
+        return;
+
+    MsgObject msg(GetIndex());
 
     if(orderChanged) {
         orderChanged=false;
-        msg.prop["actionType"]="fullUpdate";
+        msg.prop[MsgObject::Update]=1;
 
         int cpt=0;
         foreach(const Group &grp, listGroups) {
-            MsgObject msgGrp(GetIndex(),cpt);
+            MsgObject msgGrp(cpt);
             grp.GetInfos(msgGrp);
             msg.children << msgGrp;
             ++cpt;
         }
 
-        msg.prop["groupAutosave"] = groupAutosaveState;
-        msg.prop["progAutosave"] = progAutosaveState;
+        msg.prop[MsgObject::GroupAutosave] = groupAutosaveState;
+        msg.prop[MsgObject::ProgAutosave] = progAutosaveState;
     }
 
-    msg.prop["currentGroup"]=currentMidiGroup;
-    msg.prop["currentProg"]=currentMidiProg;
+    msg.prop[MsgObject::Group]=currentMidiGroup;
+    msg.prop[MsgObject::Program]=currentMidiProg;
 
     msgCtrl->SendMsg(msg);
 }
@@ -407,8 +318,8 @@ int ProgramManager::WaitPromptAnswer(const QString &type)
         return QMessageBox::Cancel;
 
     //ask
-    MsgObject msg(-1,GetIndex());
-    msg.prop["promptType"]=type;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Message]=type;
     msgCtrl->SendMsg(msg);
 
     //wait for answer
@@ -436,24 +347,6 @@ void ProgramManager::UserChangeGroup(quint16 grp)
 
 void ProgramManager::UserChangeProg(quint16 prog, quint16 grp)
 {
-//    if(prog==currentMidiProg && grp==currentMidiGroup)
-//        return;
-
-//    if(listGroups.count()<=grp || listGroups[grp].listPrograms.count()<=prog)
-//        return;
-
-//    if(progAutosaveState == Qt::Unchecked && myHost->programContainer->IsDirty()) {
-//        QUndoCommand *discardCom = new QUndoCommand( tr("Discard changes") );
-//        if(grp != currentMidiGroup && groupAutosaveState == Qt::Unchecked && myHost->groupContainer->IsDirty())
-//            new ComDiscardChanges(this, currentMidiGroup, -1, discardCom);
-//        new ComDiscardChanges(this, currentMidiProg, currentMidiGroup, discardCom);
-//        new ComChangeProgram(this, currentMidiGroup, currentMidiProg, grp, prog, discardCom);
-//        myHost->undoStack.push( discardCom );
-//    } else {
-//        if(myHost->undoProgramChanges())
-//            myHost->undoStack.push( new ComChangeProgram(this, currentMidiGroup, currentMidiProg, grp, prog) );
-//    }
-
     ValidateProgChange(grp,prog);
 }
 
@@ -536,11 +429,6 @@ void ProgramManager::ValidateMidiChange(quint16 prog, quint16 grp)
     }
 
     updateTimer.start();
-
-//    MsgObject msg(-1,GetIndex());
-//    msg.prop["currentGroup"]=currentMidiGroup;
-//    msg.prop["currentProg"]=currentMidiProg;
-//    msgCtrl->SendMsg(msg);
 }
 
 bool ProgramManager::FindCurrentProg()

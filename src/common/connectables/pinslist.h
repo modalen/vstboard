@@ -26,7 +26,7 @@
 #include "connectioninfo.h"
 #include "objectinfo.h"
 #include "audiobuffer.h"
-#include "msgobject.h"
+#include "msghandler.h"
 
 namespace Connectables {
 
@@ -34,13 +34,13 @@ namespace Connectables {
     class Object;
     class Container;
 
-    class PinsList : public QObject
+    class PinsList : public QObject, public MsgHandler
     {
         Q_OBJECT
         Q_PROPERTY(int nbPins READ nbPins WRITE SetNbPins)
 
     public:
-        PinsList(MainHost *myHost, Object *parent);
+        PinsList(MainHost *myHost, Object *parent, MsgController *msgCtrl, int objId);
         virtual ~PinsList();
         void SetContainerId(const quint16 id);
         void Hide();
@@ -68,13 +68,15 @@ namespace Connectables {
 
         void GetInfos(MsgObject &msg);
 
-        inline const int GetIndex() const {return index;}
+//        inline const int GetIndex() const {return index;}
 
         inline bool IsVisible() { return visible; }
 
+        void ReceiveMsg(const MsgObject &msg);
+        void SetMsgEnabled(bool enab);
 
     protected:
-        int index;
+//        int index;
 //        QPersistentModelIndex modelList;
         Object *parent;
         MainHost *myHost;

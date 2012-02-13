@@ -9,9 +9,7 @@ namespace View {
     Q_OBJECT
     public:
         VstPluginView(ViewConfig *config,MsgController *msgCtrl, int objId, MainContainerView * parent = 0);
-        void ReceiveMsg(const MsgObject &msg);
-//        void SetModelIndex(QPersistentModelIndex index);
-        void UpdateModelIndex();
+        void Init(const MsgObject &msg);
 
     protected:
         void dragEnterEvent( QGraphicsSceneDragDropEvent *event);

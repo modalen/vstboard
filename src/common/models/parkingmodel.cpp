@@ -8,19 +8,19 @@ ParkingModel::ParkingModel(MsgController *msgCtrl, int objId, QObject *parent) :
 
 void ParkingModel::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop.contains("addObject")) {
-        ObjectInfo info = msg.prop["objInfo"].value<ObjectInfo>();
+    if(msg.prop.contains(MsgObject::Add)) {
+        ObjectInfo info = msg.prop[MsgObject::ObjInfo].value<ObjectInfo>();
         QStandardItem *item = new QStandardItem( info.name );
-        item->setData(msg.prop["addObject"].toInt());
+        item->setData(msg.prop[MsgObject::Add].toInt());
         item->setData(QVariant::fromValue(info),UserRoles::objInfo);
         invisibleRootItem()->appendRow(item);
         return;
     }
 
-    if(msg.prop.contains("removeObject")) {
+    if(msg.prop.contains(MsgObject::Remove)) {
         int nb=rowCount();
         for(int i=0; i<nb; ++i) {
-            if(invisibleRootItem()->child(i)->data().toInt()==msg.prop["removeObject"].toInt()) {
+            if(invisibleRootItem()->child(i)->data().toInt()==msg.prop[MsgObject::Remove].toInt()) {
                 invisibleRootItem()->removeRow(i);
                 return;
             }
@@ -28,7 +28,7 @@ void ParkingModel::ReceiveMsg(const MsgObject &msg)
         return;
     }
 
-    if(msg.prop.contains("clear")) {
+    if(msg.prop.contains(MsgObject::Clear)) {
         clear();
         return;
     }

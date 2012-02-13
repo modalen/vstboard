@@ -23,6 +23,10 @@
 #include "projectfile/projectfile.h"
 #include "models/programsmodel.h"
 
+#include "commands/comaddobject.h"
+#include "commands/comaddcable.h"
+#include "commands/comdisconnectpin.h"
+
 using namespace Connectables;
 
 /*!
@@ -46,8 +50,11 @@ Container::Container(MainHost *myHost,int index, const ObjectInfo &info) :
     cablesNode(QModelIndex()),
     progToSet(-1),
     loadingMode(false),
-    parkingId(-1)
+    containersParkingId(FixedObjId::ND)
 {
+    qDeleteAll(pinLists);
+    pinLists.clear();
+
     parkModel.setObjectName("parkModel"%objectName());
     LoadProgram(TEMP_PROGRAM);
     connect(myHost,SIGNAL(BufferSizeChanged(ulong)),
@@ -110,7 +117,7 @@ void Container::SetContainerId(quint16 id)
   */
 void Container::ConnectObjects(QSharedPointer<Object> fromObjOutputs, QSharedPointer<Object> toObjInputs, bool hiddenCables)
 {
-    if(fromObjOutputs.isNull() || toObjInputs.isNull())
+    if(!fromObjOutputs || !toObjInputs)
         return;
 
     fromObjOutputs->GetListAudioPinOut()->ConnectAllTo(this,toObjInputs->GetListAudioPinIn(), hiddenCables);
@@ -124,7 +131,7 @@ bool Container::Close()
         return false;
 
     foreach(QSharedPointer<Object> objPtr, listStaticObjects) {
-        if(objPtr.isNull())
+        if(!objPtr)
             continue;
         ParkObject(objPtr);
     }
@@ -158,7 +165,7 @@ void Container::SetSleep(bool sleeping)
         return;
 
     foreach(QSharedPointer<Object> objPtr, currentContainerProgram->listObjects) {
-        if(!objPtr.isNull())
+        if(objPtr)
             objPtr->SetSleep(sleep);
     }
 }
@@ -169,12 +176,12 @@ void Container::SetSleep(bool sleeping)
 
 //    if(currentContainerProgram) {
 //        foreach(QSharedPointer<Object> objPtr, currentContainerProgram->listObjects) {
-//            if(!objPtr.isNull())
+//            if(objPtr)
 //                objPtr->Hide();
 //        }
 //    }
 //    foreach(QSharedPointer<Object> objPtr, listStaticObjects) {
-//        if(!objPtr.isNull())
+//        if(objPtr)
 //            objPtr->Hide();
 //    }
 
@@ -204,7 +211,7 @@ void Container::SetProgram(quint32 progId)
 
 void Container::NewRenderLoop()
 {
-    Object::NewRenderLoop();
+//    Object::NewRenderLoop();
 
 //    foreach(QSharedPointer<Object> obj, listStaticObjects) {
 //        obj->NewRenderLoop();
@@ -242,6 +249,7 @@ void Container::SetSampleRate(float rate)
 
 void Container::LoadProgram(int prog)
 {
+
 //    QMutexLocker ml(&progLoadMutex);
 
     //if prog is already loaded, update model
@@ -249,6 +257,8 @@ void Container::LoadProgram(int prog)
 //        UpdateModelNode();
         return;
     }
+
+    SetMsgEnabled(false);
 
     SetLoadingMode(true);
 
@@ -309,8 +319,8 @@ void Container::LoadProgram(int prog)
     }
 
     if(GetIndex()!=FixedObjId::mainContainer) {
-        MsgObject msg(0, GetIndex());
-        msg.prop["actionType"]="add";
+        SetMsgEnabled(true);
+        MsgObject msg(FixedObjId::mainContainer);
         GetInfos(msg);
         msgCtrl->SendMsg(msg);
     }
@@ -450,11 +460,13 @@ void Container::UserAddObject(const QSharedPointer<Object> &objPtr,
                               const QSharedPointer<Object> &targetPtr)
 {
     AddObject(objPtr);
+    objPtr->SetMsgEnabled(MsgEnabled());
 
-    MsgObject msg(GetIndex(), objPtr->GetIndex());
-    msg.prop["actionType"]="add";
-    objPtr->GetInfos(msg);
-    msgCtrl->SendMsg(msg);
+    if(MsgEnabled()) {
+        MsgObject msg(GetIndex());
+        objPtr->GetInfos(msg);
+        msgCtrl->SendMsg(msg);
+    }
 
     if(targetPtr) {
         currentContainerProgram->CollectCableUpdates( listOfAddedCables, listOfRemovedCables );
@@ -483,9 +495,11 @@ void Container::UserAddObject(const QSharedPointer<Object> &objPtr,
                 (targetPtr)->CopyStatusTo(objPtr);
                 ParkObject(targetPtr);
 
-                MsgObject msg(GetIndex(), targetPtr->GetIndex());
-                msg.prop["actionType"]="remove";
-                msgCtrl->SendMsg(msg);
+                if(MsgEnabled()) {
+                    MsgObject msg(GetIndex());
+                    msg.prop[MsgObject::Remove]=targetPtr->GetIndex();
+                    msgCtrl->SendMsg(msg);
+                }
 
                 break;
             }
@@ -493,20 +507,21 @@ void Container::UserAddObject(const QSharedPointer<Object> &objPtr,
                 break;
         }
         currentContainerProgram->CollectCableUpdates();
-
         currentContainerProgram->CollectCableUpdatesIds();
 
-        foreach(int id, removedCables) {
-            MsgObject msg(GetIndex(),id);
-            msg.prop["actionType"]="remove";
-            msgCtrl->SendMsg(msg);
-        }
+        if(MsgEnabled()) {
+            foreach(int id, removedCables) {
+                MsgObject msg(GetIndex());
+                msg.prop[MsgObject::Remove]=id;
+                msgCtrl->SendMsg(msg);
+            }
 
-        foreach(QSharedPointer<Cable> cab, addedCables) {
-            MsgObject msg(GetIndex(),cab->GetIndex());
-            msg.prop["actionType"]="add";
-            cab->GetInfos(msg);
-            msgCtrl->SendMsg(msg);
+
+            foreach(QSharedPointer<Cable> cab, addedCables) {
+                MsgObject msg(GetIndex());
+                cab->GetInfos(msg);
+                msgCtrl->SendMsg(msg);
+            }
         }
 
     }
@@ -523,8 +538,8 @@ void Container::UserParkObject(QSharedPointer<Object> objPtr,
                                QList< QPair<ConnectionInfo,ConnectionInfo> > *listOfAddedCables,
                                QList< QPair<ConnectionInfo,ConnectionInfo> > *listOfRemovedCables)
 {
-    MsgObject msg(GetIndex(), objPtr->GetIndex());
-    msg.prop["actionType"]="remove";
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Remove]=objPtr->GetIndex();
     msgCtrl->SendMsg(msg);
 
     currentContainerProgram->CollectCableUpdates( listOfAddedCables, listOfRemovedCables );
@@ -541,14 +556,13 @@ void Container::UserParkObject(QSharedPointer<Object> objPtr,
     currentContainerProgram->CollectCableUpdatesIds();
 
     foreach(int id, removedCables) {
-        MsgObject msg(GetIndex(),id);
-        msg.prop["actionType"]="remove";
+        MsgObject msg(GetIndex());
+        msg.prop[MsgObject::Remove]=id;
         msgCtrl->SendMsg(msg);
     }
 
     foreach(QSharedPointer<Cable> cab, addedCables) {
-        MsgObject msg(GetIndex(),cab->GetIndex());
-        msg.prop["actionType"]="add";
+        MsgObject msg(GetIndex());
         cab->GetInfos(msg);
         msgCtrl->SendMsg(msg);
     }
@@ -649,13 +663,13 @@ void Container::AddChildObject(QSharedPointer<Object> objPtr)
 //    myHost->GetModel()->itemFromIndex( modelIndex )->appendRow(item);
 //    objPtr->modelIndex=item->index();
 
-    if(parkingId!=-1) {
-        MsgObject msg(GetIndex(),parkingId);
-        msg.prop["removeObject"]=objPtr->GetIndex();
+    if(containersParkingId!=FixedObjId::ND) {
+        MsgObject msg(containersParkingId);
+        msg.prop[MsgObject::Remove]=objPtr->GetIndex();
         msgCtrl->SendMsg(msg);
     }
 
-    objPtr->parked=false;
+    objPtr->parkingId=FixedObjId::ND;
 
     if(objPtr->GetInitDelay()>0)
         myHost->objFactory->listDelayObj << objPtr->GetIndex();
@@ -673,16 +687,16 @@ void Container::AddChildObject(QSharedPointer<Object> objPtr)
   */
 void Container::ParkChildObject(QSharedPointer<Object> objPtr)
 {
-    if(objPtr.isNull())
+    if(!objPtr)
         return;
 
     myHost->objFactory->listDelayObj.removeAll(objPtr->GetIndex());
 
-    if(parkingId!=-1) {
-        MsgObject msg(GetIndex(),parkingId);
-        msg.prop["addObject"]=objPtr->GetIndex();
+    if(containersParkingId!=FixedObjId::ND) {
+        MsgObject msg(containersParkingId);
+        msg.prop[MsgObject::Add]=objPtr->GetIndex();
 //        msg.prop["name"]=objPtr->info().name;
-        msg.prop["objInfo"]=QVariant::fromValue(objPtr->info());
+        msg.prop[MsgObject::ObjInfo]=QVariant::fromValue(objPtr->info());
         msgCtrl->SendMsg(msg);
     }
 
@@ -692,7 +706,7 @@ void Container::ParkChildObject(QSharedPointer<Object> objPtr)
 //    QStandardItem *item = objPtr->GetParkingItem();
 //    parkModel.invisibleRootItem()->appendRow(item);
 //    objPtr->modelIndex=item->index();
-    objPtr->parked=true;
+    objPtr->parkingId=parkingId;
 
 
 
@@ -728,8 +742,7 @@ void Container::UserAddCable(const ConnectionInfo &outputPin, const ConnectionIn
 
     currentContainerProgram->CollectCableUpdatesIds();
     foreach(QSharedPointer<Cable> cab, addedCables) {
-        MsgObject msg(GetIndex(),cab->GetIndex());
-        msg.prop["actionType"]="add";
+        MsgObject msg(GetIndex());
         cab->GetInfos(msg);
         msgCtrl->SendMsg(msg);
     }
@@ -753,8 +766,8 @@ void Container::UserRemoveCableFromPin(const ConnectionInfo &pin)
     currentContainerProgram->CollectCableUpdatesIds();
 
     foreach(int id, removedCables) {
-        MsgObject msg(GetIndex(),id);
-        msg.prop["actionType"]="remove";
+        MsgObject msg(GetIndex());
+        msg.prop[MsgObject::Remove]=id;
         msgCtrl->SendMsg(msg);
     }
 
@@ -772,8 +785,8 @@ void  Container::UserRemoveCable(const ConnectionInfo &outputPin, const Connecti
     currentContainerProgram->CollectCableUpdatesIds();
 
     foreach(int id, removedCables) {
-        MsgObject msg(GetIndex(),id);
-        msg.prop["actionType"]="remove";
+        MsgObject msg(GetIndex());
+        msg.prop[MsgObject::Remove]=id;
         msgCtrl->SendMsg(msg);
     }
 
@@ -953,21 +966,15 @@ bool Container::loadObjectFromStream (QDataStream &in)
 
     QSharedPointer<Object> objPtr = myHost->objFactory->NewObject(info);
 
-    //error while creating the object, build a dummy object with the same saved id
-    if(objPtr.isNull()) {
-        objPtr = myHost->objFactory->NewObject(info);
+    //can't create the object ?
+    if(!objPtr) {
+        LOG("object not created");
+        return false;
     }
 
-    //can't even create a dummy object ?
-    if(objPtr.isNull()) {
-        LOG("dummy object not created");
-    }
-
-    if(!objPtr.isNull()) {
-        AddParkedObject(objPtr);
-        if(objPtr->fromStream( in ))
-            listLoadingObjects << objPtr; //keep the object alive while loading
-    }
+    AddParkedObject(objPtr);
+    if(objPtr->fromStream( in ))
+        listLoadingObjects << objPtr; //keep the object alive while loading
 
     return true;
 }
@@ -1086,20 +1093,78 @@ void Container::ProgramFromStream (int progId, QDataStream &in)
 
 void Container::GetInfos(MsgObject &msg)
 {
+    if(!MsgEnabled())
+        return;
+
     Object::GetInfos(msg);
 
     foreach( QSharedPointer< Object >obj, listStaticObjects) {
-        if(!obj.isNull()) {
-            MsgObject a(GetIndex(), obj->GetIndex());
-            a.prop["actionType"]="add";
+        if(obj) {
+            MsgObject a(GetIndex());
             obj->GetInfos(a);
             msg.children << a;
         }
     }
 
-    if(!currentContainerProgram)
+    if(currentContainerProgram)
+        currentContainerProgram->GetInfos(msg);
+}
+
+void Container::ReceiveMsg(const MsgObject &msg)
+{
+
+
+    if(msg.prop.contains(MsgObject::ConnectPin)) {
+        ConnectionInfo cPin1(msg.children.value(0));
+        ConnectionInfo cPin2(msg.children.value(1));
+        myHost->undoStack.push( new ComAddCable(myHost, cPin1, cPin2) );
         return;
+    }
 
-    currentContainerProgram->GetInfos(msg);
+    if(msg.prop.contains(MsgObject::UnplugPin)) {
+        ConnectionInfo cPin(msg);
+        myHost->undoStack.push( new ComDisconnectPin(myHost, cPin) );
+        return;
+    }
 
+
+
+    if(msg.prop.contains(MsgObject::ObjectsToLoad)) {
+
+        int insertType = msg.prop[MsgObject::Type].toInt();
+        QSharedPointer<Object> targetObj = myHost->objFactory->GetObjectFromId( GetIndex() );
+
+        QDataStream streamObj(&msg.prop[MsgObject::ObjectsToLoad].toByteArray(), QIODevice::ReadOnly);
+        while(!streamObj.atEnd()) {
+            ObjectInfo newInfo;
+            newInfo.fromStream(streamObj);
+            ComAddObject *com = new ComAddObject(myHost, newInfo, targetObj.staticCast<Container>(), targetObj, static_cast<InsertionType::Enum>(insertType) );
+            myHost->undoStack.push( com );
+        }
+
+        return;
+    }
+
+    if(msg.prop.contains(MsgObject::Update)) {
+        MsgObject ans(FixedObjId::mainContainer);
+        GetInfos(ans);
+        msgCtrl->SendMsg(ans);
+        return;
+    }
+
+    Object::ReceiveMsg(msg);
+}
+
+void Container::SetMsgEnabled(bool enab)
+{
+    Object::SetMsgEnabled(enab);
+
+    foreach( QSharedPointer< Object >obj, listStaticObjects) {
+        if(obj) {
+            obj->SetMsgEnabled(enab);
+        }
+    }
+
+    if(currentContainerProgram)
+        currentContainerProgram->SetMsgEnabled(enab);
 }

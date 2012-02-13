@@ -23,8 +23,8 @@
 
 using namespace View;
 
-ConnectablePinView::ConnectablePinView(float angle, MsgController *msgCtrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
-    PinView(angle,msgCtrl,objId,parent,pinInfo,config),
+ConnectablePinView::ConnectablePinView(int listPinId, float angle, MsgController *msgCtrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
+    PinView(listPinId, angle,msgCtrl,objId,parent,pinInfo,config),
     value(0),
     isParameter(false),
     overload(0),
@@ -135,8 +135,8 @@ void ConnectablePinView::mousePressEvent ( QGraphicsSceneMouseEvent * event )
 
 void ConnectablePinView::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop.contains("name")) {
-        QString newName = msg.prop.value("name","").toString();
+    if(msg.prop.contains(MsgObject::Name)) {
+        QString newName = msg.prop[MsgObject::Name].toString();
         if(newName!=textItem->text()) {
             textItem->setText(newName);
 
@@ -145,44 +145,21 @@ void ConnectablePinView::ReceiveMsg(const MsgObject &msg)
         }
     }
 
-    if(msg.prop.contains("value")) {
+    if(msg.prop.contains(MsgObject::Value)) {
         if(connectInfo.type == PinType::Parameter) {
-            value = msg.prop.value("value",.0).toFloat();
+            value = msg.prop[MsgObject::Value].toFloat();
             float newVu = size().width() * value;
             rectVu->setRect(0,0, newVu, size().height());
         } else {
-            float newVal = msg.prop.value("value",.0).toFloat();
+            float newVal = msg.prop[MsgObject::Value].toFloat();
             if(newVal>value) {
                 vuFall=.002f;
                 value=newVal;
             }
         }
     }
-}
 
-void ConnectablePinView::UpdateModelIndex(const QModelIndex &index)
-{
-    QString newName = index.data(Qt::DisplayRole).toString();
-    if(newName!=textItem->text()) {
-        textItem->setText(newName);
-
-        if(textItem->boundingRect().width()>size().width())
-            setMinimumWidth( textItem->boundingRect().width()+10 );
-    }
-
-    if(connectInfo.type == PinType::Parameter) {
-        value = index.data(UserRoles::value).toFloat();
-        float newVu = size().width() * value;
-        rectVu->setRect(0,0, newVu, size().height());
-    } else {
-        float newVal = index.data(UserRoles::value).toFloat();
-        value = std::max(value,newVal);
-    }
-
-    connectInfo = index.data(UserRoles::connectionInfo).value<ConnectionInfo>();
-    if(connectInfo.type == PinType::Parameter)
-        isParameter=true;
-
+    PinView::ReceiveMsg(msg);
 }
 
 void ConnectablePinView::ResetOveload()

@@ -75,7 +75,8 @@ namespace NodeType {
         listPin,
         pin,
         cable,
-        cursor
+        cursor,
+        tempObj
     };
 }
 
@@ -118,7 +119,8 @@ namespace ObjType {
 
 namespace FixedObjId {
     enum Enum {
-        mainContainer=1,
+        ND,
+        mainContainer,
         hostContainer,
         hostContainerIn,
         hostContainerOut,
@@ -144,7 +146,6 @@ namespace FixedObjId {
         programsManager,
         groupParking,
         programParking,
-        undoRedoStack,
         audioDevices,
         midiDevices,
         tools,

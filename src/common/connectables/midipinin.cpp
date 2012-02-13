@@ -34,7 +34,7 @@ MidiPinIn::MidiPinIn(Object *parent, int number, bool bridge)
 }
 
 
-void MidiPinIn::ReceiveMsg(const PinMessage::Enum msgType,void* data)
+void MidiPinIn::ReceivePinMsg(const PinMessage::Enum msgType,void* data)
 {
     if(msgType==PinMessage::MidiMsg) {
         parent->MidiMsgFromInput(*(long*)data);

@@ -32,7 +32,7 @@ namespace Connectables {
         float GetValue();
         void NewRenderLoop();
 
-        void ReceiveMsg(const PinMessage::Enum msgType,void *data=0);
+        void ReceivePinMsg(const PinMessage::Enum msgType,void *data=0);
         void SendAudioBuffer();
 
     protected:

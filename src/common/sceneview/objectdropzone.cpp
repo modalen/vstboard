@@ -105,8 +105,8 @@ void ObjectDropZone::dropEvent( QGraphicsSceneDragDropEvent *event)
 
     emit(ObjectDropped(event, msg));
     //reset to copy : we don't really want a moveaction
-    event->setDropAction(Qt::CopyAction);
-    QGraphicsWidget::dropEvent(event);
+//    event->setDropAction(Qt::CopyAction);
+//    QGraphicsWidget::dropEvent(event);
 }
 
 void ObjectDropZone::HighlightStart()
@@ -136,41 +136,40 @@ bool ObjectDropZone::TranslateMimeData( const QMimeData * data, MsgObject &msg )
 
             QFileInfo fInfo;
             fInfo.setFile( url.toLocalFile() );
-            if ( fInfo.isFile() && fInfo.isReadable() ) {
-                QString fileType(fInfo.suffix().toLower());
+            QString fileType(fInfo.suffix().toLower());
 
 #ifdef VSTSDK
-                //vst plugin
-                if ( fileType=="dll" ) {
-                    ObjectInfo infoVst;
-                    infoVst.nodeType = NodeType::object;
-                    infoVst.objType = ObjType::VstPlugin;
-                    infoVst.filename = url.toLocalFile();
-                    infoVst.name = fInfo.baseName();
-                    streamObj << infoVst;
-                    continue;
-                }
-                //vst3 plugin
-                if ( fileType=="vst3" ) {
-                    ObjectInfo infoVst;
-                    infoVst.nodeType = NodeType::object;
-                    infoVst.objType = ObjType::Vst3Plugin;
-                    infoVst.filename = url.toLocalFile();
-                    infoVst.name = fInfo.baseName();
-                    streamObj << infoVst;
-                    continue;
-                }
-#endif
+            //vst plugin
+            if ( fileType=="dll" ) {
+                ObjectInfo infoVst;
+                infoVst.nodeType = NodeType::object;
+                infoVst.objType = ObjType::VstPlugin;
+                infoVst.filename = url.toLocalFile();
+                infoVst.name = fInfo.baseName();
+                streamObj << infoVst;
+                continue;
             }
+            //vst3 plugin
+            if ( fileType=="vst3" ) {
+                ObjectInfo infoVst;
+                infoVst.nodeType = NodeType::object;
+                infoVst.objType = ObjType::Vst3Plugin;
+                infoVst.filename = url.toLocalFile();
+                infoVst.name = fInfo.baseName();
+                streamObj << infoVst;
+                continue;
+            }
+#endif
+
             lstFiles << url.toLocalFile();
         }
         if(!lstFiles.isEmpty())
-            msg.prop["filesToLoad"]=lstFiles;
+            msg.prop[MsgObject::FilesToLoad]=lstFiles;
     }
 
     //objects from parking
-    QByteArray unparkObj;
-    QDataStream stream(&unparkObj, QIODevice::WriteOnly);
+//    QByteArray unparkObj;
+//    QDataStream stream(&unparkObj, QIODevice::WriteOnly);
 
     if(data->hasFormat("application/x-qstandarditemmodeldatalist")) {
         QStandardItemModel mod;
@@ -186,8 +185,8 @@ bool ObjectDropZone::TranslateMimeData( const QMimeData * data, MsgObject &msg )
             }
         }
     }
-    if(!unparkObj.isEmpty())
-        msg.prop["objToUnpark"]=unparkObj;
+//    if(!unparkObj.isEmpty())
+//        msg.prop[MsgObject::objToUnpark"]=unparkObj;
 
 
 
@@ -237,7 +236,7 @@ bool ObjectDropZone::TranslateMimeData( const QMimeData * data, MsgObject &msg )
     }
 
     if(!listObjInfoToAdd.isEmpty())
-        msg.prop["objToLoad"]=listObjInfoToAdd;
+        msg.prop[MsgObject::ObjectsToLoad]=listObjInfoToAdd;
 
     return true;
 }

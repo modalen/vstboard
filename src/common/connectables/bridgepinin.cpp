@@ -36,7 +36,7 @@ BridgePinIn::BridgePinIn(Object *parent, int number, bool bridge) :
 }
 
 //send message to the corresponding output pin
-void BridgePinIn::ReceiveMsg(const PinMessage::Enum msgType,void *data)
+void BridgePinIn::ReceivePinMsg(const PinMessage::Enum msgType,void *data)
 {
     if(loopCounter>20)
         return;

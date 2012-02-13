@@ -45,12 +45,12 @@ ConnectableObjectView::ConnectableObjectView(ViewConfig *config, MsgController *
 //    setFlag(QGraphicsItem::ItemIsMovable, true);
     setFocusPolicy(Qt::StrongFocus);
 
-    listAudioIn = new ListPinsView(msgCtrl,-1,this);
-    listAudioOut = new ListPinsView(msgCtrl,-1,this);
-    listMidiIn = new ListPinsView(msgCtrl,-1,this);
-    listMidiOut = new ListPinsView(msgCtrl,-1,this);
-    listParametersIn = new ListPinsView(msgCtrl,-1,this);
-    listParametersOut = new ListPinsView(msgCtrl,-1,this);
+    listAudioIn = new ListPinsView(config,msgCtrl,-1,this);
+    listAudioOut = new ListPinsView(config,msgCtrl,-1,this);
+    listMidiIn = new ListPinsView(config,msgCtrl,-1,this);
+    listMidiOut = new ListPinsView(config,msgCtrl,-1,this);
+    listParametersIn = new ListPinsView(config,msgCtrl,-1,this);
+    listParametersOut = new ListPinsView(config,msgCtrl,-1,this);
 
     layout->addItem(listAudioIn,0,0,Qt::AlignLeft | Qt::AlignTop);
     layout->addItem(listAudioOut,0,1,Qt::AlignRight | Qt::AlignTop);
@@ -162,25 +162,25 @@ void ConnectableObjectView::ObjectDropped(QGraphicsSceneDragDropEvent *event, Ms
     QPointF dropPos(0,0);
 
     if(sender()==dropReplace){
-        msg.prop["actionType"]=InsertionType::Replace;
+        msg.prop[MsgObject::Type]=InsertionType::Replace;
     }
 
     if(event->dropAction()==Qt::MoveAction) {
         if(sender()==dropAttachLeft) {
-            msg.prop["actionType"]=InsertionType::InsertBefore;
+            msg.prop[MsgObject::Type]=InsertionType::InsertBefore;
             dropPos.rx()-=(geometry().width()+10);
         }
         if(sender()==dropAttachRight){
-            msg.prop["actionType"]=InsertionType::InsertAfter;
+            msg.prop[MsgObject::Type]=InsertionType::InsertAfter;
             dropPos.rx()+=(geometry().width()+10);
         }
     } else {
         if(sender()==dropAttachLeft) {
-            msg.prop["actionType"]=InsertionType::AddBefore;
+            msg.prop[MsgObject::Type]=InsertionType::AddBefore;
             dropPos.rx()-=(geometry().width()+10);
         }
         if(sender()==dropAttachRight){
-            msg.prop["actionType"]=InsertionType::AddAfter;
+            msg.prop[MsgObject::Type]=InsertionType::AddAfter;
             dropPos.rx()+=(geometry().width()+10);
         }
     }

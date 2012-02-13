@@ -32,7 +32,7 @@ namespace View {
     {
     Q_OBJECT
     public:
-        BridgePinView(float angle, MsgController *ctrl,int objId, QGraphicsItem *parent, const ConnectionInfo &pinInfo, ViewConfig *config);
+        BridgePinView(int listPinId, float angle, MsgController *ctrl,int objId, QGraphicsItem *parent, const ConnectionInfo &pinInfo, ViewConfig *config);
         const QPointF pinPos() const;
         void ReceiveMsg(const MsgObject &msg);
 

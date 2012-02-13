@@ -168,10 +168,13 @@ void Pin::SetVisible(bool vis)
     if(closed)
         return;
 
-//    if(!parentIndex.isValid())
-//        return;
+    if(!pinList || !pinList->IsVisible())
+        return;
 
-    if(visible && pinList) { // && !modelIndex.isValid()) {
+    if(!MsgEnabled())
+        return;
+
+    if(visible) { // && !modelIndex.isValid()) {
 //        QStandardItem *item = new QStandardItem("pin");
 //        item->setData(objectName(),Qt::DisplayRole);
 //        item->setData(GetValue(),UserRoles::value);
@@ -183,8 +186,7 @@ void Pin::SetVisible(bool vis)
 //        parentItem->appendRow(item);
 //        modelIndex = item->index();
 
-        MsgObject msg(pinList->GetIndex(),GetIndex());
-        msg.prop["actionType"]="add";
+        MsgObject msg(pinList->GetIndex());
         GetInfos(msg);
         msgCtrl->SendMsg(msg);
 
@@ -203,7 +205,7 @@ void Pin::SetVisible(bool vis)
         EnableVuUpdates(false);
         //remove cables from pin
         QSharedPointer<Object> cnt = parent->getHost()->objFactory->GetObjectFromId(connectInfo.container);
-        if(!cnt.isNull()) {
+        if(cnt) {
             static_cast<Container*>(cnt.data())->UserRemoveCableFromPin(connectInfo);
         }
 
@@ -213,8 +215,8 @@ void Pin::SetVisible(bool vis)
 //        modelIndex=QModelIndex();
 
         if(pinList) {
-            MsgObject msg(pinList->GetIndex(),GetIndex());
-            msg.prop["actionType"]="remove";
+            MsgObject msg(pinList->GetIndex());
+            msg.prop[MsgObject::Remove]=GetIndex();
             msgCtrl->SendMsg(msg);
         }
     }
@@ -253,35 +255,40 @@ void Pin::updateView()
         return;
     }
 
+    if(!MsgEnabled())
+        return;
+
     QMutexLocker l(&objMutex);
-    MsgObject msg(0, GetIndex());
+    MsgObject msg(GetIndex());
 
     if(!displayedText.isEmpty()) {
-        msg.prop["name"]=displayedText;
+        msg.prop[MsgObject::Name]=displayedText;
         displayedText="";
     }
 
     float newVu = GetValue();
     if(valueChanged) {
         valueChanged=false;
-        msg.prop["value"]=newVu;
+        msg.prop[MsgObject::Value]=newVu;
     }
 
     if(msg.prop.count()>0) {
-        msg.prop["actionType"]="update";
-        parent->getHost()->SendMsg(msg);
+        msgCtrl->SendMsg(msg);
     }
 }
 
 void Pin::GetInfos(MsgObject &msg)
 {
-    if(displayedText.isEmpty())
-        msg.prop["name"]=objectName();
-    else
-        msg.prop["name"]=displayedText;
+    msg.prop[MsgObject::Id] = GetIndex();
 
-    msg.prop["value"]=value;
-    msg.prop["nodeType"]=NodeType::pin;
+    msg.prop[MsgObject::Add]=NodeType::pin;
+    msg.prop[MsgObject::Value]=value;
+
+    if(displayedText.isEmpty())
+        msg.prop[MsgObject::Name]=objectName();
+    else
+        msg.prop[MsgObject::Name]=displayedText;
+
     connectInfo.GetInfos(msg);
 //    msg.prop["connectionInfo"]=QVariant::fromValue(connectInfo);
 }

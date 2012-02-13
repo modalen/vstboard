@@ -128,17 +128,9 @@ void ObjectView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     menu.exec(actions(),event->screenPos(),actions().at(0),event->widget());
 }
 
-void ObjectView::ReceiveMsg(const MsgObject &msg)
+void ObjectView::Init(const MsgObject &msg)
 {
-    if(msg.prop.value("objType",-1).toInt() == ObjType::dummy) {
-        SetErrorMessage("object not loaded");
-    }
-
-    if(msg.prop.contains("errorMsg")) {
-        SetErrorMessage(msg.prop["errorMsg"].toString());
-    }
-
-    if(msg.prop.value("nodeType",-1).toInt() != NodeType::bridge) {
+    if(msg.prop.contains(MsgObject::Type) && msg.prop[MsgObject::Type].toInt() != NodeType::bridge) {
 
         actRemoveBridge = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove"),this);
         actRemoveBridge->setShortcutContext(Qt::WidgetShortcut);
@@ -177,69 +169,38 @@ void ObjectView::ReceiveMsg(const MsgObject &msg)
         addAction(actToggleBypass);
     }
 
-    UpdateKeyBinding();
+    if(msg.prop[MsgObject::Type].toInt() == ObjType::dummy) {
+        SetErrorMessage("object not loaded");
+    }
 
-#ifndef QT_NO_DEBUG
-    UpdateTitle( QString("%1 (%2)").arg(msg.prop.value("name","noname").toString()).arg(msg.objIndex));
-#else
-    UpdateTitle( msg.prop.value("name","noname").toString());
-#endif
+    UpdateKeyBinding();
+    ReceiveMsg(msg);
 }
 
-///*!
-//  Set the model index of this object
-//  \param index the index
-//  */
-//void ObjectView::SetModelIndex(QPersistentModelIndex index)
-//{
-//    ObjectInfo info = index.data(UserRoles::objInfo).value<ObjectInfo>();
-//    if(info.objType == ObjType::dummy) {
-//        SetErrorMessage("object not loaded");
-//    }
+void ObjectView::ReceiveMsg(const MsgObject &msg)
+{
+    if(msg.prop.contains(MsgObject::Add)) {
+        switch(msg.prop[MsgObject::Add].toInt()) {
+        case NodeType::listPin :
+            AddListPins(msg);
+            return;
+        }
+    }
 
-//    if(info.nodeType != NodeType::bridge) {
-//        actRemoveBridge = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove"),this);
-//        actRemoveBridge->setShortcutContext(Qt::WidgetShortcut);
-//        connect(actRemoveBridge,SIGNAL(triggered()),
-//                this,SLOT(RemoveWithBridge()));
-//        addAction(actRemoveBridge);
+    if(msg.prop.contains(MsgObject::Message)) {
+        SetErrorMessage(msg.prop[MsgObject::Message].toString());
+    }
 
-//        actRemove = new QAction(QIcon(":/img16x16/delete.png"),tr("Remove with cables"),this);
-//        actRemove->setShortcutContext(Qt::WidgetShortcut);
-//        connect(actRemove,SIGNAL(triggered()),
-//                this,SLOT(close()));
-//        addAction(actRemove);
-
-//        actShowEditor = new QAction(tr("Show Editor"),this);
-//        actShowEditor->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-//        actShowEditor->setEnabled(false);
-//        actShowEditor->setCheckable(true);
-//        connect(actShowEditor,SIGNAL(toggled(bool)),
-//                this,SLOT(SwitchEditor(bool)));
-//        addAction(actShowEditor);
-
-//        actLearnSwitch = new QAction(tr("Learn Mode"),this);
-//        actLearnSwitch->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-//        actLearnSwitch->setEnabled(false);
-//        actLearnSwitch->setCheckable(true);
-//        connect(actLearnSwitch,SIGNAL(toggled(bool)),
-//                this,SLOT(SwitchLearnMode(bool)));
-//        addAction(actLearnSwitch);
-
-//        actToggleBypass = new QAction("Bypass",this);
-//        actToggleBypass->setShortcutContext(Qt::WidgetShortcut);
-//        actToggleBypass->setEnabled(false);
-//        actToggleBypass->setCheckable(true);
-//        connect(actToggleBypass,SIGNAL(toggled(bool)),
-//                this,SLOT(ToggleBypass(bool)));
-//        addAction(actToggleBypass);
-//    }
-
-//    UpdateKeyBinding();
-
-//    objIndex = index;
-//    UpdateTitle();
-//}
+    if(msg.prop.contains(MsgObject::Name)) {
+#ifndef QT_NO_DEBUG
+    UpdateTitle( QString("%1 (%2)").arg(msg.prop[MsgObject::Name].toString()).arg(msg.objIndex) );
+#else
+    UpdateTitle( msg.prop[MsgObject::Name].toString() );
+#endif
+    } else {
+        UpdateTitle("noname");
+    }
+}
 
 void ObjectView::UpdateKeyBinding()
 {
@@ -255,39 +216,9 @@ void ObjectView::UpdateTitle(const QString &name)
     if(titleText) {
         QString newTitle=name;
         titleText->setText(newTitle);
-
-//        if(objIndex.data(UserRoles::isDirty).isValid()) {
-//            if(objIndex.data(UserRoles::isDirty).toBool()) {
-//                titleText->setText(newTitle.prepend("*"));
-//            }
-//        }
-
-//        if(objIndex.data(UserRoles::isDoublePrecision).isValid()) {
-//            if(objIndex.data(UserRoles::isDoublePrecision).toBool()) {
-//                titleText->setText(newTitle.append("(D)"));
-//            }
-//        }
     }
 }
 
-/*!
-  Update the view, base on the model index
-  */
-void ObjectView::UpdateModelIndex()
-{
-//    if(!objIndex.isValid())
-//        return;
-
-//    if(objIndex.data(UserRoles::position).isValid())
-//        setPos( objIndex.data(UserRoles::position).toPointF() );
-
-//    if(objIndex.data(UserRoles::errorMessage).isValid()) {
-//        QString err = objIndex.data(UserRoles::errorMessage).toString();
-//        SetErrorMessage( err );
-//    }
-
-//    UpdateTitle("");
-}
 
 /*!
   Set the error message, add the error icon
@@ -322,9 +253,9 @@ void ObjectView::SetErrorMessage(const QString & msg)
 void ObjectView::closeEvent ( QCloseEvent * event )
 {
     setActive(false);
-    MsgObject msg(-1,GetIndex());
-    msg.prop["actionType"]="remove";
-    msg.prop["type"]=RemoveType::RemoveWithCables;
+
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Remove]=RemoveType::RemoveWithCables;
     msgCtrl->SendMsg(msg);
     event->ignore();
 }
@@ -332,9 +263,9 @@ void ObjectView::closeEvent ( QCloseEvent * event )
 void ObjectView::RemoveWithBridge()
 {
     setActive(false);
-    MsgObject msg(-1,GetIndex());
-    msg.prop["actionType"]="remove";
-    msg.prop["type"]=RemoveType::BridgeCables;
+
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Remove]=RemoveType::BridgeCables;
     msgCtrl->SendMsg(msg);
 }
 
@@ -479,4 +410,43 @@ void ObjectView::ToggleEditor()
         return;
 
     actShowEditor->toggle();
+}
+
+void ObjectView::AddListPins(const MsgObject &msg)
+{
+    ListPinsView *v=0;
+
+    switch(msg.prop[MsgObject::Type].toInt()) {
+        case ObjType::listAudioIn :
+            v = listAudioIn;
+            break;
+        case ObjType::listAudioOut :
+            v = listAudioOut;
+            break;
+        case ObjType::listMidiIn :
+            v = listMidiIn;
+            break;
+        case ObjType::listMidiOut :
+            v = listMidiOut;
+            break;
+        case ObjType::listParamIn :
+            v = listParametersIn;
+            break;
+        case ObjType::listParamOut :
+            v = listParametersOut;
+            break;
+        case ObjType::listBridgeIn :
+        case ObjType::listBridgeOut :
+            v = listBridge;
+            break;
+        default:
+            LOG("unknown pin type");
+            return;
+    }
+
+    if(!v) {
+        //debug("SceneView::rowsInserted listpin not found")
+        return;
+    }
+    v->SetIndex(msg.prop[MsgObject::Id].toInt());
 }

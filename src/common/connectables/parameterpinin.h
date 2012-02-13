@@ -32,7 +32,7 @@ namespace Connectables {
         ParameterPinIn(Object *parent, int number, float defaultValue, QString name="", bool nameCanChange=false, bool isRemoveable=false);
         ParameterPinIn(Object *parent, int number, const QVariant &defaultVariantValue, QList<QVariant> *listValues, QString name="", bool nameCanChange=false, bool isRemoveable=false);
 
-        virtual void ReceiveMsg(const PinMessage::Enum msgType,void *data=0);
+        virtual void ReceivePinMsg(const PinMessage::Enum msgType,void *data=0);
     };
 }
 

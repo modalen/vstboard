@@ -39,10 +39,8 @@ namespace View {
     public:
         explicit ObjectView(ViewConfig *config, MsgController *msgCtrl, int objId, QGraphicsItem * parent = 0);
         virtual ~ObjectView();
-
-//        virtual void SetModelIndex(QPersistentModelIndex index);
+        virtual void Init(const MsgObject &msg);
         virtual void ReceiveMsg(const MsgObject &msg);
-        virtual void UpdateModelIndex();
         void Shrink();
 
         /// list of audio inputs
@@ -73,6 +71,8 @@ namespace View {
         void SetBypassPin(MinMaxPinView *pin, float value);
 
     protected:
+        void AddListPins(const MsgObject &msg);
+
         virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
         void resizeEvent ( QGraphicsSceneResizeEvent * event );
         virtual void closeEvent ( QCloseEvent * event );

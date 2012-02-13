@@ -70,8 +70,8 @@ CursorView::CursorView(MsgController *msgCtrl, int objId, bool isMaxi,bool upsid
 
 void CursorView::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop.contains("value")) {
-        SetValue( msg.prop.value("value").toFloat() );
+    if(msg.prop.contains(MsgObject::Value)) {
+        SetValue( msg.prop[MsgObject::Value].toFloat() );
         emit ValueChanged();
     }
 }
@@ -187,11 +187,9 @@ void CursorView::ValueChanged(float newVal)
     if(newVal>1.0f) newVal=1.0f;
     if(newVal<0.0f) newVal=0.0f;
 
-    MsgObject msg(-1,GetIndex());
-    msg.prop["actionType"]="update";
-    msg.prop["value"]=newVal;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Value]=newVal;
     msgCtrl->SendMsg(msg);
-//    model->setData(modelIndex,newVal,UserRoles::value);
 }
 
 //QVariant CursorView::itemChange(GraphicsItemChange change, const QVariant &value)

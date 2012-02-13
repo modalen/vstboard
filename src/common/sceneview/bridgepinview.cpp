@@ -34,8 +34,8 @@ using namespace View;
   \param parent pointer to the parent object view
   \param pinInfo description of the pin
   */
-BridgePinView::BridgePinView(float angle,MsgController *ctrl, int objId,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
-    PinView(angle, ctrl, objId, parent, pinInfo, config),
+BridgePinView::BridgePinView(int listPinId, float angle,MsgController *ctrl, int objId,QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config) :
+    PinView(listPinId, angle, ctrl, objId, parent, pinInfo, config),
     value(.0f),
     valueType(PinType::ND),
     bridgeOutline(0),
@@ -103,8 +103,10 @@ const QPointF BridgePinView::pinPos() const
 
 void BridgePinView::ReceiveMsg(const MsgObject &msg)
 {
-    float newVal=msg.prop["value"].toFloat();
-    value = std::max(value,newVal);
+    if(msg.prop.contains(MsgObject::Value)) {
+        float newVal=msg.prop[MsgObject::Value].toFloat();
+        value = std::max(value,newVal);
+    }
 //    valueType = (PinType::Enum)index.data(UserRoles::type).toInt();
 }
 

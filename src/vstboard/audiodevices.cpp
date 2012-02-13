@@ -136,7 +136,9 @@ void AudioDevices::OpenDevices()
         return;
     }
     paOpened=true;
-    BuildModel();
+
+    if(MsgEnabled())
+        BuildModel();
 
     mutexClosing.lock();
     closing=true;
@@ -155,7 +157,7 @@ void AudioDevices::OpenDevices()
 
     //rebuild all audio in&out objects
     foreach(QSharedPointer<Connectables::Object>obj, myHost->objFactory->GetListObjects()) {
-        if(obj.isNull())
+        if(!obj)
             continue;
 
         ObjectInfo info( obj->info() );
@@ -189,12 +191,14 @@ void AudioDevices::OpenDevices()
 
 void AudioDevices::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop.contains("rescan")) {
+    SetMsgEnabled(true);
+
+    if(msg.prop.contains(MsgObject::Rescan)) {
         CloseDevices();
         OpenDevices();
         return;
     }
-    if(msg.prop.contains("fullUpdate")) {
+    if(msg.prop.contains(MsgObject::GetUpdate)) {
         BuildModel();
         return;
     }
@@ -205,40 +209,13 @@ void AudioDevices::ReceiveMsg(const MsgObject &msg)
   */
 void AudioDevices::BuildModel()
 {
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Update]=1;
 
-
-//    if(!model)
-//        model = new ListAudioInterfacesModel(this);
-
-//    QStringList headerLabels;
-//    headerLabels << "Name";
-//    headerLabels << "In";
-//    headerLabels << "Out";
-//    headerLabels << "InUse";
-//    model->setHorizontalHeaderLabels(  headerLabels );
-
-//    QStandardItem *parentItem = model->invisibleRootItem();
-
-
-    MsgObject msg(-1,GetIndex());
-    msg.prop["fullUpdate"]=1;
-
-    //APIs
     for (int i = 0; i < Pa_GetHostApiCount(); ++i) {
         const PaHostApiInfo *apiInfo = Pa_GetHostApiInfo(i);
-//        QStandardItem *apiItem = new QStandardItem(apiInfo->name);
-//        apiItem->setData( (quint8)apiInfo->type, UserRoles::value );
-//        apiItem->setDragEnabled(false);
-//        apiItem->setSelectable(false);
-//        parentItem->appendRow(apiItem);
-//        if(apiInfo->type == paASIO)
-//            AsioIndex = apiItem->index();
-        MsgObject msgApi(GetIndex(),(int)apiInfo->type);
-        msgApi.prop["name"]=apiInfo->name;
-//        if(apiInfo->type == paASIO)
-//            msgApi.prop["expand"] = true;
-
-        //Devices
+        MsgObject msgApi((int)apiInfo->type);
+        msgApi.prop[MsgObject::Name]=apiInfo->name;
 
         //an api can contain multiple devices with the same name
         QString lastName;
@@ -270,34 +247,10 @@ void AudioDevices::BuildModel()
             obj.inputs = devInfo->maxInputChannels;
             obj.outputs = devInfo->maxOutputChannels;
 
-//            QList<QStandardItem *> listItems;
-
-//            QStandardItem *devItem = new QStandardItem( devName);
-//            devItem->setEditable(false);
-//            devItem->setData(QVariant::fromValue(obj), UserRoles::objInfo);
-//            devItem->setDragEnabled(true);
-//            listItems << devItem;
-
-//            QStandardItem *inputItem = new QStandardItem( QString::number(devInfo->maxInputChannels));
-//            inputItem->setEditable(false);
-//            listItems << inputItem;
-
-//            QStandardItem *outputItem = new QStandardItem( QString::number(devInfo->maxOutputChannels));
-//            outputItem->setEditable(false);
-//            listItems << outputItem;
-
-//            QStandardItem *inUseItem = new QStandardItem();
-//            inUseItem->setCheckable(true);
-//            inUseItem->setCheckable(false);
-//            inUseItem->setEditable(false);
-//            listItems << inUseItem;
-
-//            apiItem->appendRow( listItems );
-
             MsgObject msgDevice;
-            msgDevice.prop["name"]=devName;
-            msgDevice.prop["objInfo"]=QVariant::fromValue(obj);
-            msgDevice.prop["state"]=(bool)listOpenedDevices.contains(obj.api*1000+obj.id);
+            msgDevice.prop[MsgObject::Name]=devName;
+            msgDevice.prop[MsgObject::ObjInfo]=QVariant::fromValue(obj);
+            msgDevice.prop[MsgObject::State]=(bool)listOpenedDevices.contains(obj.api*1000+obj.id);
             msgApi.children << msgDevice;
         }
         msg.children << msgApi;
@@ -313,66 +266,15 @@ void AudioDevices::BuildModel()
   */
 void AudioDevices::OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId, bool inUse, PaTime inLatency, PaTime outLatency, double sampleRate)
 {
-
-    //find API item
-//    QStandardItem *apiItem = 0;
-//    int nbApi = model->invisibleRootItem()->rowCount();
-//    int apiCount = 0;
-//    while(!apiItem && apiCount<nbApi) {
-//        if(model->item(apiCount,0)->data(UserRoles::value).toInt() == apiId )
-//            apiItem = model->item(apiCount,0);
-//        apiCount++;
-//    }
-
-//    if(!apiItem) {
-//        LOG("API not found"<<apiId);
-//        return;
-//    }
-
-    //find device item
-//    QStandardItem *devItem = 0;
-//    int nbDev = apiItem->rowCount();
-//    int devCount = 0;
-//    while(!devItem && devCount<nbDev) {
-//        ObjectInfo info = apiItem->child(devCount,0)->data(UserRoles::objInfo).value<ObjectInfo>();
-//        if(info.id == devId)
-//            devItem = apiItem->child(devCount,0);
-//        devCount++;
-//    }
-
-//    if(!devItem) {
-//        LOG("device not found"<<apiId<<devId);
-//        return;
-//    }
-
-    //change status
-//    QStandardItem *chk = apiItem->child( devItem->row(), 3);
-
     bool oldState = listOpenedDevices.contains(apiId*1000+devId);
     if(oldState == inUse)
         return;
 
     if(inUse) {
         listOpenedDevices << apiId*1000+devId;
-
-//        if(chk->checkState()!=Qt::Checked) {
-//            apiItem->child( devItem->row(), 3)->setCheckState(Qt::Checked);
-//            countActiveDevices++;
-//        }
-//        int inL = ceil(inLatency*1000);
-//        int outL = ceil(outLatency*1000);
-//        devItem->setToolTip( QString("Input latency %1ms\nOutput latency %2ms\nSample rate %3Hz")
-//                             .arg(inL).arg(outL).arg(sampleRate) );
     } else {
         listOpenedDevices.removeAll(apiId*1000+devId);
-//        if(chk->checkState()==Qt::Checked) {
-//            chk->setCheckState(Qt::Unchecked);
-//            countActiveDevices--;
-//        }
-//        devItem->setToolTip("");
     }
-
-//    qDebug()<<"countActiveDevices"<<countActiveDevices<<fakeRenderTimer;
 
     //the renderer is normally launched when all the audio devices are ready,
     //if there is no audio device we have to run a timer
@@ -388,10 +290,10 @@ void AudioDevices::OnToggleDeviceInUse(PaHostApiIndex apiId, PaDeviceIndex devId
             fakeRenderTimer = new FakeTimer(myHost);
     }
 
-    MsgObject msg(-1,GetIndex());
-    msg.prop["state"]=inUse;
-    msg.prop["api"]=apiId;
-    msg.prop["dev"]=devId;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::State]=inUse;
+    msg.prop[MsgObject::Group]=apiId;
+    msg.prop[MsgObject::Id]=devId;
     msgCtrl->SendMsg(msg);
 }
 

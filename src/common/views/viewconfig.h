@@ -110,6 +110,8 @@ namespace View {
         bool AutoOpenGui;
         Settings *settings;
 
+        QTimer *timerFalloff;
+
     protected:
         ///list of presets in registry
         viewConfigPresetList listPresets;
@@ -129,8 +131,6 @@ namespace View {
         QMap<Colors::Enum,QString>colorsNames;
 
         QString currentPresetName;
-
-
 
     signals:
         /*!

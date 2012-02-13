@@ -145,7 +145,7 @@ float AudioPin::GetValue()
     return value;
 }
 
-void AudioPin::ReceiveMsg(const PinMessage::Enum msgType,void *data)
+void AudioPin::ReceivePinMsg(const PinMessage::Enum msgType,void *data)
 {
     if(msgType==PinMessage::AudioBuffer) {
         AudioBuffer *buf = static_cast<AudioBuffer*>(data);

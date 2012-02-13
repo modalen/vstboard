@@ -29,14 +29,15 @@ namespace View {
     {
 Q_OBJECT
     public:
-        MinMaxPinView(float angle,  MsgController *msgCtrl,int objId, QGraphicsItem *parent, const ConnectionInfo &pinInfo, ViewConfig *config);
+        MinMaxPinView(int listPinId, float angle,  MsgController *msgCtrl,int objId, QGraphicsItem *parent, const ConnectionInfo &pinInfo, ViewConfig *config);
         void SetCursor(ObjType::Enum type, QPersistentModelIndex index);
         void UpdateLimitModelIndex(const QModelIndex &index);
-        void UpdateModelIndex(const QModelIndex &index);
         void ValueChanged(float newVal);
         void ReceiveMsg(const MsgObject &msg);
 
     protected:
+        void AddCursor(const MsgObject &msg);
+
         void resizeEvent ( QGraphicsSceneResizeEvent * event );
         void mousePressEvent(QGraphicsSceneMouseEvent *event);
         void mouseMoveEvent ( QGraphicsSceneMouseEvent  * event );

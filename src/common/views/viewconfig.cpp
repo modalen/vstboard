@@ -38,6 +38,9 @@ ViewConfig::ViewConfig(Settings *settings, QObject *parent) :
     keyBinding(new KeyBind(settings)),
     AutoOpenGui(false)
 {
+    timerFalloff = new QTimer(this);
+    timerFalloff->start(50);
+
     colorGroupNames.insert( ColorGroups::ND, tr("-undefined-") );
     colorGroupNames.insert( ColorGroups::Window, tr("Window") );
     colorGroupNames.insert( ColorGroups::Panel, tr("Panel") );

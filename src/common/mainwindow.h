@@ -52,7 +52,7 @@ public:
     void writeSettings();
     void ReceiveMsg(const MsgObject &msg);
 //    void ReceiveMsg(const QString &type, const QVariant &data);
-    void ProcessMsg(const ListMsgObj &lstMsg);
+//    void ProcessMsg(const ListMsgObj &lstMsg);
 
     View::SceneView *mySceneView;
     View::ViewConfig *viewConfig;

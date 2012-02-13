@@ -15,6 +15,12 @@ public:
     virtual void ReceiveMsg(const MsgObject &) {}
     MsgController *msgCtrl;
     int objId;
+
+    bool MsgEnabled() const { return msgEnabled;}
+    virtual void SetMsgEnabled(bool enab) {msgEnabled=enab;}
+
+private:
+    bool msgEnabled;
 };
 
 #endif // MSGHANDLER_H

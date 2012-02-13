@@ -140,9 +140,9 @@ bool Cable::SetDelay(quint32 d)
 
     tmpBuf->SetSize(myHost->GetBufferSize());
 
-    MsgObject msg(-1,GetIndex());
-    msg.prop["actionType"]="update";
-    msg.prop["delay"]=d;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Update]=1;
+    msg.prop[MsgObject::Delay]=d;
     msgCtrl->SendMsg(msg);
     return true;
 }
@@ -154,7 +154,7 @@ void Cable::Render(const PinMessage::Enum msgType,void *data)
         return;
 
     if(buffer==0) {
-        pin->ReceiveMsg(msgType,data);
+        pin->ReceivePinMsg(msgType,data);
         return;
     }
 
@@ -168,7 +168,7 @@ void Cable::Render(const PinMessage::Enum msgType,void *data)
     if(buffer->filledSize >= delay+myHost->GetBufferSize()) {
         buffer->Get( (float*)tmpBuf->GetPointerWillBeFilled(),tmpBuf->GetSize() );
         tmpBuf->ConsumeStack();
-        pin->ReceiveMsg(msgType,(void*)tmpBuf);
+        pin->ReceivePinMsg(msgType,(void*)tmpBuf);
 //        static_cast<AudioPin*>(pin)->GetBuffer()->AddToStack(tmpBuf);
     }
 
@@ -176,9 +176,10 @@ void Cable::Render(const PinMessage::Enum msgType,void *data)
 
 void Cable::GetInfos(MsgObject &msg)
 {
-    msg.prop["nodeType"]=NodeType::cable;
-    msg.prop["pinOut"]=myHost->objFactory->GetPin(pinOut)->GetIndex();
-    msg.prop["pinIn"]=myHost->objFactory->GetPin(pinIn)->GetIndex();
-    msg.prop["delay"]=delay;
+    msg.prop[MsgObject::Id] = GetIndex();
+    msg.prop[MsgObject::Add]=NodeType::cable;
+    msg.prop[MsgObject::PinOut]=myHost->objFactory->GetPin(pinOut)->GetIndex();
+    msg.prop[MsgObject::PinIn]=myHost->objFactory->GetPin(pinIn)->GetIndex();
+    msg.prop[MsgObject::Delay]=delay;
 
 }

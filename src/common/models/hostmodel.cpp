@@ -117,7 +117,7 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
             QStandardItem *it = mod.invisibleRootItem()->child(i);
             if(it->data(UserRoles::value).isValid()) {
                 QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->GetObjectFromId( it->data(UserRoles::value).toInt() );
-                if(objPtr.isNull()) {
+                if(!objPtr) {
                     LOG("x-qstandarditemmodeldatalist object not found");
                     continue;
                 }
@@ -148,7 +148,7 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
                     infoVst.name = fName;
 
 //                    QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->NewObject(infoVst);
-//                    if(objPtr.isNull()) {
+//                    if(!objPtr) {
 //                        if(Connectables::VstPlugin::shellSelectView) {
 //                            Connectables::VstPlugin::shellSelectView->cntPtr=targetContainer;
 //                        } else {
@@ -229,7 +229,7 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
             if(info.inputs!=0) {
                 info.objType=ObjType::AudioInterfaceIn;
 //                QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->NewObject(info);
-//                if(objPtr.isNull()) {
+//                if(!objPtr) {
 //                    debug("HostModel::dropMimeData audioin object not found or already used")
 //                } else {
 //                    listObjToAdd << objPtr;
@@ -240,7 +240,7 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
             if(info.outputs!=0) {
                 info.objType=ObjType::AudioInterfaceOut;
 //                QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->NewObject(info);
-//                if(objPtr.isNull()) {
+//                if(!objPtr) {
 //                    debug("HostModel::dropMimeData audioout object not found or already used")
 //                } else {
 //                    listObjToAdd << objPtr;
@@ -259,7 +259,7 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
             ObjectInfo info;
             stream >> info;
 //            QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->NewObject(info);
-//            if(objPtr.isNull()) {
+//            if(!objPtr) {
 //                debug("HostModel::dropMimeData midi object not found or already used")
 //                continue;
 //            }
@@ -277,7 +277,7 @@ bool HostModel::dropMimeData ( const QMimeData * data, Qt::DropAction action, in
             ObjectInfo info;
             stream >> info;
 //            QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->NewObject(info);
-//            if(objPtr.isNull()) {
+//            if(!objPtr) {
 //                debug("HostModel::dropMimeData tool object not found")
 //                continue;
 //            }
@@ -368,7 +368,7 @@ bool HostModel::setData ( const QModelIndex & index, const QVariant & value, int
                 return false;
             }
             QSharedPointer<Connectables::Object> objPtr = myHost->objFactory->GetObjectFromId(objId);
-            if(objPtr.isNull()) {
+            if(!objPtr) {
                 LOG("NodeType::object the object deleted"<<objId);
                 return false;
             }

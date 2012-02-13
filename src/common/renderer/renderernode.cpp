@@ -65,7 +65,7 @@ RendererNode::~RendererNode()
 void RendererNode::NewRenderLoop()
 {
     foreach( QWeakPointer<Connectables::Object> ObjPtr, listOfObj) {
-        if(!ObjPtr.isNull()) {
+        if(ObjPtr) {
             ObjPtr.toStrongRef()->NewRenderLoop();
         }
     }
@@ -86,7 +86,7 @@ void RendererNode::Render()
 #endif
 
     foreach( QSharedPointer<Connectables::Object> objPtr, listOfObj) {
-        if(!objPtr.isNull() && !objPtr->GetSleep()) {
+        if(objPtr && !objPtr->GetSleep()) {
             objPtr->Render();
         }
     }
@@ -144,7 +144,7 @@ void RendererNode::UpdateModel(QStandardItemModel *model)
             .arg(totalDelayAtOutput);
 
     foreach( QSharedPointer<Connectables::Object> objPtr, listOfObj) {
-        if(!objPtr.isNull() && !objPtr->GetSleep()) {
+        if(objPtr && !objPtr->GetSleep()) {
             str.append("\n" + objPtr->objectName());
         }
     }

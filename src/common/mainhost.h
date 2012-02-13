@@ -46,7 +46,7 @@ class MainHost : public QObject, public MsgController
 Q_OBJECT
 public:
     MainHost( Settings *settings, QObject *parent = 0);
-    ~MainHost();
+    virtual ~MainHost();
 
 
 //    void SendMsg(const ConnectionInfo &senderPin,const PinMessage::Enum msgType,void *data);
@@ -71,8 +71,6 @@ public:
     void SetSetupDirtyFlag() { if(hostContainer) hostContainer->SetDirty(); }
 
     void ReceiveMsg(const MsgObject &msg);
-//    void ReceiveMsg(const QString &type, const QVariant &data);
-
 
     inline void UpdateSolverNow() {
         //if we need to update everything now, we have to ask for an update and force a render loop
@@ -102,7 +100,6 @@ public:
     QTimer *updateViewTimer;
 
     HostModel * GetModel() {return model;}
-//    ProgramsModel *programsModel;
     ProgramManager *programManager;
     Connectables::ObjectFactory *objFactory;
     MainWindow *mainWindow;

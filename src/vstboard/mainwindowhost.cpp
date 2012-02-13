@@ -68,6 +68,7 @@ void MainWindowHost::Init()
     ui->treeMidiInterfaces->header()->resizeSection(2,30);
     ui->treeMidiInterfaces->header()->resizeSection(3,40);
 
+
     BuildListTools();
 
 //    connect(ui->treeAudioInterfaces, SIGNAL(Config(const QModelIndex &)),
@@ -83,6 +84,9 @@ void MainWindowHost::Init()
     ui->treeMidiInterfaces->addAction( updateMidiList );
 
     myHost->SetSampleRate( ConfigDialog::defaultSampleRate(settings) );
+
+    listAudioDevModel->Update();
+    listMidiDevModel->Update();
 }
 
 void MainWindowHost::closeEvent(QCloseEvent *event)
@@ -173,8 +177,8 @@ void MainWindowHost::on_actionConfig_triggered()
 
 void MainWindowHost::SendMsg(const MsgObject &msg)
 {
-    emit SendMsgSignal(msg);
-//    myHost->ReceiveMsg(msg);
+//    emit SendMsgSignal(msg);
+    myHost->ReceiveMsg(msg);
 }
 
 void MainWindowHost::ReceiveMsgSignal(const MsgObject &msg)

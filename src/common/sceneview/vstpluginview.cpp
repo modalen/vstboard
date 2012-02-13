@@ -61,9 +61,9 @@ void VstPluginView::UpdateColor(ColorGroups::Enum groupId, Colors::Enum colorId,
     ConnectableObjectView::UpdateColor(groupId,colorId,color);
 }
 
-void VstPluginView::ReceiveMsg(const MsgObject &msg)
+void VstPluginView::Init(const MsgObject &msg)
 {
-    ConnectableObjectView::ReceiveMsg(msg);
+    ObjectView::Init(msg);
 
     actSaveBank = new QAction(QIcon(":/img16x16/filesave.png"),tr("Save Bank"),this);
     actSaveBank->setShortcutContext(Qt::WidgetShortcut);
@@ -90,42 +90,7 @@ void VstPluginView::ReceiveMsg(const MsgObject &msg)
             this,SLOT(SaveProgramAs()));
     actSaveProgramAs->setEnabled(false);
     addAction(actSaveProgramAs);
-
-    UpdateKeyBinding();
 }
-
-//void VstPluginView::SetModelIndex(QPersistentModelIndex index)
-//{
-//    ConnectableObjectView::SetModelIndex(index);
-
-//    actSaveBank = new QAction(QIcon(":/img16x16/filesave.png"),tr("Save Bank"),this);
-//    actSaveBank->setShortcutContext(Qt::WidgetShortcut);
-//    connect(actSaveBank,SIGNAL(triggered()),
-//            this,SLOT(SaveBank()));
-//    addAction(actSaveBank);
-
-//    actSaveBankAs = new QAction(QIcon(":/img16x16/filesaveas.png"),tr("Save Bank As..."),this);
-//    actSaveBankAs->setShortcutContext(Qt::WidgetShortcut);
-//    connect(actSaveBankAs,SIGNAL(triggered()),
-//            this,SLOT(SaveBankAs()));
-//    actSaveBankAs->setEnabled(false);
-//    addAction(actSaveBankAs);
-
-//    actSaveProgram = new QAction(QIcon(":/img16x16/filesave.png"),tr("Save Program"),this);
-//    actSaveProgram->setShortcutContext(Qt::WidgetShortcut);
-//    connect(actSaveProgram,SIGNAL(triggered()),
-//            this,SLOT(SaveProgram()));
-//    addAction(actSaveProgram);
-
-//    actSaveProgramAs = new QAction(QIcon(":/img16x16/filesaveas.png"),tr("Save Program As..."),this);
-//    actSaveProgramAs->setShortcutContext(Qt::WidgetShortcut);
-//    connect(actSaveProgramAs,SIGNAL(triggered()),
-//            this,SLOT(SaveProgramAs()));
-//    actSaveProgramAs->setEnabled(false);
-//    addAction(actSaveProgramAs);
-
-//    UpdateKeyBinding();
-//}
 
 void VstPluginView::UpdateKeyBinding()
 {
@@ -134,30 +99,6 @@ void VstPluginView::UpdateKeyBinding()
     if(actSaveBankAs) actSaveBankAs->setShortcut( config->keyBinding->GetMainShortcut(KeyBind::saveBankAs) );
     if(actSaveProgram) actSaveProgram->setShortcut( config->keyBinding->GetMainShortcut(KeyBind::saveProgram) );
     if(actSaveProgramAs) actSaveProgramAs->setShortcut( config->keyBinding->GetMainShortcut(KeyBind::saveProgramAs) );
-}
-
-void VstPluginView::UpdateModelIndex()
-{
-    ConnectableObjectView::UpdateModelIndex();
-    if(objIndex.data(UserRoles::bankFile).isValid() && !objIndex.data(UserRoles::bankFile).toString().isEmpty()) {
-        QFileInfo info;
-        info.setFile( objIndex.data(UserRoles::bankFile).toString() );
-        actSaveBank->setText( QString(tr("Save Bank (%1)")).arg(info.fileName()) );
-        actSaveBankAs->setEnabled(true);
-    } else {
-        actSaveBank->setText( tr("Save Bank") );
-        actSaveBankAs->setEnabled(false);
-    }
-
-    if(objIndex.data(UserRoles::programFile).isValid() && !objIndex.data(UserRoles::programFile).toString().isEmpty()) {
-        QFileInfo info;
-        info.setFile( objIndex.data(UserRoles::programFile).toString() );
-        actSaveProgram->setText( QString(tr("Save Program (%1)")).arg(info.fileName()) );
-        actSaveProgramAs->setEnabled(true);
-    } else {
-        actSaveProgram->setText( tr("Save Program") );
-        actSaveProgramAs->setEnabled(false);
-    }
 }
 
 void VstPluginView::SaveBankAs()

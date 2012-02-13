@@ -30,9 +30,8 @@ namespace View {
     {
     Q_OBJECT
     public:
-        ConnectablePinView(float angle, MsgController *msgCtrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config);
+        ConnectablePinView(int listPinId, float angle, MsgController *msgCtrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config);
         virtual void ReceiveMsg(const MsgObject &msg);
-        virtual void UpdateModelIndex(const QModelIndex &index);
         float GetValue() {return value;}
 
     protected:

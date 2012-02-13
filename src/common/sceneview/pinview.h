@@ -44,27 +44,13 @@ namespace View {
 
     public:
 
-        explicit PinView(float angle, MsgController *ctrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config);
+        explicit PinView(int listPinId, float angle, MsgController *ctrl, int objId, QGraphicsItem * parent, const ConnectionInfo &pinInfo, ViewConfig *config);
         virtual ~PinView();
         const ConnectionInfo GetConnectionInfo() const {return connectInfo;}
         void AddCable(CableView *cable);
         void RemoveCable(CableView *cable);
         void UpdateCablesPosition();
-
-        virtual void ReceiveMsg(const MsgObject &) {}
-        /*!
-          Called when the model changed
-          \param index the model index of the pin
-          \todo does the parameter can be removed since the index is stored anyway ?
-          */
-        virtual void UpdateModelIndex(const QModelIndex &) {}
-
-        /*!
-          Set the model index and update the view
-          \param index the new model index
-          */
-        virtual void SetPinModelIndex(QPersistentModelIndex index) {pinIndex = index; UpdateModelIndex(index);}
-
+        virtual void ReceiveMsg(const MsgObject &msg);
         virtual const QPointF pinPos() const;
 
         /// temporary cable for drag&drop
@@ -96,9 +82,6 @@ namespace View {
         /// description of the pin
         ConnectionInfo connectInfo;
 
-        /// model index of the pin
-        QPersistentModelIndex pinIndex;
-
         /// pin angle in rad
         float pinAngle;
 
@@ -110,6 +93,8 @@ namespace View {
         Qt::CursorShape defaultCursor;
 
         QPoint startDragMousePos;
+
+        int listPinId;
 
     signals:
 //        void ConnectPins(ConnectionInfo outputPin, ConnectionInfo inputPin);

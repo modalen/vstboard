@@ -32,11 +32,6 @@
 #include "views/configdialog.h"
 #include "msgobject.h"
 
-#include "commands/comaddobject.h"
-#include "commands/comremoveobject.h"
-#include "commands/comaddcable.h"
-#include "commands/comdisconnectpin.h"
-#include "commands/comremovepin.h"
 
 quint32 MainHost::currentFileVersion=PROJECT_AND_SETUP_FILE_VERSION;
 
@@ -79,12 +74,14 @@ void MainHost::Close()
 //    workingListOfCables.clear();
 //    mutexListCables->unlock();
 
+    mutexRender.lock();
     if(renderer) {
         hashCables lstCables;
         solver->Resolve(lstCables, renderer);
     //    solver->Resolve(workingListOfCables, renderer);
         delete renderer;
     }
+    mutexRender.unlock();
 
     hostContainer.clear();
     projectContainer.clear();
@@ -194,7 +191,7 @@ void MainHost::SetupMainContainer()
     info.forcedObjId = FixedObjId::mainContainer;
 
     mainContainer = objFactory->NewObject(info).staticCast< Connectables::Container >();
-    if(mainContainer.isNull())
+    if(!mainContainer)
         return;
 
     mainContainer->SetLoadingMode(true);
@@ -203,7 +200,7 @@ void MainHost::SetupMainContainer()
     QStandardItem *item = mainContainer->GetFullItem();
     model->invisibleRootItem()->appendRow(item);
 //    mainContainer->modelIndex=item->index();
-    mainContainer->parked=false;
+//    mainContainer->parkingId=false;
     mainContainer->listenProgramChanges=false;
 
     mainContainer->SetLoadingMode(false);
@@ -213,7 +210,7 @@ void MainHost::SetupMainContainer()
 
 void MainHost::SetupHostContainer()
 {
-    if(!hostContainer.isNull()) {
+    if(hostContainer) {
         mainContainer->ParkObject( hostContainer );
         hostContainer.clear();
         UpdateSolver(true);
@@ -228,7 +225,7 @@ void MainHost::SetupHostContainer()
     info.forcedObjId = FixedObjId::hostContainer;
 
     hostContainer = objFactory->NewObject(info).staticCast<Connectables::Container>();
-    if(hostContainer.isNull())
+    if(!hostContainer)
         return;
 
     hostContainer->SetLoadingMode(true);
@@ -264,7 +261,7 @@ void MainHost::SetupHostContainer()
     hostContainer->bridgeOut = bridge;
 
     //connect with groupContainer
-    if(!groupContainer.isNull()) {
+    if(groupContainer) {
         mainContainer->ConnectObjects(groupContainer->bridgeSend, hostContainer->bridgeIn,true);
         mainContainer->ConnectObjects(hostContainer->bridgeOut, groupContainer->bridgeReturn,true);
     }
@@ -294,7 +291,7 @@ void MainHost::SetupHostContainer()
     hostContainer->bridgeReturn = bridge;
 
     //connect with projectContainer
-    if(!projectContainer.isNull()) {
+    if(projectContainer) {
         mainContainer->ConnectObjects(hostContainer->bridgeSend, projectContainer->bridgeIn,true);
         mainContainer->ConnectObjects(projectContainer->bridgeOut, hostContainer->bridgeReturn,true);
     }
@@ -303,8 +300,8 @@ void MainHost::SetupHostContainer()
     if(projectContainer)
         hostContainer->childContainer=projectContainer;
 
-    MsgObject msg(0, FixedObjId::hostContainer);
-    msg.prop["actionType"]="add";
+    hostContainer->SetMsgEnabled(true);
+    MsgObject msg(FixedObjId::mainContainer);
     hostContainer->GetInfos(msg);
     SendMsg(msg);
 
@@ -315,7 +312,7 @@ void MainHost::SetupHostContainer()
 
 void MainHost::SetupProjectContainer()
 {
-    if(!projectContainer.isNull()) {
+    if(projectContainer) {
         mainContainer->ParkObject( projectContainer );
         projectContainer.clear();
         UpdateSolver(true);
@@ -332,7 +329,7 @@ void MainHost::SetupProjectContainer()
     info.forcedObjId = FixedObjId::projectContainer;
 
     projectContainer = objFactory->NewObject(info).staticCast<Connectables::Container>();
-    if(projectContainer.isNull())
+    if(!projectContainer)
         return;
 
     projectContainer->SetLoadingMode(true);
@@ -367,7 +364,7 @@ void MainHost::SetupProjectContainer()
     projectContainer->bridgeOut = bridge;
 
     //connect with hostContainer
-    if(!hostContainer.isNull()) {
+    if(hostContainer) {
         mainContainer->ConnectObjects(hostContainer->bridgeSend, projectContainer->bridgeIn,true);
         mainContainer->ConnectObjects(projectContainer->bridgeOut, hostContainer->bridgeReturn,true);
     }
@@ -398,7 +395,7 @@ void MainHost::SetupProjectContainer()
     projectContainer->bridgeReturn = bridge;
 
     //connect with programContainer
-    if(!programContainer.isNull()) {
+    if(programContainer) {
         mainContainer->ConnectObjects(projectContainer->bridgeSend, programContainer->bridgeIn,true);
         mainContainer->ConnectObjects(programContainer->bridgeOut, projectContainer->bridgeReturn,true);
     }
@@ -414,8 +411,8 @@ void MainHost::SetupProjectContainer()
     if(groupContainer)
         projectContainer->childContainer=groupContainer;
 
-    MsgObject msg(0, FixedObjId::projectContainer);
-    msg.prop["actionType"]="add";
+    projectContainer->SetMsgEnabled(true);
+    MsgObject msg(FixedObjId::mainContainer);
     projectContainer->GetInfos(msg);
     SendMsg(msg);
 
@@ -426,9 +423,9 @@ void MainHost::SetupProjectContainer()
 
 void MainHost::SetupProgramContainer()
 {
-    if(!programContainer.isNull()) {
-        MsgObject msg(FixedObjId::programContainer, FixedObjId::programParking);
-        msg.prop["clear"]=1;
+    if(programContainer) {
+        MsgObject msg(FixedObjId::programParking);
+        msg.prop[MsgObject::Clear]=1;
         SendMsg(msg);
 
         mainContainer->ParkObject( programContainer );
@@ -445,7 +442,7 @@ void MainHost::SetupProgramContainer()
     info.forcedObjId = FixedObjId::programContainer;
 
     programContainer = objFactory->NewObject(info).staticCast<Connectables::Container>();
-    if(programContainer.isNull())
+    if(!programContainer)
         return;
 
     programContainer->parkingId = FixedObjId::programParking;
@@ -482,7 +479,7 @@ void MainHost::SetupProgramContainer()
     programContainer->bridgeOut = bridge;
 
     //connect with projectContainer
-    if(!projectContainer.isNull()) {
+    if(projectContainer) {
         mainContainer->ConnectObjects(projectContainer->bridgeSend, programContainer->bridgeIn,true);
         mainContainer->ConnectObjects(programContainer->bridgeOut, projectContainer->bridgeReturn,true);
     }
@@ -513,7 +510,7 @@ void MainHost::SetupProgramContainer()
     programContainer->bridgeReturn = bridge;
 
     //connect with groupContainer
-    if(!groupContainer.isNull()) {
+    if(groupContainer) {
         mainContainer->ConnectObjects(programContainer->bridgeSend, groupContainer->bridgeIn,true);
         mainContainer->ConnectObjects(groupContainer->bridgeOut, programContainer->bridgeReturn,true);
     }
@@ -532,8 +529,8 @@ void MainHost::SetupProgramContainer()
         programContainer->parentContainer=groupContainer;
     }
 
-    MsgObject msg(0, FixedObjId::programContainer);
-    msg.prop["actionType"]="add";
+    programContainer->SetMsgEnabled(true);
+    MsgObject msg(FixedObjId::mainContainer);
     programContainer->GetInfos(msg);
     SendMsg(msg);
 
@@ -544,9 +541,9 @@ void MainHost::SetupProgramContainer()
 
 void MainHost::SetupGroupContainer()
 {
-    if(!groupContainer.isNull()) {
-        MsgObject msg(FixedObjId::groupContainer, FixedObjId::groupParking);
-        msg.prop["clear"]=1;
+    if(groupContainer) {
+        MsgObject msg(FixedObjId::groupParking);
+        msg.prop[MsgObject::Clear]=1;
         SendMsg(msg);
 
 
@@ -564,7 +561,7 @@ void MainHost::SetupGroupContainer()
     info.forcedObjId = FixedObjId::groupContainer;
 
     groupContainer = objFactory->NewObject(info).staticCast<Connectables::Container>();
-    if(groupContainer.isNull())
+    if(!groupContainer)
         return;
 
     groupContainer->parkingId = FixedObjId::groupParking;
@@ -600,7 +597,7 @@ void MainHost::SetupGroupContainer()
     groupContainer->bridgeOut = bridge;
 
     //connect with programContainer
-    if(!programContainer.isNull()) {
+    if(programContainer) {
         mainContainer->ConnectObjects(programContainer->bridgeSend, groupContainer->bridgeIn,true);
         mainContainer->ConnectObjects(groupContainer->bridgeOut, programContainer->bridgeReturn,true);
     }
@@ -630,7 +627,7 @@ void MainHost::SetupGroupContainer()
     groupContainer->bridgeReturn = bridge;
 
     //connect with hostContainer
-    if(!hostContainer.isNull()) {
+    if(hostContainer) {
         mainContainer->ConnectObjects(groupContainer->bridgeSend, hostContainer->bridgeIn,true);
         mainContainer->ConnectObjects(hostContainer->bridgeOut, groupContainer->bridgeReturn,true);
     }
@@ -651,8 +648,8 @@ void MainHost::SetupGroupContainer()
         programContainer->parentContainer=groupContainer;
     }
 
-    MsgObject msg(0, FixedObjId::groupContainer);
-    msg.prop["actionType"]="add";
+    groupContainer->SetMsgEnabled(true);
+    MsgObject msg(FixedObjId::mainContainer);
     groupContainer->GetInfos(msg);
     SendMsg(msg);
 
@@ -825,7 +822,9 @@ void MainHost::Render()
     if(programContainer)
         programContainer->NewRenderLoop();
 
-    renderer->StartRender();
+    if(renderer)
+        renderer->StartRender();
+
     mutexRender.unlock();
 
     if(solverNeedAnUpdate && solverUpdateEnabled)
@@ -1098,123 +1097,58 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
 //    LOG(msg.objIndex << msg.prop)
 
     if(msg.objIndex == FixedObjId::mainHost) {
-        if(msg.prop.contains("loadProject")) {
-            LoadProjectFile();
-            return;
-        }
-        if(msg.prop.contains("clearProject")) {
-            ClearProject();
-            return;
-        }
-        if(msg.prop.contains("saveProject")) {
-            SaveProjectFile();
-            return;
-        }
-        if(msg.prop.contains("saveProjectAs")) {
-            SaveProjectFile(true);
-            return;
-        }
-        if(msg.prop.contains("loadSetup")) {
-            LoadSetupFile();
-            return;
-        }
-        if(msg.prop.contains("clearSetup")) {
-            ClearSetup();
-            return;
-        }
-        if(msg.prop.contains("saveSetup")) {
-            SaveSetupFile();
-            return;
-        }
-        if(msg.prop.contains("saveSetupAs")) {
-            SaveSetupFile(true);
-            return;
-        }
-        return;
-    }
 
-    if(msg.objIndex == FixedObjId::audioDevices) {
-        if(listObj.contains(msg.objIndex)) {
-            listObj[msg.objIndex]->ReceiveMsg(msg);
-        }
-        return;
-    }
-
-    if(msg.objIndex == FixedObjId::audioDevices) {
-        if(listObj.contains(msg.objIndex)) {
-            listObj[msg.objIndex]->ReceiveMsg(msg);
-        }
-        return;
-    }
-
-    if(msg.objIndex==FixedObjId::programsManager) {
-        programManager->ReceiveMsg(msg);
-        return;
-    }
-
-    if(msg.objIndex==FixedObjId::undoRedoStack) {
-        if(msg.prop["actionType"]=="undo")
+        if(msg.prop.contains(MsgObject::Undo)) {
             undoStack.undo();
-        if(msg.prop["actionType"]=="redo")
+            return;
+        }
+
+        if(msg.prop.contains(MsgObject::Redo)) {
             undoStack.redo();
-        return;
-    }
-
-    if(msg.prop.contains("getWithChildren")) {
-        QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(msg.objIndex);
-        if(!objPtr) {
-            LOG("obj not found")
-            return;
-        }
-        MsgObject a(0, objPtr->GetIndex());
-        a.prop["actionType"]="add";
-        objPtr->GetInfos(a);
-        SendMsg(a);
-        return;
-    }
-
-    if(msg.prop["actionType"]=="update") {
-        if(!listObj.contains(msg.objIndex)) {
-            LOG("obj note found"<<msg.objIndex)
-            return;
-        }
-        MsgHandler *h = listObj.value(msg.objIndex);
-        h->ReceiveMsg(msg);
-        return;
-    }
-
-    if(msg.prop["actionType"]=="remove") {
-        QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(msg.objIndex);
-        if(!objPtr) {
-            LOG("obj not found")
             return;
         }
 
-        undoStack.push( new ComRemoveObject(this, objPtr, static_cast<RemoveType::Enum>(msg.prop["type"].toInt()) ) );
+        if(msg.prop.contains(MsgObject::Project)) {
+            switch(msg.prop[MsgObject::Project].toInt()) {
+                case MsgObject::Load :
+                    LoadProjectFile();
+                    break;
+                case MsgObject::Clear :
+                    ClearProject();
+                    break;
+                case MsgObject::Save :
+                    SaveProjectFile();
+                    break;
+                case MsgObject::SaveAs :
+                    SaveProjectFile(true);
+                    break;
+            }
+            return;
+        }
+
+        if(msg.prop.contains(MsgObject::Setup)) {
+            switch(msg.prop[MsgObject::Setup].toInt()) {
+                case MsgObject::Load :
+                    LoadSetupFile();
+                    break;
+                case MsgObject::Clear :
+                    ClearSetup();
+                    break;
+                case MsgObject::Save :
+                    SaveSetupFile();
+                    break;
+                case MsgObject::SaveAs :
+                    SaveSetupFile(true);
+                    break;
+            }
+            return;
+        }
         return;
     }
 
-    if(msg.prop["actionType"]=="connectPins") {
-        ConnectionInfo cPin1(msg.children.value(0));
-        ConnectionInfo cPin2(msg.children.value(1));
-        undoStack.push( new ComAddCable(this, cPin1, cPin2) );
-        return;
-    }
-
-    if(msg.prop["actionType"]=="unplugPin") {
-        ConnectionInfo cPin(msg);
-        undoStack.push( new ComDisconnectPin(this, cPin) );
-        return;
-    }
-
-    if(msg.prop["actionType"]=="removePin") {
-        ConnectionInfo cPin(msg);
-        undoStack.push( new ComRemovePin(this, cPin) );
-        return;
-    }
-
-    if(msg.prop.contains("filesToLoad")) {
-        QStringList lstFiles = msg.prop["filesToLoad"].toStringList();
+    //intercept project and setup files
+    if(msg.prop.contains(MsgObject::FilesToLoad)) {
+        QStringList lstFiles = msg.prop[MsgObject::FilesToLoad].toStringList();
         foreach(const QString filename, lstFiles) {
             QFileInfo info;
             info.setFile( filename );
@@ -1233,60 +1167,14 @@ void MainHost::ReceiveMsg(const MsgObject &msg)
                     continue;
                 }
 
-                //fxb file
-                if( fileType == VST_BANK_FILE_EXTENSION || fileType == VST_PROGRAM_FILE_EXTENSION) {
-                    continue;
-                }
             }
         }
+     }
+
+    //send msg to dest object
+    if(listObj.contains(msg.objIndex)) {
+        listObj[msg.objIndex]->ReceiveMsg(msg);
     }
-
-    if(msg.prop.contains("objToLoad")) {
-
-        int insertType = msg.prop.value("actionType",-1).toInt();
-        QSharedPointer<Connectables::Object> senderObj = objFactory->GetObjectFromId( msg.objIndex );
-        if(!senderObj) {
-            LOG("obj not found")
-            return;
-        }
-        QSharedPointer<Connectables::Container> targetContainer;
-
-        if(senderObj->info().objType==ObjType::Container)
-            targetContainer = senderObj.staticCast<Connectables::Container>();
-        else
-            targetContainer = objFactory->GetObjectFromId( senderObj->GetContainerId() ).staticCast<Connectables::Container>();
-
-        QDataStream streamObj(&msg.prop.value("objToLoad").toByteArray(), QIODevice::ReadOnly);
-        while(!streamObj.atEnd()) {
-            ObjectInfo info;
-            info.fromStream(streamObj);
-            ComAddObject *com = new ComAddObject(this, info, targetContainer, senderObj, static_cast<InsertionType::Enum>(insertType) );
-            undoStack.push( com );
-        }
-    }
-
-//    if(msg.objIndex!=-1 && listObj.contains(msg.objIndex)) {
-//        listObj.value(msg.objIndex)->ReceiveMsg(msg);
-//    }
 }
 
-//void MainHost::ReceiveMsg(const QString &type, const QVariant &data)
-//{
-//    if(type=="GetObjWithChildren") {
-//        QSharedPointer<Connectables::Object> objPtr = objFactory->GetObjectFromId(data.toInt());
-//        if(!objPtr) {
-//            LOG("obj not found")
-//            return;
-//        }
-//        MsgObject a(0, objPtr->GetIndex());
-//        a.prop["actionType"]="add";
-//        a.prop["nodeType"]=objPtr->info().nodeType;
-//        a.prop["objType"]=objPtr->info().objType;
-//        objPtr->GetAllChildrenObjects(a.children);
-//        ListMsgObj l;
-//        l << a;
-//        SendMsg("ObjWithChildren",QVariant::fromValue(l));
-//        return;
-//    }
-//}
 

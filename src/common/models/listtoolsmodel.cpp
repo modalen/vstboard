@@ -46,22 +46,21 @@ QMimeData  * ListToolsModel::mimeData ( const QModelIndexList  & indexes ) const
 
 void ListToolsModel::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop.contains("fullUpdate")) {
+    if(msg.prop.contains(MsgObject::Clear)) {
         clear();
-
     }
 }
 
 void ListToolsModel::Update()
 {
-    MsgObject msg(-1,GetIndex());
-    msg.prop["fullUpdate"]=1;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Update]=1;
     msgCtrl->SendMsg(msg);
 }
 
 void ListToolsModel::Rescan()
 {
-    MsgObject msg(-1,GetIndex());
-    msg.prop["rescan"]=1;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Rescan]=1;
     msgCtrl->SendMsg(msg);
 }

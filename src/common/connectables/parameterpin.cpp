@@ -115,9 +115,14 @@ void ParameterPin::InitCursors()
 
 void ParameterPin::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop.contains("value")) {
-        ChangeValue( msg.prop.value("value",.0).toFloat() );
+    if(msg.prop.contains(MsgObject::Value)) {
+        ChangeValue( msg.prop[MsgObject::Value].toFloat() );
     }
+    if(msg.prop.contains(MsgObject::Increment)) {
+        ChangeValue( value + stepSize * msg.prop[MsgObject::Increment].toInt() );
+    }
+
+    Pin::ReceiveMsg(msg);
 }
 
 void ParameterPin::SetRemoveable()
@@ -393,35 +398,43 @@ void ParameterPin::GetInfos(MsgObject &msg)
 {
     Pin::GetInfos(msg);
 
-    MsgObject l1(GetIndex(), limitInMin->GetIndex());
-    l1.prop["actionType"]="add";
-    l1.prop["nodeType"]=NodeType::cursor;
-    l1.prop["objType"]=ObjType::limitInMin;
-    l1.prop["value"]=limitInMin->GetValue();
+    MsgObject l1(GetIndex());
+    l1.prop[MsgObject::Id]=limitInMin->GetIndex();
+    l1.prop[MsgObject::Add]=NodeType::cursor;
+    l1.prop[MsgObject::Type]=ObjType::limitInMin;
+    l1.prop[MsgObject::Value]=limitInMin->GetValue();
     msg.children << l1;
 
-    MsgObject l2(GetIndex(), limitInMax->GetIndex());
-    l2.prop["actionType"]="add";
-    l2.prop["nodeType"]=NodeType::cursor;
-    l2.prop["objType"]=ObjType::limitInMax;
-    l2.prop["value"]=limitInMax->GetValue();
+    MsgObject l2(GetIndex());
+    l2.prop[MsgObject::Id]=limitInMax->GetIndex();
+    l2.prop[MsgObject::Add]=NodeType::cursor;
+    l2.prop[MsgObject::Type]=ObjType::limitInMax;
+    l2.prop[MsgObject::Value]=limitInMax->GetValue();
     msg.children << l2;
 
-    MsgObject l3(GetIndex(), limitOutMin->GetIndex());
-    l3.prop["actionType"]="add";
-    l3.prop["nodeType"]=NodeType::cursor;
-    l3.prop["objType"]=ObjType::limitOutMin;
-    l3.prop["value"]=limitOutMin->GetValue();
+    MsgObject l3(GetIndex());
+    l3.prop[MsgObject::Id]=limitOutMin->GetIndex();
+    l3.prop[MsgObject::Add]=NodeType::cursor;
+    l3.prop[MsgObject::Type]=ObjType::limitOutMin;
+    l3.prop[MsgObject::Value]=limitOutMin->GetValue();
     msg.children << l3;
 
-    MsgObject l4(GetIndex(), limitOutMax->GetIndex());
-    l4.prop["actionType"]="add";
-    l4.prop["nodeType"]=NodeType::cursor;
-    l4.prop["objType"]=ObjType::limitOutMax;
-    l4.prop["value"]=limitOutMax->GetValue();
+    MsgObject l4(GetIndex());
+    l4.prop[MsgObject::Id]=limitOutMax->GetIndex();
+    l4.prop[MsgObject::Add]=NodeType::cursor;
+    l4.prop[MsgObject::Type]=ObjType::limitOutMax;
+    l4.prop[MsgObject::Value]=limitOutMax->GetValue();
     msg.children << l4;
 }
 
+void ParameterPin::SetMsgEnabled(bool enab)
+{
+    MsgHandler::SetMsgEnabled(enab);
+    limitInMin->SetMsgEnabled(enab);
+    limitInMax->SetMsgEnabled(enab);
+    limitOutMin->SetMsgEnabled(enab);
+    limitOutMax->SetMsgEnabled(enab);
+}
 
 void ParameterPin::CursorValueChanged(float val)
 {

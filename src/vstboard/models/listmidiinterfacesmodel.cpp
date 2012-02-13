@@ -53,10 +53,10 @@ QMimeData  * ListMidiInterfacesModel::mimeData ( const QModelIndexList  & indexe
 
 void ListMidiInterfacesModel::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop.contains("state")) {
+    if(msg.prop.contains(MsgObject::State)) {
         for(int i=0; i<rowCount(); i++) {
-            if(index(i,0).data(UserRoles::value).toInt() == msg.prop["dev"].toInt()) {
-                if(msg.prop["state"].toBool())
+            if(index(i,0).data(UserRoles::value).toInt() == msg.prop[MsgObject::Id].toInt()) {
+                if(msg.prop[MsgObject::State].toBool())
                     item(i,3)->setCheckState(Qt::Checked);
                 else
                     item(i,3)->setCheckState(Qt::Unchecked);
@@ -67,14 +67,14 @@ void ListMidiInterfacesModel::ReceiveMsg(const MsgObject &msg)
         return;
     }
 
-    if(msg.prop.contains("fullUpdate")) {
+    if(msg.prop.contains(MsgObject::Update)) {
         invisibleRootItem()->removeRows(0, rowCount());
 
         foreach(const MsgObject &msgDevice, msg.children) {
             QList<QStandardItem *> listItems;
-            QStandardItem *devItem = new QStandardItem(msgDevice.prop["name"].toString());
+            QStandardItem *devItem = new QStandardItem(msgDevice.prop[MsgObject::Name].toString());
             devItem->setEditable(false);
-            ObjectInfo obj = msgDevice.prop["objInfo"].value<ObjectInfo>();
+            ObjectInfo obj = msgDevice.prop[MsgObject::ObjInfo].value<ObjectInfo>();
             devItem->setData(QVariant::fromValue(obj), UserRoles::objInfo);
             devItem->setData(obj.id, UserRoles::value);
             devItem->setDragEnabled(true);
@@ -90,7 +90,7 @@ void ListMidiInterfacesModel::ReceiveMsg(const MsgObject &msg)
 
             QStandardItem *inUseItem = new QStandardItem(false);
             inUseItem->setEditable(false);
-            if(msgDevice.prop["state"].toBool())
+            if(msgDevice.prop[MsgObject::State].toBool())
                 inUseItem->setCheckState(Qt::Checked);
             else
                 inUseItem->setCheckState(Qt::Unchecked);
@@ -105,14 +105,14 @@ void ListMidiInterfacesModel::ReceiveMsg(const MsgObject &msg)
 
 void ListMidiInterfacesModel::Update()
 {
-    MsgObject msg(-1,GetIndex());
-    msg.prop["fullUpdate"]=1;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::GetUpdate]=1;
     msgCtrl->SendMsg(msg);
 }
 
 void ListMidiInterfacesModel::Rescan()
 {
-    MsgObject msg(-1,GetIndex());
-    msg.prop["rescan"]=1;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Rescan]=1;
     msgCtrl->SendMsg(msg);
 }

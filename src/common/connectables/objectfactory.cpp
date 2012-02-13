@@ -67,7 +67,7 @@ void ObjectFactory::ResetSavedId()
     hashObjects::iterator i = listObjects.begin();
     while(i != listObjects.end()) {
         QSharedPointer<Object> objPtr = i.value().toStrongRef();
-        if(objPtr.isNull()) {
+        if(!objPtr) {
             i=listObjects.erase(i);
         } else {
             //don't reset forcced ids
@@ -131,9 +131,10 @@ QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info, int cont
     Object *obj=0;
 
     if(containerId) {
-        MsgObject msg(containerId, objId);
-        msg.prop["actionType"]="tempObj";
-        msg.prop["name"]=info.name;
+        MsgObject msg(containerId);
+        msg.prop[MsgObject::Id]=objId;
+        msg.prop[MsgObject::Add]=NodeType::tempObj;
+        msg.prop[MsgObject::Name]=info.name;
         myHost->SendMsg(msg);
         qApp->processEvents();
     }
@@ -211,6 +212,7 @@ QSharedPointer<Object> ObjectFactory::NewObject(const ObjectInfo &info, int cont
         sharedObj.clear();
         return QSharedPointer<Object>();
     }
+
     obj->SetSleep(false);
 
     if(info.forcedObjId) {

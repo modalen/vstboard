@@ -20,6 +20,8 @@
 
 #include "maincontainerview.h"
 #include "../connectables/objectfactory.h"
+#include "objectview.h"
+#include "vstpluginview.h"
 
 using namespace View;
 
@@ -64,7 +66,108 @@ void MainContainerView::SetDropPos(const QPointF &pt)
 
 void MainContainerView::ReceiveMsg(const MsgObject &msg)
 {
-    content->ReceiveMsg(msg);
+    if(msg.prop.contains(MsgObject::Add)) {
+        switch(msg.prop[MsgObject::Add].toInt()) {
+        case NodeType::bridge :
+            AddBridge(msg);
+            break;
+
+        case NodeType::object :
+            AddObject(msg);
+            break;
+
+        case NodeType::cable :
+            AddCable(msg);
+            break;
+
+        case NodeType::tempObj :
+            AddTempObj(msg);
+            break;
+        }
+    }
+//    content->ReceiveMsg(msg);
+}
+
+
+void MainContainerView::AddBridge(const MsgObject &msg)
+{
+    ObjectView *objView = 0;
+
+    switch(msg.prop[MsgObject::Type].toInt()) {
+        case ObjType::BridgeIn :
+            objView = bridgeIn;
+            break;
+        case ObjType::BridgeOut :
+            objView = bridgeOut;
+            break;
+        case ObjType::BridgeSend :
+            objView = bridgeSend;
+            break;
+        case ObjType::BridgeReturn :
+            objView = bridgeReturn;
+            break;
+        default:
+            LOG("unknown listpin");
+            return;
+    }
+
+    objView->SetIndex( msg.prop[MsgObject::Id].toInt() );
+    objView->ReceiveMsg(msg);
+}
+
+void MainContainerView::AddObject(const MsgObject &msg)
+{
+    ObjectView *objView = 0;
+
+    QPointF pos = GetDropPos();
+
+    //a temp obj exists
+    if(msgCtrl->listObj.contains(msg.prop[MsgObject::Id].toInt())) {
+        ConnectableObjectView *obj = static_cast<ConnectableObjectView*>( msgCtrl->listObj.value(msg.prop[MsgObject::Id].toInt()) );
+        pos=obj->pos();
+        delete obj;
+    }
+
+    if(msg.prop[MsgObject::Type].toInt() == ObjType::VstPlugin) {
+        objView = new VstPluginView(config, msgCtrl, msg.prop[MsgObject::Id].toInt(), this);
+    } else {
+        objView = new ConnectableObjectView(config, msgCtrl, msg.prop[MsgObject::Id].toInt(), this);
+    }
+    objView->Init(msg);
+    objView->setPos(pos);
+
+    //when adding item, the scene set focus to the last item
+    if(scene()->focusItem())
+        scene()->focusItem()->clearFocus();
+}
+
+
+void MainContainerView::AddCable(const MsgObject &msg)
+{
+    PinView* pinOut = static_cast<PinView*>(msgCtrl->listObj.value(msg.prop[MsgObject::PinOut].toInt(),0));
+    PinView* pinIn = static_cast<PinView*>(msgCtrl->listObj.value(msg.prop[MsgObject::PinIn].toInt(),0));
+
+    if(!pinOut || !pinIn) {
+        LOG("addcable : pin not found"<<msg.prop);
+        return;
+    }
+    CableView *cable = new CableView(msgCtrl, msg.prop[MsgObject::Id].toInt(), pinOut, pinIn, this, config);
+    cable->ReceiveMsg(msg);
+    pinOut->AddCable(cable);
+    pinIn->AddCable(cable);
+    cable->ReceiveMsg(msg);
+}
+
+void MainContainerView::AddTempObj(const MsgObject &msg)
+{
+
+    ObjectView *objView = new ConnectableObjectView(config, msgCtrl, msg.prop[MsgObject::Id].toInt(), this);
+    objView->ReceiveMsg(msg);
+    objView->setPos(GetDropPos());
+
+    //when adding item, the scene set focus to the last item
+    if(scene()->focusItem())
+        scene()->focusItem()->clearFocus();
 }
 
 //void MainContainerView::SetModelIndex(QPersistentModelIndex index)
@@ -97,6 +200,6 @@ void MainContainerView::ObjectDropped(QGraphicsSceneDragDropEvent *event, MsgObj
 {
     SetDropPos( event->scenePos() );
     msg.objIndex=GetIndex();
-    msg.prop["actionType"]=InsertionType::NoInsertion;
+    msg.prop[MsgObject::Type]=InsertionType::NoInsertion;
     msgCtrl->SendMsg(msg);
 }

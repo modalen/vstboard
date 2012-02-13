@@ -10,15 +10,17 @@ Cursor::Cursor(MainHost *host, float value) :
 void Cursor::SetValue(float val)
 {
     value=val;
-    MsgObject a(-1,GetIndex());
-    a.prop["actionType"]="update";
-    a.prop["value"]=value;
-    msgCtrl->SendMsg(a);
+
+    if(!MsgEnabled())
+        return;
+    MsgObject msg(GetIndex());
+    msg.prop[MsgObject::Value]=value;
+    msgCtrl->SendMsg(msg);
 }
 
 void Cursor::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop.contains("value")) {
-        emit valueChanged( msg.prop.value("value").toFloat() );
+    if(msg.prop.contains(MsgObject::Value)) {
+        emit valueChanged( msg.prop[MsgObject::Value].toFloat() );
     }
 }

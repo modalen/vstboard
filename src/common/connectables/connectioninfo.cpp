@@ -170,22 +170,22 @@ QDataStream & operator>> (QDataStream& in, ConnectionInfo& connInfo)
 ConnectionInfo::ConnectionInfo(const MsgObject &msg) :
     myHost(0)
 {
-    container = msg.prop.value("container").toInt();
-    objId = msg.prop.value("objId").toInt();
-    type = static_cast<PinType::Enum>(msg.prop.value("type").toInt());
-    direction = static_cast<PinDirection::Enum>(msg.prop.value("direction").toInt());
-    pinNumber = msg.prop.value("pinNumber").toInt();
-    bridge = msg.prop.value("bridge").toBool();
-    isRemoveable = msg.prop.value("isRemoveable").toBool();
+    container = msg.prop[MsgObject::Container].toInt();
+    objId = msg.prop[MsgObject::Object].toInt();
+    type = static_cast<PinType::Enum>(msg.prop[MsgObject::Type].toInt());
+    direction = static_cast<PinDirection::Enum>(msg.prop[MsgObject::Direction].toInt());
+    pinNumber = msg.prop[MsgObject::PinNumber].toInt();
+    bridge = msg.prop[MsgObject::Bridge].toBool();
+    isRemoveable = msg.prop[MsgObject::IsRemoveable].toBool();
 }
 
 void ConnectionInfo::GetInfos(MsgObject &msg)
 {
-    msg.prop["container"]=container;
-    msg.prop["objId"]=objId;
-    msg.prop["type"]=type;
-    msg.prop["direction"]=direction;
-    msg.prop["pinNumber"]=pinNumber;
-    msg.prop["bridge"]=bridge;
-    msg.prop["isRemoveable"]=isRemoveable;
+    msg.prop[MsgObject::Container]=container;
+    msg.prop[MsgObject::Object]=objId;
+    msg.prop[MsgObject::Type]=type;
+    msg.prop[MsgObject::Direction]=direction;
+    msg.prop[MsgObject::PinNumber]=pinNumber;
+    msg.prop[MsgObject::Bridge]=bridge;
+    msg.prop[MsgObject::IsRemoveable]=isRemoveable;
 }

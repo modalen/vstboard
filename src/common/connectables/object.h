@@ -163,7 +163,7 @@ namespace Connectables {
 //        QPersistentModelIndex modelIndex;
 
         /// true if the object is parked (no rendering)
-        bool parked;
+        quint16 parkingId;
 
         /// true if the object is rendered at double precision
         bool doublePrecision;
@@ -179,6 +179,8 @@ namespace Connectables {
 
         virtual void GetInfos(MsgObject &msg);
 
+        virtual void ReceiveMsg(const MsgObject &msg);
+        virtual void SetMsgEnabled(bool enab);
     protected:
 
         void SetInitDelay(long d) {initialDelay=d;}
@@ -256,7 +258,7 @@ namespace Connectables {
         void HideEditorWindow();
 
     public slots:
-        void SuspendIfParked() {if(!parked) return; SetSleep(true);}
+        void SuspendIfParked() {if(parkingId!=FixedObjId::ND) SetSleep(true);}
         void Suspend() {SetSleep(true);}
         void Resume() {SetSleep(false);}
         virtual void SaveProgram();
@@ -284,6 +286,7 @@ namespace Connectables {
         virtual void UserAddPin(const ConnectionInfo &info);
 
         void SetErrorMessage(const QString &msg) {errorMessage=msg;}
+        bool IsInError() { return !(errorMessage.isEmpty()); }
     };
 }
 

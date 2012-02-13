@@ -34,7 +34,7 @@ BridgeView::BridgeView(ViewConfig *config,MsgController *msgCtrl, int objId, QGr
     lLayout->setContentsMargins(0,0,0,0);
     setLayout(lLayout);
 
-    listBridge = new ListPinsView(msgCtrl,-1,this);
+    listBridge = new ListPinsView(config,msgCtrl,-1,this);
     listBridge->layout->setOrientation(Qt::Horizontal);
     lLayout->addItem(listBridge);
 
