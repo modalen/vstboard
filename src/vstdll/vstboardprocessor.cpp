@@ -28,7 +28,10 @@
 #include "connectables/vstaudiodevicein.h"
 #include "connectables/vstaudiodeviceout.h"
 #include "connectables/objectfactoryvst.h"
+
 #include "msgobject.h"
+
+#include "pluginterfaces/base/ibstream.h"
 
 VstBoardProcessor::VstBoardProcessor (Settings *settings,QObject *parent) :
     MainHost(settings,parent),
@@ -99,7 +102,60 @@ tresult PLUGIN_API VstBoardProcessor::initialize (FUnknown* context)
         addAudioOutput(QString("AuxOut%1").arg(i+1).utf16(), Vst::SpeakerArr::kStereo, Vst::kAux, 0);
     }
 
+    for(int i=0; i<NB_MIDI_BUSES_IN; i++) {
+        addEventInput(QString("MidiIn%1").arg(i+1).utf16(), 16, Vst::kMain, 0);
+    }
+    for(int i=0; i<NB_MIDI_BUSES_OUT; i++) {
+        addEventOutput(QString("MidiOut%1").arg(i+1).utf16(), 16, Vst::kMain, 0);
+    }
+
     return kResultTrue;
+}
+
+tresult PLUGIN_API VstBoardProcessor::setState (IBStream* state)
+{
+    int32 size=0;
+    if (state->read (&size, sizeof (int32)) != kResultOk)
+        return kResultFalse;
+
+#if BYTEORDER == kBigEndian
+    SWAP_32 (size)
+#endif
+
+    char *buf = new char[size];
+    if (state->read (buf, size) != kResultOk) {
+        delete[] buf;
+        return kResultFalse;
+    }
+
+
+    QByteArray bArray(buf,size);
+    QDataStream stream( &bArray , QIODevice::ReadOnly);
+    if(!ProjectFile::FromStream(this,stream)) {
+        ClearSetup();
+        ClearProject();
+        delete[] buf;
+        return kResultFalse;
+    }
+
+    delete[] buf;
+    return kResultOk;
+}
+
+tresult PLUGIN_API VstBoardProcessor::getState (IBStream* state)
+{
+    QByteArray bArray;
+    QDataStream stream( &bArray , QIODevice::WriteOnly);
+    ProjectFile::ToStream(this,stream);
+
+    int32 size =  bArray.size();
+#if BYTEORDER == kBigEndian
+    SWAP_32 (size)
+#endif
+    state->write(&size, sizeof (int32));
+    state->write(bArray.data(), bArray.size());
+
+    return kResultOk;
 }
 
 tresult PLUGIN_API VstBoardProcessor::setupProcessing (Vst::ProcessSetup& newSetup)
@@ -113,9 +169,9 @@ tresult PLUGIN_API VstBoardProcessor::setupProcessing (Vst::ProcessSetup& newSet
     if(sampleRate != sRate)
         SetSampleRate(sRate);
 
-    if(newSetup.symbolicSampleSize!=32 && newSetup.symbolicSampleSize!=64) {
-        return kResultFalse;
-    }
+//    if(newSetup.symbolicSampleSize!=Vst::kSample32 && newSetup.symbolicSampleSize!=Vst::kSample64) {
+//        return kResultFalse;
+//    }
 
     return kResultOk;
 }

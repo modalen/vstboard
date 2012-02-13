@@ -36,6 +36,8 @@ class MainWindowVst : public MainWindow {
 
 public:
     MainWindowVst(VstBoardController *controller,Settings *settings, QWidget *parent = 0);
+    ~MainWindowVst();
+    void Init();
     void readSettings();
     void SendMsg(const MsgObject &msg);
     VstBoardController *controller;

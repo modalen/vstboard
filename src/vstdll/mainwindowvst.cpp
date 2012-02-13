@@ -25,7 +25,17 @@ MainWindowVst::MainWindowVst(VstBoardController *controller,Settings *settings, 
     MainWindow(settings,0,parent),
     controller(controller)
 {
-    Init();
+
+}
+
+MainWindowVst::~MainWindowVst()
+{
+
+}
+
+void MainWindowVst::Init()
+{
+    MainWindow::Init();
 
 #ifdef QT_NO_DEBUG
     if(qtTranslator.load("qt_" + QLocale::system().name(), ":/translations/"))
@@ -41,6 +51,8 @@ MainWindowVst::MainWindowVst(VstBoardController *controller,Settings *settings, 
     setWindowTitle(APP_NAME);
     BuildListTools();
     setAcceptDrops(false);
+
+    readSettings();
 }
 
 void MainWindowVst::SendMsg(const MsgObject &msg)
@@ -60,7 +72,7 @@ void MainWindowVst::SendMsg(const MsgObject &msg)
 
 void MainWindowVst::closeEvent(QCloseEvent *event)
 {
-    writeSettings();
+//    writeSettings();
     event->accept();
 }
 

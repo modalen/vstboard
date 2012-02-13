@@ -342,3 +342,10 @@ void GroupsProgramsModel::UserChangeGroupAutosave(const Qt::CheckState state)
     msg.prop["groupAutosave"]=state;
     msgCtrl->SendMsg(msg);
 }
+
+void GroupsProgramsModel::Update()
+{
+    MsgObject msg(-1,GetIndex());
+    msg.prop["fullUpdate"]=1;
+    msgCtrl->SendMsg(msg);
+}

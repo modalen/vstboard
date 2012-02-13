@@ -32,17 +32,20 @@ void ProgramManager::Clear()
 {
     nextGroupId=1;
     nextProgId=1;
+    currentGroupId=0;
+    currentProgId=0;
+    currentMidiGroup=0;
+    currentMidiProg=0;
+    dirtyFlag=false;
     listGroups.clear();
 }
 
 void ProgramManager::ReceiveMsg(const MsgObject &msg)
 {
-    if(msg.prop["actionType"]=="getFullState") {
-//        MsgObject msg(-1,GetIndex());
-
-//        msgCtrl->SendMsg(msg);
-//        updateTimer.start();
-//        return;
+    if(msg.prop.contains("fullUpdate")) {
+        orderChanged=true;
+        updateTimer.start();
+        return;
     }
 
     if(msg.prop["actionType"]=="fullUpdate") {
@@ -258,7 +261,9 @@ void ProgramManager::BuildDefaultPrograms()
 
     currentMidiGroup=127;
     currentMidiProg=127;
-    ChangeProgNow(0,0);
+    if(!ChangeProgNow(0,0)) {
+        LOG("default prog not loaded")
+    }
     SetDirty(false);
 
     orderChanged=true;
@@ -617,7 +622,9 @@ QDataStream & ProgramManager::fromStream (QDataStream &in)
     quint16 prg;
     in >> grp;
     in >> prg;
-    ChangeProgNow(grp,prg);
+    if(!ChangeProgNow(grp,prg)) {
+        LOG("saved prog not loaded")
+    }
 
     in >> (quint8&)groupAutosaveState;
     in >> (quint8&)progAutosaveState;

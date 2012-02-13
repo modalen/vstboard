@@ -63,7 +63,7 @@ bool ProjectFile::LoadFromFile(MainHost *myHost,QString filePath)
 
 bool ProjectFile::ToStream(MainHost *myHost,QDataStream &out, quint32 fileKey )
 {
-    out.setVersion(QDataStream::Qt_4_7);
+    out.setVersion(QDataStream::Qt_4_8);
 
     MainHost::currentFileVersion=PROJECT_AND_SETUP_FILE_VERSION;
 
@@ -92,8 +92,8 @@ bool ProjectFile::ToStream(MainHost *myHost,QDataStream &out, quint32 fileKey )
             SaveChunk("HostView", tmpBa, out);
         }
 
-        {
-            //save Colors
+        //save Colors
+        if(myHost->mainWindow) {
             QByteArray tmpBa;
             QDataStream tmpStream( &tmpBa, QIODevice::ReadWrite);
             myHost->mainWindow->viewConfig->SaveToFile( tmpStream );
@@ -160,7 +160,7 @@ bool ProjectFile::ToStream(MainHost *myHost,QDataStream &out, quint32 fileKey )
 
 bool ProjectFile::FromStream(MainHost *myHost,QDataStream &in)
 {
-    in.setVersion(QDataStream::Qt_4_7);
+    in.setVersion(QDataStream::Qt_4_8);
 
     quint32 magic;
     in >> magic;

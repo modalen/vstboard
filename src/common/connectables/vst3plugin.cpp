@@ -218,7 +218,7 @@ bool Vst3Plugin::Open()
             return true;
         }
 
-////         connect the 2 components
+//         connect the 2 components
         Vst::IConnectionPoint* iConnectionPointComponent = 0;
         Vst::IConnectionPoint* iConnectionPointController = 0;
         processorComponent->queryInterface (Vst::IConnectionPoint::iid, (void**)&iConnectionPointComponent);
@@ -230,9 +230,8 @@ bool Vst3Plugin::Open()
 
 //         synchronize controller to component by using setComponentState
         MemoryStream stream;
-//        stream.setByteOrder (kLittleEndian);
         if (processorComponent->getState (&stream)) {
-//            stream.rewind ();
+            stream.seek(0,IBStream::kIBSeekSet,0);
             editController->setComponentState (&stream);
         }
     }
@@ -769,6 +768,51 @@ tresult PLUGIN_API Vst3Plugin::endEdit (Vst::ParamID id)
 tresult PLUGIN_API Vst3Plugin::restartComponent (int32 flags)
 {
     return kResultOk;
+}
+
+QDataStream & Vst3Plugin::toStream(QDataStream & out) const
+{
+    Object::toStream(out);
+
+    if(!processorComponent) {
+        out << savedState;
+        return out;
+    }
+
+    MemoryStream state;
+    if(processorComponent->getState(&state)!=kResultOk) {
+        LOG("error saving state")
+        out << savedState;
+        return out;
+    }
+
+    state.seek(0,IBStream::kIBSeekSet,0);
+    int32 len=-1;
+    char *buf=new char[1024];
+    QByteArray bArray;
+    while(len!=0) {
+        if(state.read(buf,1024,&len)!=kResultOk)
+            len=0;
+        bArray.append(buf,len);
+    }
+    out << bArray;
+    return out;
+}
+
+bool Vst3Plugin::fromStream(QDataStream & in)
+{
+    if(!Object::fromStream(in))
+        return false;
+
+    in >> savedState;
+
+    if(processorComponent && savedState.size()!=0) {
+        MemoryStream state;
+        state.write(savedState.data(),savedState.size(),0);
+        state.seek(0,IBStream::kIBSeekSet,0);
+        processorComponent->setState(&state);
+    }
+    return true;
 }
 
 //tresult PLUGIN_API Vst3Plugin::setDirty (TBool state)

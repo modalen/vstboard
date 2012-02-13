@@ -37,6 +37,7 @@ signals:
     void GroupAutosaveChanged(const Qt::CheckState state);
 
 public slots:
+    void Update();
     void UserChangeProg(const QModelIndex &idx);
 //    void UserRemoveGroup(const QModelIndexList &grp);
 //    void UserRemoveProg(const QModelIndexList &prg);

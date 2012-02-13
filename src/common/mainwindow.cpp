@@ -68,7 +68,7 @@ void MainWindow::Init()
     //programs
 //    ui->Programs->SetModel( myHost->programsModel );
     ui->Programs->SetModel(progModel);
-
+    progModel->Update();
 
     SetupBrowsersModels( ConfigDialog::defaultVstPath(settings), ConfigDialog::defaultBankPath(settings));
 

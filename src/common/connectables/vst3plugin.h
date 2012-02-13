@@ -43,6 +43,10 @@ public:
 //    tresult PLUGIN_API requestOpenEditor (FIDString name=Vst::ViewType::kEditor);
 //    tresult PLUGIN_API startGroupEdit ();
 //    tresult PLUGIN_API finishGroupEdit ();
+
+    QDataStream & toStream (QDataStream &) const;
+    bool fromStream (QDataStream &);
+
 private:
     void Unload();
     void CreateEditorWindow();
@@ -65,6 +69,10 @@ private:
     QList<QVariant>listBypass;
     QList<QVariant>listValues;
     QMutex paramLock;
+
+//    char *savedChunk;
+//    quint32 savedChunkSize;
+    QByteArray savedState;
 
 signals:
     void WindowSizeChange(int newWidth, int newHeight);

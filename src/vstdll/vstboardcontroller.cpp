@@ -49,6 +49,7 @@ IPlugView* PLUGIN_API VstBoardController::createView (const char* name)
         Gui* view = new Gui();
         Settings *set = new Settings("plugin/",qApp);
         mainWindow = new MainWindowVst(this,set);
+        mainWindow->Init();
         view->SetMainWindow(mainWindow);
         return view;
     }

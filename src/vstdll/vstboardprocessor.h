@@ -33,10 +33,12 @@
 #include "mainhost.h"
 #include "settings.h"
 
-#define NB_MAIN_BUSES_IN 8
-#define NB_AUX_BUSES_IN 8
-#define NB_MAIN_BUSES_OUT 8
-#define NB_AUX_BUSES_OUT 8
+#define NB_MAIN_BUSES_IN 4
+#define NB_MAIN_BUSES_OUT 4
+#define NB_AUX_BUSES_IN 4
+#define NB_AUX_BUSES_OUT 4
+#define NB_MIDI_BUSES_IN 1
+#define NB_MIDI_BUSES_OUT 1
 
 using namespace Steinberg;
 
@@ -70,6 +72,9 @@ public:
         bool removeAudioOut(Connectables::VstAudioDeviceOut *dev);
 
         tresult PLUGIN_API setupProcessing (Vst::ProcessSetup& setup);
+
+        tresult PLUGIN_API setState (IBStream* state);
+        tresult PLUGIN_API getState (IBStream* state);
 
 protected:
         QApplication *myApp;

@@ -34,7 +34,7 @@ ObjectDropZone::ObjectDropZone(MsgController *msgCtrl, int objId, QGraphicsItem 
 void ObjectDropZone::dragEnterEvent( QGraphicsSceneDragDropEvent *event)
 {
     //accepts objects from parking
-    if(event->source() == myParking ) {
+    if(event->source() == myParking && myParking!=0) {
         QGraphicsWidget::dragEnterEvent(event);
         HighlightStart();
         return;
@@ -50,18 +50,13 @@ void ObjectDropZone::dragEnterEvent( QGraphicsSceneDragDropEvent *event)
 
             if ( info.isFile() && info.isReadable() ) {
                 QString fileType(info.suffix().toLower());
-#ifdef VSTSDK
-                //accept DLL files
-                if( fileType=="dll" ) {
-                    event->setDropAction(Qt::CopyAction);
-                    event->accept();
-                    HighlightStart();
-                    return;
-                }
-#endif
 
-                //accept setup and projects files
-                if ( fileType==SETUP_FILE_EXTENSION || fileType==PROJECT_FILE_EXTENSION ) {
+                QStringList acceptedFiles;
+                acceptedFiles << SETUP_FILE_EXTENSION << PROJECT_FILE_EXTENSION;
+#ifdef VSTSDK
+                acceptedFiles << "dll" << "vst3" << "fxb" << "fxp";
+#endif
+                if( acceptedFiles.contains( info.suffix(), Qt::CaseInsensitive) ) {
                     event->setDropAction(Qt::CopyAction);
                     event->accept();
                     HighlightStart();

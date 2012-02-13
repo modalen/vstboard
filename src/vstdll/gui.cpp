@@ -47,7 +47,9 @@ Gui::~Gui()
 {
     if(myWindow) {
         myWindow->writeSettings();
-        myWindow->setParent(0);
+        myWindow->deleteLater();
+        myWindow=0;
+//        myWindow->setParent(0);
     }
     if(widget) {
         delete widget;
@@ -125,7 +127,7 @@ tresult PLUGIN_API Gui::attached (void* parent, FIDString /*type*/)
     widget->setObjectName("QWinWidget");
 
     myWindow->setParent(widget);
-    myWindow->readSettings();
+
     myWindow->move(0,0);
 
     widget->move( 0, 0 );
@@ -150,7 +152,9 @@ tresult PLUGIN_API Gui::removed ()
 {
     if(myWindow) {
         myWindow->writeSettings();
-        myWindow->setParent(0);
+//        myWindow->setParent(0);
+        myWindow->deleteLater();
+        myWindow=0;
     }
     if(widget) {
         delete widget;
